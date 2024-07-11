@@ -4,7 +4,7 @@ import torch
 import numpy as np
 from tqdm import tqdm, trange
 from utils import get_dataloader, save_result_figs, get_loss_plot, CellMapLossWrapper
-from models import resnext3D
+from models import ResNet
 
 # %% Set hyperparameters and other configurations
 learning_rate = 0.0001  # learning rate for the optimizer
@@ -41,7 +41,7 @@ np.random.seed(random_seed)
 
 # %% Check that the GPU is available
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(device)
+print(f"Training device: {device}")
 
 # %% Download the data and make the dataloader
 train_loader, val_loader = get_dataloader(
@@ -54,8 +54,7 @@ train_loader, val_loader = get_dataloader(
 )
 
 # %% Define the model
-model = resnext3D.generate_model(50, n_input_channels=1, n_classes=len(classes))
-
+model = ResNet(ndims=3, input_nc=1, output_nc=len(classes))
 model = model.to(device)
 
 # %% Define the optimizer

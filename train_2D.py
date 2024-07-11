@@ -40,7 +40,7 @@ np.random.seed(random_seed)
 
 # %% Check that the GPU is available
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(device)
+print(f"Training device: {device}")
 
 # %% Download the data and make the dataloader
 train_loader, val_loader = get_dataloader(
