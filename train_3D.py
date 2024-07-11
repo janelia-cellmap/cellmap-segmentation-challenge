@@ -4,12 +4,13 @@ import torch
 import numpy as np
 from tqdm import tqdm, trange
 from utils import get_dataloader, save_result_figs, get_loss_plot, CellMapLossWrapper
+from models import resnext3D
 
 # %% Set hyperparameters and other configurations
 learning_rate = 0.0001  # learning rate for the optimizer
 batch_size = 32  # batch size for the dataloader
 array_info = {
-    "shape": (1, 256, 256),
+    "shape": (256, 256, 256),
     "scale": (8, 8, 8),
 }  # shape and voxel size of the data to load
 epochs = 10  # number of epochs to train the model for
@@ -19,7 +20,7 @@ random_seed = 42  # random seed for reproducibility
 init_model_features = 32  # number of initial features for the model
 
 classes = ["nuc"]  # list of classes to segment
-model_name = "2D_unet"  # name of the model to use
+model_name = "3D_resnet50"  # name of the model to use
 data_base_path = "data"  # base path where the data is stored
 figures_save_path = (
     "figures/{model_name}/{epoch}/{label}.png"  # path to save the example figures
@@ -53,14 +54,7 @@ train_loader, val_loader = get_dataloader(
 )
 
 # %% Define the model
-model = torch.hub.load(
-    "mateuszbuda/brain-segmentation-pytorch",
-    "unet",
-    in_channels=1,
-    out_channels=len(classes),
-    init_features=init_model_features,
-    pretrained=False,
-)
+model = resnext3D.generate_model(50, n_input_channels=1, n_classes=len(classes))
 
 model = model.to(device)
 

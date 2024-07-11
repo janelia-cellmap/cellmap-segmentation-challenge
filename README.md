@@ -10,4 +10,18 @@ Repository of scripts to facilitate participation in CellMap's segmentation chal
 We recommend using micromamba to create a new environment with the required dependencies. You can install micromamba by following the instructions [here](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html#automatic-install). Once you have micromamba installed, you can create a new environment with the required dependencies by running the following commands:
 
 ```bash
-micromamba create -n cellmap-segmentation-challenge python=3.10 pytorch torchvision numpy tqdm cellmap-data -c pytorch -c conda-forge
+# Create a new environment
+micromamba create -n cellmap-segmentation-challenge python=3.10 pytorch torchvision numpy tqdm -c pytorch -c conda-forge
+
+# Activate the environment
+micromamba activate cellmap-segmentation-challenge
+
+# Install other packages
+pip install cellmap-data fvcore
+```
+
+## Download the data
+
+You can download the data by running the following command:
+
+```bash
