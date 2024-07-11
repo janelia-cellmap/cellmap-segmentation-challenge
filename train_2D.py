@@ -4,7 +4,7 @@ import torch
 import numpy as np
 from tqdm import tqdm, trange
 from utils.dataloader import get_dataloader
-from utils.visualize import save_result_figs
+from utils.visualize import save_result_figs, get_loss_plot
 from utils.loss import CellMapLossWrapper
 
 # %% Set hyperparameters and other configurations
@@ -24,7 +24,7 @@ classes = ["nuc"]  # list of classes to segment
 model_name = "2D_unet"  # name of the model to use
 data_base_path = "data"  # base path where the data is stored
 figures_save_path = (
-    "figures/{model_name}_{epoch}/{label}.png"  # path to save the example figures
+    "figures/{model_name}/{epoch}/{label}.png"  # path to save the example figures
 )
 model_save_path = (
     "checkpoints/{model_name}_{epoch}.pth"  # path to save the model checkpoints
@@ -149,3 +149,9 @@ for epoch in training_bar:
             epoch=epoch + 1, model_name=model_name, label="{label}"
         ),
     )
+
+# %% Plot the training loss and validation score
+fig = get_loss_plot(losses, validation_scores, iterations_per_epoch)
+fig.savefig(
+    figures_save_path.format(epoch="summary", model_name=model_name, label="loss_plot")
+)
