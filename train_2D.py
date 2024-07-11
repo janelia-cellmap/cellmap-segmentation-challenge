@@ -1,13 +1,19 @@
 # %% Imports
+import os
 import torch
 import numpy as np
 from tqdm import tqdm, trange
 from utils.dataloader import get_dataloader
-from utils.dataloader import get_result_figs
+from utils.visualize import save_result_figs
+from utils.loss import CellMapLossWrapper
 
 # %% Set hyperparameters and other configurations
 learning_rate = 0.0001  # learning rate for the optimizer
 batch_size = 32  # batch size for the dataloader
+array_info = {
+    "shape": (1, 256, 256),
+    "voxel_size": (8, 8, 8),
+}  # shape and voxel size of the data to load
 epochs = 10  # number of epochs to train the model for
 iterations_per_epoch = 1000  # number of iterations per epoch
 num_workers = 4  # number of workers for the dataloader to use
@@ -18,12 +24,17 @@ classes = ["nuc"]  # list of classes to segment
 model_name = "2D_unet"  # name of the model to use
 data_base_path = "data"  # base path where the data is stored
 figures_save_path = (
-    "figures/{model_name}_{epoch}.png"  # path to save the example figures
+    "figures/{model_name}_{epoch}/{epoch}_{label}"  # path to save the example figures
 )
 model_save_path = (
     "checkpoints/{model_name}_{epoch}.pth"  # path to save the model checkpoints
 )
 datasplit_path = "datasplit.csv"  # path to the datasplit file that defines the train/val split the dataloader should use
+
+
+# %% Make sure the save path exists
+for path in [figures_save_path, model_save_path]:
+    os.makedirs(os.path.dirname(figures_save_path), exist_ok=True)
 
 # %% Set the random seed
 torch.manual_seed(random_seed)
@@ -36,7 +47,9 @@ print(device)
 # %% Download the data and make the dataloader
 train_loader, val_loader = get_dataloader(
     datasplit_path,
+    classes,
     batch_size=batch_size,
+    array_info=array_info,
     iterations_per_epoch=iterations_per_epoch,
     num_workers=num_workers,
     device=device,
@@ -60,6 +73,9 @@ optimizer = torch.optim.RAdam(model.parameters(), lr=learning_rate)
 # %% Define the loss function
 criterion = torch.nn.CrossEntropyLoss()
 
+# Use custom loss function wrapper that handles NaN values in the target. This works with any PyTorch loss function
+criterion = CellMapLossWrapper(criterion)
+
 # %% Train the model
 losses = np.empty((epochs * iterations_per_epoch))
 validation_scores = np.empty(epochs)
@@ -71,9 +87,12 @@ for epoch in training_bar:
     # Set the model to training mode to enable backpropagation
     model.train()
 
+    # Refresh the train loader to shuffle the data yielded by the dataloader
+    train_loader.refresh()
+
     # Training loop for the epoch
     epoch_bar = tqdm(train_loader, leave=False, position=1)
-    for i, (inputs, labels) in enumerate(epoch_bar):
+    for i, (inputs, targets) in enumerate(epoch_bar):
 
         # Zero the gradients, so that they don't accumulate across iterations
         optimizer.zero_grad()
@@ -82,7 +101,7 @@ for epoch in training_bar:
         outputs = model(inputs)
 
         # Compute the loss
-        loss = criterion(outputs, labels)
+        loss = criterion(outputs, targets)
 
         # Save the loss for logging
         losses[epoch * iterations_per_epoch + i] = loss.item()
@@ -108,9 +127,9 @@ for epoch in training_bar:
     # Compute the validation score by averaging the loss across the validation set
     val_score = 0
     val_bar = tqdm(val_loader, leave=False, position=1)
-    for inputs, labels in val_bar:
+    for inputs, targets in val_bar:
         outputs = model(inputs)
-        val_score += criterion(outputs, labels).item()
+        val_score += criterion(outputs, targets).item()
     val_score /= len(val_loader)
     validation_scores[epoch] = val_score
 
@@ -119,10 +138,12 @@ for epoch in training_bar:
     training_bar.refresh()
 
     # Generate and save some example figures from the validation set
-    get_result_figs(
+    save_result_figs(
         inputs,
         outputs,
-        labels,
+        targets,
         classes,
-        figures_save_path.format(epoch=epoch + 1, model_name=model_name),
+        figures_save_path.format(
+            epoch=epoch + 1, model_name=model_name, label="{label}"
+        ),
     )
