@@ -12,7 +12,7 @@ learning_rate = 0.0001  # learning rate for the optimizer
 batch_size = 32  # batch size for the dataloader
 array_info = {
     "shape": (1, 256, 256),
-    "voxel_size": (8, 8, 8),
+    "scale": (8, 8, 8),
 }  # shape and voxel size of the data to load
 epochs = 10  # number of epochs to train the model for
 iterations_per_epoch = 1000  # number of iterations per epoch
@@ -24,7 +24,7 @@ classes = ["nuc"]  # list of classes to segment
 model_name = "2D_unet"  # name of the model to use
 data_base_path = "data"  # base path where the data is stored
 figures_save_path = (
-    "figures/{model_name}_{epoch}/{epoch}_{label}"  # path to save the example figures
+    "figures/{model_name}_{epoch}/{label}.png"  # path to save the example figures
 )
 model_save_path = (
     "checkpoints/{model_name}_{epoch}.pth"  # path to save the model checkpoints
@@ -91,7 +91,7 @@ for epoch in training_bar:
     train_loader.refresh()
 
     # Training loop for the epoch
-    epoch_bar = tqdm(train_loader, leave=False, position=1)
+    epoch_bar = tqdm(train_loader.loader, leave=False, position=1)
     for i, (inputs, targets) in enumerate(epoch_bar):
 
         # Zero the gradients, so that they don't accumulate across iterations

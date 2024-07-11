@@ -1,7 +1,7 @@
 import torch
 from typing import Mapping, Sequence
 
-import cellmap_data
+from cellmap_data import CellMapDataSplit, CellMapDataLoader
 
 
 def get_dataloader(
@@ -41,4 +41,32 @@ def get_dataloader(
     tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader]
         Tuple containing the train and validation dataloaders.
     """
-    #
+
+    input_arrays = {"input": array_info}
+    target_arrays = {"output": array_info}
+
+    datasplit = CellMapDataSplit(
+        input_arrays=input_arrays,
+        target_arrays=target_arrays,
+        classes=classes,
+        pad=True,
+        csv_path=datasplit_path,
+    )
+
+    validation_loader = CellMapDataLoader(
+        datasplit.validation_blocks,
+        classes=classes,
+        batch_size=batch_size,
+        is_train=False,
+    ).loader
+
+    train_loader = CellMapDataLoader(
+        datasplit.train_datasets_combined,
+        classes=classes,
+        batch_size=batch_size,
+        sampler=lambda: datasplit.train_datasets_combined.get_subset_random_sampler(
+            iterations_per_epoch * batch_size, weighted=False
+        ),
+    )
+
+    return train_loader, validation_loader
