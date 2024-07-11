@@ -1,4 +1,5 @@
 import torch
+from torch.utils.data import DataLoader
 from typing import Mapping, Sequence
 
 from cellmap_data import CellMapDataSplit, CellMapDataLoader
@@ -11,8 +12,7 @@ def get_dataloader(
     array_info: Mapping[str, Sequence[int | float]],
     iterations_per_epoch: int,
     num_workers: int,
-    device: torch.device,
-) -> tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader]:
+) -> tuple[CellMapDataLoader, DataLoader]:
     """
     Get the train and validation dataloaders.
 
@@ -33,8 +33,6 @@ def get_dataloader(
         Number of iterations per epoch.
     num_workers : int
         Number of workers for the dataloader to use.
-    device : torch.device
-        Device to use for the dataloader.
 
     Returns
     -------
@@ -58,6 +56,7 @@ def get_dataloader(
         classes=classes,
         batch_size=batch_size,
         is_train=False,
+        num_workers=num_workers,
     ).loader
 
     train_loader = CellMapDataLoader(
@@ -67,6 +66,7 @@ def get_dataloader(
         sampler=lambda: datasplit.train_datasets_combined.get_subset_random_sampler(
             iterations_per_epoch * batch_size, weighted=False
         ),
+        num_workers=num_workers,
     )
 
-    return train_loader, validation_loader
+    return train_loader, validation_loader  # type: ignore

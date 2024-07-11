@@ -52,7 +52,6 @@ train_loader, val_loader = get_dataloader(
     array_info=array_info,
     iterations_per_epoch=iterations_per_epoch,
     num_workers=num_workers,
-    device=device,
 )
 
 # %% Define the model
@@ -93,6 +92,9 @@ for epoch in training_bar:
     # Training loop for the epoch
     epoch_bar = tqdm(train_loader.loader, leave=False, position=1)
     for i, (inputs, targets) in enumerate(epoch_bar):
+        # Move the data to the device
+        inputs = inputs.to(device)
+        targets = targets.to(device)
 
         # Zero the gradients, so that they don't accumulate across iterations
         optimizer.zero_grad()
