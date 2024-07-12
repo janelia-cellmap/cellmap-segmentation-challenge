@@ -19,7 +19,7 @@ random_seed = 42  # random seed for reproducibility
 init_model_features = 32  # number of initial features for the model
 
 classes = ["nuc"]  # list of classes to segment
-model_name = "3D_resnet50"  # name of the model to use
+model_name = "3D_resnet"  # name of the model to use
 data_base_path = "data"  # base path where the data is stored
 figures_save_path = (
     "figures/{model_name}/{epoch}/{label}.png"  # path to save the example figures
@@ -29,10 +29,8 @@ model_save_path = (
 )
 datasplit_path = "datasplit.csv"  # path to the datasplit file that defines the train/val split the dataloader should use
 
-
 # %% Make sure the save path exists
-for path in [figures_save_path, model_save_path]:
-    os.makedirs(os.path.dirname(figures_save_path), exist_ok=True)
+os.makedirs(os.path.dirname(model_save_path), exist_ok=True)
 
 # %% Set the random seed
 torch.manual_seed(random_seed)
@@ -74,9 +72,6 @@ for epoch in training_bar:
 
     # Set the model to training mode to enable backpropagation
     model.train()
-
-    # Refresh the train loader to shuffle the data yielded by the dataloader
-    train_loader.refresh()
 
     # Training loop for the epoch
     epoch_bar = tqdm(train_loader.loader, leave=False, position=1)
@@ -138,6 +133,9 @@ for epoch in training_bar:
             epoch=epoch + 1, model_name=model_name, label="{label}"
         ),
     )
+
+    # Refresh the train loader to shuffle the data yielded by the dataloader
+    train_loader.refresh()
 
 # %% Plot the training loss and validation score
 fig = get_loss_plot(losses, validation_scores, iterations_per_epoch)
