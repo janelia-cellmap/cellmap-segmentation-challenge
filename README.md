@@ -7,7 +7,13 @@ Repository of scripts to facilitate participation in CellMap's segmentation chal
 
 ## Set up your environment
 
-We recommend using micromamba to create a new environment with the required dependencies. You can install micromamba by following the instructions [here](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html#automatic-install). Once you have micromamba installed, you can create a new environment with the required dependencies by running the following commands:
+We recommend using micromamba to create a new environment with the required dependencies. You can install micromamba by following the instructions [here](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html#automatic-install). The fastest way to do this install is to run the following in your terminal:
+
+```bash
+"${SHELL}" <(curl -L micro.mamba.pm/install.sh)
+```
+
+Once you have micromamba installed, you can create a new environment with the required dependencies by running the following commands:
 
 ```bash
 # Create a new environment
