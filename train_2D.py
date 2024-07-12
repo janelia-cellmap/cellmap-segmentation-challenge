@@ -14,7 +14,6 @@ array_info = {
 }  # shape and voxel size of the data to load
 epochs = 10  # number of epochs to train the model for
 iterations_per_epoch = 1000  # number of iterations per epoch
-num_workers = 4  # number of workers for the dataloader to use
 random_seed = 42  # random seed for reproducibility
 init_model_features = 32  # number of initial features for the model
 
@@ -49,7 +48,6 @@ train_loader, val_loader = get_dataloader(
     batch_size=batch_size,
     array_info=array_info,
     iterations_per_epoch=iterations_per_epoch,
-    num_workers=num_workers,
 )
 
 # %% Define the model

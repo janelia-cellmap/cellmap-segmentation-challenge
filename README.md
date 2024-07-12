@@ -20,8 +20,50 @@ micromamba activate cellmap-segmentation-challenge
 pip install cellmap-data fvcore
 ```
 
+## Clone the repository
+
+You can clone the repository by running the following command:
+
+```bash
+git clone github.com/janelia-cellmap/cellmap-segmentation-challenge
+
+```
+
+## Repository structure
+
+The repository is structured as follows:
+
+...
+
+
 ## Download the data
 
 You can download the data by running the following command:
 
 ```bash
+...
+```
+
+## Train a model
+
+You can train a model by running the following command:
+
+```bash
+...
+```
+
+## Predict on test data
+
+You can predict on test data by running the following command:
+
+```bash
+...
+```
+
+## Evaluate your predictions
+
+You can evaluate your predictions by running the following command:
+
+```bash
+...
+```

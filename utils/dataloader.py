@@ -10,7 +10,6 @@ def get_dataloader(
     batch_size: int,
     array_info: Mapping[str, Sequence[int | float]],
     iterations_per_epoch: int,
-    num_workers: int,
 ) -> tuple[CellMapDataLoader, DataLoader]:
     """
     Get the train and validation dataloaders.
@@ -30,8 +29,6 @@ def get_dataloader(
         Shape and voxel size of the data to load.
     iterations_per_epoch : int
         Number of iterations per epoch.
-    num_workers : int
-        Number of workers for the dataloader to use.
 
     Returns
     -------
@@ -55,7 +52,6 @@ def get_dataloader(
         classes=classes,
         batch_size=batch_size,
         is_train=False,
-        num_workers=num_workers,
     ).loader
 
     train_loader = CellMapDataLoader(
@@ -65,7 +61,6 @@ def get_dataloader(
         sampler=lambda: datasplit.train_datasets_combined.get_subset_random_sampler(
             iterations_per_epoch * batch_size, weighted=False
         ),
-        num_workers=num_workers,
     )
 
     return train_loader, validation_loader  # type: ignore
