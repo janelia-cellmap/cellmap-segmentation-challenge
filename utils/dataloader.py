@@ -1,5 +1,6 @@
+import torch
 from torch.utils.data import DataLoader
-from typing import Mapping, Sequence
+from typing import Mapping, Optional, Sequence
 
 from cellmap_data import CellMapDataSplit, CellMapDataLoader
 
@@ -8,8 +9,11 @@ def get_dataloader(
     datasplit_path: str,
     classes: Sequence[str],
     batch_size: int,
-    array_info: Mapping[str, Sequence[int | float]],
-    iterations_per_epoch: int,
+    array_info: Optional[Mapping[str, Sequence[int | float]]] = None,
+    input_array_info: Optional[Mapping[str, Sequence[int | float]]] = None,
+    target_array_info: Optional[Mapping[str, Sequence[int | float]]] = None,
+    iterations_per_epoch: int = 1000,
+    device: str | torch.device = "cuda",
 ) -> tuple[CellMapDataLoader, DataLoader]:
     """
     Get the train and validation dataloaders.
@@ -25,10 +29,16 @@ def get_dataloader(
         List of classes to segment.
     batch_size : int
         Batch size for the dataloader.
-    array_info : Mapping[Sequence[int], Sequence[float | int]]
-        Shape and voxel size of the data to load.
+    array_info : Optional[Mapping[str, Sequence[int | float]]]
+        Dictionary containing the shape and scale of the data to load for the input and target. Either `array_info` or `input_array_info` & `target_array_info` must be provided.
+    input_array_info : Optional[Mapping[str, Sequence[int | float]]]
+        Dictionary containing the shape and scale of the data to load for the input.
+    target_array_info : Optional[Mapping[str, Sequence[int | float]]]
+        Dictionary containing the shape and scale of the data to load for the target.
     iterations_per_epoch : int
         Number of iterations per epoch.
+    device : str or torch.device
+        Device to use for the dataloaders.
 
     Returns
     -------
@@ -36,8 +46,12 @@ def get_dataloader(
         Tuple containing the train and validation dataloaders.
     """
 
-    input_arrays = {"input": array_info}
-    target_arrays = {"output": array_info}
+    input_arrays = {
+        "input": input_array_info if input_array_info is not None else array_info
+    }
+    target_arrays = {
+        "output": target_array_info if target_array_info is not None else array_info
+    }
 
     datasplit = CellMapDataSplit(
         input_arrays=input_arrays,
@@ -48,14 +62,14 @@ def get_dataloader(
     )
 
     validation_loader = CellMapDataLoader(
-        datasplit.validation_blocks,
+        datasplit.validation_blocks.to(device),
         classes=classes,
         batch_size=batch_size,
         is_train=False,
     ).loader
 
     train_loader = CellMapDataLoader(
-        datasplit.train_datasets_combined,
+        datasplit.train_datasets_combined.to(device),
         classes=classes,
         batch_size=batch_size,
         sampler=lambda: datasplit.train_datasets_combined.get_subset_random_sampler(

@@ -8,10 +8,14 @@ from utils import get_dataloader, save_result_figs, get_loss_plot, CellMapLossWr
 # %% Set hyperparameters and other configurations
 learning_rate = 0.0001  # learning rate for the optimizer
 batch_size = 32  # batch size for the dataloader
-array_info = {
-    "shape": (1, 256, 256),
+input_array_info = {
+    "shape": (256, 256, 256),
     "scale": (8, 8, 8),
-}  # shape and voxel size of the data to load
+}  # shape and voxel size of the data to load for the input
+target_array_info = {
+    "shape": (256, 256, 256),
+    "scale": (8, 8, 8),
+}  # shape and voxel size of the data to load for the target
 epochs = 10  # number of epochs to train the model for
 iterations_per_epoch = 1000  # number of iterations per epoch
 random_seed = 42  # random seed for reproducibility
@@ -44,8 +48,10 @@ train_loader, val_loader = get_dataloader(
     datasplit_path,
     classes,
     batch_size=batch_size,
-    array_info=array_info,
+    input_array_info=input_array_info,
+    target_array_info=target_array_info,
     iterations_per_epoch=iterations_per_epoch,
+    device=device,
 )
 
 # %% Define the model
@@ -84,10 +90,6 @@ for epoch in training_bar:
     # Training loop for the epoch
     epoch_bar = tqdm(train_loader.loader, leave=False, position=1)
     for i, (inputs, targets) in enumerate(epoch_bar):
-        # Move the data to the device
-        inputs = inputs.to(device)
-        targets = targets.to(device)
-
         # Zero the gradients, so that they don't accumulate across iterations
         optimizer.zero_grad()
 
