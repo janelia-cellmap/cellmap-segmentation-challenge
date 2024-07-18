@@ -10,11 +10,11 @@ from models import ResNet
 learning_rate = 0.0001  # learning rate for the optimizer
 batch_size = 32  # batch size for the dataloader
 input_array_info = {
-    "shape": (256, 256, 256),
+    "shape": (128, 128, 128),
     "scale": (8, 8, 8),
 }  # shape and voxel size of the data to load for the input
 target_array_info = {
-    "shape": (256, 256, 256),
+    "shape": (128, 128, 128),
     "scale": (8, 8, 8),
 }  # shape and voxel size of the data to load for the target
 epochs = 10  # number of epochs to train the model for
@@ -63,7 +63,7 @@ model = model.to(device)
 optimizer = torch.optim.RAdam(model.parameters(), lr=learning_rate)
 
 # %% Define the loss function
-criterion = torch.nn.CrossEntropyLoss()
+criterion = torch.nn.CrossEntropyLoss
 
 # Use custom loss function wrapper that handles NaN values in the target. This works with any PyTorch loss function
 criterion = CellMapLossWrapper(criterion)
@@ -81,7 +81,10 @@ for epoch in training_bar:
 
     # Training loop for the epoch
     epoch_bar = tqdm(train_loader.loader, leave=False, position=1)
-    for i, (inputs, targets) in enumerate(epoch_bar):
+    for i, batch in enumerate(epoch_bar):
+        inputs = batch["input"]
+        targets = batch["output"]
+
         # Zero the gradients, so that they don't accumulate across iterations
         optimizer.zero_grad()
 

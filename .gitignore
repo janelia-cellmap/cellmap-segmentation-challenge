@@ -172,3 +172,4 @@ cython_debug/
 *.pt
 *.ckpt
 *.png
+*.csv

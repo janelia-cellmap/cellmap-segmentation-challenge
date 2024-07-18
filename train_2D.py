@@ -55,14 +55,7 @@ train_loader, val_loader = get_dataloader(
 )
 
 # %% Define the model
-model = torch.hub.load(
-    "mateuszbuda/brain-segmentation-pytorch",
-    "unet",
-    in_channels=1,
-    out_channels=len(classes),
-    init_features=init_model_features,
-    pretrained=False,
-)
+model = ...
 
 # Move the model to the device
 model = model.to(device)
@@ -71,7 +64,7 @@ model = model.to(device)
 optimizer = torch.optim.RAdam(model.parameters(), lr=learning_rate)
 
 # %% Define the loss function
-criterion = torch.nn.CrossEntropyLoss()
+criterion = torch.nn.CrossEntropyLoss
 
 # Use custom loss function wrapper that handles NaN values in the target. This works with any PyTorch loss function
 criterion = CellMapLossWrapper(criterion)
@@ -89,7 +82,10 @@ for epoch in training_bar:
 
     # Training loop for the epoch
     epoch_bar = tqdm(train_loader.loader, leave=False, position=1)
-    for i, (inputs, targets) in enumerate(epoch_bar):
+    for i, batch in enumerate(epoch_bar):
+        inputs = batch["input"]
+        targets = batch["output"]
+
         # Zero the gradients, so that they don't accumulate across iterations
         optimizer.zero_grad()
 

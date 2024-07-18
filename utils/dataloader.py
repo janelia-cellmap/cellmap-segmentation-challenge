@@ -3,6 +3,11 @@ from torch.utils.data import DataLoader
 from typing import Mapping, Optional, Sequence
 
 from cellmap_data import CellMapDataSplit, CellMapDataLoader
+from cellmap_data.transforms.augment import (
+    Normalize,
+    NaNtoNum,
+)
+import torchvision.transforms.v2 as T
 
 
 def get_dataloader(
@@ -53,12 +58,22 @@ def get_dataloader(
         "output": target_array_info if target_array_info is not None else array_info
     }
 
+    value_transforms = T.Compose(
+        [
+            Normalize(),
+            T.ToDtype(torch.float, scale=True),
+            NaNtoNum({"nan": 0.0, "posinf": None, "neginf": None}),
+        ],
+    )
+
     datasplit = CellMapDataSplit(
         input_arrays=input_arrays,
         target_arrays=target_arrays,
         classes=classes,
         pad=True,
         csv_path=datasplit_path,
+        train_raw_value_transforms=value_transforms,
+        val_raw_value_transforms=value_transforms,
     )
 
     validation_loader = CellMapDataLoader(
