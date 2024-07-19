@@ -11,13 +11,17 @@ class CellMapLossWrapper(torch.nn.modules.loss._Loss):
     The loss is then averaged across the non-NaN values.
     """
 
-    def __init__(self, loss_fn: torch.nn.modules.loss._Loss, **kwargs):
-        super(CellMapLossWrapper, self).__init__()
+    def __init__(
+        self,
+        loss_fn: torch.nn.modules.loss._Loss | torch.nn.modules.loss._WeightedLoss,
+        **kwargs
+    ):
+        super().__init__()
         self.kwargs = kwargs
         self.kwargs["reduction"] = "none"
         self.loss_fn = loss_fn(**self.kwargs)
 
     def forward(self, outputs: torch.Tensor, target: torch.Tensor):
         loss = self.loss_fn(outputs, target.nan_to_num(0))
-        loss = (loss * target.isnan().logical_not()).mean()
+        loss = (loss * target.isnan().logical_not()).nanmean()
         return loss

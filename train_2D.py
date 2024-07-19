@@ -4,16 +4,17 @@ import torch
 import numpy as np
 from tqdm import tqdm, trange
 from utils import get_dataloader, save_result_figs, get_loss_plot, CellMapLossWrapper
+from models import ResNet
 
 # %% Set hyperparameters and other configurations
 learning_rate = 0.0001  # learning rate for the optimizer
 batch_size = 32  # batch size for the dataloader
 input_array_info = {
-    "shape": (256, 256, 256),
+    "shape": (1, 256, 256),
     "scale": (8, 8, 8),
 }  # shape and voxel size of the data to load for the input
 target_array_info = {
-    "shape": (256, 256, 256),
+    "shape": (1, 256, 256),
     "scale": (8, 8, 8),
 }  # shape and voxel size of the data to load for the target
 epochs = 10  # number of epochs to train the model for
@@ -55,7 +56,7 @@ train_loader, val_loader = get_dataloader(
 )
 
 # %% Define the model
-model = ...
+model = ResNet(ndims=2, input_nc=1, output_nc=len(classes))
 
 # Move the model to the device
 model = model.to(device)
@@ -64,25 +65,26 @@ model = model.to(device)
 optimizer = torch.optim.RAdam(model.parameters(), lr=learning_rate)
 
 # %% Define the loss function
-criterion = torch.nn.CrossEntropyLoss
+criterion = torch.nn.BCEWithLogitsLoss
 
 # Use custom loss function wrapper that handles NaN values in the target. This works with any PyTorch loss function
 criterion = CellMapLossWrapper(criterion)
 
 # %% Train the model
-losses = np.empty((epochs * iterations_per_epoch))
-validation_scores = np.empty(epochs)
+losses = []
+validation_scores = []
+post_fix_dict = {}
 
 # Training outer loop, across epochs
-training_bar = trange(epochs, leave=True, position=0)
-for epoch in training_bar:
+for epoch in range(epochs):
 
     # Set the model to training mode to enable backpropagation
     model.train()
 
     # Training loop for the epoch
-    epoch_bar = tqdm(train_loader.loader, leave=False, position=1)
-    for i, batch in enumerate(epoch_bar):
+    post_fix_dict["Epoch"] = epoch + 1
+    epoch_bar = tqdm(train_loader.loader, desc="Training")
+    for batch in epoch_bar:
         inputs = batch["input"]
         targets = batch["output"]
 
@@ -96,7 +98,7 @@ for epoch in training_bar:
         loss = criterion(outputs, targets)
 
         # Save the loss for logging
-        losses[epoch * iterations_per_epoch + i] = loss.item()
+        losses.append(loss.item())
 
         # Backward pass (compute the gradients)
         loss.backward()
@@ -105,7 +107,8 @@ for epoch in training_bar:
         optimizer.step()
 
         # Update the progress bar
-        epoch_bar.set_description(f"Loss: {loss.item():.4f}")
+        post_fix_dict["Loss"] = f"{loss.item():.4f}"
+        epoch_bar.set_postfix(post_fix_dict)
 
     # Save the model
     torch.save(
@@ -118,16 +121,17 @@ for epoch in training_bar:
 
     # Compute the validation score by averaging the loss across the validation set
     val_score = 0
-    val_bar = tqdm(val_loader, leave=False, position=1)
-    for inputs, targets in val_bar:
+    val_bar = tqdm(val_loader, desc="Validation")
+    for batch in val_bar:
+        inputs = batch["input"]
+        targets = batch["output"]
         outputs = model(inputs)
         val_score += criterion(outputs, targets).item()
     val_score /= len(val_loader)
     validation_scores[epoch] = val_score
 
     # Update the progress bar
-    training_bar.set_description(f"Validation score: {val_score:.4f}")
-    training_bar.refresh()
+    post_fix_dict["Validation"] = f"{val_score:.4f}"
 
     # Generate and save some example figures from the validation set
     save_result_figs(

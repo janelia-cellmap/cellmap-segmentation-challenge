@@ -62,18 +62,27 @@ def get_dataloader(
         [
             Normalize(),
             T.ToDtype(torch.float, scale=True),
-            NaNtoNum({"nan": 0.0, "posinf": None, "neginf": None}),
+            NaNtoNum({"nan": 0, "posinf": None, "neginf": None}),
         ],
     )
+
+    # spatial_transforms = {
+    #     "mirror": {"axes": {"x": 0.5, "y": 0.5, "z": 0.5}},
+    #     # "mirror": {"axes": {"x": 0.5, "y": 0.5}},
+    #     "transpose": {"axes": ["x", "y", "z"]},
+    #     # "transpose": {"axes": ["x", "y"]},
+    # }
 
     datasplit = CellMapDataSplit(
         input_arrays=input_arrays,
         target_arrays=target_arrays,
         classes=classes,
-        pad=True,
+        pad=False,  # TODO: Make work with padding
         csv_path=datasplit_path,
         train_raw_value_transforms=value_transforms,
         val_raw_value_transforms=value_transforms,
+        target_value_transforms=T.ToDtype(torch.float),
+        # spatial_transforms=spatial_transforms,
     )
 
     validation_loader = CellMapDataLoader(
