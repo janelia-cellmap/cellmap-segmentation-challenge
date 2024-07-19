@@ -107,7 +107,7 @@ class Resnet2D(torch.nn.Module):
                 activation(),
             ]
         model += padder.copy()
-        model += [torch.nn.Conv2d(ngf, ngf, kernel_size=7, padding=p)]
+        model += [torch.nn.Conv2d(ngf, output_nc, kernel_size=7, padding=p)]
 
         self.model = torch.nn.Sequential(*model)
 

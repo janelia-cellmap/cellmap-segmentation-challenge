@@ -8,14 +8,14 @@ from models import ResNet
 
 # %% Set hyperparameters and other configurations
 learning_rate = 0.0001  # learning rate for the optimizer
-batch_size = 32  # batch size for the dataloader
+batch_size = 16  # batch size for the dataloader
 input_array_info = {
-    "shape": (1, 256, 256),
-    "scale": (8, 8, 8),
+    "shape": (1, 128, 128),
+    "scale": (64, 64, 64),
 }  # shape and voxel size of the data to load for the input
 target_array_info = {
-    "shape": (1, 256, 256),
-    "scale": (8, 8, 8),
+    "shape": (1, 128, 128),
+    "scale": (64, 64, 64),
 }  # shape and voxel size of the data to load for the target
 epochs = 10  # number of epochs to train the model for
 iterations_per_epoch = 1000  # number of iterations per epoch
@@ -23,7 +23,7 @@ random_seed = 42  # random seed for reproducibility
 init_model_features = 32  # number of initial features for the model
 
 classes = ["nuc"]  # list of classes to segment
-model_name = "2D_unet"  # name of the model to use
+model_name = "2D_resnet"  # name of the model to use
 data_base_path = "data"  # base path where the data is stored
 figures_save_path = (
     "figures/{model_name}/{epoch}/{label}.png"  # path to save the example figures
