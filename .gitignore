@@ -174,3 +174,5 @@ cython_debug/
 *.png
 *.csv
 tensorboard/
+*.err
+*.out
