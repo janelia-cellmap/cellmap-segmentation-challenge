@@ -27,7 +27,7 @@ init_model_features = 32  # number of initial features for the model
 classes = ["nuc"]  # list of classes to segment
 model_name = "3d_unet"  # name of the model to use
 data_base_path = "data"  # base path where the data is stored
-logs_save_path = "tensorboard/{model_name}"  # path to save the example figures
+logs_save_path = "tensorboard/{model_name}"  # path to save the logs from tensorboard
 model_save_path = (
     "checkpoints/{model_name}_{epoch}.pth"  # path to save the model checkpoints
 )
@@ -55,9 +55,8 @@ train_loader, val_loader = get_dataloader(
     device=device,
 )
 
-# %% Define the model
+# %% Define the model and move model to device
 model = unet_model.UNet(1, len(classes))
-# model = model = ResNet(ndims=2, input_nc=1, output_nc=len(classes))
 model = model.to(device)
 
 # %% Define the optimizer
@@ -72,8 +71,10 @@ criterion = CellMapLossWrapper(criterion)
 # %% Train the model
 post_fix_dict = {}
 
+# Define a summarywriter
 writer = SummaryWriter(logs_save_path.format(model_name=model_name))
 
+# Create a variable to track iterations
 n_iter = 0
 # Training outer loop, across epochs
 for epoch in range(epochs):
@@ -85,8 +86,10 @@ for epoch in range(epochs):
     post_fix_dict["Epoch"] = epoch + 1
     epoch_bar = tqdm(train_loader.loader, desc="Training")
     for batch in epoch_bar:
+        # Increment the training iteration
         n_iter += 1
 
+        # Get the inputs and targets
         inputs = batch["input"]
         targets = batch["output"]
 
@@ -109,7 +112,7 @@ for epoch in range(epochs):
         post_fix_dict["Loss"] = f"{loss.item()}"
         epoch_bar.set_postfix(post_fix_dict)
 
-        # log loss
+        # Log the loss using tensorboard
         writer.add_scalar("loss", loss.item(), n_iter)
 
     # Save the model
@@ -132,7 +135,7 @@ for epoch in range(epochs):
         val_score += criterion(outputs, targets).item()
 
     val_score /= len(val_loader)
-    # log validation
+    # Log the validation using tensorboard
     writer.add_scalar("validation", val_score, n_iter)
 
     # Update the progress bar

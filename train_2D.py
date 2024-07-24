@@ -4,11 +4,13 @@ import torch
 import numpy as np
 from tqdm import tqdm, trange
 from utils import get_dataloader, save_result_figs, get_loss_plot, CellMapLossWrapper
-from models import ResNet
+from models import unet_model, ResNet
+from tensorboardX import SummaryWriter
+from cellmap_data.utils import get_image_dict
 
 # %% Set hyperparameters and other configurations
 learning_rate = 0.0001  # learning rate for the optimizer
-batch_size = 16  # batch size for the dataloader
+batch_size = 8  # batch size for the dataloader
 input_array_info = {
     "shape": (1, 128, 128),
     "scale": (64, 64, 64),
@@ -23,11 +25,9 @@ random_seed = 42  # random seed for reproducibility
 init_model_features = 32  # number of initial features for the model
 
 classes = ["nuc"]  # list of classes to segment
-model_name = "2D_resnet"  # name of the model to use
+model_name = "2d_resnet"  # name of the model to use
 data_base_path = "data"  # base path where the data is stored
-figures_save_path = (
-    "figures/{model_name}/{epoch}/{label}.png"  # path to save the example figures
-)
+logs_save_path = "tensorboard/{model_name}"  # path to save the logs from tensorboard
 model_save_path = (
     "checkpoints/{model_name}_{epoch}.pth"  # path to save the model checkpoints
 )
@@ -55,10 +55,8 @@ train_loader, val_loader = get_dataloader(
     device=device,
 )
 
-# %% Define the model
-model = ResNet(ndims=2, input_nc=1, output_nc=len(classes))
-
-# Move the model to the device
+# %% Define the model and move model to device
+model = model = ResNet(ndims=2, input_nc=1, output_nc=len(classes))
 model = model.to(device)
 
 # %% Define the optimizer
@@ -71,10 +69,13 @@ criterion = torch.nn.BCEWithLogitsLoss
 criterion = CellMapLossWrapper(criterion)
 
 # %% Train the model
-losses = []
-validation_scores = []
 post_fix_dict = {}
 
+# Define a summarywriter
+writer = SummaryWriter(logs_save_path.format(model_name=model_name))
+
+# Create a variable to track iterations
+n_iter = 0
 # Training outer loop, across epochs
 for epoch in range(epochs):
 
@@ -85,6 +86,10 @@ for epoch in range(epochs):
     post_fix_dict["Epoch"] = epoch + 1
     epoch_bar = tqdm(train_loader.loader, desc="Training")
     for batch in epoch_bar:
+        # Increment the training iteration
+        n_iter += 1
+
+        # Get the inputs and targets
         inputs = batch["input"]
         targets = batch["output"]
 
@@ -97,9 +102,6 @@ for epoch in range(epochs):
         # Compute the loss
         loss = criterion(outputs, targets)
 
-        # Save the loss for logging
-        losses.append(loss.item())
-
         # Backward pass (compute the gradients)
         loss.backward()
 
@@ -107,8 +109,11 @@ for epoch in range(epochs):
         optimizer.step()
 
         # Update the progress bar
-        post_fix_dict["Loss"] = f"{loss.item():.4f}"
+        post_fix_dict["Loss"] = f"{loss.item()}"
         epoch_bar.set_postfix(post_fix_dict)
+
+        # Log the loss using tensorboard
+        writer.add_scalar("loss", loss.item(), n_iter)
 
     # Save the model
     torch.save(
@@ -123,32 +128,30 @@ for epoch in range(epochs):
     val_score = 0
     val_bar = tqdm(val_loader, desc="Validation")
     for batch in val_bar:
+
         inputs = batch["input"]
         targets = batch["output"]
         outputs = model(inputs)
         val_score += criterion(outputs, targets).item()
+
     val_score /= len(val_loader)
-    validation_scores[epoch] = val_score
+    # Log the validation using tensorboard
+    writer.add_scalar("validation", val_score, n_iter)
 
     # Update the progress bar
     post_fix_dict["Validation"] = f"{val_score:.4f}"
 
     # Generate and save some example figures from the validation set
-    save_result_figs(
-        inputs,
-        outputs,
-        targets,
-        classes,
-        figures_save_path.format(
-            epoch=epoch + 1, model_name=model_name, label="{label}"
-        ),
-    )
+    figs = get_image_dict(inputs, outputs, targets, classes)
+    for name, fig in figs.items():
+        writer.add_figure(name, fig, n_iter)
 
     # Refresh the train loader to shuffle the data yielded by the dataloader
     train_loader.refresh()
 
 # %% Plot the training loss and validation score
-fig = get_loss_plot(losses, validation_scores, iterations_per_epoch)
-fig.savefig(
-    figures_save_path.format(epoch="summary", model_name=model_name, label="loss_plot")
-)
+
+
+writer.close()
+
+# %%
