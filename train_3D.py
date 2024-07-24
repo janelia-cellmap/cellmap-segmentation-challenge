@@ -4,7 +4,7 @@ import torch
 import numpy as np
 from tqdm import tqdm, trange
 from utils import get_dataloader, save_result_figs, get_loss_plot, CellMapLossWrapper
-from models import ResNet
+from models import unet_model
 
 # %% Set hyperparameters and other configurations
 learning_rate = 0.0001  # learning rate for the optimizer
@@ -23,7 +23,7 @@ random_seed = 42  # random seed for reproducibility
 init_model_features = 32  # number of initial features for the model
 
 classes = ["nuc"]  # list of classes to segment
-model_name = "3D_resnet"  # name of the model to use
+model_name = "3D_unet"  # name of the model to use
 data_base_path = "data"  # base path where the data is stored
 figures_save_path = (
     "figures/{model_name}/{epoch}/{label}.png"  # path to save the example figures
@@ -56,7 +56,7 @@ train_loader, val_loader = get_dataloader(
 )
 
 # %% Define the model
-model = ResNet(ndims=3, input_nc=1, output_nc=len(classes))
+model = unet_model.UNet(1, len(classes))
 model = model.to(device)
 
 # %% Define the optimizer
