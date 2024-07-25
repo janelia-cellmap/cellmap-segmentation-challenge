@@ -1,3 +1,7 @@
+# Link to source code
+# https://github.com/milesial/Pytorch-UNet/blob/master/unet/unet_model.py
+
+
 """ Full assembly of the parts to form the complete network """
 
 from .unet_parts import *
