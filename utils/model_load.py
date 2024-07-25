@@ -4,7 +4,7 @@ import torch
 import glob
 
 
-# load_latest checks to see if there are any checkpoints loads in the latest one
+# load_latest checks to see if there are any checkpoints and loads in the latest one
 def load_latest(search_path, model):
     # Check if there are any files matching the checkpoint save path
     checkpoint_files = glob.glob(search_path)
