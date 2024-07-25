@@ -151,14 +151,15 @@ for epoch in range(epochs):
     # Update the progress bar
     post_fix_dict["Validation"] = f"{val_score:.4f}"
 
-    # Generate and save figures to appear in tensorboard
-    figs = get_image_dict(inputs, outputs, targets, classes)
+    # Generate and save figures from the last batch of the validation to appear in tensorboard
+    figs = get_image_dict(inputs, targets, outputs, classes)
     for name, fig in figs.items():
         writer.add_figure(name, fig, n_iter)
 
     # Refresh the train loader to shuffle the data yielded by the dataloader
     train_loader.refresh()
 
+# Close the summarywriter
 writer.close()
 
 # %%

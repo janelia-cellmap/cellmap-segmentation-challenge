@@ -1,3 +1,6 @@
+# Original source code from:
+# https://github.com/milesial/Pytorch-UNet/blob/master/unet/unet_parts.py
+
 """ Parts of the U-Net model """
 
 import torch

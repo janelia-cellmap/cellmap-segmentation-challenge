@@ -17,13 +17,13 @@ Once you have micromamba installed, you can create a new environment with the re
 
 ```bash
 # Create a new environment
-micromamba create -n cellmap-segmentation-challenge python=3.10 pytorch torchvision pytorch-cuda numpy tqdm -c pytorch -c conda-forge -c nvidia
+micromamba create -n cellmap-segmentation-challenge python=3.10 tqdm -c conda-forge
 
 # Activate the environment
 micromamba activate cellmap-segmentation-challenge
 
 # Install other packages
-pip install cellmap-data fvcore
+pip install cellmap-data
 ```
 
 ## Clone the repository
