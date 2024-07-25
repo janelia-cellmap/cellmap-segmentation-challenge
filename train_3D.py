@@ -3,8 +3,14 @@ import os
 import torch
 import numpy as np
 from tqdm import tqdm, trange
-from utils import get_dataloader, save_result_figs, get_loss_plot, CellMapLossWrapper
-from models import unet_model, ResNet
+from utils import (
+    get_dataloader,
+    save_result_figs,
+    get_loss_plot,
+    CellMapLossWrapper,
+    load_latest,
+)
+from models import unet_model
 from tensorboardX import SummaryWriter
 from cellmap_data.utils import get_image_dict
 
@@ -58,6 +64,10 @@ train_loader, val_loader = get_dataloader(
 # %% Define the model and move model to device
 model = unet_model.UNet(1, len(classes))
 model = model.to(device)
+
+# Check to see if there are any checkpoints
+load_latest(model_save_path.format(epoch="*", model_name=model_name), model)
+
 
 # %% Define the optimizer
 optimizer = torch.optim.RAdam(model.parameters(), lr=learning_rate)
