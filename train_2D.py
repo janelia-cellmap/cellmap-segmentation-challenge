@@ -10,7 +10,7 @@ from utils import (
     CellMapLossWrapper,
     load_latest,
 )
-from models import unet_model, ResNet
+from models import ResNet
 from tensorboardX import SummaryWriter
 from cellmap_data.utils import get_image_dict
 
