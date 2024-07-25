@@ -142,7 +142,7 @@ for epoch in range(epochs):
     post_fix_dict["Validation"] = f"{val_score:.4f}"
 
     # Generate and save figures from the last batch of the validation to appear in tensorboard
-    figs = get_image_dict(inputs, outputs, targets, classes)
+    figs = get_image_dict(inputs, targets, outputs, classes)
     for name, fig in figs.items():
         writer.add_figure(name, fig, n_iter)
 
