@@ -8,7 +8,7 @@ from utils import (
     CellMapLossWrapper,
     load_latest,
 )
-from models import unet_model
+from models import unet_model_3D
 from tensorboardX import SummaryWriter
 from cellmap_data.utils import get_image_dict
 
@@ -61,7 +61,7 @@ train_loader, val_loader = get_dataloader(
 )
 
 # %% Define the model and move model to device
-model = unet_model.UNet(1, len(classes))
+model = unet_model_3D.UNet(1, len(classes))
 model = model.to(device)
 
 # Check to see if there are any checkpoints

@@ -8,7 +8,7 @@ from utils import (
     CellMapLossWrapper,
     load_latest,
 )
-from models import ResNet
+from models import unet_model_2D
 from tensorboardX import SummaryWriter
 from cellmap_data.utils import get_image_dict
 
@@ -29,7 +29,7 @@ random_seed = 42  # random seed for reproducibility
 init_model_features = 32  # number of initial features for the model
 
 classes = ["nuc"]  # list of classes to segment
-model_name = "2d_resnet"  # name of the model to use
+model_name = "2d_unet"  # name of the model to use
 data_base_path = "data"  # base path where the data is stored
 logs_save_path = "tensorboard/{model_name}"  # path to save the logs from tensorboard
 model_save_path = (
@@ -60,7 +60,7 @@ train_loader, val_loader = get_dataloader(
 )
 
 # %% Define the model and move model to device
-model = model = ResNet(ndims=2, input_nc=1, output_nc=len(classes))
+model = unet_model_2D.UNet(1, len(classes))
 model = model.to(device)
 
 # Check to see if there are any checkpoints
