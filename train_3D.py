@@ -16,7 +16,7 @@ from cellmap_data.utils import get_image_dict
 
 # %% Set hyperparameters and other configurations
 learning_rate = 0.0001  # learning rate for the optimizer
-batch_size = 8  # batch size for the dataloader
+batch_size = 6  # batch size for the dataloader
 input_array_info = {
     "shape": (128, 128, 128),
     "scale": (128, 128, 128),
@@ -142,7 +142,8 @@ for epoch in range(epochs):
         inputs = batch["input"]
         targets = batch["output"]
         outputs = model(inputs)
-        val_score += criterion(outputs, targets).item()
+        loss = criterion(outputs, targets)
+        val_score += loss.item()
 
     val_score /= len(val_loader)
     # Log the validation using tensorboard
