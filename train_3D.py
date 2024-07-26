@@ -1,18 +1,17 @@
-# %% Imports
+# %%
 import os
 import torch
 import numpy as np
-from tqdm import tqdm, trange
+from tqdm import tqdm
 from utils import (
     get_dataloader,
-    save_result_figs,
-    get_loss_plot,
     CellMapLossWrapper,
     load_latest,
 )
 from models import unet_model
 from tensorboardX import SummaryWriter
 from cellmap_data.utils import get_image_dict
+
 
 # %% Set hyperparameters and other configurations
 learning_rate = 0.0001  # learning rate for the optimizer
@@ -137,13 +136,13 @@ for epoch in range(epochs):
     # Compute the validation score by averaging the loss across the validation set
     val_score = 0
     val_bar = tqdm(val_loader, desc="Validation")
-    for batch in val_bar:
-
-        inputs = batch["input"]
-        targets = batch["output"]
-        outputs = model(inputs)
-        loss = criterion(outputs, targets)
-        val_score += loss.item()
+    with torch.no_grad():
+        for batch in val_bar:
+            inputs = batch["input"]
+            targets = batch["output"]
+            outputs = model(inputs)
+            loss = criterion(outputs, targets)
+            val_score += loss.item()
 
     val_score /= len(val_loader)
     # Log the validation using tensorboard
