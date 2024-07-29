@@ -1,16 +1,21 @@
-# %% Imports
+# %%
 import os
 import torch
 import numpy as np
-from tqdm import tqdm, trange
-from utils import get_dataloader, save_result_figs, get_loss_plot, CellMapLossWrapper
-from models import unet_model, ResNet
+from tqdm import tqdm
+from utils import (
+    get_dataloader,
+    CellMapLossWrapper,
+    load_latest,
+)
+from models import unet_model_3D
 from tensorboardX import SummaryWriter
 from cellmap_data.utils import get_image_dict
 
+
 # %% Set hyperparameters and other configurations
 learning_rate = 0.0001  # learning rate for the optimizer
-batch_size = 8  # batch size for the dataloader
+batch_size = 6  # batch size for the dataloader
 input_array_info = {
     "shape": (128, 128, 128),
     "scale": (128, 128, 128),
@@ -56,8 +61,12 @@ train_loader, val_loader = get_dataloader(
 )
 
 # %% Define the model and move model to device
-model = unet_model.UNet(1, len(classes))
+model = unet_model_3D.UNet(1, len(classes))
 model = model.to(device)
+
+# Check to see if there are any checkpoints
+load_latest(model_save_path.format(epoch="*", model_name=model_name), model)
+
 
 # %% Define the optimizer
 optimizer = torch.optim.RAdam(model.parameters(), lr=learning_rate)
@@ -127,12 +136,13 @@ for epoch in range(epochs):
     # Compute the validation score by averaging the loss across the validation set
     val_score = 0
     val_bar = tqdm(val_loader, desc="Validation")
-    for batch in val_bar:
-
-        inputs = batch["input"]
-        targets = batch["output"]
-        outputs = model(inputs)
-        val_score += criterion(outputs, targets).item()
+    with torch.no_grad():
+        for batch in val_bar:
+            inputs = batch["input"]
+            targets = batch["output"]
+            outputs = model(inputs)
+            loss = criterion(outputs, targets)
+            val_score += loss.item()
 
     val_score /= len(val_loader)
     # Log the validation using tensorboard
@@ -142,7 +152,7 @@ for epoch in range(epochs):
     post_fix_dict["Validation"] = f"{val_score:.4f}"
 
     # Generate and save figures from the last batch of the validation to appear in tensorboard
-    figs = get_image_dict(inputs, outputs, targets, classes)
+    figs = get_image_dict(inputs, targets, outputs, classes)
     for name, fig in figs.items():
         writer.add_figure(name, fig, n_iter)
 

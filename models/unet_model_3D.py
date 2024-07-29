@@ -1,10 +1,10 @@
-# # Original source code from:
+# Original source code from:
 # https://github.com/milesial/Pytorch-UNet/blob/master/unet/unet_model.py
 
 
 """ Full assembly of the parts to form the complete network """
 
-from .unet_parts import *
+from .unet_parts_3D import *
 
 # from torch import utils
 
@@ -40,15 +40,3 @@ class UNet(nn.Module):
         x = self.up4(x, x1)
         logits = self.outc(x)
         return logits
-
-    # def use_checkpointing(self):
-    #     self.inc = utils.checkpoint(self.inc)
-    #     self.down1 = utils.checkpoint(self.down1)
-    #     self.down2 = utils.checkpoint(self.down2)
-    #     self.down3 = utils.checkpoint(self.down3)
-    #     self.down4 = utils.checkpoint(self.down4)
-    #     self.up1 = utils.checkpoint(self.up1)
-    #     self.up2 = utils.checkpoint(self.up2)
-    #     self.up3 = utils.checkpoint(self.up3)
-    #     self.up4 = utils.checkpoint(self.up4)
-    #     self.outc = utils.checkpoint(self.outc)
