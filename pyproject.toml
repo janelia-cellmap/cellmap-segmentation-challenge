@@ -28,7 +28,8 @@ classifiers = [
 dependencies = [
   "torch",
   "tensorboardX",
-  "cellmap-data"
+  "cellmap-data",
+  "tqdm"
   ]
 
 [project.urls]
