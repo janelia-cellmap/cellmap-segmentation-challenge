@@ -17,22 +17,23 @@ Once you have micromamba installed, you can create a new environment with the re
 
 ```bash
 # Create a new environment
-micromamba create -n cellmap-segmentation-challenge python=3.10 tqdm -c conda-forge
+micromamba create -n cellmap-segmentation-challenge python=3.10 -y
 
 # Activate the environment
 micromamba activate cellmap-segmentation-challenge
-
-# Install other packages
-pip install cellmap-data
 ```
 
 ## Clone the repository
 
-You can clone the repository by running the following command:
+You can clone and install the repository by running the following command:
 
 ```bash
+# Clone the repository
 git clone github.com/janelia-cellmap/cellmap-segmentation-challenge
 
+# Install the repo in editable mode
+cd cellmap-segmentation-challenge
+pip install -e .
 ```
 
 ## Repository structure
