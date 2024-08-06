@@ -28,9 +28,14 @@ classifiers = [
 dependencies = [
   "torch",
   "tensorboardX",
+<<<<<<< HEAD
   "cellmap-schemas",
   "click>=8, <9",
   "cellmap-data@git+https://github.com/janelia-cellmap/cellmap-data.git"
+=======
+  "cellmap-data",
+  "tqdm"
+>>>>>>> 2202da3ef47feaf2221767f720a150348279e2bf
   ]
 
 [project.urls]
