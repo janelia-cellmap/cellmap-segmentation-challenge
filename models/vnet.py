@@ -23,7 +23,7 @@ class ContBatchNorm3d(nn.modules.batchnorm._BatchNorm):
         super(ContBatchNorm3d, self)._check_input_dim(input)
 
     def forward(self, input):
-        self._check_input_dim(input)
+        # self._check_input_dim(input)
         return F.batch_norm(
             input,
             self.running_mean,
