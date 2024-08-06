@@ -1,0 +1,72 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "cellmap-segmentation-challenge"
+dynamic = ["version"]
+description = ''
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+keywords = []
+authors = [
+  { name = "Jeff Rhoades", email = "rhoadesj@janelia.hhmi.org" },
+  { name = "Emma Avetissian", email = "avetissiane@janelia.hhmi.org" },
+  { name = "Davis Vann Bennett", email = "davis.v.bennett@gmail.com" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = [
+  "torch",
+  "tensorboardX",
+  "cellmap-data"
+  ]
+
+[project.urls]
+Documentation = "https://github.com/janelia-cellmap/cellmap-segmentation-challenge#readme"
+Issues = "https://github.com/janelia-cellmap/cellmap-segmentation-challenge/issues"
+Source = "https://github.com/janelia-cellmap/cellmap-segmentation-challenge"
+
+[tool.hatch.metadata]
+allow-direct-references=true
+
+[tool.hatch.version]
+path = "src/cellmap_segmentation_challenge/__about__.py"
+
+[tool.hatch.envs.test]
+dependencies = ["pytest"]
+
+[tool.hatch.envs.types]
+extra-dependencies = [
+  "mypy>=1.0.0",
+]
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/cellmap_segmentation_challenge tests}"
+
+[tool.coverage.run]
+source_pkgs = ["cellmap_segmentation_challenge", "tests"]
+branch = true
+parallel = true
+omit = [
+  "src/cellmap_segmentation_challenge/__about__.py",
+]
+
+[tool.coverage.paths]
+cellmap_segmentation_challenge = ["src/cellmap_segmentation_challenge", "*/cellmap-segmentation-challenge/src/cellmap_segmentation_challenge"]
+tests = ["tests", "*/cellmap-segmentation-challenge/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
