@@ -8,7 +8,7 @@ from utils import (
     CellMapLossWrapper,
     load_latest,
 )
-from models import vnet
+from models import vitvnet
 from tensorboardX import SummaryWriter
 from cellmap_data.utils import get_image_dict
 
@@ -68,7 +68,7 @@ train_loader, val_loader = get_dataloader(
 )
 
 # %% Define the model and move model to device
-model = vnet.VNet()
+model = vitvnet.ViTVNet(1)
 model = model.to(device)
 
 # Check to see if there are any checkpoints
