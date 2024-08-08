@@ -15,7 +15,7 @@ from cellmap_data.utils import get_image_dict
 
 # %% Set hyperparameters and other configurations
 learning_rate = 0.0001  # learning rate for the optimizer
-batch_size = 6  # batch size for the dataloader
+batch_size = 4  # batch size for the dataloader
 input_array_info = {
     "shape": (128, 128, 128),
     "scale": (128, 128, 128),
@@ -68,7 +68,7 @@ train_loader, val_loader = get_dataloader(
 )
 
 # %% Define the model and move model to device
-model = resnet.ResNet(ndims=3)
+model = resnet.ResNet(ndims=3, output_nc=len(classes))
 model = model.to(device)
 
 # Check to see if there are any checkpoints

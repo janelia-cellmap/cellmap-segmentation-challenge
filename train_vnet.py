@@ -68,7 +68,7 @@ train_loader, val_loader = get_dataloader(
 )
 
 # %% Define the model and move model to device
-model = vitvnet.ViTVNet(1)
+model = vitvnet.ViTVNet(len(classes))
 model = model.to(device)
 
 # Check to see if there are any checkpoints
