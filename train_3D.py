@@ -7,6 +7,7 @@ from utils import (
     get_dataloader,
     CellMapLossWrapper,
     load_latest,
+    load_best_val,
 )
 from models import unet_model_3D
 from tensorboardX import SummaryWriter
@@ -71,8 +72,15 @@ train_loader, val_loader = get_dataloader(
 model = unet_model_3D.UNet(1, len(classes))
 model = model.to(device)
 
-# Check to see if there are any checkpoints
+# Check to see if there are any checkpoints and if so load the latest one
 load_latest(model_save_path.format(epoch="*", model_name=model_to_load), model)
+
+# Load the checkpoint with the best validation score
+# load_best_val(
+#     logs_save_path.format(model_name=model_to_load),
+#     model_save_path.format(epoch="{epoch}", model_name=model_to_load),
+#     model,
+# )
 
 
 # %% Define the optimizer
