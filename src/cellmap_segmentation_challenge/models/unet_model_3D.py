@@ -9,9 +9,9 @@ from .unet_parts_3D import *
 # from torch import utils
 
 
-class UNet(nn.Module):
+class UNet_3D(nn.Module):
     def __init__(self, n_channels, n_classes, trilinear=False):
-        super(UNet, self).__init__()
+        super(UNet_3D, self).__init__()
         self.n_channels = n_channels
         self.n_classes = n_classes
         self.trilinear = trilinear
