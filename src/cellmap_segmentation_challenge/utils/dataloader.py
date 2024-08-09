@@ -1,7 +1,6 @@
 import torch
 from torch.utils.data import DataLoader
-from typing import Mapping, Optional, Sequence
-
+from typing import Mapping, Optional, Sequence, Any
 from cellmap_data import CellMapDataSplit, CellMapDataLoader
 from cellmap_data.transforms.augment import (
     Normalize,
@@ -17,6 +16,7 @@ def get_dataloader(
     array_info: Optional[Mapping[str, Sequence[int | float]]] = None,
     input_array_info: Optional[Mapping[str, Sequence[int | float]]] = None,
     target_array_info: Optional[Mapping[str, Sequence[int | float]]] = None,
+    spatial_transforms: Optional[Mapping[str, Any]] = None,
     iterations_per_epoch: int = 1000,
     device: str | torch.device = "cuda",
 ) -> tuple[CellMapDataLoader, DataLoader]:
@@ -24,7 +24,7 @@ def get_dataloader(
     Get the train and validation dataloaders.
 
     This function gets the train and validation dataloaders for the given datasplit file, classes, batch size, array
-    info, iterations per epoch, number of workers, and device.
+    info, spatial transforms, iterations per epoch, number of workers, and device.
 
     Parameters
     ----------
@@ -40,6 +40,31 @@ def get_dataloader(
         Dictionary containing the shape and scale of the data to load for the input.
     target_array_info : Optional[Mapping[str, Sequence[int | float]]]
         Dictionary containing the shape and scale of the data to load for the target.
+    spatial_transforms : Optional[Mapping[str, any]]
+        Dictionary containing the spatial transformations to apply to the data.
+        For example the dictionary could contain transformations like mirror, transpose, and rotate.
+
+    spatial_transforms = {
+          # 3D
+
+           # Probability of applying mirror for each axis
+           # Values range from 0 (no mirroring) to 1 (will always mirror)
+          "mirror": {"axes": {"x": 0.5, "y": 0.5, "z": 0.5}},
+
+           # Specifies the axes that will be invovled in the trasposition
+          "transpose": {"axes": ["x", "y", "z"]},
+
+           # Defines rotation range for each axis.
+           # Rotation angle for each axis is randomly chosen within the specified range (-180, 180).
+          "rotate": {"axes": {"x": [-180, 180], "y": [-180, 180], "z": [-180, 180]}},
+
+          # 2D (used when there is no z axis)
+          # "mirror": {"axes": {"x": 0.5, "y": 0.5}},
+          # "transpose": {"axes": ["x", "y"]},
+          # "rotate": {"axes": {"x": [-180, 180], "y": [-180, 180]}},
+    }
+
+
     iterations_per_epoch : int
         Number of iterations per epoch.
     device : str or torch.device
@@ -66,13 +91,6 @@ def get_dataloader(
         ],
     )
 
-    # spatial_transforms = {
-    #     "mirror": {"axes": {"x": 0.5, "y": 0.5, "z": 0.5}},
-    #     # "mirror": {"axes": {"x": 0.5, "y": 0.5}},
-    #     "transpose": {"axes": ["x", "y", "z"]},
-    #     # "transpose": {"axes": ["x", "y"]},
-    # }
-
     datasplit = CellMapDataSplit(
         input_arrays=input_arrays,
         target_arrays=target_arrays,
@@ -82,7 +100,7 @@ def get_dataloader(
         train_raw_value_transforms=value_transforms,
         val_raw_value_transforms=value_transforms,
         target_value_transforms=T.ToDtype(torch.float),
-        # spatial_transforms=spatial_transforms,
+        spatial_transforms=spatial_transforms,
     )
 
     validation_loader = CellMapDataLoader(
