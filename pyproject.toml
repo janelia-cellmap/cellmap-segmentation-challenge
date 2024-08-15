@@ -29,7 +29,12 @@ dependencies = [
   "torch",
   "tensorboardX",
   "cellmap-data@git+https://github.com/janelia-cellmap/cellmap-data",
-  "tqdm"
+  "tqdm",
+  "ml-collections",
+  "numpy",
+  "scipy",
+  "tensorstore",
+  "h5py",
   ]
 
 [project.urls]
