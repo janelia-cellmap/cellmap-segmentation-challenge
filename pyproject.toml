@@ -39,6 +39,7 @@ dependencies = [
   "gcsfs",
   "fsspec[azure]",
   "requests",
+  "h5py",
   ]
 
 [project.urls]
