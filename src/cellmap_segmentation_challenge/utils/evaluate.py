@@ -6,7 +6,7 @@ import tensorstore as ts
 from upath import UPath
 import h5py
 
-from .shared import TRUTH_DATASETS, RESOLUTION_LEVELS, CLASS_DATASETS
+from shared import TRUTH_DATASETS, RESOLUTION_LEVELS, CLASS_DATASETS
 
 import logging
 
@@ -120,17 +120,31 @@ class ClassError:
         # Clipped to between 0 and 1, scaled to distance_max
         # return np.clip(x, 0, self.distance_max) / self.distance_max
 
+    @property
+    def test_background(self):
+        if hasattr(self, "_test_background"):
+            return self._test_background
+        else:
+            self._test_background = self.test == 0
+        return self.test_background
+
+    @property
+    def truth_background(self):
+        if hasattr(self, "_truth_background"):
+            return self._truth_background
+        else:
+            self._truth_background = self.truth == 0
+        return self.truth_background
+
     def false_positives(self, threshold=40):
-        mask1 = self.test == 0
         mask2 = self.truth_edt > threshold
-        false_positives = self.truth_edt[np.logical_and(mask1, mask2)]
+        false_positives = self.truth_edt[np.logical_and(self.test_background, mask2)]
 
         return false_positives.size
 
     def false_negatives(self, threshold=40):
-        mask1 = self.truth == 0
         mask2 = self.test_edt > threshold
-        false_negatives = self.test_edt[np.logical_and(mask1, mask2)]
+        false_negatives = self.test_edt[np.logical_and(self.truth_background, mask2)]
 
         return false_negatives.size
 
@@ -138,8 +152,7 @@ class ClassError:
         if hasattr(self, "_false_positive_stats"):
             return self._false_positive_stats
         else:
-            mask = self.test == 0
-            false_positives = self.truth_edt[mask]
+            false_positives = self.truth_edt[self.test_background]
             self._false_positive_stats = {
                 "mean": np.mean(false_positives),
                 "std": np.std(false_positives),
@@ -153,8 +166,7 @@ class ClassError:
         if hasattr(self, "_false_negative_stats"):
             return self._false_negative_stats
         else:
-            mask = self.truth == 0
-            false_negatives = self.test_edt[mask]
+            false_negatives = self.test_edt[self.truth_background]
             self._false_negative_stats = {
                 "mean": np.mean(false_negatives),
                 "std": np.std(false_negatives),
@@ -180,7 +192,7 @@ class ClassError:
         if hasattr(self, "_class_score"):
             return self._class_score
         else:
-            self._class_score = self.iou
+            self._class_score = self.iou()
         return self._class_score
 
     def return_results(self, metrics=METRICS):
@@ -222,7 +234,6 @@ def score(
         A dictionary mapping dataset names to dictionaries of class metrics.
     """
     resolution_level = RESOLUTION_LEVELS[resolution]
-    resolution = (resolution, resolution, resolution)
     dataset_results = {k: {} for k in test_datasets.keys()}
     for dataset, path in test_datasets.items():
         try:
@@ -243,12 +254,16 @@ def score(
                     f"Could not load groundtruth data for {label} in {dataset}"
                 )
                 continue
+            if len(label_dict) == 1:
+                class_test = test.squeeze()
+            else:
+                # If there are multiple classes, extract the class of interest
+                class_test = test[idx]
+
             class_error = ClassError(
-                resolution, test[idx], truth, distance_max, norm_slope
+                (resolution,) * 3, class_test, truth, distance_max, norm_slope
             )
             dataset_results[dataset][label] = class_error.return_results()
-
-    dataset_results = dataset_results
 
     summary_results = {k: {} for k in label_dict.keys()}
     overall_score = []
@@ -262,13 +277,34 @@ def score(
             )
         overall_score.append(summary_results[label]["class_score"])
 
-    summary_results = summary_results
     overall_score = np.mean(overall_score)
 
     return overall_score, summary_results, dataset_results
 
 
 def get_leaderboard_stat(label: str, dataset_results):
+    """
+    This function calculates the leaderboard statistic for a given class across all leaderboard datasets.
+
+    Parameters
+    ----------
+    label : str
+        The class label to calculate the leaderboard statistic for.
+    dataset_results : dict
+        A dictionary of dataset results as returned by the score function.
+
+    Returns
+    -------
+    float
+        The mean class score across all leaderboard datasets.
+    float
+        The standard deviation of the class score across all leaderboard datasets.
+
+    Raises
+    ------
+    ValueError
+        If a leaderboard dataset is missing from the dataset_results.
+    """
     leaderboard_stats = ()
     for dataset in CLASS_DATASETS[label]:
         if dataset in dataset_results:
@@ -277,4 +313,83 @@ def get_leaderboard_stat(label: str, dataset_results):
             raise ValueError(
                 f"Dataset {dataset} not found in dataset_results for class {label}. This is not a valid submission."
             )
+    return np.mean(leaderboard_stats), np.std(leaderboard_stats)
+
+
+def get_leaderboard_stats(
+    label_dict: dict[str, int],
+    test_datasets: dict[str, str],
+    resolution: int,
+    distance_max: float = 80.0,
+    norm_slope: float = 1.0,
+    truth_datasets: dict[str, str] = TRUTH_DATASETS,
+):
+    """
+    This function calculates the leaderboard statistics for each class across all leaderboard datasets at a given resolution.
+
+    Parameters
+    ----------
+    label_dict : dict[str, int]
+        A dictionary mapping class labels to their index in the test_datasets segmentation.
+    test_datasets : dict[str, str]
+        A dictionary mapping dataset names to their paths.
+    resolution : int
+        The resolution of the data in nanometers per pixel. This should be one of the following: 8, 16, 32, 64, 128, 256, 512, 1024, 2048. Data should be isotropic.
+    distance_max : float, optional
+        The maximum distance to consider for distance-based metrics, by default 80.
+    norm_slope : float, optional
+        The slope of the tanh function used to normalize distances, by default 1.
+    truth_datasets : dict[str, str], optional
+        A dictionary mapping dataset names to their ground truth paths, by default TRUTH_DATASETS. Dataset names must match those in test_datasets, and are expected to have the format: `provided_path/{label}/{resolution_level}`.
+    """
+
+    _, _, dataset_results = score(
+        label_dict, test_datasets, resolution, distance_max, norm_slope, truth_datasets
+    )
+
+    leaderboard_stats = {k: {} for k in label_dict.keys()}
+    for label in label_dict.keys():
+        leaderboard_stats[label]["mean"], leaderboard_stats[label]["std"] = (
+            get_leaderboard_stat(label, dataset_results)
+        )
+
     return leaderboard_stats
+
+
+def print_leaderboard_stats(leaderboard_stats):
+    for label, stats in leaderboard_stats.items():
+        print(f"{label}: {stats['mean']} +/- {stats['std']}")
+    print(f"Overall: {np.mean([v['mean'] for v in leaderboard_stats.values()])}")
+
+
+# %%
+# Example usage
+import matplotlib.pyplot as plt
+
+label_dict = {"mito": 0}
+test_datasets = {
+    "jrc_hela-2": "/nrs/cellmap/bennettd/data/jrc_hela-2/jrc_hela-2.zarr/recon-1/labels/groundtruth/crop155/mito/s0"
+}
+resolution = 8
+distance_max = 80.0
+norm_slope = 1.0
+truth_datasets = {
+    "jrc_hela-2": "/nrs/cellmap/bennettd/data/jrc_hela-2/jrc_hela-2.zarr/recon-1/labels/groundtruth/crop155/{label}/{resolution_level}"
+}
+overall_score, summary_results, dataset_results = score(
+    label_dict, test_datasets, resolution, distance_max, norm_slope, truth_datasets
+)
+
+# %%
+# leaderboard_stats = get_leaderboard_stats(
+#     label_dict, test_datasets, resolution, distance_max, norm_slope, truth_datasets
+# )
+CLASS_DATASETS = {"mito": ["jrc_hela-2"]}
+leaderboard_stats = {k: {} for k in label_dict.keys()}
+for label in label_dict.keys():
+    leaderboard_stats[label]["mean"], leaderboard_stats[label]["std"] = (
+        get_leaderboard_stat(label, dataset_results)
+    )
+print_leaderboard_stats(leaderboard_stats)
+
+# %%
