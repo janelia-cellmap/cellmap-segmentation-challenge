@@ -6,16 +6,14 @@ import tensorstore as ts
 from upath import UPath
 import h5py
 
+from .shared import TRUTH_DATASETS, RESOLUTION_LEVELS
+
 import logging
 
 logger = logging.getLogger(__name__)
 
 import matplotlib.pyplot as plt
 
-TRUTH_DATASETS = {
-    "truth_1": "s3://truth_1.zarr/{label}/{resolution_level}",
-    "truth_2": "s3://truth_2.zarr/{label}/{resolution_level}",
-}
 
 METRICS = [
     "false_positives",
@@ -25,18 +23,6 @@ METRICS = [
     "iou",
     "class_score",
 ]
-
-RESOLUTION_LEVELS = {
-    8: "s0",
-    16: "s1",
-    32: "s2",
-    64: "s3",
-    128: "s4",
-    256: "s5",
-    512: "s6",
-    1024: "s7",
-    2048: "s8",
-}
 
 SUMMARY_METRICS = ["false_positives", "false_negatives", "iou", "class_score"]
 
