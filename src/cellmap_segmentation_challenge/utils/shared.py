@@ -14,3 +14,8 @@ RESOLUTION_LEVELS = {
     1024: "s7",
     2048: "s8",
 }
+
+CLASS_DATASETS = {
+    "class_1": ["truth_1", "truth_2"],
+    "class_2": ["truth_2", "truth_3"],
+}
