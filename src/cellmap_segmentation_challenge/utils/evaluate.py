@@ -6,13 +6,11 @@ import tensorstore as ts
 from upath import UPath
 import h5py
 
-from .shared import TRUTH_DATASETS, RESOLUTION_LEVELS
+from .shared import TRUTH_DATASETS, RESOLUTION_LEVELS, CLASS_DATASETS
 
 import logging
 
 logger = logging.getLogger(__name__)
-
-import matplotlib.pyplot as plt
 
 
 METRICS = [
@@ -227,7 +225,12 @@ def score(
     resolution = (resolution, resolution, resolution)
     dataset_results = {k: {} for k in test_datasets.keys()}
     for dataset, path in test_datasets.items():
-        test = load_data(path)
+        try:
+            test = load_data(path)
+        except:
+            logger.error(f"Could not load test data for {dataset}")
+            continue
+
         for label, idx in label_dict.items():
             try:
                 truth = load_data(
@@ -265,11 +268,13 @@ def score(
     return overall_score, summary_results, dataset_results
 
 
-def get_leaderboard_stats(summary_results):
-    leaderboard_stats = {}
-    for label, stats in summary_results.items():
-        leaderboard_stats[label] = stats["class_score"]
+def get_leaderboard_stat(label: str, dataset_results):
+    leaderboard_stats = ()
+    for dataset in CLASS_DATASETS[label]:
+        if dataset in dataset_results:
+            leaderboard_stats += (dataset_results[dataset][label]["class_score"],)
+        else:
+            raise ValueError(
+                f"Dataset {dataset} not found in dataset_results for class {label}. This is not a valid submission."
+            )
     return leaderboard_stats
-
-
-# %%
