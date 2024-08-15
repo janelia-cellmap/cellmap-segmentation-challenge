@@ -30,7 +30,15 @@ dependencies = [
   "tensorboardX",
   "cellmap-data@git+https://github.com/janelia-cellmap/cellmap-data",
   "tqdm",
-  "ml-collections"
+  "ml-collections",
+  "numpy",
+  "tensorstore",
+  "universal-pathlib",
+  "scipy",
+  "s3fs",
+  "gcsfs",
+  "fsspec[azure]",
+  "requests",
   ]
 
 [project.urls]

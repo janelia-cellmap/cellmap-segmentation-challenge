@@ -5,6 +5,11 @@ from scipy import ndimage
 import tensorstore as ts
 from upath import UPath
 import h5py
+import s3fs
+import gcsfs
+import fsspec
+import requests
+import tempfile
 
 from shared import TRUTH_DATASETS, RESOLUTION_LEVELS, CLASS_DATASETS
 
@@ -25,22 +30,56 @@ METRICS = [
 SUMMARY_METRICS = ["false_positives", "false_negatives", "iou", "class_score"]
 
 
-def _zarr_spec_from_path(path: str) -> ...:
+def open_hdf5(path: str):
+    # Check the protocol from the path
+    if path.startswith("s3://"):
+        # Handle S3
+        fs = s3fs.S3FileSystem()
+        with fs.open(path, "rb") as f:
+            with h5py.File(f, "r") as hdf:
+                return hdf[:]
+    elif path.startswith("gs://"):
+        # Handle Google Cloud Storage
+        fs = gcsfs.GCSFileSystem()
+        with fs.open(path, "rb") as f:
+            with h5py.File(f, "r") as hdf:
+                return hdf[:]
+    elif path.startswith("azure://"):
+        # Handle Azure Blob Storage
+        fs = fsspec.filesystem("az", anon=False)
+        with fs.open(path, "rb") as f:
+            with h5py.File(f, "r") as hdf:
+                return hdf[:]
+    elif path.startswith("https://"):
+        # Handle HTTPS download
+        with tempfile.NamedTemporaryFile() as tmp_file:
+            response = requests.get(path)
+            response.raise_for_status()  # Ensure the request was successful
+            tmp_file.write(response.content)
+            tmp_file.flush()  # Ensure data is written to disk
+            with h5py.File(tmp_file.name, "r") as hdf:
+                return hdf[:]
+    else:
+        # Assume local file
+        with h5py.File(path, "r") as hdf:
+            return hdf[:]
+
+
+def open_zarr(path: str) -> ...:
     if re.match(r"\w+\://", path):  # path is a URI
         kv_store = path
     else:
         kv_store = {"driver": "file", "path": path}
-    return {"driver": "zarr", "kvstore": kv_store}
+    spec = {"driver": "zarr", "kvstore": kv_store}
+    return np.array(ts.open(spec, read=True, write=False).result())
 
 
 def load_data(path: str):
     assert UPath(path).exists()
     if ".zarr" in path:
-        spec = _zarr_spec_from_path(path)
-        return np.array(ts.open(spec, read=True, write=False).result())
+        return open_zarr(path)
     elif ".h5" in path or ".hdf5" in path:
-        with h5py.File(path, "r") as f:
-            return f["data"][:]
+        return open_hdf5(path)
 
 
 class ClassError:
@@ -363,7 +402,7 @@ def print_leaderboard_stats(leaderboard_stats):
 
 
 # %%
-# Example usage
+# Example usage ===========================================================
 import matplotlib.pyplot as plt
 
 label_dict = {"mito": 0}
