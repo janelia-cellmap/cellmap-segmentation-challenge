@@ -1,11 +1,11 @@
 import os
 from typing import Sequence
 
-from .shared import TRUTH_DATASETS, RESOLUTION_LEVELS
+from .shared import TRUTH_DATASETS, RESOLUTION_LEVELS, CLASS_DATASETS
 
 
 def download(
-    classes: Sequence[str],
+    labels: Sequence[str],
     resolution: int,
     output_path: str | os.PathLike,
     padding: Sequence[int] = (0, 0, 0),
@@ -15,7 +15,7 @@ def download(
     """Download the dataset for the CellMap Segmentation Challenge.
 
     Args:
-        classes: Sequence[str]
+        labels: Sequence[str]
             The label classes to download. e.g. ["cell", "nuc", "mito"]
         resolution : int
             The resolution of the data in nanometers per voxel. This should be one of the following: 8, 16, 32, 64, 128, 256, 512, 1024, 2048. Data should be isotropic.
@@ -31,8 +31,13 @@ def download(
 
     resolution_level = RESOLUTION_LEVELS[resolution]
 
-    # Download the dataset
-    ...
-
-    # Extract the dataset
-    ...
+    for label in labels:
+        for dataset in CLASS_DATASETS[label]:
+            # Initialize destination dataset as needed
+            # including downloading raw data as specified, if not already downloaded
+            ...
+            
+            # Download/convert the dataset
+            path = TRUTH_DATASETS[dataset].format(label=label, resolution_level=resolution_level)
+            ...
+        
