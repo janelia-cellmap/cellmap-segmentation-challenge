@@ -10,6 +10,7 @@ def download(
     output_path: str | os.PathLike,
     padding: Sequence[int] = (0, 0, 0),
     fill_value: float = 0,
+    format: str = "zarr2",
 ):
     """Download the dataset for the CellMap Segmentation Challenge.
 
@@ -24,6 +25,8 @@ def download(
             The amount of padding around ground truth volumes to add to raw data, in voxels per axis. Default is (0, 0, 0)
         fill_value: float, optional
             The value to fill the padding with if it extends past the edge of the available raw data. Default is 0.
+        format: str, optional
+            The format to save the dataset in. Default is "zarr2". Options are "zarr2" and "hdf5". HDF5 will have smaller chunk sizes, useful for reading 2D slices.
     """
 
     resolution_level = RESOLUTION_LEVELS[resolution]
