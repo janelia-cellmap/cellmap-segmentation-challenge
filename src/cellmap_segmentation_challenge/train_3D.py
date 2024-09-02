@@ -7,8 +7,9 @@ from utils import (
     get_dataloader,
     CellMapLossWrapper,
     load_latest,
+    load_best_val,
 )
-from models import unet_model_3D
+from models import unet_model_3D, resnet, vitnet
 from tensorboardX import SummaryWriter
 from cellmap_data.utils import get_image_dict
 
@@ -24,19 +25,41 @@ target_array_info = {
     "shape": (128, 128, 128),
     "scale": (128, 128, 128),
 }  # shape and voxel size of the data to load for the target
-epochs = 10  # number of epochs to train the model for
+epochs = 1000  # number of epochs to train the model for
 iterations_per_epoch = 1000  # number of iterations per epoch
 random_seed = 42  # random seed for reproducibility
 init_model_features = 32  # number of initial features for the model
 
 classes = ["nuc"]  # list of classes to segment
-model_name = "3d_unet"  # name of the model to use
+
+# Defining model (comment out all that are not used)
+# 3D UNet
+model_name = "3d_unet_aug"  # name of the model to use
+model_to_load = "3d_unet"  # name of the pre-trained model to load
+model = unet_model_3D.UNet(1, len(classes))
+
+# 3D ResNet
+# model_name = "3d_resnet"  # name of the model to use
+# model_to_load = "3d_resnet"  # name of the pre-trained model to load
+# model = resnet.ResNet(ndims=3, output_nc=len(classes))
+
+# ViT VNet
+# model_name = "3d_vnet"  # name of the model to use
+# model_to_load = "3d_vnet"  # name of the pre-trained model to load
+# model = vitvnet.ViTVNet(len(classes))
+
+
 data_base_path = "data"  # base path where the data is stored
 logs_save_path = "tensorboard/{model_name}"  # path to save the logs from tensorboard
 model_save_path = (
     "checkpoints/{model_name}_{epoch}.pth"  # path to save the model checkpoints
 )
 datasplit_path = "datasplit.csv"  # path to the datasplit file that defines the train/val split the dataloader should use
+spatial_transforms = {  # dictionary of spatial transformations to apply to the data
+    "mirror": {"axes": {"x": 0.5, "y": 0.5, "z": 0.1}},
+    "transpose": {"axes": ["x", "y", "z"]},
+    "rotate": {"axes": {"x": [-180, 180], "y": [-180, 180], "z": [-180, 180]}},
+}
 
 # %% Make sure the save path exists
 os.makedirs(os.path.dirname(model_save_path), exist_ok=True)
@@ -56,16 +79,25 @@ train_loader, val_loader = get_dataloader(
     batch_size=batch_size,
     input_array_info=input_array_info,
     target_array_info=target_array_info,
+    spatial_transforms=spatial_transforms,
     iterations_per_epoch=iterations_per_epoch,
     device=device,
 )
 
-# %% Define the model and move model to device
-model = unet_model_3D.UNet(1, len(classes))
+# %% Move model to device
 model = model.to(device)
 
-# Check to see if there are any checkpoints
-load_latest(model_save_path.format(epoch="*", model_name=model_name), model)
+# Check to see if there are any checkpoints and if so load the latest one
+# Use the command below for loading the latest model, otherwise comment it out
+load_latest(model_save_path.format(epoch="*", model_name=model_to_load), model)
+
+# Load the checkpoint with the best validation score
+# Use the command below for loading the epoch with the best validation score, otherwise comment it out
+# load_best_val(
+#     logs_save_path.format(model_name=model_to_load),
+#     model_save_path.format(epoch="{epoch}", model_name=model_to_load),
+#     model,
+# )
 
 
 # %% Define the optimizer

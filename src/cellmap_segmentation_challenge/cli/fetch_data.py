@@ -16,7 +16,7 @@ NUM_WORKERS=32
 @click.option('--crops', type=click.STRING, required=True, default='all')
 @click.option('--raw-padding', type=click.STRING)
 @click.option('--dest-dir', type=click.STRING, required=True)
-@click.option("--access-mode", type=click.STRING, default="append", type=click.BOOL)
+@click.option("--access-mode", type=click.STRING, default="append")
 def fetch_crops_cli(crops: str, raw_padding: str, dest_dir: str, access_mode: str):
     fetch_save_start = time.time()
     pool = ThreadPoolExecutor(max_workers=NUM_WORKERS)
