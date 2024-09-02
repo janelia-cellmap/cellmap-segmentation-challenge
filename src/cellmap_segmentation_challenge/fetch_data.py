@@ -8,6 +8,36 @@ import zarr.indexing
 import zarr.storage
 import os
 from yarl import URL
+from .utils.crops import CHALLENGE_CROPS, Crop
+from zarr._storage.store import Store
+from typing import Iterable
+from concurrent.futures import ThreadPoolExecutor, wait
+import toolz
+
+def copy_store(*, keys: Iterable[str], source_store: Store, dest_store: Store):
+    """
+    Iterate over the keys, copying them from the source store to the dest store
+    """
+    for key in keys:
+        dest_store[key] = source_store[key]
+
+def partition_copy_store(*, keys, source_store, dest_store, batch_size, pool: ThreadPoolExecutor):
+    keys_partitioned = toolz.partition_all(batch_size, keys)
+    futures = [pool.submit(copy_store, keys=batch, source_store=source_store, dest_store=dest_store) for batch in keys_partitioned]
+    wait(futures)
+
+def _resolve_crop(root: URL, crop: Crop) -> URL:
+    """
+    Get the location of a crop relative to a root
+    """
+    return root.with_path(f'{crop.dataset}/{crop.dataset}.zarr/{crop.alignment}/labels/groundtruth/crop{crop.id}')
+
+def _resolve_em(root: URL, crop: Crop) -> tuple[URL, URL, URL]:
+    """
+    Get the location(s) of the EM data for a crop, relative to a root
+    """
+    dtypes = ('uint8', 'uint16', 'int16')
+    return tuple(root.with_path(f"{crop.dataset}/{crop.dataset}.zarr/{crop.alignment}/em/fibsem-{dtype}") for dtype in dtypes)
 
 def get_url(node: zarr.Group | zarr.Array) -> URL:
     store = node.store
@@ -90,6 +120,9 @@ def get_group_objects(node: zarr.Group) -> tuple[str, ...]:
         results += tuple(map(lambda v: '/'.join([name, v]), subobjects))
     return results
 
+def read_group(path: str, **kwargs) -> zarr.Group:
+    return zarr.open_group(path, mode='r')
+
 def subset_to_slice(outer_array, inner_array) -> tuple[slice, ...]:
         subregion = outer_array.sel(inner_array.coords, 'nearest')
         out = ()
@@ -99,6 +132,7 @@ def subset_to_slice(outer_array, inner_array) -> tuple[slice, ...]:
             step = 1
             out += slice(start, stop, step)
         return out
+
 def prepare_fetch_crop(crop_path: str, fibsem_padding_vox: int | tuple[int, ...] = 0) -> tuple[tuple[str, str], ...]:
 
     if isinstance(fibsem_padding_vox, int):
@@ -123,4 +157,4 @@ def prepare_fetch_crop(crop_path: str, fibsem_padding_vox: int | tuple[int, ...]
 
 
     # generate a tuple of fibsem objects to copy, based on the location of the crop
-
+        pass
