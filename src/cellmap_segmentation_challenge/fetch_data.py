@@ -26,15 +26,16 @@ def partition_copy_store(*, keys, source_store, dest_store, batch_size, pool: Th
     futures = [pool.submit(copy_store, keys=batch, source_store=source_store, dest_store=dest_store) for batch in keys_partitioned]
     wait(futures)
 
-def _resolve_crop(root: URL, crop: Crop) -> URL:
+def _resolve_gt(root: URL, crop: Crop) -> URL:
     """
-    Get the location of a crop relative to a root
+    Get the location of a ground truth crop relative to a root
     """
     return root.with_path(f'{crop.dataset}/{crop.dataset}.zarr/{crop.alignment}/labels/groundtruth/crop{crop.id}')
 
 def _resolve_em(root: URL, crop: Crop) -> tuple[URL, URL, URL]:
     """
-    Get the location(s) of the EM data for a crop, relative to a root
+    Get the location(s) of the EM data for a crop, relative to a root. This is a tuple of URLs, because 
+    not all datasets have em data with a consistent dtype.
     """
     dtypes = ('uint8', 'uint16', 'int16')
     return tuple(root.with_path(f"{crop.dataset}/{crop.dataset}.zarr/{crop.alignment}/em/fibsem-{dtype}") for dtype in dtypes)
