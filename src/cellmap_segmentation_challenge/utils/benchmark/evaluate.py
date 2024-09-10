@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 # %% First make a GT array
 
 # SET SHAPE AND NUMBER OF POINTS HERE
-shape = (128, 128, 128) # (z, y, x) shape of the volume
+shape = (256, 256, 256) # (z, y, x) shape of the volume
 num_points = [shape[0] // 10, shape[0] // 5] # number of random objects in the volume [min, max]
 # =====================================
 
