@@ -26,19 +26,23 @@ def partition_copy_store(*, keys, source_store, dest_store, batch_size, pool: Th
     futures = [pool.submit(copy_store, keys=batch, source_store=source_store, dest_store=dest_store) for batch in keys_partitioned]
     wait(futures)
 
-def _resolve_gt(root: URL, crop: Crop) -> URL:
+def _resolve_gt_source_url(root: URL, crop: Crop) -> URL:
     """
     Get the location of a ground truth crop relative to a root
     """
-    return root.with_path(f'{crop.dataset}/{crop.dataset}.zarr/{crop.alignment}/labels/groundtruth/crop{crop.id}')
+    # return root.joinpath(f'{crop.dataset}/{crop.dataset}.zarr/{crop.alignment}/labels/groundtruth/crop{crop.id}')
+    return root.joinpath(f'{crop.dataset}.zarr/crop{crop.id}')
 
-def _resolve_em(root: URL, crop: Crop) -> tuple[URL, URL, URL]:
+def _resolve_em_source_url(root: URL, crop: Crop) -> tuple[URL, URL, URL]:
     """
     Get the location(s) of the EM data for a crop, relative to a root. This is a tuple of URLs, because 
     not all datasets have em data with a consistent dtype.
     """
     dtypes = ('uint8', 'uint16', 'int16')
-    return tuple(root.with_path(f"{crop.dataset}/{crop.dataset}.zarr/{crop.alignment}/em/fibsem-{dtype}") for dtype in dtypes)
+    return tuple(root.joinpath(f"{crop.dataset}/{crop.dataset}.zarr/{crop.alignment}/em/fibsem-{dtype}") for dtype in dtypes)
+
+def _resolve_gt_dest_url(root: URL, crop: Crop) -> URL:
+    return root.joinpath(f'{crop.dataset}/{crop.dataset}.zarr/{crop.alignment}/labels/groundtruth/crop{crop.id}')
 
 def get_url(node: zarr.Group | zarr.Array) -> URL:
     store = node.store
@@ -127,35 +131,10 @@ def read_group(path: str, **kwargs) -> zarr.Group:
 def subset_to_slice(outer_array, inner_array) -> tuple[slice, ...]:
         subregion = outer_array.sel(inner_array.coords, 'nearest')
         out = ()
-        for dim, value in outer_array.coords():
+        for dim, value in outer_array.coords.items():
             start = np.where(value == subregion.coords[dim][0])[0].take(0)
             stop = np.where(value == subregion.coords[dim][-1])[0].take(0)
             step = 1
-            out += slice(start, stop, step)
+            out += (slice(start, stop, step),)
         return out
 
-def prepare_fetch_crop(crop_path: str, fibsem_padding_vox: int | tuple[int, ...] = 0) -> tuple[tuple[str, str], ...]:
-
-    if isinstance(fibsem_padding_vox, int):
-        fibsem_padding_vox = (fibsem_padding_vox,) * 3
-
-    crop_zgroup = zarr.open_group(crop_path, mode='r')
-    fibsem_path = get_fibsem_path(crop_path)
-
-    fibsem_zgroup = zarr.open_group(fibsem_path)
-
-    # generate a tuple of crop objects to copy
-    crop_objects_to_copy = get_group_objects(crop_zgroup)
-    crop_xarray = read_multiscale_array(
-        crop_zgroup['s0'], 
-        array_wrapper={'name': 'dask_array', 'config': {'chunks': "auto"}})
-    
-    fibsem_xarrays = read_multiscale_group(fibsem_zgroup)
-    fibsem_objects_to_copy = ('.zgroup', '.zattrs')
-    for name, value in fibsem_xarrays.items():
-
-    # crop each datarray in object space
-
-
-    # generate a tuple of fibsem objects to copy, based on the location of the crop
-        pass
