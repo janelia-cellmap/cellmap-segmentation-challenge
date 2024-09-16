@@ -1,6 +1,7 @@
 from typing import Generator, Sequence
 from cellmap_schemas.annotation import CropGroup
 import numpy as np
+import structlog
 from xarray_ome_ngff import read_multiscale_array, read_multiscale_group
 
 import zarr
@@ -11,7 +12,7 @@ from yarl import URL
 from .utils.crops import CHALLENGE_CROPS, Crop
 from zarr._storage.store import Store
 from typing import Iterable
-from concurrent.futures import ThreadPoolExecutor, wait
+from concurrent.futures import ThreadPoolExecutor, as_completed, wait
 import toolz
 
 def copy_store(*, keys: Iterable[str], source_store: Store, dest_store: Store):
@@ -21,10 +22,26 @@ def copy_store(*, keys: Iterable[str], source_store: Store, dest_store: Store):
     for key in keys:
         dest_store[key] = source_store[key]
 
-def partition_copy_store(*, keys, source_store, dest_store, batch_size, pool: ThreadPoolExecutor):
+def partition_copy_store(
+        *, 
+        keys, 
+        source_store, 
+        dest_store,
+        batch_size, 
+        pool: ThreadPoolExecutor,
+        log: structlog.BoundLogger | None = None):
+    
+    if log is None:
+        log = structlog.get_logger()
     keys_partitioned = toolz.partition_all(batch_size, keys)
-    futures = [pool.submit(copy_store, keys=batch, source_store=source_store, dest_store=dest_store) for batch in keys_partitioned]
-    wait(futures)
+    futures = tuple(pool.submit(copy_store, keys=batch, source_store=source_store, dest_store=dest_store) for batch in keys_partitioned)
+    num_iter = len(futures)
+    for idx, maybe_result in enumerate(as_completed(futures)):
+        try:
+            result = maybe_result.result()
+            log.debug(f'Completed fetching batch {idx + 1} / {num_iter}')
+        except Exception as e:
+            log.exception(e)
 
 def _resolve_gt_source_url(root: URL, crop: Crop) -> URL:
     """
@@ -45,7 +62,9 @@ def _resolve_gt_dest_url(root: URL, crop: Crop) -> URL:
     return root.joinpath(f'{crop.dataset}/{crop.dataset}.zarr/{crop.alignment}/labels/groundtruth/crop{crop.id}')
 
 def get_url(node: zarr.Group | zarr.Array) -> URL:
-    store = node.store
+    return get_store_url(node.store, node.path)
+
+def get_store_url(store: zarr.storage.BaseStore, path: str):
     if hasattr(store, "path"):
         if hasattr(store, "fs"):
             protocol = (
@@ -58,11 +77,10 @@ def get_url(node: zarr.Group | zarr.Array) -> URL:
 
         # fsstore keeps the protocol in the path, but not s3store
         store_path = store.path.split("://")[-1] if "://" in store.path else store.path
-        return URL.build(scheme=protocol, host=store_path, path=node.path)
+        return URL.build(scheme=protocol, host=store_path, path=path)
 
     msg = (
-        f"The store associated with this object has type {type(store)}, which "
-        "cannot be resolved to a url"
+        f"Store with type {type(store)} cannot be resolved to a url"
     )
     raise ValueError(msg)
 
@@ -129,7 +147,8 @@ def read_group(path: str, **kwargs) -> zarr.Group:
     return zarr.open_group(path, mode='r')
 
 def subset_to_slice(outer_array, inner_array) -> tuple[slice, ...]:
-        subregion = outer_array.sel(inner_array.coords, 'nearest')
+        coords_bounds = {k: c[[0, -1]] for k,c in inner_array.coords.items()}
+        subregion = outer_array.sel(coords_bounds, 'nearest')
         out = ()
         for dim, value in outer_array.coords.items():
             start = np.where(value == subregion.coords[dim][0])[0].take(0)
