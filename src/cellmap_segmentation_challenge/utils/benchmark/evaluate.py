@@ -57,7 +57,7 @@ def h_test(array):
 %timeit h_test(array)
 
 # %% 
-# Pairwise Jaccard distance between overlapping labels
+# Pairwise Jaccard distance between overlapping labels (fast - USE THIS)
 def j_test_fast(array1, array2):
     mean_overlaps = []
     ids1 = np.unique(array1)
@@ -88,3 +88,28 @@ def j_test(array):
 %timeit j_test(array)
 
 # %%
+"""
+Add tolerance based on known GT precision --> mask out uncertain pixels (distance transform then threshold)
+Upsample GT to match prediction resolution --> should be native resolution (8nm/)
+Determine tolerance per label --> Aubrey
+Combined metric:
+- geometric mean of Jaccard score and Hausdorff distance
+
+For semantic:
+- Jaccard score
+- Hausdorff distance w/ cutoff or sigmoid
+
+For instance:
+- Jaccard score
+--> Match by best Jaccard score
+    - False positive = unmatched pred
+    - False negative = unmatched GT
+    - Count false splits
+        - near matches over a threshold are incorrect splits where the GT is split into multiple predictions
+    - Count false merges
+        - near matches over a threshold are incorrect merges where multiple GT are merged into a single prediction
+- Hausdorff distance w/ cutoff or sigmoid
+
+"""
+# %%
+
