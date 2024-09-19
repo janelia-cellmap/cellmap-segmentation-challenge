@@ -5,11 +5,11 @@ build-backend = "hatchling.build"
 [project]
 name = "cellmap-segmentation-challenge"
 dynamic = ["version"]
-description = ''
+description = "Repository of scripts to facilitate participation in CellMap's segmentation challenge. This includes downloading data, simple setups for training 2D and 3D models, workflows for prediction and post-processing on out-of-memory arrays, and evaluation of results against validation data."
 readme = "README.md"
 requires-python = ">=3.9"
 license = "MIT"
-keywords = []
+keywords = ["machine learning", "deep learning", "segmentation", "cellmap"]
 authors = [
   { name = "Jeff Rhoades", email = "rhoadesj@janelia.hhmi.org" },
   { name = "Emma Avetissian", email = "avetissiane@janelia.hhmi.org" },
@@ -28,6 +28,7 @@ classifiers = [
 dependencies = [
   "torch",
   "tensorboardX",
+  "tensorboard",
   "cellmap-data@git+https://github.com/janelia-cellmap/cellmap-data",
   "tqdm",
   "ml-collections",
@@ -35,12 +36,32 @@ dependencies = [
   "tensorstore",
   "universal-pathlib",
   "scipy",
-  "s3fs",
-  "gcsfs",
-  "fsspec[azure]",
-  "requests",
-  "h5py",
+  "scikit-image",
+  "matplotlib",
+  "scikit-learn",
   ]
+
+# extras
+# https://peps.python.org/pep-0621/#dependencies-optional-dependencies
+[project.optional-dependencies]
+test = ["pytest>=6.0", "pytest-cov", "mypy", "black"]
+dev = [
+    "black",
+    "ipython",
+    "jupyter",
+    "mypy",
+    "pytest-cov",
+    "pytest>=6.0",
+    "rich",
+    "ruff",
+    "snakeviz",
+    "sphinx",
+    "sphinx-book-theme",
+    "twine",
+    "hatch",
+    "python-semantic-release",
+    "gunpowder",
+]
 
 [project.urls]
 Documentation = "https://github.com/janelia-cellmap/cellmap-segmentation-challenge#readme"

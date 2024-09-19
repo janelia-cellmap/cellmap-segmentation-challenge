@@ -74,4 +74,34 @@ For instance:
 
 """
 # %%
-from ..evaluate import *
+from cellmap_segmentation_challenge.utils.evaluate import score_instance, score_semantic
+
+# %%
+print("Instance scoring:")
+instance_score = score_instance(pred, array)
+print(instance_score)
+print(f"Configured accuracy: {ratio}")
+# %%
+
+# %%
+print("Timing instance scoring:")
+instance_time = %timeit -o score_instance(pred, array)
+normalized_instance_time = instance_time.average / np.prod(shape)
+print(f"Normalized time for instance scoring: {normalized_instance_time} seconds per voxel")
+
+size = 512
+print(f"Estimate for {size}^3 volume: {normalized_instance_time * size**3} seconds")
+# %%
+print("Semantic scoring:")
+semantic_score = score_semantic(pred, array)
+print(semantic_score)
+# %%
+print("Timing semantic scoring:")
+semantic_time = %timeit -o score_semantic(pred, array)
+normalized_semantic_time = semantic_time.average / np.prod(shape)
+print(f"Normalized time for semantic scoring: {normalized_semantic_time} seconds per voxel")
+
+size = 512
+print(f"Estimate for {size}^3 volume: {normalized_semantic_time * size**3} seconds")
+
+# %%

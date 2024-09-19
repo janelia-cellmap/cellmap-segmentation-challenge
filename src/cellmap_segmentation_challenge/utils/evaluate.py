@@ -37,12 +37,12 @@ import zipfile
 import numpy as np
 from scipy.ndimage import label
 from scipy.optimize import linear_sum_assignment
+from scipy.spatial.distance import dice as dice_score
 from sklearn.metrics import (
     jaccard_score,
     accuracy_score,
 )
 from skimage.metrics import hausdorff_distance
-from scipy.spatial.distance import dice as dice_score
 
 import zarr
 import os
@@ -177,9 +177,10 @@ def score_instance(pred_label, truth_label) -> dict[str, float]:
             # Don't score the background
             continue
         pred_mask = pred_label == pred_id
-        these_truth_ids, truth_indices = np.unique(
-            truth_label[pred_mask], return_index=True
-        )[0]
+        these_truth_ids = np.unique(truth_label[pred_mask])
+        truth_indices = [
+            np.argmax(truth_ids == truth_id) for truth_id in these_truth_ids
+        ]
         for j, truth_id in zip(truth_indices, these_truth_ids):
             if truth_id == 0:
                 # Don't score the background
@@ -209,11 +210,11 @@ def score_instance(pred_label, truth_label) -> dict[str, float]:
 
     # Compute the scores
     accuracy = accuracy_score(truth_label.flatten(), matched_pred_label.flatten())
-    hausdorff_distance = np.mean(hausdorff_distances)
-    combined_score = (accuracy * hausdorff_distance) ** 0.5
+    hausdorff_dist = np.mean(hausdorff_distances)
+    combined_score = (accuracy * hausdorff_dist) ** 0.5
     return {
         "accuracy": accuracy,
-        "hausdorff_distance": hausdorff_distance,
+        "hausdorff_distance": hausdorff_dist,
         "combined_score": combined_score,
     }
 
