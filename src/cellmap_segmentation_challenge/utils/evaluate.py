@@ -36,14 +36,21 @@ import sys
 import zipfile
 import numpy as np
 from scipy.ndimage import label
+from sklearn.metrics import (
+    jaccard_score,
+    accuracy_score,
+)
+from skimage.metrics import hausdorff_distance
+from scipy.spatial.distance import dice as dice_score
+
 import zarr
 import os
 from upath import UPath
 
 
 INSTANCE_CLASSES = ["mito", "nuc"]
-
 INSTANCE_THRESHOLD = 0.5
+HAUSDORFF_DISTANCE_MAX = np.inf
 
 # TODO: REPLACE WITH THE GROUND TRUTH LABEL VOLUME PATH
 TRUTH_PATH = "data/ground_truth.zarr"
@@ -143,23 +150,6 @@ def save_numpy_binary_to_zarr(
         )
 
 
-def accuracy(pred_label, truth_label) -> float:
-    """
-    Compute the accuracy of a single label volume.
-
-    Args:
-        pred_label (np.ndarray): The predicted label volume.
-        truth_label (np.ndarray): The ground truth label volume.
-
-    Returns:
-        float: The accuracy of the label volume.
-
-    Example usage:
-        acc = accuracy(pred_label, truth_label)
-    """
-    return np.sum(pred_label == truth_label) / np.prod(pred_label.shape)
-
-
 def score_instance(pred_label, truth_label) -> dict[str, float]:
     """
     Score a single instance label volume against the ground truth instance label volume.
@@ -179,25 +169,64 @@ def score_instance(pred_label, truth_label) -> dict[str, float]:
     pred_ids = np.unique(pred_label)
 
     # Match the predicted instances to the ground truth instances
-    matches = {}
+    accuracies = []
+    hausdorff_distances = []
     for i, pred_id in enumerate(pred_ids):
+        if pred_id == 0:
+            # Don't score the background
+            continue
         pred_mask = pred_label == pred_id
-        pred_count = np.sum(pred_mask)
-        truth_ids, truth_counts = np.unique(truth_label[pred_mask], return_counts=True)
-        for truth_id, truth_count in zip(truth_ids, truth_counts):
-            # If more than INSTANCE_THRESHOLD of the predicted instance overlaps with the ground truth ID, match them
-            # OR if more than INSTANCE_THRESHOLD of the ground truth ID overlaps with the predicted instance, match them
-            if (truth_count / pred_count > INSTANCE_THRESHOLD) or (
-                truth_count / np.sum(truth_label == truth_id) > INSTANCE_THRESHOLD
+        truth_ids = np.unique(truth_label[pred_mask])
+        for truth_id in truth_ids:
+            if truth_id == 0:
+                # Don't score the background
+                continue
+            truth_mask = truth_label == truth_id
+            if (
+                jaccard_score(truth_mask.flatten(), pred_mask.flatten())
+                > INSTANCE_THRESHOLD
             ):
-                if pred_id not in matches:
-                    matches[pred_id] = []
-                matches[pred_id].append(truth_id)
+                accuracies.append(
+                    accuracy_score(truth_mask.flatten(), pred_mask.flatten())
+                )
+                h_dist = hausdorff_distance(truth_mask, pred_mask)
+                h_dist = min(h_dist, HAUSDORFF_DISTANCE_MAX)
+                hausdorff_distances.append(h_dist)
 
     # Compute the scores
+    accuracy = np.mean(accuracies) if accuracies else 0.0
+    hausdorff_distance = np.mean(hausdorff_distances) if hausdorff_distances else 0.0
+    combined_score = (accuracy * hausdorff_distance) ** 0.5
+    return {
+        "accuracy": accuracy,
+        "hausdorff_distance": hausdorff_distance,
+        "combined_score": combined_score,
+    }
 
 
-def score_semantic(pred_label, truth_label) -> dict[str, float]: ...
+def score_semantic(pred_label, truth_label) -> dict[str, float]:
+    """
+    Score a single semantic label volume against the ground truth semantic label volume.
+
+    Args:
+        pred_label (np.ndarray): The predicted semantic label volume.
+        truth_label (np.ndarray): The ground truth semantic label volume.
+
+    Returns:
+        dict: A dictionary of scores for the semantic label volume.
+
+    Example usage:
+        scores = score_semantic(pred_label, truth_label)
+    """
+    pred_label = (pred_label > 0).flatten()
+    truth_label = (truth_label > 0).flatten()
+    # Compute the scores
+    scores = {
+        "jaccard_score": jaccard_score(truth_label, pred_label),
+        "dice_score": dice_score(truth_label, pred_label),
+    }
+
+    return scores
 
 
 def score_label(pred_label_path) -> dict[str, float]:
