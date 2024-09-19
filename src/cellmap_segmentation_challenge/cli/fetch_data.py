@@ -59,7 +59,7 @@ def fetch_crops_cli(crops: str, raw_padding: str, dest_dir: str, access_mode: st
         gt_save_start = time.time()
         gt_source_url = _resolve_gt_source_url(CROP_SOURCE_URL, crop)
         try:
-            gt_source_group = read_group(str(gt_source_url), mode='r')
+            gt_source_group = read_group(str(gt_source_url))
             log.info(f'Found a Zarr group at {gt_source_url}.')
         except zarr.errors.GroupNotFoundError:
             log.info(f'No Zarr group was found at {gt_source_url}. This crop will be skipped.')
@@ -96,7 +96,7 @@ def fetch_crops_cli(crops: str, raw_padding: str, dest_dir: str, access_mode: st
         for maybe_em_source_url in em_dest_urls:
             log.info(f'Checking for EM data at {maybe_em_source_url}')
             try:
-                em_source_group = read_group(str(maybe_em_source_url))
+                em_source_group = read_group(str(maybe_em_source_url), storage_options={'anon': True})
                 em_source_url = maybe_em_source_url
                 em_dest_url = URL.build(scheme='file', path=str(dest_path_abs)).joinpath(maybe_em_source_url.path.lstrip('/'))
                 log.info(f'Found EM data at {em_source_url}')

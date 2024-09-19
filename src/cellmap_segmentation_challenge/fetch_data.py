@@ -144,7 +144,7 @@ def get_group_objects(node: zarr.Group) -> tuple[str, ...]:
     return results
 
 def read_group(path: str, **kwargs) -> zarr.Group:
-    return zarr.open_group(path, mode='r')
+    return zarr.open_group(path, mode='r', **kwargs)
 
 def subset_to_slice(outer_array, inner_array) -> tuple[slice, ...]:
         coords_bounds = {k: c[[0, -1]] for k,c in inner_array.coords.items()}
