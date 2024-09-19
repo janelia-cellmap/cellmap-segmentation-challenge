@@ -1,7 +1,7 @@
 # %%
 import numpy as np
 import gunpowder as gp
-from scipy.ndimage import distance_transform_edt as edt
+from scipy.optimize import linear_sum_assignment
 from skimage.metrics import hausdorff_distance
 from sklearn.metrics import jaccard_score
 from skimage.measure import label as relabel
@@ -74,3 +74,4 @@ For instance:
 
 """
 # %%
+from ..evaluate import *

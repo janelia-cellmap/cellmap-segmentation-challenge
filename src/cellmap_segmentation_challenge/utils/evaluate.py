@@ -36,6 +36,7 @@ import sys
 import zipfile
 import numpy as np
 from scipy.ndimage import label
+from scipy.optimize import linear_sum_assignment
 from sklearn.metrics import (
     jaccard_score,
     accuracy_score,
@@ -166,36 +167,49 @@ def score_instance(pred_label, truth_label) -> dict[str, float]:
     """
     # Relabel the predicted instance labels to be consistent with the ground truth instance labels
     pred_label, _ = label(pred_label, structure=np.ones((3, 3, 3)))
-    pred_ids = np.unique(pred_label)
 
-    # Match the predicted instances to the ground truth instances
-    accuracies = []
-    hausdorff_distances = []
+    # Construct the cost matrix for Hungarian matching
+    pred_ids = np.unique(pred_label)
+    truth_ids = np.unique(truth_label)
+    cost_matrix = np.zeros((len(truth_ids), len(pred_ids)))
     for i, pred_id in enumerate(pred_ids):
         if pred_id == 0:
             # Don't score the background
             continue
         pred_mask = pred_label == pred_id
-        truth_ids = np.unique(truth_label[pred_mask])
-        for truth_id in truth_ids:
+        these_truth_ids, truth_indices = np.unique(
+            truth_label[pred_mask], return_index=True
+        )[0]
+        for j, truth_id in zip(truth_indices, these_truth_ids):
             if truth_id == 0:
                 # Don't score the background
                 continue
             truth_mask = truth_label == truth_id
-            if (
-                jaccard_score(truth_mask.flatten(), pred_mask.flatten())
-                > INSTANCE_THRESHOLD
-            ):
-                accuracies.append(
-                    accuracy_score(truth_mask.flatten(), pred_mask.flatten())
-                )
-                h_dist = hausdorff_distance(truth_mask, pred_mask)
-                h_dist = min(h_dist, HAUSDORFF_DISTANCE_MAX)
-                hausdorff_distances.append(h_dist)
+            cost_matrix[j, i] = jaccard_score(truth_mask.flatten(), pred_mask.flatten())
+
+    # Match the predicted instances to the ground truth instances
+    row_inds, col_inds = linear_sum_assignment(cost_matrix, maximize=True)
+
+    # Contruct the volume for the matched instances
+    matched_pred_label = np.zeros_like(pred_label)
+    for i, j in zip(col_inds, row_inds):
+        pred_mask = pred_label == pred_ids[i]
+        matched_pred_label[pred_mask] = truth_ids[j]
+
+    hausdorff_distances = []
+    for truth_id in truth_ids:
+        if truth_id == 0:
+            # Don't score the background
+            continue
+        h_dist = hausdorff_distance(
+            truth_label == truth_id, matched_pred_label == truth_id
+        )
+        h_dist = min(h_dist, HAUSDORFF_DISTANCE_MAX)
+        hausdorff_distances.append(h_dist)
 
     # Compute the scores
-    accuracy = np.mean(accuracies) if accuracies else 0.0
-    hausdorff_distance = np.mean(hausdorff_distances) if hausdorff_distances else 0.0
+    accuracy = accuracy_score(truth_label.flatten(), matched_pred_label.flatten())
+    hausdorff_distance = np.mean(hausdorff_distances)
     combined_score = (accuracy * hausdorff_distance) ** 0.5
     return {
         "accuracy": accuracy,
