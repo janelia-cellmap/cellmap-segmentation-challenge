@@ -5,18 +5,25 @@ Submission requirements:
      - /<test_volume_name>
         - /<label_name>
 2. The names of the test volumes and labels should match the names of the test volumes and labels in the test data.
-3. Each label volume should be a 3D binary volume with the same shape and scale as the corresponding test volume. The scale for all volumes is 8x8x8 nm/voxel.
+3. Each label volume should be either A) a 3D binary volume with the same shape and scale as the corresponding test volume, or B) instance IDs per object.
+4. The scale for all volumes is 8x8x8 nm/voxel, except as otherwise specified.
 
 Assuming your data is already 8x8x8nm/voxel, you can convert the submission to the required format using the following convenience functions:
+
 - For converting a single 3D numpy array of class labels to a Zarr-2 file, use the following function:
   `cellmap_segmentation_challenge.utils.evaluate.save_numpy_labels_to_zarr`
-- For converting a list of 3D numpy arrays of binary labels to a Zarr-2 file, use the following function:
+Note: The class labels should start from 1, with 0 as background.
+
+- For converting a list of 3D numpy arrays of binary or instance labels to a Zarr-2 file, use the following function:
   `cellmap_segmentation_challenge.utils.evaluate.save_numpy_binary_to_zarr`
+Note: The instance labels, if used, should be unique IDs per object, with 0 as background.
+
 The arguments for both functions are the same:
 - `submission_path`: The path to save the Zarr-2 file (ending with <filename>.zarr).
 - `test_volume_name`: The name of the test volume.
 - `label_names`: A list of label names corresponding to the list of 3D numpy arrays or the number of the class labels (0 is always assumed to be background).
 - `labels`: A list of 3D numpy arrays of binary labels or a single 3D numpy array of class labels.
+- `overwrite`: A boolean flag to overwrite the Zarr-2 file if it already exists.
 
 To zip the Zarr-2 file, you can use the following command:
 `zip -r submission.zip submission.zarr`
@@ -28,9 +35,18 @@ import json
 import sys
 import zipfile
 import numpy as np
+from scipy.ndimage import label
 import zarr
 import os
 from upath import UPath
+
+
+INSTANCE_CLASSES = ["mito", "nuc"]
+
+INSTANCE_THRESHOLD = 0.5
+
+# TODO: REPLACE WITH THE GROUND TRUTH LABEL VOLUME PATH
+TRUTH_PATH = "data/ground_truth.zarr"
 
 
 def unzip_file(zip_path):
@@ -127,6 +143,63 @@ def save_numpy_binary_to_zarr(
         )
 
 
+def accuracy(pred_label, truth_label) -> float:
+    """
+    Compute the accuracy of a single label volume.
+
+    Args:
+        pred_label (np.ndarray): The predicted label volume.
+        truth_label (np.ndarray): The ground truth label volume.
+
+    Returns:
+        float: The accuracy of the label volume.
+
+    Example usage:
+        acc = accuracy(pred_label, truth_label)
+    """
+    return np.sum(pred_label == truth_label) / np.prod(pred_label.shape)
+
+
+def score_instance(pred_label, truth_label) -> dict[str, float]:
+    """
+    Score a single instance label volume against the ground truth instance label volume.
+
+    Args:
+        pred_label (np.ndarray): The predicted instance label volume.
+        truth_label (np.ndarray): The ground truth instance label volume.
+
+    Returns:
+        dict: A dictionary of scores for the instance label volume.
+
+    Example usage:
+        scores = score_instance(pred_label, truth_label)
+    """
+    # Relabel the predicted instance labels to be consistent with the ground truth instance labels
+    pred_label, _ = label(pred_label, structure=np.ones((3, 3, 3)))
+    pred_ids = np.unique(pred_label)
+
+    # Match the predicted instances to the ground truth instances
+    matches = {}
+    for i, pred_id in enumerate(pred_ids):
+        pred_mask = pred_label == pred_id
+        pred_count = np.sum(pred_mask)
+        truth_ids, truth_counts = np.unique(truth_label[pred_mask], return_counts=True)
+        for truth_id, truth_count in zip(truth_ids, truth_counts):
+            # If more than INSTANCE_THRESHOLD of the predicted instance overlaps with the ground truth ID, match them
+            # OR if more than INSTANCE_THRESHOLD of the ground truth ID overlaps with the predicted instance, match them
+            if (truth_count / pred_count > INSTANCE_THRESHOLD) or (
+                truth_count / np.sum(truth_label == truth_id) > INSTANCE_THRESHOLD
+            ):
+                if pred_id not in matches:
+                    matches[pred_id] = []
+                matches[pred_id].append(truth_id)
+
+    # Compute the scores
+
+
+def score_semantic(pred_label, truth_label) -> dict[str, float]: ...
+
+
 def score_label(pred_label_path) -> dict[str, float]:
     """
     Score a single label volume against the ground truth label volume.
@@ -144,19 +217,24 @@ def score_label(pred_label_path) -> dict[str, float]:
     label_name = UPath(pred_label_path).name
     volume_name = UPath(pred_label_path).parent.name
     pred_label = zarr.open(pred_label_path)
-    # TODO: REPLACE WITH THE GROUND TRUTH LABEL VOLUME PATH
-    truth_label = zarr.open(UPath("truth.zarr") / volume_name / label_name)
+    truth_label = zarr.open(UPath(TRUTH_PATH) / volume_name / label_name)
+    mask_path = UPath(TRUTH_PATH) / volume_name / f"{label_name}_mask"
+    if mask_path.exists():
+        # Mask out uncertain regions resulting from low-res ground truth annotations
+        mask = zarr.open()
+        pred_label = pred_label * mask
+        truth_label = truth_label * mask
 
     # Check if the label volumes have the same shape
     assert (
         pred_label.shape == truth_label.shape
     ), "The predicted and ground truth label volumes must have the same shape."
 
-    # Calculate the scores
-    scores = {}
-    ...
-
-    return scores
+    # Compute the scores
+    if label_name in INSTANCE_CLASSES:
+        return score_instance(pred_label, truth_label)
+    else:
+        return score_semantic(pred_label, truth_label)
 
 
 def score_volume(pred_volume_path) -> dict[str, dict[str, float]]:
@@ -176,9 +254,7 @@ def score_volume(pred_volume_path) -> dict[str, dict[str, float]]:
     pred_labels = [a for a in zarr.open(pred_volume_path).array_keys()]
 
     volume_name = UPath(pred_volume_path).name
-    truth_labels = [
-        a for a in zarr.open(UPath("truth.zarr") / volume_name).array_keys()
-    ]
+    truth_labels = [a for a in zarr.open(UPath(TRUTH_PATH) / volume_name).array_keys()]
 
     labels = list(set(pred_labels) & set(truth_labels))
 
@@ -212,7 +288,7 @@ def score_submission(
 
     # Find volumes to score
     pred_volumes = [a for a in submission.array_keys()]
-    truth_volumes = [a for a in zarr.open("truth.zarr").array_keys()]
+    truth_volumes = [a for a in zarr.open(TRUTH_PATH).array_keys()]
 
     volumes = list(set(pred_volumes) & set(truth_volumes))
 
