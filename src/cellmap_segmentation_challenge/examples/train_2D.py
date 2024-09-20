@@ -9,7 +9,7 @@ from cellmap_segmentation_challenge import (
     load_latest,
     load_best_val,
 )
-from cellmap_segmentation_challenge.models import unet_model_2D
+from cellmap_segmentation_challenge.models import UNet_2D, ResNet
 from tensorboardX import SummaryWriter
 from cellmap_data.utils import get_image_dict
 
@@ -35,7 +35,12 @@ classes = ["nuc", "er"]  # list of classes to segment
 # 2D UNet
 model_name = "2d_unet_aug"  # name of the model to use
 model_to_load = "2d_unet"  # name of the pre-trained model to load
-model = unet_model_2D.UNet(1, len(classes))
+model = UNet_2D(1, len(classes))
+
+# 2D ResNet
+# model_name = "2d_resnet"  # name of the model to use
+# model_to_load = "2d_resnet"  # name of the pre-trained model to load
+# model = ResNet(ndims=2, output_nc=len(classes))
 
 data_base_path = "data"  # base path where the data is stored
 logs_save_path = "tensorboard/{model_name}"  # path to save the logs from tensorboard
