@@ -406,3 +406,59 @@ def random_source_pipeline(
         pipeline += RandomDilateLabels(labels)
 
     return pipeline, request
+
+
+def simulate_predictions_iou(true_labels, iou):
+    shape = true_labels.shape
+    true_labels = true_labels.flatten()
+
+    # Get the total number of labels
+    n = len(true_labels)
+
+    # Calculate the number of correct predictions
+    num_correct = int(iou * n)
+
+    # Create an array to store the simulated predictions (copy a binarized version of the true labels initially)
+    simulated_predictions = np.copy(true_labels)
+
+    # Randomly select indices to be incorrect
+    incorrect_indices = np.random.choice(n, size=n - num_correct, replace=False)
+
+    # Flip the labels at the incorrect indices
+    for idx in incorrect_indices:
+        # Assuming binary classification (0 or 1), flip the label
+        simulated_predictions[idx] = 1 - simulated_predictions[idx]
+
+    # Relabel the predictions
+    simulated_predictions = simulated_predictions.reshape(shape)
+    simulated_predictions = relabel(simulated_predictions, connectivity=len(shape))
+
+    return simulated_predictions
+
+
+def simulate_predictions_accuracy(true_labels, accuracy):
+    shape = true_labels.shape
+    true_labels = true_labels.flatten()
+
+    # Get the total number of labels
+    n = len(true_labels)
+
+    # Calculate the number of correct predictions
+    num_correct = int(accuracy * n)
+
+    # Create an array to store the simulated predictions (copy the true labels initially)
+    simulated_predictions = np.copy(true_labels)
+
+    # Randomly select indices to be incorrect
+    incorrect_indices = np.random.choice(n, size=n - num_correct, replace=False)
+
+    # Flip the labels at the incorrect indices
+    for idx in incorrect_indices:
+        # Assuming binary classification (0 or 1), flip the label
+        simulated_predictions[idx] = 1 - simulated_predictions[idx]
+
+    # Relabel the predictions
+    simulated_predictions = simulated_predictions.reshape(shape)
+    simulated_predictions = relabel(simulated_predictions, connectivity=len(shape))
+
+    return simulated_predictions
