@@ -3,13 +3,13 @@ import os
 import torch
 import numpy as np
 from tqdm import tqdm
-from utils import (
+from cellmap_segmentation_challenge import (
     get_dataloader,
     CellMapLossWrapper,
     load_latest,
     load_best_val,
 )
-from models import unet_model_2D
+from cellmap_segmentation_challenge.models import unet_model_2D
 from tensorboardX import SummaryWriter
 from cellmap_data.utils import get_image_dict
 

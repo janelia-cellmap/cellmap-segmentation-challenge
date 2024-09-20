@@ -25,15 +25,11 @@ For instance:
 # %%
 import numpy as np
 import gunpowder as gp
-from scipy.optimize import linear_sum_assignment
-from scipy.spatial.distance import dice, jaccard
-from skimage.metrics import hausdorff_distance
-from sklearn.metrics import jaccard_score
 from skimage.measure import label
 import matplotlib.pyplot as plt
 
-from cellmap_segmentation_challenge.utils.benchmark.pipeline import random_source_pipeline, simulate_predictions_accuracy, simulate_predictions_iou
-from cellmap_segmentation_challenge.utils.evaluate import *
+from cellmap_segmentation_challenge.benchmark.pipeline import random_source_pipeline, simulate_predictions_accuracy, simulate_predictions_iou
+from cellmap_segmentation_challenge.evaluate import *
 
 
 # %% First make a GT array
@@ -119,7 +115,7 @@ print(f"Estimate for {size}^3 volume: {normalized_instance_time * size**3} secon
 # %%
 
 # Now let's test the whole pipeline by first saving the GT and prediction arrays to disk using the included utility functions
-from cellmap_segmentation_challenge.utils.evaluate import save_numpy_class_arrays_to_zarr
+from cellmap_segmentation_challenge.evaluate import save_numpy_class_arrays_to_zarr
 
 # First save the GT array
 semantic_label = truth_label > 0
@@ -143,7 +139,7 @@ os.system(f"zip -r {pred_path.replace('zarr', 'zip')} {pred_path}")
 
 # %%
 # Now we can score the saved arrays
-from cellmap_segmentation_challenge.utils.evaluate import score_submission
+from cellmap_segmentation_challenge.evaluate import score_submission
 save_path = "scores.json"
 submission_path = "pred.zip"
 truth_path = "gt.zarr"
