@@ -166,13 +166,14 @@ def score_instance(pred_label, truth_label) -> dict[str, float]:
         scores = score_instance(pred_label, truth_label)
     """
     # Relabel the predicted instance labels to be consistent with the ground truth instance labels
-    pred_label, _ = label(pred_label, structure=np.ones((3, 3, 3)))
+    # pred_label, _ = label(pred_label, structure=np.ones((3, 3, 3)))
+    # pred_label, _ = label(pred_label)
 
     # Construct the cost matrix for Hungarian matching
     pred_ids = np.unique(pred_label)
     truth_ids = np.unique(truth_label)
     cost_matrix = np.zeros((len(truth_ids), len(pred_ids)))
-    for i, pred_id in enumerate(pred_ids):
+    for j, pred_id in enumerate(pred_ids):
         if pred_id == 0:
             # Don't score the background
             continue
@@ -181,12 +182,12 @@ def score_instance(pred_label, truth_label) -> dict[str, float]:
         truth_indices = [
             np.argmax(truth_ids == truth_id) for truth_id in these_truth_ids
         ]
-        for j, truth_id in zip(truth_indices, these_truth_ids):
+        for i, truth_id in zip(truth_indices, these_truth_ids):
             if truth_id == 0:
                 # Don't score the background
                 continue
             truth_mask = truth_label == truth_id
-            cost_matrix[j, i] = jaccard_score(truth_mask.flatten(), pred_mask.flatten())
+            cost_matrix[i, j] = jaccard_score(truth_mask.flatten(), pred_mask.flatten())
 
     # Match the predicted instances to the ground truth instances
     row_inds, col_inds = linear_sum_assignment(cost_matrix, maximize=True)
@@ -194,6 +195,9 @@ def score_instance(pred_label, truth_label) -> dict[str, float]:
     # Contruct the volume for the matched instances
     matched_pred_label = np.zeros_like(pred_label)
     for i, j in zip(col_inds, row_inds):
+        if pred_ids[i] == 0 or truth_ids[j] == 0:
+            # Don't score the background
+            continue
         pred_mask = pred_label == pred_ids[i]
         matched_pred_label[pred_mask] = truth_ids[j]
 
