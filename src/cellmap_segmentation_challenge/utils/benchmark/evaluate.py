@@ -120,5 +120,33 @@ print(f"Estimate for {size}^3 volume: {normalized_instance_time * size**3} secon
 
 # Now let's test the whole pipeline by first saving the GT and prediction arrays to disk using the included utility functions
 from cellmap_segmentation_challenge.utils.evaluate import save_numpy_class_arrays_to_zarr
-# First save the GT array
 
+# First save the GT array
+semantic_label = truth_label > 0
+
+gt_path = "gt.zarr"
+gt_array = [semantic_label, truth_label]
+gt_names = ["semantic", "instance"]
+
+save_numpy_class_arrays_to_zarr(gt_path, "test", gt_names, gt_array, overwrite=True)
+
+# %%
+# Then save the prediction arrays
+pred_path = "pred.zarr"
+pred_array = [pred_accuracy_label, pred_iou_label]
+pred_names = ["instance", "semantic"]
+
+save_numpy_class_arrays_to_zarr(pred_path, "test", pred_names, pred_array, overwrite=True)
+
+# Now zip it
+os.system(f"zip -r {pred_path.replace('zarr', 'zip')} {pred_path}")
+
+# %%
+# Now we can score the saved arrays
+from cellmap_segmentation_challenge.utils.evaluate import score_submission
+save_path = "scores.json"
+submission_path = "pred.zip"
+truth_path = "gt.zarr"
+
+score_submission(submission_path, save_path, truth_path=truth_path, instance_classes=["instance"])
+# %%

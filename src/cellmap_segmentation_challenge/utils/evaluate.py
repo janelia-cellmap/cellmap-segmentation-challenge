@@ -67,23 +67,28 @@ def unzip_file(zip_path):
     Example usage:
         unzip_file('submission.zip')
     """
-    name = UPath(zip_path).name
-    extract_path = UPath(zip_path).parent / name.split(".")[0]
+    extract_path = UPath(zip_path).parent
     with zipfile.ZipFile(zip_path, "r") as zip_ref:
         zip_ref.extractall(extract_path)
+        saved_path = [
+            file.removesuffix(os.path.sep)
+            for file in zip_ref.namelist()
+            if file.removesuffix(os.path.sep).endswith(".zarr")
+        ][0]
+        print(f"Unzipped {zip_path} to {extract_path} / {saved_path}")
 
-    return extract_path
+    return saved_path
 
 
 def save_numpy_class_labels_to_zarr(
-    submission_path, test_volume_name, label_name, labels, overwrite=False
+    save_path, test_volume_name, label_name, labels, overwrite=False
 ):
     """
     Save a single 3D numpy array of class labels to a
     Zarr-2 file with the required structure.
 
     Args:
-        submission_path (str): The path to save the Zarr-2 file (ending with <filename>.zarr).
+        save_path (str): The path to save the Zarr-2 file (ending with <filename>.zarr).
         test_volume_name (str): The name of the test volume.
         label_names (str): The names of the labels.
         labels (np.ndarray): A 3D numpy array of class labels.
@@ -94,10 +99,10 @@ def save_numpy_class_labels_to_zarr(
         save_numpy_labels_to_zarr('submission.zarr', 'test_volume', ['label1', 'label2', 'label3'], labels)
     """
     # Create a Zarr-2 file
-    if not UPath(submission_path).exists():
-        os.makedirs(UPath(submission_path).parent)
-        store = zarr.DirectoryStore(submission_path)
-        zarr_group = zarr.group(store)
+    if not UPath(save_path).exists():
+        os.makedirs(UPath(save_path).parent, exist_ok=True)
+    store = zarr.DirectoryStore(save_path)
+    zarr_group = zarr.group(store)
 
     # Save the test volume group
     zarr_group.create_group(test_volume_name, overwrite=overwrite)
@@ -113,14 +118,14 @@ def save_numpy_class_labels_to_zarr(
 
 
 def save_numpy_class_arrays_to_zarr(
-    submission_path, test_volume_name, label_names, labels, overwrite=False
+    save_path, test_volume_name, label_names, labels, overwrite=False
 ):
     """
-    Save a list of 3D numpy arrays of binary labels to a
+    Save a list of 3D numpy arrays of binary or instance labels to a
     Zarr-2 file with the required structure.
 
     Args:
-        submission_path (str): The path to save the Zarr-2 file (ending with <filename>.zarr).
+        save_path (str): The path to save the Zarr-2 file (ending with <filename>.zarr).
         test_volume_name (str): The name of the test volume.
         label_names (list): A list of label names corresponding to the list of 3D numpy arrays.
         labels (list): A list of 3D numpy arrays of binary labels.
@@ -133,10 +138,10 @@ def save_numpy_class_arrays_to_zarr(
 
     """
     # Create a Zarr-2 file
-    if not UPath(submission_path).exists():
-        os.makedirs(UPath(submission_path).parent)
-        store = zarr.DirectoryStore(submission_path)
-        zarr_group = zarr.group(store)
+    if not UPath(save_path).exists():
+        os.makedirs(UPath(save_path).parent, exist_ok=True)
+    store = zarr.DirectoryStore(save_path)
+    zarr_group = zarr.group(store)
 
     # Save the test volume group
     zarr_group.create_group(test_volume_name, overwrite=overwrite)
@@ -254,8 +259,8 @@ def score_semantic(pred_label, truth_label) -> dict[str, float]:
     Example usage:
         scores = score_semantic(pred_label, truth_label)
     """
-    pred_label = (pred_label > 0).flatten()
-    truth_label = (truth_label > 0).flatten()
+    pred_label = (pred_label > 0.0).flatten()
+    truth_label = (truth_label > 0.0).flatten()
     # Compute the scores
     scores = {
         "iou": jaccard_score(truth_label, pred_label),
@@ -266,7 +271,7 @@ def score_semantic(pred_label, truth_label) -> dict[str, float]:
 
 
 def score_label(
-    pred_label_path, instance_classes=INSTANCE_CLASSES, truth_path=TRUTH_PATH
+    pred_label_path, truth_path=TRUTH_PATH, instance_classes=INSTANCE_CLASSES
 ) -> dict[str, float]:
     """
     Score a single label volume against the ground truth label volume.
@@ -283,12 +288,12 @@ def score_label(
     # Load the predicted and ground truth label volumes
     label_name = UPath(pred_label_path).name
     volume_name = UPath(pred_label_path).parent.name
-    pred_label = zarr.open(pred_label_path)
-    truth_label = zarr.open(UPath(truth_path) / volume_name / label_name)
+    pred_label = zarr.open(pred_label_path)[:]
+    truth_label = zarr.open(UPath(truth_path) / volume_name / label_name)[:]
     mask_path = UPath(truth_path) / volume_name / f"{label_name}_mask"
     if mask_path.exists():
         # Mask out uncertain regions resulting from low-res ground truth annotations
-        mask = zarr.open()
+        mask = zarr.open(mask_path)[:]
         pred_label = pred_label * mask
         truth_label = truth_label * mask
 
@@ -305,7 +310,7 @@ def score_label(
 
 
 def score_volume(
-    pred_volume_path, truth_path=TRUTH_PATH
+    pred_volume_path, truth_path=TRUTH_PATH, instance_classes=INSTANCE_CLASSES
 ) -> dict[str, dict[str, float]]:
     """
     Score a single volume against the ground truth volume.
@@ -328,13 +333,23 @@ def score_volume(
     labels = list(set(pred_labels) & set(truth_labels))
 
     # Score each label
-    scores = {label: score_label(pred_volume_path / label) for label in labels}
+    scores = {
+        label: score_label(
+            os.path.join(pred_volume_path, label),
+            truth_path=truth_path,
+            instance_classes=instance_classes,
+        )
+        for label in labels
+    }
 
     return scores
 
 
 def score_submission(
-    submission_path, save_path=None, truth_path=TRUTH_PATH
+    submission_path,
+    save_path=None,
+    truth_path=TRUTH_PATH,
+    instance_classes=INSTANCE_CLASSES,
 ) -> dict[str, dict[str, dict[str, float]]]:
     """
     Score a submission against the ground truth data.
@@ -352,17 +367,29 @@ def score_submission(
     # Unzip the submission
     submission_path = unzip_file(submission_path)
 
-    # Load the submission
-    submission = zarr.open(submission_path)
-
     # Find volumes to score
-    pred_volumes = [a for a in submission.array_keys()]
-    truth_volumes = [a for a in zarr.open(truth_path).array_keys()]
+    pred_volumes = [
+        str(d).removeprefix(submission_path + os.path.sep)
+        for d in UPath(submission_path).glob("*")
+        if d.is_dir()
+    ]
+    truth_volumes = [
+        str(d).removeprefix(truth_path + os.path.sep)
+        for d in UPath(truth_path).glob("*")
+        if d.is_dir()
+    ]
 
     volumes = list(set(pred_volumes) & set(truth_volumes))
 
     # Score each volume
-    scores = {volume: score_volume(submission_path / volume) for volume in pred_volumes}
+    scores = {
+        volume: score_volume(
+            os.path.join(submission_path, volume),
+            truth_path=truth_path,
+            instance_classes=instance_classes,
+        )
+        for volume in pred_volumes
+    }
 
     # Save the scores
     if save_path:
