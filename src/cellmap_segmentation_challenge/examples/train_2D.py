@@ -3,13 +3,13 @@ import os
 import torch
 import numpy as np
 from tqdm import tqdm
-from utils import (
+from cellmap_segmentation_challenge import (
     get_dataloader,
     CellMapLossWrapper,
     load_latest,
     load_best_val,
 )
-from models import unet_model_2D
+from cellmap_segmentation_challenge.models import unet_model_2D
 from tensorboardX import SummaryWriter
 from cellmap_data.utils import get_image_dict
 
@@ -29,7 +29,7 @@ iterations_per_epoch = 1000  # number of iterations per epoch
 random_seed = 42  # random seed for reproducibility
 init_model_features = 32  # number of initial features for the model
 
-classes = ["nuc"]  # list of classes to segment
+classes = ["nuc", "er"]  # list of classes to segment
 
 # Defining model (comment out all that are not used)
 # 2D UNet
