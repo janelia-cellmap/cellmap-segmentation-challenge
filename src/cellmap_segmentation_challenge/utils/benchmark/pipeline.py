@@ -409,31 +409,18 @@ def random_source_pipeline(
 
 
 def simulate_predictions_iou(true_labels, iou):
-    shape = true_labels.shape
-    true_labels = true_labels.flatten()
+    # TODO: Add false positives (only makes false negatives currently)
 
-    # Get the total number of labels
-    n = len(true_labels)
+    pred_labels = np.zeros_like(true_labels)
+    for i in np.unique(true_labels):
+        if i == 0:
+            continue
+        pred_labels[true_labels == i] = np.random.choice(
+            [i, 0], np.sum(true_labels == i), p=[iou, 1 - iou]
+        )
 
-    # Calculate the number of correct predictions
-    num_correct = int(iou * n)
-
-    # Create an array to store the simulated predictions (copy a binarized version of the true labels initially)
-    simulated_predictions = np.copy(true_labels)
-
-    # Randomly select indices to be incorrect
-    incorrect_indices = np.random.choice(n, size=n - num_correct, replace=False)
-
-    # Flip the labels at the incorrect indices
-    for idx in incorrect_indices:
-        # Assuming binary classification (0 or 1), flip the label
-        simulated_predictions[idx] = 1 - simulated_predictions[idx]
-
-    # Relabel the predictions
-    simulated_predictions = simulated_predictions.reshape(shape)
-    simulated_predictions = relabel(simulated_predictions, connectivity=len(shape))
-
-    return simulated_predictions
+    pred_labels = relabel(pred_labels, connectivity=len(pred_labels.shape))
+    return pred_labels
 
 
 def simulate_predictions_accuracy(true_labels, accuracy):

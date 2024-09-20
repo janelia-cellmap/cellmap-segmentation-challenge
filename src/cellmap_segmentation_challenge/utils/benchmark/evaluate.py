@@ -26,9 +26,10 @@ For instance:
 import numpy as np
 import gunpowder as gp
 from scipy.optimize import linear_sum_assignment
+from scipy.spatial.distance import dice, jaccard
 from skimage.metrics import hausdorff_distance
 from sklearn.metrics import jaccard_score
-from skimage.measure import label as relabel
+from skimage.measure import label
 import matplotlib.pyplot as plt
 
 from cellmap_segmentation_challenge.utils.benchmark.pipeline import random_source_pipeline, simulate_predictions_accuracy, simulate_predictions_iou
@@ -55,6 +56,7 @@ src, req = random_source_pipeline(
 with gp.build(src):
     batch = src.request_batch(req)
     truth_label = list(batch.arrays.values())[0].data
+    truth_label = label(truth_label, connectivity=len(shape))
 
 # %%
 # Plot the GT array and print some info
@@ -64,55 +66,59 @@ plt.colorbar()
 print(f"Shape of volume: {truth_label.shape}\nNumber of IDs: {len(np.unique(truth_label))}")
 
 # %%
-# Make a prediction array for accuracy testing
-pred_label_accuracy = simulate_predictions_accuracy(truth_label, configured_accuracy)
-
-# Plot the prediction array
-plt.imshow(pred_label_accuracy[shape[0] // 2], cmap="tab20", interpolation="nearest")
-plt.colorbar()
-
-print(f"Configured accuracy: {configured_accuracy}\nShape of volume: {pred_label_accuracy.shape}\nNumber of IDs: {len(np.unique(pred_label_accuracy))}")
-
-
-# %%
-print("Instance scoring:")
-instance_score = score_instance(pred_label_accuracy, truth_label)
-print(instance_score)
-print(f"Configured accuracy: {configured_accuracy}")
-
-# %%
-print("Timing instance scoring:")
-instance_time = %timeit -o score_instance(pred_label_accuracy, truth_label)
-normalized_instance_time = instance_time.average / np.prod(shape)
-print(f"Normalized time for instance scoring: {normalized_instance_time} seconds per voxel")
-
-size = 512
-print(f"Estimate for {size}^3 volume: {normalized_instance_time * size**3} seconds")
-# %%
 # Make a prediction array for iou testing
-pred_label_iou = simulate_predictions_iou(truth_label, configured_iou)
-
-pred_label_iou = relabel(pred_label_iou, connectivity=len(shape))
+pred_iou_label = simulate_predictions_iou(truth_label, configured_iou)
 
 # Plot the prediction array
-plt.imshow(pred_label_iou[shape[0] // 2], cmap="tab20", interpolation="nearest")
+plt.imshow(pred_iou_label[shape[0] // 2], cmap="tab20", interpolation="nearest")
 plt.colorbar()
 
-print(f"Configured iou: {configured_iou}\nShape of volume: {pred_label_iou.shape}\nNumber of IDs: {len(np.unique(pred_label_iou))}")
+print(f"Configured iou: {configured_iou}\nShape of volume: {pred_iou_label.shape}\nNumber of IDs: {len(np.unique(pred_iou_label))}")
 
 #%%
 print("Semantic scoring:")
-semantic_score = score_semantic(pred_label_iou, truth_label)
+semantic_score = score_semantic(pred_iou_label, truth_label)
 print(semantic_score)
-print(f"Configured iou: {configured_iou}")
+print(f"Configured IOU: {configured_iou}")
 
 # %%
 print("Timing semantic scoring:")
-semantic_time = %timeit -o score_semantic(pred_label_iou, truth_label)
+semantic_time = %timeit -o score_semantic(pred_iou_label, truth_label)
 normalized_semantic_time = semantic_time.average / np.prod(shape)
 print(f"Normalized time for semantic scoring: {normalized_semantic_time} seconds per voxel")
 
 size = 512
 print(f"Estimate for {size}^3 volume: {normalized_semantic_time * size**3} seconds")
 
+
 # %%
+# Make a prediction array for accuracy testing
+pred_accuracy_label = simulate_predictions_accuracy(truth_label, configured_accuracy)
+
+# Plot the prediction array
+plt.imshow(pred_accuracy_label[shape[0] // 2], cmap="tab20", interpolation="nearest")
+plt.colorbar()
+
+print(f"Configured accuracy: {configured_accuracy}\nShape of volume: {pred_accuracy_label.shape}\nNumber of IDs: {len(np.unique(pred_accuracy_label))}")
+
+
+# %%
+print("Instance scoring:")
+instance_score = score_instance(pred_accuracy_label, truth_label)
+print(instance_score)
+print(f"Configured accuracy: {configured_accuracy}")
+
+# %%
+print("Timing instance scoring:")
+instance_time = %timeit -o score_instance(pred_accuracy_label, truth_label)
+normalized_instance_time = instance_time.average / np.prod(shape)
+print(f"Normalized time for instance scoring: {normalized_instance_time} seconds per voxel")
+
+size = 512
+print(f"Estimate for {size}^3 volume: {normalized_instance_time * size**3} seconds")
+# %%
+
+# Now let's test the whole pipeline by first saving the GT and prediction arrays to disk using the included utility functions
+from cellmap_segmentation_challenge.utils.evaluate import save_numpy_class_arrays_to_zarr
+# First save the GT array
+

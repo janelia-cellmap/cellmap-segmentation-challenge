@@ -35,9 +35,9 @@ import json
 import sys
 import zipfile
 import numpy as np
-from scipy.ndimage import label
+from skimage.measure import label
 from scipy.optimize import linear_sum_assignment
-from scipy.spatial.distance import dice as dice_score
+from scipy.spatial.distance import dice  # , jaccard
 from sklearn.metrics import (
     jaccard_score,
     accuracy_score,
@@ -50,7 +50,7 @@ from upath import UPath
 
 
 INSTANCE_CLASSES = ["mito", "nuc"]
-INSTANCE_THRESHOLD = 0.5
+# INSTANCE_THRESHOLD = 0.5
 HAUSDORFF_DISTANCE_MAX = np.inf
 
 # TODO: REPLACE WITH THE GROUND TRUTH LABEL VOLUME PATH
@@ -75,7 +75,7 @@ def unzip_file(zip_path):
     return extract_path
 
 
-def save_numpy_labels_to_zarr(
+def save_numpy_class_labels_to_zarr(
     submission_path, test_volume_name, label_name, labels, overwrite=False
 ):
     """
@@ -112,7 +112,7 @@ def save_numpy_labels_to_zarr(
         )
 
 
-def save_numpy_binary_to_zarr(
+def save_numpy_class_arrays_to_zarr(
     submission_path, test_volume_name, label_names, labels, overwrite=False
 ):
     """
@@ -151,7 +151,24 @@ def save_numpy_binary_to_zarr(
         )
 
 
-def score_instance(pred_label, truth_label) -> dict[str, float]:
+# def dice(true, pred):
+#     true = true > 0
+#     pred = pred > 0
+#     intersection = np.logical_and(true, pred).sum()
+#     return (2 * intersection) / (true.sum() + pred.sum())
+
+
+# def iou(true, pred):
+#     true = true > 0
+#     pred = pred > 0
+#     intersection = np.logical_and(true, pred).sum()
+#     union = np.logical_or(true, pred).sum()
+#     return intersection / union
+
+
+def score_instance(
+    pred_label, truth_label, hausdorff_distance_max=HAUSDORFF_DISTANCE_MAX
+) -> dict[str, float]:
     """
     Score a single instance label volume against the ground truth instance label volume.
 
@@ -166,8 +183,8 @@ def score_instance(pred_label, truth_label) -> dict[str, float]:
         scores = score_instance(pred_label, truth_label)
     """
     # Relabel the predicted instance labels to be consistent with the ground truth instance labels
-    # pred_label, _ = label(pred_label, structure=np.ones((3, 3, 3)))
-    # pred_label, _ = label(pred_label)
+    pred_label = label(pred_label, connectivity=len(pred_label.shape))
+    # pred_label = label(pred_label)
 
     # Construct the cost matrix for Hungarian matching
     pred_ids = np.unique(pred_label)
@@ -209,7 +226,7 @@ def score_instance(pred_label, truth_label) -> dict[str, float]:
         h_dist = hausdorff_distance(
             truth_label == truth_id, matched_pred_label == truth_id
         )
-        h_dist = min(h_dist, HAUSDORFF_DISTANCE_MAX)
+        h_dist = min(h_dist, hausdorff_distance_max)
         hausdorff_distances.append(h_dist)
 
     # Compute the scores
@@ -241,14 +258,16 @@ def score_semantic(pred_label, truth_label) -> dict[str, float]:
     truth_label = (truth_label > 0).flatten()
     # Compute the scores
     scores = {
-        "jaccard_score": jaccard_score(truth_label, pred_label),
-        "dice_score": dice_score(truth_label, pred_label),
+        "iou": jaccard_score(truth_label, pred_label),
+        "dice_score": 1 - dice(truth_label, pred_label),
     }
 
     return scores
 
 
-def score_label(pred_label_path) -> dict[str, float]:
+def score_label(
+    pred_label_path, instance_classes=INSTANCE_CLASSES, truth_path=TRUTH_PATH
+) -> dict[str, float]:
     """
     Score a single label volume against the ground truth label volume.
 
@@ -265,8 +284,8 @@ def score_label(pred_label_path) -> dict[str, float]:
     label_name = UPath(pred_label_path).name
     volume_name = UPath(pred_label_path).parent.name
     pred_label = zarr.open(pred_label_path)
-    truth_label = zarr.open(UPath(TRUTH_PATH) / volume_name / label_name)
-    mask_path = UPath(TRUTH_PATH) / volume_name / f"{label_name}_mask"
+    truth_label = zarr.open(UPath(truth_path) / volume_name / label_name)
+    mask_path = UPath(truth_path) / volume_name / f"{label_name}_mask"
     if mask_path.exists():
         # Mask out uncertain regions resulting from low-res ground truth annotations
         mask = zarr.open()
@@ -279,13 +298,15 @@ def score_label(pred_label_path) -> dict[str, float]:
     ), "The predicted and ground truth label volumes must have the same shape."
 
     # Compute the scores
-    if label_name in INSTANCE_CLASSES:
+    if label_name in instance_classes:
         return score_instance(pred_label, truth_label)
     else:
         return score_semantic(pred_label, truth_label)
 
 
-def score_volume(pred_volume_path) -> dict[str, dict[str, float]]:
+def score_volume(
+    pred_volume_path, truth_path=TRUTH_PATH
+) -> dict[str, dict[str, float]]:
     """
     Score a single volume against the ground truth volume.
 
@@ -302,7 +323,7 @@ def score_volume(pred_volume_path) -> dict[str, dict[str, float]]:
     pred_labels = [a for a in zarr.open(pred_volume_path).array_keys()]
 
     volume_name = UPath(pred_volume_path).name
-    truth_labels = [a for a in zarr.open(UPath(TRUTH_PATH) / volume_name).array_keys()]
+    truth_labels = [a for a in zarr.open(UPath(truth_path) / volume_name).array_keys()]
 
     labels = list(set(pred_labels) & set(truth_labels))
 
@@ -313,7 +334,7 @@ def score_volume(pred_volume_path) -> dict[str, dict[str, float]]:
 
 
 def score_submission(
-    submission_path, save_path=None
+    submission_path, save_path=None, truth_path=TRUTH_PATH
 ) -> dict[str, dict[str, dict[str, float]]]:
     """
     Score a submission against the ground truth data.
@@ -336,7 +357,7 @@ def score_submission(
 
     # Find volumes to score
     pred_volumes = [a for a in submission.array_keys()]
-    truth_volumes = [a for a in zarr.open(TRUTH_PATH).array_keys()]
+    truth_volumes = [a for a in zarr.open(truth_path).array_keys()]
 
     volumes = list(set(pred_volumes) & set(truth_volumes))
 
