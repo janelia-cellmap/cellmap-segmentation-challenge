@@ -193,7 +193,6 @@ if __name__ == "__main__":
         classes = ["nuc", "er"]
         search_path = "./data.zarr/{dataset}/{label}"
 
-    make_datasplit_csv(
-        classes=classes,
-        search_path=search_path,
-    )
+    os.remove("datasplit.csv")
+
+    make_datasplit_csv(classes=classes, search_path=search_path, validation_prob=0.15)

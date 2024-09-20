@@ -99,8 +99,6 @@ class OutConv(nn.Module):
 
 """ Full assembly of the parts to form the complete network """
 
-from .unet_parts_3D import *
-
 # from torch import utils
 
 
