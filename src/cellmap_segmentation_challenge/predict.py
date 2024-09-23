@@ -1,3 +1,4 @@
+from importlib.machinery import SourceFileLoader
 import tempfile
 import torch
 from typing import Sequence
@@ -5,6 +6,7 @@ import os
 import daisy
 from funlib.persistence import open_ds, prepare_ds, Array
 import numpy as np
+from upath import UPath
 
 
 def get_output_shape(
@@ -314,7 +316,10 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    model = torch.load(args.model)  # TODO: Load the model from the script
+    model_path = args.model
+    model_script = UPath(model_path).stem
+    modle_script = SourceFileLoader(model_script, str(model_path)).load_module()
+    model = model_script.model
     in_dataset = args.in_dataset
     out_dataset = args.out_dataset
     input_block_shape = args.input_block_shape
