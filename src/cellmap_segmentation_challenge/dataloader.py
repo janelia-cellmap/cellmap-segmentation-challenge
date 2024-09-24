@@ -82,6 +82,9 @@ def get_dataloader(
     target_arrays = {
         "output": target_array_info if target_array_info is not None else array_info
     }
+    assert (
+        input_arrays is not None and target_arrays is not None
+    ), "No array info provided"
 
     value_transforms = T.Compose(
         [
