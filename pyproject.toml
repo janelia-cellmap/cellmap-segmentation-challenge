@@ -31,6 +31,8 @@ dependencies = [
   "tensorboardX",
   "cellmap-schemas==0.8.0",
   "click>=8, <9",
+  "tensorboard",
+  "cellmap-data@git+https://github.com/janelia-cellmap/cellmap-data",
   "tqdm",
   "zarr < 3.0.0",
   "xarray-ome-ngff == 3.1.1 ",
@@ -40,8 +42,13 @@ dependencies = [
   "cellmap-data@git+https://github.com/janelia-cellmap/cellmap-data@513a4235a69e9eb65edfe895f585e49e55b2c7be",
   "ml-collections",
   "scipy",
+  "numpy",
   "tensorstore",
-  "h5py",
+  "universal-pathlib",
+  "scipy",
+  "scikit-image",
+  "matplotlib",
+  "scikit-learn",
   ]
 
 [project.urls]
