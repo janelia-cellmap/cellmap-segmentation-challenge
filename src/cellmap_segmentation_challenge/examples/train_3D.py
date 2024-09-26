@@ -34,7 +34,7 @@ classes = ["nuc", "er"]  # list of classes to segment
 
 # Defining model (comment out all that are not used)
 # # 3D UNet
-# model_name = "3d_unet_aug"  # name of the model to use
+# model_name = "3d_unet"  # name of the model to use
 # model_to_load = "3d_unet"  # name of the pre-trained model to load
 # model = UNet_3D(1, len(classes))
 

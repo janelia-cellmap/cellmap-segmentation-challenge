@@ -18,11 +18,11 @@ learning_rate = 0.0001  # learning rate for the optimizer
 batch_size = 8  # batch size for the dataloader
 input_array_info = {
     "shape": (1, 128, 128),
-    "scale": (64, 64, 64),
+    "scale": (128, 128, 128),
 }  # shape and voxel size of the data to load for the input
 target_array_info = {
     "shape": (1, 128, 128),
-    "scale": (64, 64, 64),
+    "scale": (128, 128, 128),
 }  # shape and voxel size of the data to load for the target
 epochs = 1000  # number of epochs to train the model for
 iterations_per_epoch = 1000  # number of iterations per epoch
@@ -33,11 +33,11 @@ classes = ["nuc", "er"]  # list of classes to segment
 
 # Defining model (comment out all that are not used)
 # 2D UNet
-model_name = "2d_unet_aug"  # name of the model to use
+model_name = "2d_unet"  # name of the model to use
 model_to_load = "2d_unet"  # name of the pre-trained model to load
 model = UNet_2D(1, len(classes))
 
-# 2D ResNet
+# # 2D ResNet
 # model_name = "2d_resnet"  # name of the model to use
 # model_to_load = "2d_resnet"  # name of the pre-trained model to load
 # model = ResNet(ndims=2, output_nc=len(classes))
