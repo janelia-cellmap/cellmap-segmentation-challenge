@@ -53,7 +53,9 @@ num_workers = int(os.environ.get('CSC_FETCH_DATA_NUM_WORKERS', 32))
     default=False,
     help='Fetch all resolutions for the EM data. Default: False. Note: setting this to "True" may result in downloading tens or hundreds of GB of data, depending on the crop.')
 def fetch_data_cli(crops: str, raw_padding: str, dest_dir: str, access_mode: str, fetch_all_em_resolutions):
-
+    """
+    Download data for the CellMap segmentation challenge.
+    """
     if access_mode == 'overwrite':
         mode= 'w'
     elif access_mode == 'append':
