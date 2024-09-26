@@ -45,7 +45,7 @@ dependencies = [
   "numpy",
   "tensorstore",
   "h5py",
-  "python-dotenv"
+  "python-dotenv",
   "universal-pathlib",
   "scipy",
   "scikit-image",
