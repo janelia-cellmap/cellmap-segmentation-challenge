@@ -42,6 +42,7 @@ dependencies = [
   "scipy",
   "tensorstore",
   "h5py",
+  "python-dotenv"
   ]
 
 [project.urls]
