@@ -45,10 +45,19 @@ The repository is structured as follows:
 
 ## Download the data
 
-You can download the data by running the following command:
+Once you have installed this package, you can download the challenge data by running the following command:
 
 ```bash
-...
+csc fetch-data --crops all --dest path/to/dest
+```
+
+This will retrieve groundtruth data and corresponding EM data for each crop and save it at a path 
+of your choosing on your local filesystem.
+
+To see all the options for the the `fetch-data` command, run 
+
+```bash
+csc fetch-data --help
 ```
 
 ## Train a model
