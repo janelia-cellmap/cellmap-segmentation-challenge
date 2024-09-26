@@ -1,5 +1,5 @@
 import click
-from .fetch_data import fetch_crops_cli
+from .fetch_data import fetch_data_cli
 
 @click.group
 def run():
@@ -10,4 +10,4 @@ def echo():
     click.echo('hello')
 
 run.add_command(echo, name='echo')
-run.add_command(fetch_crops_cli, name='fetch-crops')
+run.add_command(fetch_data_cli, name='fetch-data')

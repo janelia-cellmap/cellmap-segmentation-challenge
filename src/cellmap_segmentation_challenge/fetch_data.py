@@ -1,4 +1,5 @@
 from typing import Generator, Sequence
+import warnings
 from cellmap_schemas.annotation import CropGroup
 import numpy as np
 import structlog
@@ -7,7 +8,6 @@ from xarray_ome_ngff import read_multiscale_array, read_multiscale_group
 import zarr
 import zarr.indexing
 import zarr.storage
-import os
 from yarl import URL
 from .utils.crops import CHALLENGE_CROPS, Crop
 from zarr._storage.store import Store
@@ -43,23 +43,31 @@ def partition_copy_store(
         except Exception as e:
             log.exception(e)
 
-def _resolve_gt_source_url(root: URL, crop: Crop) -> URL:
+def _resolve_gt_source_url(root: str | URL, crop: Crop) -> URL:
     """
     Get the location of a ground truth crop relative to a root
     """
-    # return root.joinpath(f'{crop.dataset}/{crop.dataset}.zarr/{crop.alignment}/labels/groundtruth/crop{crop.id}')
-    return root.joinpath(f'{crop.dataset}.zarr/crop{crop.id}')
 
-def _resolve_em_source_url(root: URL, crop: Crop) -> tuple[URL, URL, URL]:
+    # emit a warning here about using a temporary fix
+    warnings.warn("Using temporary fix for ground truth url. Please fix this when the crops are in their final layout.", UserWarning)
+    # TODO: fix this when the crops are in their final layout
+    # return root.joinpath(f'{crop.dataset}/{crop.dataset}.zarr/{crop.alignment}/labels/groundtruth/crop{crop.id}')
+    return URL(root).joinpath(f'{crop.dataset}.zarr/crop{crop.id}')
+
+def _resolve_em_source_url(root: str | URL, crop: Crop) -> tuple[URL, tuple[str, str, str]]:
     """
-    Get the location(s) of the EM data for a crop, relative to a root. This is a tuple of URLs, because 
-    not all datasets have em data with a consistent dtype.
+    Get the location(s) of the EM data for a crop, relative to a root. This is a tuple of tuples of URLs, because 
+    not all datasets have em data with the same dtype.
     """
     dtypes = ('uint8', 'uint16', 'int16')
-    return tuple(root.joinpath(f"{crop.dataset}/{crop.dataset}.zarr/{crop.alignment}/em/fibsem-{dtype}") for dtype in dtypes)
+    store_root = URL(root).joinpath(f"{crop.dataset}/{crop.dataset}.zarr")
+    groups = tuple(f"{crop.alignment}/em/fibsem-{dtype}" for dtype in dtypes)
+    return store_root, groups
 
-def _resolve_gt_dest_url(root: URL, crop: Crop) -> URL:
-    return root.joinpath(f'{crop.dataset}/{crop.dataset}.zarr/{crop.alignment}/labels/groundtruth/crop{crop.id}')
+def _resolve_gt_dest_url(root: URL, crop: Crop) -> tuple[URL, URL]:
+    store_root = root.joinpath(f'{crop.dataset}/{crop.dataset}.zarr')
+    group = f'{crop.alignment}/labels/groundtruth/crop{crop.id}'
+    return store_root, group
 
 def get_url(node: zarr.Group | zarr.Array) -> URL:
     return get_store_url(node.store, node.path)
@@ -156,4 +164,3 @@ def subset_to_slice(outer_array, inner_array) -> tuple[slice, ...]:
             step = 1
             out += (slice(start, stop, step),)
         return out
-

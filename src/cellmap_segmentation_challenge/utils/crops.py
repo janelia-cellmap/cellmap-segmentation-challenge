@@ -7,6 +7,9 @@ class Crop:
     dataset: str
     alignment: str = 'recon-1'
 
+DEFAULT_CROP_URL = 's3://janelia-cosem-datasets/'
+DEFAULT_EM_URL = 's3://janelia-cosem-datasets/'
+
 CHALLENGE_CROPS = [
 Crop(385,'jrc_22ak351-leaf-3m'),
 Crop(234,'jrc_cos7-1a',"recon-2"),
