@@ -18,11 +18,11 @@ learning_rate = 0.0001  # learning rate for the optimizer
 batch_size = 8  # batch size for the dataloader
 input_array_info = {
     "shape": (1, 128, 128),
-    "scale": (64, 64, 64),
+    "scale": (8, 8, 8),
 }  # shape and voxel size of the data to load for the input
 target_array_info = {
     "shape": (1, 128, 128),
-    "scale": (64, 64, 64),
+    "scale": (8, 8, 8),
 }  # shape and voxel size of the data to load for the target
 epochs = 1000  # number of epochs to train the model for
 iterations_per_epoch = 1000  # number of iterations per epoch
@@ -33,7 +33,7 @@ classes = ["nuc", "er"]  # list of classes to segment
 
 # Defining model (comment out all that are not used)
 # 2D UNet
-model_name = "2d_unet_aug"  # name of the model to use
+model_name = "2d_unet"  # name of the model to use
 model_to_load = "2d_unet"  # name of the pre-trained model to load
 model = UNet_2D(1, len(classes))
 
@@ -42,12 +42,17 @@ model = UNet_2D(1, len(classes))
 # model_to_load = "2d_resnet"  # name of the pre-trained model to load
 # model = ResNet(ndims=2, output_nc=len(classes))
 
+
+# Define the paths for saving the model and logs, etc.
 data_base_path = "data"  # base path where the data is stored
 logs_save_path = "tensorboard/{model_name}"  # path to save the logs from tensorboard
 model_save_path = (
     "checkpoints/{model_name}_{epoch}.pth"  # path to save the model checkpoints
 )
 datasplit_path = "datasplit.csv"  # path to the datasplit file that defines the train/val split the dataloader should use
+
+
+# Define the spatial transformations to apply to the training data
 spatial_transforms = {  # dictionary of spatial transformations to apply to the data
     "mirror": {"axes": {"x": 0.5, "y": 0.5}},
     "transpose": {"axes": ["x", "y"]},
@@ -162,13 +167,12 @@ for epoch in range(epochs):
     val_bar = tqdm(val_loader, desc="Validation")
     with torch.no_grad():
         for batch in val_bar:
-
             inputs = batch["input"]
             targets = batch["output"]
             outputs = model(inputs)
             val_score += criterion(outputs, targets).item()
-
     val_score /= len(val_loader)
+
     # Log the validation using tensorboard
     writer.add_scalar("validation", val_score, n_iter)
 
