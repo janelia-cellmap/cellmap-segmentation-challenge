@@ -14,6 +14,7 @@ authors = [
   { name = "Jeff Rhoades", email = "rhoadesj@janelia.hhmi.org" },
   { name = "Emma Avetissian", email = "avetissiane@janelia.hhmi.org" },
   { name = "Davis Vann Bennett", email = "davis.v.bennett@gmail.com" },
+  { name = "Marwan Zouinkhi", email = "zouinkhim@hhmi.org" },
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -41,6 +42,28 @@ dependencies = [
   "scikit-learn",
   "daisy",
   ]
+
+[project.optional-dependencies]
+test = ["pytest>=6.0", "pytest-cov", "mypy", "black"]
+docs = [
+    "sphinx",
+    "sphinx-book-theme",
+    "recommonmark",
+]
+dev = [
+    "black",
+    "ipython",
+    "jupyter",
+    "mypy",
+    "pdbpp",
+    "rich",
+    "ruff",
+    "snakeviz",
+    "twine",
+    "hatch",
+    "python-semantic-release",
+    "cellmap-segmentation-challenge[test,docs]",
+]
 
 [project.urls]
 Documentation = "https://github.com/janelia-cellmap/cellmap-segmentation-challenge#readme"
