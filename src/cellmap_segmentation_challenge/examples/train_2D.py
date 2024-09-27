@@ -18,11 +18,11 @@ learning_rate = 0.0001  # learning rate for the optimizer
 batch_size = 8  # batch size for the dataloader
 input_array_info = {
     "shape": (1, 128, 128),
-    "scale": (128, 128, 128),
+    "scale": (8, 8, 8),
 }  # shape and voxel size of the data to load for the input
 target_array_info = {
     "shape": (1, 128, 128),
-    "scale": (128, 128, 128),
+    "scale": (8, 8, 8),
 }  # shape and voxel size of the data to load for the target
 epochs = 1000  # number of epochs to train the model for
 iterations_per_epoch = 1000  # number of iterations per epoch
@@ -42,12 +42,17 @@ model = UNet_2D(1, len(classes))
 # model_to_load = "2d_resnet"  # name of the pre-trained model to load
 # model = ResNet(ndims=2, output_nc=len(classes))
 
+
+# Define the paths for saving the model and logs, etc.
 data_base_path = "data"  # base path where the data is stored
 logs_save_path = "tensorboard/{model_name}"  # path to save the logs from tensorboard
 model_save_path = (
     "checkpoints/{model_name}_{epoch}.pth"  # path to save the model checkpoints
 )
 datasplit_path = "datasplit.csv"  # path to the datasplit file that defines the train/val split the dataloader should use
+
+
+# Define the spatial transformations to apply to the training data
 spatial_transforms = {  # dictionary of spatial transformations to apply to the data
     "mirror": {"axes": {"x": 0.5, "y": 0.5}},
     "transpose": {"axes": ["x", "y"]},

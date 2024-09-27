@@ -53,11 +53,25 @@ You can download the data by running the following command:
 
 ## Train a model
 
-You can train a model by running the following command:
+Example scripts for training 2D and 3D models are provided in the `src/cellmap_segmentation_challenge/examples` directory. The scripts are named `train_2d.py` and `train_3d.py`, respectively, and are thoroughly annotated for clarity. You can run one such script by running the following on the command line:
 
 ```bash
-...
+cd src/cellmap_segmentation_challenge/examples
+python train_2d.py
 ```
+This will train a 2D model on the training data and save the model weights to a file (defaults to `./checkpoints/*.pth`), along with logging loss and validation metrics, and sample predictions, viewable in TensorBoard. To view the TensorBoard logs, and monitor training progress, run the following command (assuming you are using the default log directory):
+
+```bash
+tensorboard --logdir=./tensorboard
+```
+
+You can also train a 3D model by running the same command with `train_3d.py`:
+
+```bash
+python train_3d.py
+```
+
+For more information on the available options, see the `README.md` in the examples folder (`src/cellmap_segmentation_challenge/examples`), as well as the documentation in `src/cellmap_segmentation_challenge/examples/train_2d.py` and `src/cellmap_segmentation_challenge/examples/train_3d.py`.
 
 ## Predict on test data
 
