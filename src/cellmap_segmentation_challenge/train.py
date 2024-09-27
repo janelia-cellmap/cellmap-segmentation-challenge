@@ -42,6 +42,7 @@ def train(config_path: str):
         - classes: List of classes to train the model to predict. This will be reflected in the data included in the datasplit, if generated de novo after calling this script. Default is ['nuc', 'er'].
         - model_name: Name of the model to use. If the config file constructs the PyTorch model, this name can be anything. If the config file does not construct the PyTorch model, the model_name will need to specify which included architecture to use. This includes '2d_unet', '2d_resnet', '3d_unet', '3d_resnet', and 'vitnet'. Default is '2d_unet'. See the `models` module `README.md` for more information.
         - model_to_load: Name of the pre-trained model to load. Default is the same as `model_name`.
+        - model_kwargs: Dictionary of keyword arguments to pass to the model constructor. Default is {}. If the PyTorch `model` is passed, this will be ignored. See the `models` module `README.md` for more information.
         - model: PyTorch model to use for training. If this is provided, the `model_name` and `model_to_load` can be any string. Default is None.
         - load_model: Which model checkpoint to load if it exists. Options are 'latest' or 'best'. If no checkpoints exist, will silently use the already initialized model. Default is 'latest'.
         - spatial_transforms: Dictionary of spatial transformations to apply to the training data. Default is {'mirror': {'axes': {'x': 0.5, 'y': 0.5}}, 'transpose': {'axes': ['x', 'y']}, 'rotate': {'axes': {'x': [-180, 180], 'y': [-180, 180]}}}. See the `dataloader` module documentation for more information.
@@ -75,6 +76,7 @@ def train(config_path: str):
     classes = config.get("classes", ["nuc", "er"])
     model_name = config.get("model_name", "2d_unet")
     model_to_load = config.get("model_to_load", model_name)
+    model_kwargs = config.get("model_kwargs", {})
     model = config.get("model", None)
     load_model = config.get("load_model", "latest")
     spatial_transforms = config.get(
@@ -124,24 +126,24 @@ def train(config_path: str):
     if model is None:
         if "2d" in model_name.lower():
             if "unet" in model_name.lower():
-                model = UNet_2D(1, len(classes))
+                model = UNet_2D(1, len(classes), **model_kwargs)
             elif "resnet" in model_name.lower():
-                model = ResNet(ndims=2, output_nc=len(classes))
+                model = ResNet(ndims=2, output_nc=len(classes), **model_kwargs)
             else:
                 raise ValueError(
                     f"Unknown model name: {model_name}. Preconfigured 2D models are '2d_unet' and '2d_resnet'."
                 )
         elif "3d" in model_name.lower():
             if "unet" in model_name.lower():
-                model = UNet_3D(1, len(classes))
+                model = UNet_3D(1, len(classes), **model_kwargs)
             elif "resnet" in model_name.lower():
-                model = ResNet(ndims=3, output_nc=len(classes))
+                model = ResNet(ndims=3, output_nc=len(classes), **model_kwargs)
             else:
                 raise ValueError(
                     f"Unknown model name: {model_name}. Preconfigured 3D models are '3d_unet' and '3d_resnet', or 'vitnet'."
                 )
         elif "vitnet" in model_name.lower():
-            model = ViTVNet(len(classes))
+            model = ViTVNet(len(classes), **model_kwargs)
         else:
             raise ValueError(
                 f"Unknown model name: {model_name}. Preconfigured models are '2d_unet', '2d_resnet', '3d_unet', '3d_resnet', and 'vitnet'. Otherwise provide a custom model as a torch.nn.Module."
