@@ -318,7 +318,7 @@ if __name__ == "__main__":
 
     model_path = args.model
     model_script = UPath(model_path).stem
-    modle_script = SourceFileLoader(model_script, str(model_path)).load_module()
+    model_script = SourceFileLoader(model_script, str(model_path)).load_module()
     model = model_script.model
     in_dataset = args.in_dataset
     out_dataset = args.out_dataset
