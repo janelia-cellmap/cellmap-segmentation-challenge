@@ -11,14 +11,14 @@ crop_url = os.environ.get('CSC_FETCH_DATA_CROP_URL', DEFAULT_CROP_URL)
 em_url = os.environ.get('CSC_FETCH_DATA_EM_URL', DEFAULT_EM_URL)
 
 out_fname = 'manifest.csv'
-lines = ("crop_name, crop_url, em_url\n",)
+lines = ("crop_name, dataset, alignment, crop_url, em_url\n",)
 for crop in CHALLENGE_CROPS:
     crop_id = crop.id
     gt_url = _resolve_gt_source_url(crop_url, crop)
     em_root, em_paths = _resolve_em_source_url(em_url, crop)
     em_group = resolve_em_url(em_root, em_paths)
 
-    lines += (f'{crop.id},{gt_url!s},{get_url(em_group)!s}\n',)
+    lines += (f'{crop.id},{crop.dataset},{crop.alignment},{gt_url!s},{get_url(em_group)!s}\n',)
 
 with open(out_fname, 'w') as out_fo:
     out_fo.writelines(lines)
