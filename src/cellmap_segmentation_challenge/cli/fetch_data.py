@@ -4,8 +4,8 @@ import click
 from xarray import DataArray
 from xarray_ome_ngff import read_multiscale_group
 from xarray_ome_ngff.v04.multiscale import transforms_from_coords
-from cellmap_segmentation_challenge.fetch_data import _resolve_em_source_url, _resolve_gt_source_url,_resolve_gt_dest_url, subset_to_slice, partition_copy_store, read_group, get_chunk_keys
-from cellmap_segmentation_challenge.utils.crops import CHALLENGE_CROPS, Crop, DEFAULT_CROP_URL, DEFAULT_EM_URL
+from cellmap_segmentation_challenge.fetch_data import _resolve_em_dest_path, _resolve_gt_dest_path, subset_to_slice, partition_copy_store, read_group, get_chunk_keys
+from cellmap_segmentation_challenge.utils.crops import CropRow, fetch_manifest
 import structlog
 from yarl import URL
 import zarr
@@ -20,8 +20,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # get constants from environment, falling back to defaults as needed
-crop_url = os.environ.get('CSC_FETCH_DATA_CROP_URL', DEFAULT_CROP_URL)
-em_url = os.environ.get('CSC_FETCH_DATA_EM_URL', DEFAULT_EM_URL)
+manifest_url = os.environ['CSC_FETCH_DATA_MANIFEST_URL']
+if manifest_url is None:
+    raise ValueError('No manifest url provided. Quitting.')
 num_workers = int(os.environ.get('CSC_FETCH_DATA_NUM_WORKERS', 32))
 
 @click.command
@@ -60,19 +61,26 @@ def fetch_data_cli(crops: str, raw_padding: str, dest_dir: str, access_mode: str
         mode= 'w'
     elif access_mode == 'append':
         mode = 'a'
-
+    else:
+        raise ValueError(f'Invalid access mode: {access_mode}. Must be one of "overwrite" or "append"')
     fetch_save_start = time.time()
     pool = ThreadPoolExecutor(max_workers=num_workers)
     dest_path_abs = Path(dest_dir).absolute()
 
     log = structlog.get_logger()
-    crops_parsed: tuple[Crop, ...]
+    crops_parsed: tuple[CropRow, ...]
+    
+    crops_from_manifest = fetch_manifest(manifest_url)
+    
     if crops == 'all':
         crops_parsed = CHALLENGE_CROPS
+        crops_parsed = crops_from_manifest
     else:
         crops_split = tuple(int(x) for x in crops.split(','))
-        crops_parsed = tuple(filter(lambda v: v.id in crops_split, CHALLENGE_CROPS))
+        crops_parsed = tuple(filter(lambda v: v.id in crops_split, crops_from_manifest))
+    
     crop_ids = tuple(c.id for c in crops_parsed)
+    
     if len(crops_parsed) == 0:
         log.info(f'No crops found matching {crops}. Doing nothing.')
         return
@@ -81,17 +89,30 @@ def fetch_data_cli(crops: str, raw_padding: str, dest_dir: str, access_mode: str
     log.info(f'Data will be saved to {dest_path_abs}')
     
     for crop in crops_parsed:
-        log = log.bind(crop=crop)
+        log = log.bind(crop_id=crop.id, dataset=crop.dataset)
         gt_save_start = time.time()
-        gt_source_url = _resolve_gt_source_url(crop_url, crop)
+        # gt_source_url = _resolve_gt_source_url(crop_url, crop)
+        gt_source_url = crop.gt_url
+        em_source_url = crop.em_url
+
         try:
             gt_source_group = read_group(str(gt_source_url))
-            log.info(f'Found a Zarr group at {gt_source_url}.')
+            log.info(f'Found GT data at {gt_source_url}.')
         except zarr.errors.GroupNotFoundError:
             log.info(f'No Zarr group was found at {gt_source_url}. This crop will be skipped.')
             continue
+        
+        em_source_group: None | zarr.Group = None        
+        try: 
+            em_source_group = read_group(str(em_source_url), storage_options={'anon': True})
+            log.info(f'Found EM data at {em_source_url}.')
+        except zarr.errors.GroupNotFoundError:
+            log.info(f'No EM data was found at {em_source_url}. Saving EM data will be skipped.')
 
-        dest_root, gt_dest_path = _resolve_gt_dest_url(URL.build(scheme='file', path=str(dest_path_abs)), crop)
+        dest_root = URL.build(scheme='file', path=str(dest_path_abs)).joinpath(f'{crop.dataset}/{crop.dataset}.zarr') 
+        gt_dest_path = _resolve_gt_dest_path(crop)
+        em_dest_path = _resolve_em_dest_path(crop)
+
         dest_root_group = zarr.open_group(str(dest_root), mode=mode)
         # create intermediate groups
         dest_root_group.require_group(gt_dest_path)
@@ -99,8 +120,10 @@ def fetch_data_cli(crops: str, raw_padding: str, dest_dir: str, access_mode: str
 
         fs = gt_source_group.store.fs
         store_path = gt_source_group.store.path
+
         # Using fs.find here is a performance hack until we fix the slowness of traversing the 
         # zarr hierarchy to build the list of files
+
         gt_files = fs.find(store_path)
         crop_group_inventory = tuple(fn.split(store_path)[-1] for fn in gt_files)
         log.info(f'Preparing to fetch {len(crop_group_inventory)} files from {gt_source_url}.')
@@ -114,30 +137,12 @@ def fetch_data_cli(crops: str, raw_padding: str, dest_dir: str, access_mode: str
             log=log)
                     
         log.info(f'Finished saving crop to local directory after {time.time() - gt_save_start:0.3f}s')
-
-        em_source_root, em_source_paths = _resolve_em_source_url(em_url, crop)
-        em_dest_url : URL | None = None
-        em_source_group: None | zarr.Group = None
-
-        # todo: functionalize this
-        for em_url_parts in zip((em_source_root,) * len(em_source_paths), em_source_paths, strict=True):
-            maybe_em_source_url = em_url_parts[0] / em_url_parts[1]
-            log.info(f'Checking for EM data at {maybe_em_source_url}')
-            try:
-                em_source_group = read_group(str(maybe_em_source_url), storage_options={'anon': True})
-                em_source_url = maybe_em_source_url
-                em_dest_url = URL.build(scheme='file', path=str(dest_path_abs)) / em_url_parts[1]
-                log.info(f'Found EM data at {em_source_url}')
-                break
-            except zarr.errors.GroupNotFoundError:
-                log.info(f'No EM data found at {maybe_em_source_url}')
-
         if em_source_group is None:
             log.info(f'No EM data found at any of the possible URLs. No EM data will be fetched for this crop.')        
             continue 
         else:         
             # model the em group locally
-            em_dest_group = GroupSpec.from_zarr(em_source_group).to_zarr(FSStore(str(em_dest_url)), path='', overwrite=(mode =='w'))
+            em_dest_group = GroupSpec.from_zarr(em_source_group).to_zarr(FSStore(str(str(dest_root / em_dest_path))), path='', overwrite=(mode =='w'))
 
             # get the multiscale model of the source em group           
             array_wrapper = {'name': 'dask_array', 'config': {'chunks': 'auto'}}
@@ -190,6 +195,7 @@ def fetch_data_cli(crops: str, raw_padding: str, dest_dir: str, access_mode: str
                     pool=pool,
                     log=log)
                 # ensure that intermediate groups are present
-                dest_root_group.require_group(em_url_parts[1])
-    log = log.unbind('crop')
+                dest_root_group.require_group(em_dest_path)
+
+    log = log.unbind('crop_id', 'dataset')
     log.info(f'Done after {time.time() - fetch_save_start:0.3f}s')
