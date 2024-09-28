@@ -6,6 +6,7 @@ import structlog
 from xarray_ome_ngff import read_multiscale_array, read_multiscale_group
 
 import zarr
+import zarr.errors
 import zarr.indexing
 import zarr.storage
 from yarl import URL
@@ -164,3 +165,14 @@ def subset_to_slice(outer_array, inner_array) -> tuple[slice, ...]:
             step = 1
             out += (slice(start, stop, step),)
         return out
+
+def resolve_em_url(em_source_root: URL, em_source_paths: list[str]):
+    log = structlog.get_logger()
+    for em_url_parts in zip((em_source_root,) * len(em_source_paths), em_source_paths, strict=True):
+        maybe_em_source_url = em_url_parts[0] / em_url_parts[1]
+        log.info(f'Checking for EM data at {maybe_em_source_url}')
+        try:
+            return read_group(str(maybe_em_source_url), storage_options={'anon': True})
+        except zarr.errors.GroupNotFoundError:
+            log.info(f'No EM data found at {maybe_em_source_url}')
+    raise zarr.errors.GroupNotFoundError(f'No EM data found in {em_source_root}')
