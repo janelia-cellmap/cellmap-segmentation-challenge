@@ -27,15 +27,24 @@ classifiers = [
 ]
 dependencies = [
   "torch",
-  "tensorboardX",
   "tensorboard",
+  "tensorboardX",
+  "cellmap-schemas==0.8.0",
+  "click>=8, <9",
   "cellmap-data@git+https://github.com/janelia-cellmap/cellmap-data",
   "tqdm",
+  "zarr < 3.0.0",
+  "xarray-ome-ngff >= 3.1.1, <=4.0.0",
+  "structlog",
+  "yarl",
+  "toolz",
   "ml-collections",
+  "scipy",
   "numpy",
   "tensorstore",
+  "h5py",
+  "python-dotenv",
   "universal-pathlib",
-  "scipy",
   "scikit-image",
   "matplotlib",
   "scikit-learn",
@@ -52,6 +61,10 @@ allow-direct-references=true
 
 [tool.hatch.version]
 path = "src/cellmap_segmentation_challenge/__about__.py"
+
+[tool.hatch.envs.default]
+installer = "pip"
+python = "3.10"
 
 [tool.hatch.envs.test]
 dependencies = ["pytest"]
@@ -81,3 +94,6 @@ exclude_lines = [
   "if __name__ == .__main__.:",
   "if TYPE_CHECKING:",
 ]
+
+[project.scripts]
+csc = "cellmap_segmentation_challenge.cli:run"
