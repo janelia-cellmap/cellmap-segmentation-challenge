@@ -44,7 +44,7 @@ def make_datasplit_csv(
     force_all_classes: bool | str = False,
     validation_prob: float = 0.3,
     datasets: list[str] = ["*"],
-    search_path: str = ".../{dataset}/staging/groundtruth.zarr/*/{label}",
+    search_path: str = "./data/{dataset}.zarr/*/{label}",
     raw_name: str = "recon-1/em/fibsem-uint8",
     csv_path: str = "datasplit.csv",
     dry_run: bool = False,

@@ -39,6 +39,7 @@ dependencies = [
   "scikit-image",
   "matplotlib",
   "scikit-learn",
+  "daisy",
   ]
 
 # extras
