@@ -28,13 +28,18 @@ classifiers = [
 dependencies = [
   "torch",
   "tensorboardX",
+  "tensorboard",
   "cellmap-data@git+https://github.com/janelia-cellmap/cellmap-data",
   "tqdm",
   "ml-collections",
   "numpy",
-  "scipy",
   "tensorstore",
-  "h5py",
+  "universal-pathlib",
+  "scipy",
+  "scikit-image",
+  "matplotlib",
+  "scikit-learn",
+  "daisy",
   ]
 
 [project.urls]
