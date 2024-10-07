@@ -5,7 +5,7 @@ Submission requirements:
      - /<test_volume_name>
         - /<label_name>
 2. The names of the test volumes and labels should match the names of the test volumes and labels in the test data.
-4. The scale for all volumes is 8x8x8 nm/voxel, except as otherwise specified.
+3. The scale for all volumes is 8x8x8 nm/voxel, except as otherwise specified.
 
 Assuming your data is already 8x8x8nm/voxel,and each label volume is either A) a 3D binary volume with the same shape and scale as the corresponding test volume, 
 or B) instance IDs per object, you can convert the submission to the required format using the following convenience functions:
