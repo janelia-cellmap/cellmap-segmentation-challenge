@@ -5,10 +5,10 @@ Submission requirements:
      - /<test_volume_name>
         - /<label_name>
 2. The names of the test volumes and labels should match the names of the test volumes and labels in the test data.
-3. Each label volume should be either A) a 3D binary volume with the same shape and scale as the corresponding test volume, or B) instance IDs per object.
 4. The scale for all volumes is 8x8x8 nm/voxel, except as otherwise specified.
 
-Assuming your data is already 8x8x8nm/voxel, you can convert the submission to the required format using the following convenience functions:
+Assuming your data is already 8x8x8nm/voxel,and each label volume is either A) a 3D binary volume with the same shape and scale as the corresponding test volume, 
+or B) instance IDs per object, you can convert the submission to the required format using the following convenience functions:
 
 - For converting a single 3D numpy array of class labels to a Zarr-2 file, use the following function:
   `cellmap_segmentation_challenge.utils.evaluate.save_numpy_labels_to_zarr`
