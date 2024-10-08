@@ -1,0 +1,540 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cellmap_segmentation_challenge.datasplit &#8212; CellMap Segmentation Challenge</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=a3416100" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/cellmap_segmentation_challenge/datasplit';</script>
+    <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/CellMapLogo.png" class="logo__image only-light" alt="CellMap Segmentation Challenge - Home"/>
+    <script>document.write(`<img src="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/CellMapLogo.png" class="logo__image only-dark" alt="CellMap Segmentation Challenge - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for cellmap_segmentation_challenge.datasplit</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">from</span> <span class="nn">glob</span> <span class="kn">import</span> <span class="n">glob</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+
+
+<div class="viewcode-block" id="get_csv_string">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.datasplit.html#cellmap_segmentation_challenge.datasplit.get_csv_string">[docs]</a>
+<span class="k">def</span> <span class="nf">get_csv_string</span><span class="p">(</span>
+    <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">classes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">datapath_prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">usage</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">raw_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">crops</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">dataset_name</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="n">datapath_prefix</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">gt_name</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.zarr&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">crops</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">gt_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">crops</span><span class="p">:</span>
+        <span class="n">bar_string</span> <span class="o">=</span> <span class="n">gt_name</span> <span class="o">+</span> <span class="s2">&quot; not in crops, skipping&quot;</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">bar_string</span>
+    <span class="n">gt_path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">removesuffix</span><span class="p">(</span><span class="n">gt_name</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+    <span class="n">raw_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">datapath_prefix</span><span class="p">,</span> <span class="n">dataset_name</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2">.zarr&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">raw_path</span><span class="p">,</span> <span class="n">raw_name</span><span class="p">)):</span>
+        <span class="n">bar_string</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;No raw data found for </span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">raw_path</span><span class="p">,</span><span class="w"> </span><span class="n">raw_name</span><span class="p">)</span><span class="si">}</span><span class="s2">, trying n5 format&quot;</span>
+        <span class="n">raw_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">datapath_prefix</span><span class="p">,</span> <span class="n">dataset_name</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2">.n5&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">raw_path</span><span class="p">,</span> <span class="n">raw_name</span><span class="p">)):</span>
+            <span class="n">bar_string</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;No raw data found for </span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">raw_path</span><span class="p">,</span><span class="w"> </span><span class="n">raw_name</span><span class="p">)</span><span class="si">}</span><span class="s2">, skipping&quot;</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">bar_string</span>
+    <span class="n">bar_string</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Found raw data for </span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">raw_path</span><span class="p">,</span><span class="w"> </span><span class="n">raw_name</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">usage</span><span class="si">}</span><span class="s1">&quot;,&quot;</span><span class="si">{</span><span class="n">raw_path</span><span class="si">}</span><span class="s1">&quot;,&quot;</span><span class="si">{</span><span class="n">raw_name</span><span class="si">}</span><span class="s1">&quot;,&quot;</span><span class="si">{</span><span class="n">gt_path</span><span class="si">}</span><span class="s1">&quot;,&quot;</span><span class="si">{</span><span class="n">gt_name</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="si">}</span><span class="s1">[</span><span class="si">{</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">c</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">classes</span><span class="p">])</span><span class="si">}</span><span class="s1">]&quot;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">bar_string</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="make_datasplit_csv">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.datasplit.html#cellmap_segmentation_challenge.datasplit.make_datasplit_csv">[docs]</a>
+<span class="k">def</span> <span class="nf">make_datasplit_csv</span><span class="p">(</span>
+    <span class="n">classes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;nuc&quot;</span><span class="p">,</span> <span class="s2">&quot;mito&quot;</span><span class="p">],</span>
+    <span class="n">force_all_classes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">validation_prob</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">,</span>
+    <span class="n">datasets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;*&quot;</span><span class="p">],</span>
+    <span class="n">search_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;./data/</span><span class="si">{dataset}</span><span class="s2">.zarr/*/</span><span class="si">{label}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="n">raw_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;recon-1/em/fibsem-uint8&quot;</span><span class="p">,</span>
+    <span class="n">csv_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;datasplit.csv&quot;</span><span class="p">,</span>
+    <span class="n">dry_run</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">crops</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="c1"># Define the paths to the raw and groundtruth data and the label classes by crawling the directories and writing the paths to a csv file</span>
+    <span class="n">datapath_prefix</span> <span class="o">=</span> <span class="n">search_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;{&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">datapaths</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="n">datasets</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">classes</span><span class="p">:</span>
+            <span class="n">these_datapaths</span> <span class="o">=</span> <span class="n">glob</span><span class="p">(</span><span class="n">search_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">))</span>
+            <span class="n">these_datapaths</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">path</span><span class="o">.</span><span class="n">removesuffix</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">label</span><span class="p">)</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">these_datapaths</span>
+            <span class="p">]</span>
+            <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">these_datapaths</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">datapaths</span><span class="p">:</span>
+                    <span class="n">datapaths</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">datapaths</span><span class="p">[</span><span class="n">path</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">dry_run</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Dry run, not writing csv&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">datapaths</span>
+
+    <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">csv_path</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">csv_path</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;CSV file </span><span class="si">{</span><span class="n">csv_path</span><span class="si">}</span><span class="s2"> already exists&quot;</span>
+
+    <span class="n">usage_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">k</span><span class="p">:</span> <span class="s2">&quot;train&quot;</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">validation_prob</span> <span class="k">else</span> <span class="s2">&quot;validate&quot;</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">datapaths</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+    <span class="p">}</span>
+    <span class="n">num_train</span> <span class="o">=</span> <span class="n">num_validate</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">bar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">datapaths</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">bar</span><span class="p">:</span>
+        <span class="n">usage</span> <span class="o">=</span> <span class="n">usage_dict</span><span class="p">[</span><span class="n">path</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">force_all_classes</span> <span class="o">==</span> <span class="n">usage</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">datapaths</span><span class="p">[</span><span class="n">path</span><span class="p">])</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">classes</span><span class="p">):</span>
+                <span class="n">usage</span> <span class="o">=</span> <span class="s2">&quot;train&quot;</span> <span class="k">if</span> <span class="n">usage</span> <span class="o">==</span> <span class="s2">&quot;validate&quot;</span> <span class="k">else</span> <span class="s2">&quot;validate&quot;</span>
+        <span class="k">elif</span> <span class="n">force_all_classes</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">datapaths</span><span class="p">[</span><span class="n">path</span><span class="p">])</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">classes</span><span class="p">):</span>
+                <span class="n">usage_dict</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span>
+                <span class="k">continue</span>
+        <span class="n">usage_dict</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="n">usage</span>
+
+        <span class="n">csv_string</span><span class="p">,</span> <span class="n">bar_string</span> <span class="o">=</span> <span class="n">get_csv_string</span><span class="p">(</span>
+            <span class="n">path</span><span class="p">,</span> <span class="n">datapaths</span><span class="p">[</span><span class="n">path</span><span class="p">],</span> <span class="n">datapath_prefix</span><span class="p">,</span> <span class="n">usage</span><span class="p">,</span> <span class="n">raw_name</span><span class="p">,</span> <span class="n">crops</span>
+        <span class="p">)</span>
+        <span class="n">bar</span><span class="o">.</span><span class="n">set_postfix_str</span><span class="p">(</span><span class="n">bar_string</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">csv_string</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">csv_path</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">csv_string</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">csv_string</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">usage</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
+                <span class="n">num_train</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">num_validate</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CSV written to </span><span class="si">{</span><span class="n">csv_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of datasets: </span><span class="si">{</span><span class="n">num_train</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">num_validate</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Number of training datasets: </span><span class="si">{</span><span class="n">num_train</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">num_train</span><span class="o">/</span><span class="p">(</span><span class="n">num_train</span><span class="o">+</span><span class="n">num_validate</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">%)&quot;</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Number of validation datasets: </span><span class="si">{</span><span class="n">num_validate</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">num_validate</span><span class="o">/</span><span class="p">(</span><span class="n">num_train</span><span class="o">+</span><span class="n">num_validate</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">%)&quot;</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_dataset_counts">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.datasplit.html#cellmap_segmentation_challenge.datasplit.get_dataset_counts">[docs]</a>
+<span class="k">def</span> <span class="nf">get_dataset_counts</span><span class="p">(</span>
+    <span class="n">classes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;nuc&quot;</span><span class="p">,</span> <span class="s2">&quot;mito&quot;</span><span class="p">],</span>
+    <span class="n">search_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.../*/staging/groundtruth.zarr/*/</span><span class="si">{label}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="n">raw_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;recon-1/em/fibsem-uint8&quot;</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="c1"># Count the # of crops per class per dataset</span>
+    <span class="n">datapath_prefix</span> <span class="o">=</span> <span class="n">search_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">dataset_class_counts</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">classes</span><span class="p">:</span>
+        <span class="n">these_datapaths</span> <span class="o">=</span> <span class="n">glob</span><span class="p">(</span><span class="n">search_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">))</span>
+        <span class="n">these_datapaths</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">path</span><span class="o">.</span><span class="n">removesuffix</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">label</span><span class="p">)</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">these_datapaths</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">these_datapaths</span><span class="p">:</span>
+            <span class="n">dataset_name</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="n">datapath_prefix</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">raw_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">datapath_prefix</span><span class="p">,</span> <span class="n">dataset_name</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2">.zarr&quot;</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">raw_path</span><span class="p">,</span> <span class="n">raw_name</span><span class="p">)):</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;No raw data found for </span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">raw_path</span><span class="p">,</span><span class="w"> </span><span class="n">raw_name</span><span class="p">)</span><span class="si">}</span><span class="s2">, trying n5 format&quot;</span>
+                <span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">dataset_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dataset_class_counts</span><span class="p">:</span>
+                <span class="n">dataset_class_counts</span><span class="p">[</span><span class="n">dataset_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dataset_class_counts</span><span class="p">[</span><span class="n">dataset_name</span><span class="p">]:</span>
+                <span class="n">dataset_class_counts</span><span class="p">[</span><span class="n">dataset_name</span><span class="p">][</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dataset_class_counts</span><span class="p">[</span><span class="n">dataset_name</span><span class="p">][</span><span class="n">label</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">dataset_class_counts</span></div>
+
+
+
+<div class="viewcode-block" id="get_class_incl_ids">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.datasplit.html#cellmap_segmentation_challenge.datasplit.get_class_incl_ids">[docs]</a>
+<span class="k">def</span> <span class="nf">get_class_incl_ids</span><span class="p">(</span><span class="n">incl_ids_string</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">incl_ids_string</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">incl_ids_string</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">return</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span> <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">incl_ids_string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)]</span></div>
+
+
+
+<div class="viewcode-block" id="get_class_relations">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.datasplit.html#cellmap_segmentation_challenge.datasplit.get_class_relations">[docs]</a>
+<span class="k">def</span> <span class="nf">get_class_relations</span><span class="p">(</span>
+    <span class="n">csv_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;classes.csv&quot;</span><span class="p">,</span> <span class="n">named_classes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">):</span>
+    <span class="n">classes_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">csv_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">named_classes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">named_classes</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="nb">id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">classes_dict</span><span class="p">:</span>
+                <span class="n">classes_dict</span><span class="p">[</span><span class="nb">id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">classes_dict</span><span class="p">[</span><span class="nb">id</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">classes_dict</span><span class="p">[</span><span class="nb">id</span><span class="p">][</span><span class="s2">&quot;incl_ids&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">get_class_incl_ids</span><span class="p">(</span><span class="o">*</span><span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">:])</span> <span class="o">+</span> <span class="p">[</span><span class="nb">id</span><span class="p">])</span>
+
+    <span class="c1"># Get all potentially overlapping classes (e.g. cell can overlap with every organelle but not ecs)</span>
+    <span class="n">class_relation_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">id1</span><span class="p">,</span> <span class="n">info1</span> <span class="ow">in</span> <span class="n">classes_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">info1</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">class_relation_dict</span><span class="p">:</span>
+            <span class="n">class_relation_dict</span><span class="p">[</span><span class="n">info1</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">id2</span><span class="p">,</span> <span class="n">info2</span> <span class="ow">in</span> <span class="n">classes_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">id1</span> <span class="o">==</span> <span class="n">id2</span><span class="p">:</span>
+                <span class="n">class_relation_dict</span><span class="p">[</span><span class="n">info1</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">info2</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">info1</span><span class="p">[</span><span class="s2">&quot;incl_ids&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">info2</span><span class="p">[</span><span class="s2">&quot;incl_ids&quot;</span><span class="p">]))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">class_relation_dict</span><span class="p">[</span><span class="n">info1</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">info2</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">])</span>
+
+    <span class="n">class_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">classes_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">class_relation_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">class_relation_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">class_ids</span> <span class="o">-</span> <span class="n">value</span>
+
+    <span class="k">return</span> <span class="n">class_relation_dict</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;[&quot;</span><span class="p">:</span>
+        <span class="n">classes</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">search_path</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">classes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;nuc&quot;</span><span class="p">,</span> <span class="s2">&quot;er&quot;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">classes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;nuc&quot;</span><span class="p">,</span> <span class="s2">&quot;er&quot;</span><span class="p">]</span>
+        <span class="n">search_path</span> <span class="o">=</span> <span class="s2">&quot;./data.zarr/</span><span class="si">{dataset}</span><span class="s2">/</span><span class="si">{label}</span><span class="s2">&quot;</span>
+
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;datasplit.csv&quot;</span><span class="p">)</span>
+
+    <span class="n">make_datasplit_csv</span><span class="p">(</span><span class="n">classes</span><span class="o">=</span><span class="n">classes</span><span class="p">,</span> <span class="n">search_path</span><span class="o">=</span><span class="n">search_path</span><span class="p">,</span> <span class="n">validation_prob</span><span class="o">=</span><span class="mf">0.15</span><span class="p">)</span>
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Jeff Rhoades, Emma Avetissian, Davis Vann Bennett, Marwan Zouinkhi
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2024, Jeff Rhoades, Emma Avetissian, Davis Vann Bennett, Marwan Zouinkhi.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

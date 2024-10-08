@@ -1,0 +1,699 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cellmap_segmentation_challenge.predict &#8212; CellMap Segmentation Challenge</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=a3416100" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/cellmap_segmentation_challenge/predict';</script>
+    <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/CellMapLogo.png" class="logo__image only-light" alt="CellMap Segmentation Challenge - Home"/>
+    <script>document.write(`<img src="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/CellMapLogo.png" class="logo__image only-dark" alt="CellMap Segmentation Challenge - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for cellmap_segmentation_challenge.predict</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">importlib.machinery</span> <span class="kn">import</span> <span class="n">SourceFileLoader</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Sequence</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">daisy</span>
+<span class="kn">from</span> <span class="nn">funlib.persistence</span> <span class="kn">import</span> <span class="n">open_ds</span><span class="p">,</span> <span class="n">prepare_ds</span><span class="p">,</span> <span class="n">Array</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">upath</span> <span class="kn">import</span> <span class="n">UPath</span>
+
+
+<span class="k">def</span> <span class="nf">get_output_shape</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes the output shape of a model given an input shape.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model : torch.nn.Module</span>
+<span class="sd">        The model to compute the output shape for.</span>
+<span class="sd">    input_shape : Sequence[int]</span>
+<span class="sd">        The input shape of the model.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Sequence[int]</span>
+<span class="sd">        The output shape of the model.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">input_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="o">*</span><span class="n">input_shape</span><span class="p">)</span>
+    <span class="n">output_tensor</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">output_tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span>
+
+
+<span class="k">def</span> <span class="nf">predict_ortho_planes</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
+    <span class="n">in_dataset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span>
+    <span class="n">out_dataset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span>
+    <span class="n">input_block_shape</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+    <span class="n">channels</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+    <span class="n">roi</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">min_raw</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">max_raw</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">255</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Predicts the average 3D output of a 2D model on a large dataset by splitting it into blocks and predicting each block separately, then averaging the predictions from the x, y, and z orthogonal planes.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model : torch.nn.Module</span>
+<span class="sd">        The model to use for prediction.</span>
+<span class="sd">    in_dataset: str | os.PathLike</span>
+<span class="sd">        The path to the input dataset.</span>
+<span class="sd">    out_dataset: str | os.PathLike</span>
+<span class="sd">        The path to the output dataset, not including the name of the channel.</span>
+<span class="sd">    input_block_shape : Sequence[int]</span>
+<span class="sd">        The shape of the input slices to use for prediction.</span>
+<span class="sd">    channels : Sequence[str] | dict[str | int, str]</span>
+<span class="sd">        The label classes to predict. The output will be saved in separate datasets for each label class. If multiple output channels belong to the same label class (such as for x,y,z affinities), they can be combined by indicating chanel:label matches with a dictionary and specifying the channels as a string of the form &quot;0-2&quot;. Example: {&quot;0-2&quot;:&quot;nuc&quot;}. For single channel per label class predictions, the channels can be specified as strings in a list or tuple.</span>
+<span class="sd">    roi : str, optional</span>
+<span class="sd">        The region of interest to predict. If None, the entire dataset will be predicted.</span>
+<span class="sd">        The format is a string of the form &quot;[start1:end1,start2:end2,...]&quot;.</span>
+<span class="sd">    min_raw : float, optional</span>
+<span class="sd">        The minimum value of the raw data. Default is 0.</span>
+<span class="sd">    max_raw : float, optional</span>
+<span class="sd">        The maximum value of the raw data. Default is 255.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Predicting orthogonal planes.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Make a temporary prediction for each axis</span>
+    <span class="n">tmp_dir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Temporary directory for predictions: </span><span class="si">{</span><span class="n">tmp_dir</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+        <span class="n">predict</span><span class="p">(</span>
+            <span class="n">model</span><span class="p">,</span>
+            <span class="n">in_dataset</span><span class="p">,</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_dir</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;output.zarr&quot;</span><span class="p">,</span> <span class="n">axis</span><span class="p">),</span>
+            <span class="n">input_block_shape</span><span class="p">,</span>
+            <span class="n">channels</span><span class="p">,</span>
+            <span class="n">roi</span><span class="p">,</span>
+            <span class="n">min_raw</span><span class="p">,</span>
+            <span class="n">max_raw</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Combine the predictions from the x, y, and z orthogonal planes</span>
+    <span class="n">raw_dataset</span> <span class="o">=</span> <span class="n">open_ds</span><span class="p">(</span><span class="n">in_dataset</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">channels</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="c1"># Load the predictions from the x, y, and z orthogonal planes</span>
+        <span class="n">predictions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+            <span class="n">predictions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">open_ds</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_dir</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;output.zarr&quot;</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">label</span><span class="p">))[:]</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Combine the predictions</span>
+        <span class="n">combined_predictions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Save the combined predictions</span>
+        <span class="n">example_ds</span> <span class="o">=</span> <span class="n">open_ds</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_dir</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;output.zarr&quot;</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">label</span><span class="p">))</span>
+        <span class="n">total_write_roi</span> <span class="o">=</span> <span class="n">example_ds</span><span class="o">.</span><span class="n">roi</span>
+        <span class="n">dataset</span> <span class="o">=</span> <span class="n">prepare_ds</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">out_dataset</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">total_roi</span><span class="o">=</span><span class="n">total_write_roi</span><span class="p">,</span>
+            <span class="n">voxel_size</span><span class="o">=</span><span class="n">raw_dataset</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">,</span>
+            <span class="n">write_size</span><span class="o">=</span><span class="n">example_ds</span><span class="o">.</span><span class="n">chunk_shape</span><span class="p">,</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">example_ds</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">dataset</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">combined_predictions</span>
+
+    <span class="n">tmp_dir</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="predict">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.predict.html#cellmap_segmentation_challenge.predict">[docs]</a>
+<span class="k">def</span> <span class="nf">predict</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
+    <span class="n">in_dataset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span>
+    <span class="n">out_dataset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span>
+    <span class="n">input_block_shape</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+    <span class="n">channels</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+    <span class="n">roi</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">min_raw</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">max_raw</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">255</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Predicts the output of a model on a large dataset by splitting it into blocks</span>
+<span class="sd">    and predicting each block separately.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model : torch.nn.Module</span>
+<span class="sd">        The model to use for prediction.</span>
+<span class="sd">    in_dataset: str | os.PathLike</span>
+<span class="sd">        The path to the input dataset.</span>
+<span class="sd">    out_dataset: str | os.PathLike</span>
+<span class="sd">        The path to the output dataset, not including the name of the channel.</span>
+<span class="sd">    input_block_shape : Sequence[int]</span>
+<span class="sd">        The shape of the input blocks to use for prediction.</span>
+<span class="sd">    channels : Sequence[str] | dict[str | int, str]</span>
+<span class="sd">        The label classes to predict. The output will be saved in separate datasets for each label class. If multiple output channels belong to the same label class (such as for x,y,z affinities), they can be combined by indicating chanel:label matches with a dictionary and specifying the channels as a string of the form &quot;0-2&quot;. Example: {&quot;0-2&quot;:&quot;nuc&quot;}. For single channel per label class predictions, the channels can be specified as strings in a list or tuple.</span>
+<span class="sd">    roi : str, optional</span>
+<span class="sd">        The region of interest to predict. If None, the entire dataset will be predicted.</span>
+<span class="sd">        The format is a string of the form &quot;[start1:end1,start2:end2,...]&quot;.</span>
+<span class="sd">    min_raw : float, optional</span>
+<span class="sd">        The minimum value of the raw data. Default is 0.</span>
+<span class="sd">    max_raw : float, optional</span>
+<span class="sd">        The maximum value of the raw data. Default is 255.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+
+    <span class="n">shift</span> <span class="o">=</span> <span class="n">min_raw</span>
+    <span class="n">scale</span> <span class="o">=</span> <span class="n">max_raw</span> <span class="o">-</span> <span class="n">min_raw</span>
+
+    <span class="n">raw_dataset</span> <span class="o">=</span> <span class="n">open_ds</span><span class="p">(</span><span class="n">in_dataset</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">roi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">parsed_start</span><span class="p">,</span> <span class="n">parsed_end</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span>
+            <span class="o">*</span><span class="p">[</span>
+                <span class="nb">tuple</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span> <span class="k">for</span> <span class="n">coord</span> <span class="ow">in</span> <span class="n">axis</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">roi</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;[]&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">parsed_roi</span> <span class="o">=</span> <span class="n">daisy</span><span class="o">.</span><span class="n">Roi</span><span class="p">(</span>
+            <span class="n">daisy</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">parsed_start</span><span class="p">),</span>
+            <span class="n">daisy</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">parsed_end</span><span class="p">)</span> <span class="o">-</span> <span class="n">daisy</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">parsed_start</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">total_write_roi</span> <span class="o">=</span> <span class="n">parsed_roi</span><span class="o">.</span><span class="n">snap_to_grid</span><span class="p">(</span><span class="n">raw_dataset</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">)</span>
+        <span class="n">total_read_roi</span> <span class="o">=</span> <span class="n">total_write_roi</span><span class="o">.</span><span class="n">grow</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">total_read_roi</span> <span class="o">=</span> <span class="n">raw_dataset</span><span class="o">.</span><span class="n">roi</span>
+        <span class="n">total_write_roi</span> <span class="o">=</span> <span class="n">total_read_roi</span><span class="o">.</span><span class="n">grow</span><span class="p">(</span><span class="o">-</span><span class="n">context</span><span class="p">,</span> <span class="o">-</span><span class="n">context</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_block_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">input_block_shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)</span> <span class="o">+</span> <span class="n">input_block_shape</span>
+
+    <span class="n">read_shape</span> <span class="o">=</span> <span class="n">input_block_shape</span> <span class="o">*</span> <span class="n">raw_dataset</span><span class="o">.</span><span class="n">voxel_size</span>
+    <span class="n">write_shape</span> <span class="o">=</span> <span class="n">get_output_shape</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">input_block_shape</span><span class="p">)</span>
+
+    <span class="n">context</span> <span class="o">=</span> <span class="p">(</span><span class="n">read_shape</span> <span class="o">-</span> <span class="n">write_shape</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">read_roi</span> <span class="o">=</span> <span class="n">daisy</span><span class="o">.</span><span class="n">Roi</span><span class="p">((</span><span class="mi">0</span><span class="p">,)</span> <span class="o">*</span> <span class="n">read_shape</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span> <span class="n">read_shape</span><span class="p">)</span>
+    <span class="n">write_roi</span> <span class="o">=</span> <span class="n">read_roi</span><span class="o">.</span><span class="n">grow</span><span class="p">(</span><span class="o">-</span><span class="n">context</span><span class="p">,</span> <span class="o">-</span><span class="n">context</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">):</span>
+        <span class="n">channels</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">c</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">channels</span><span class="p">)}</span>
+
+    <span class="n">out_datasets</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">channel</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">channels</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">dataset</span> <span class="o">=</span> <span class="n">prepare_ds</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">out_dataset</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">total_roi</span><span class="o">=</span><span class="n">total_write_roi</span><span class="p">,</span>
+            <span class="n">voxel_size</span><span class="o">=</span><span class="n">raw_dataset</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">,</span>
+            <span class="n">write_size</span><span class="o">=</span><span class="n">write_roi</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">out_datasets</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataset</span>
+
+    <span class="k">def</span> <span class="nf">predict_worker</span><span class="p">():</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">daisy</span><span class="o">.</span><span class="n">Client</span><span class="p">()</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">device</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">client</span><span class="o">.</span><span class="n">acquire_block</span><span class="p">()</span> <span class="k">as</span> <span class="n">block</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">block</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+                <span class="n">raw_input</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="mf">2.0</span>
+                    <span class="o">*</span> <span class="p">(</span>
+                        <span class="n">raw_dataset</span><span class="o">.</span><span class="n">to_ndarray</span><span class="p">(</span>
+                            <span class="n">roi</span><span class="o">=</span><span class="n">block</span><span class="o">.</span><span class="n">read_roi</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">shift</span> <span class="o">+</span> <span class="n">scale</span>
+                        <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+                        <span class="o">-</span> <span class="n">shift</span>
+                    <span class="p">)</span>
+                    <span class="o">/</span> <span class="n">scale</span>
+                <span class="p">)</span> <span class="o">-</span> <span class="mf">1.0</span>
+                <span class="n">raw_input</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">raw_input</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="n">write_roi</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">write_roi</span>  <span class="c1"># .intersect(out_datasets[0].roi)</span>
+
+                <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+                    <span class="n">predictions</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span>
+                        <span class="n">model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">raw_input</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">))</span>
+                        <span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+                        <span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
+                        <span class="o">.</span><span class="n">numpy</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span>
+                        <span class="n">block</span><span class="o">.</span><span class="n">write_roi</span><span class="p">,</span>
+                        <span class="n">dataset</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+                    <span class="n">write_data</span> <span class="o">=</span> <span class="n">predictions</span><span class="o">.</span><span class="n">to_ndarray</span><span class="p">(</span><span class="n">write_roi</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">out_dataset</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">out_datasets</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="s2">&quot;-&quot;</span> <span class="ow">in</span> <span class="n">i</span><span class="p">:</span>
+                            <span class="n">indexes</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
+                            <span class="n">indexes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">indexes</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">indexes</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">indexes</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indexes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                            <span class="n">out_dataset</span><span class="p">[</span><span class="n">write_roi</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>
+                                <span class="p">[</span><span class="n">write_data</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">indexes</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span>
+                            <span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">out_dataset</span><span class="p">[</span><span class="n">write_roi</span><span class="p">]</span> <span class="o">=</span> <span class="n">write_data</span><span class="p">[</span><span class="n">indexes</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+                <span class="n">block</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">daisy</span><span class="o">.</span><span class="n">BlockStatus</span><span class="o">.</span><span class="n">SUCCESS</span>
+
+    <span class="n">task</span> <span class="o">=</span> <span class="n">daisy</span><span class="o">.</span><span class="n">Task</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;predict_</span><span class="si">{</span><span class="n">in_dataset</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="n">total_roi</span><span class="o">=</span><span class="n">total_read_roi</span><span class="p">,</span>
+        <span class="n">read_roi</span><span class="o">=</span><span class="n">read_roi</span><span class="p">,</span>
+        <span class="n">write_roi</span><span class="o">=</span><span class="n">write_roi</span><span class="p">,</span>
+        <span class="n">process_function</span><span class="o">=</span><span class="n">predict_worker</span><span class="p">,</span>
+        <span class="n">check_function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">read_write_conflict</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># fit=&quot;overhang&quot;,</span>
+        <span class="n">num_workers</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">max_retries</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">daisy</span><span class="o">.</span><span class="n">run_blockwise</span><span class="p">([</span><span class="n">task</span><span class="p">])</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">argparse</span>
+
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;model&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;m&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to a script that will load the model. Often this can be the path to the training script (such as with the examples).&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;in_dataset&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;in&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Full path to the input dataset. This dataset should contain the raw data to predict on. Example: `/path/to/test_raw.zarr/em/s0`&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;out_dataset&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;out&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to the output dataset, minus the class label name(s). For example, the output dataset should be `/path/to/outputs.zarr/dataset_1`.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;input_block_shape&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;in_shape&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Shape of the input blocks to use for prediction.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;channels&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ch&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The label classes to predict and their corresponding channels. Specify multiple channels for a single label class as a string of the form &#39;0-2&#39;. Example: {&#39;0-2&#39;:&#39;nuc&#39;}.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;roi&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Region of interest to predict. Default is to use the entire ROI of the input dataset. Format is a string of the form &#39;[start1:end1,start2:end2,...]&#39;.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;min_raw&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;min&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Minimum value of the raw data. Default is 0.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;max_raw&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;max&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Maximum value of the raw data. Default is 255.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;do_ortho_planes&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ortho&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Whether to compute the average of predictions from x, y, and z orthogonal planes for the full 3D volume. This is sometimes called 2.5D predictions. It expects a model that yields 2D outputs. Similarly, it expects the `input_shape` to be 2D (i.e. a sequence of 2 integers).&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="n">model_path</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">model</span>
+    <span class="n">model_script</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span>
+    <span class="n">model_script</span> <span class="o">=</span> <span class="n">SourceFileLoader</span><span class="p">(</span><span class="n">model_script</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">model_path</span><span class="p">))</span><span class="o">.</span><span class="n">load_module</span><span class="p">()</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">model_script</span><span class="o">.</span><span class="n">model</span>
+    <span class="n">in_dataset</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">in_dataset</span>
+    <span class="n">out_dataset</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">out_dataset</span>
+    <span class="n">input_block_shape</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">input_block_shape</span>
+    <span class="n">channels</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">channels</span>
+    <span class="n">roi</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">roi</span>
+    <span class="n">min_raw</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">min_raw</span>
+    <span class="n">max_raw</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">max_raw</span>
+    <span class="n">do_ortho_planes</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">do_ortho</span>
+
+    <span class="c1"># if isinstance(channels, str):</span>
+    <span class="c1">#     channels = {</span>
+    <span class="c1">#         i: c for channel in channels.split(&quot;,&quot;) for i, c in channel.split(&quot;:&quot;)</span>
+    <span class="c1">#     }</span>
+    <span class="c1"># elif:</span>
+    <span class="c1">#     channels = {i: c for i, c in enumerate(channels)}</span>
+
+    <span class="c1"># parsed_channels = [channel.split(&quot;:&quot;) for channel in channels.split(&quot;,&quot;)]</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Predicting on dataset </span><span class="si">{</span><span class="n">in_dataset</span><span class="si">}</span><span class="s2"> and saving to </span><span class="si">{</span><span class="n">out_dataset</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">do_ortho_planes</span><span class="p">:</span>
+        <span class="c1"># If the model is a 2D model, compute the average of predictions from x, y, and z orthogonal planes</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_block_shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;The input shape must be 2D for computing orthogonal planes.&quot;</span>
+            <span class="p">)</span>
+        <span class="n">predict_ortho_planes</span><span class="p">(</span>
+            <span class="n">model</span><span class="p">,</span>
+            <span class="n">in_dataset</span><span class="p">,</span>
+            <span class="n">out_dataset</span><span class="p">,</span>
+            <span class="n">input_block_shape</span><span class="p">,</span>
+            <span class="n">channels</span><span class="p">,</span>
+            <span class="n">roi</span><span class="p">,</span>
+            <span class="n">min_raw</span><span class="p">,</span>
+            <span class="n">max_raw</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">predict</span><span class="p">(</span>
+            <span class="n">model</span><span class="p">,</span>
+            <span class="n">in_dataset</span><span class="p">,</span>
+            <span class="n">out_dataset</span><span class="p">,</span>
+            <span class="n">input_block_shape</span><span class="p">,</span>
+            <span class="n">channels</span><span class="p">,</span>
+            <span class="n">roi</span><span class="p">,</span>
+            <span class="n">min_raw</span><span class="p">,</span>
+            <span class="n">max_raw</span><span class="p">,</span>
+        <span class="p">)</span>
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Jeff Rhoades, Emma Avetissian, Davis Vann Bennett, Marwan Zouinkhi
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2024, Jeff Rhoades, Emma Avetissian, Davis Vann Bennett, Marwan Zouinkhi.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

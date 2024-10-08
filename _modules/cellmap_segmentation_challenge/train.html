@@ -1,0 +1,592 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cellmap_segmentation_challenge.train &#8212; CellMap Segmentation Challenge</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=a3416100" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/cellmap_segmentation_challenge/train';</script>
+    <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/CellMapLogo.png" class="logo__image only-light" alt="CellMap Segmentation Challenge - Home"/>
+    <script>document.write(`<img src="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/CellMapLogo.png" class="logo__image only-dark" alt="CellMap Segmentation Challenge - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for cellmap_segmentation_challenge.train</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">importlib.machinery</span> <span class="kn">import</span> <span class="n">SourceFileLoader</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">from</span> <span class="nn">upath</span> <span class="kn">import</span> <span class="n">UPath</span>
+<span class="kn">from</span> <span class="nn">cellmap_segmentation_challenge</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">get_dataloader</span><span class="p">,</span>
+    <span class="n">CellMapLossWrapper</span><span class="p">,</span>
+    <span class="n">load_latest</span><span class="p">,</span>
+    <span class="n">load_best_val</span><span class="p">,</span>
+    <span class="n">make_datasplit_csv</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">tensorboardX</span> <span class="kn">import</span> <span class="n">SummaryWriter</span>
+<span class="kn">from</span> <span class="nn">cellmap_data.utils</span> <span class="kn">import</span> <span class="n">get_image_dict</span>
+
+<span class="kn">from</span> <span class="nn">cellmap_segmentation_challenge.models</span> <span class="kn">import</span> <span class="n">ResNet</span><span class="p">,</span> <span class="n">UNet_2D</span><span class="p">,</span> <span class="n">UNet_3D</span><span class="p">,</span> <span class="n">ViTVNet</span>
+
+
+<div class="viewcode-block" id="train">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.train.html#cellmap_segmentation_challenge.train">[docs]</a>
+<span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="n">config_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Train a model using the configuration file at the specified path. The model checkpoints and training logs, as well as the datasets used for training, will be saved to the paths specified in the configuration file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    config_path : str</span>
+<span class="sd">        Path to the configuration file to use for training the model. This file should be a Python file that defines the hyperparameters and other configurations for training the model. This may include:</span>
+<span class="sd">        - model_save_path: Path to save the model checkpoints. Default is &#39;checkpoints/{model_name}_{epoch}.pth&#39;.</span>
+<span class="sd">        - logs_save_path: Path to save the logs for tensorboard. Default is &#39;tensorboard/{model_name}&#39;. Training progress may be monitored by running `tensorboard --logdir &lt;logs_save_path&gt;` in the terminal.</span>
+<span class="sd">        - datasplit_path: Path to the datasplit file that defines the train/val split the dataloader should use. Default is &#39;datasplit.csv&#39;.</span>
+<span class="sd">        - validation_prob: Proportion of the datasets to use for validation. This is used if the datasplit CSV specified by `datasplit_path` does not already exist. Default is 0.3.</span>
+<span class="sd">        - learning_rate: Learning rate for the optimizer. Default is 0.0001.</span>
+<span class="sd">        - batch_size: Batch size for the dataloader. Default is 8.</span>
+<span class="sd">        - input_array_info: Dictionary containing the shape and scale of the input data. Default is {&#39;shape&#39;: (1, 128, 128), &#39;scale&#39;: (8, 8, 8)}.</span>
+<span class="sd">        - target_array_info: Dictionary containing the shape and scale of the target data. Default is to use `input_array_info`.</span>
+<span class="sd">        - epochs: Number of epochs to train the model for. Default is 1000.</span>
+<span class="sd">        - iterations_per_epoch: Number of iterations per epoch. Each iteration includes an independently generated random batch from the training set. Default is 1000.</span>
+<span class="sd">        - random_seed: Random seed for reproducibility. Default is 42.</span>
+<span class="sd">        - classes: List of classes to train the model to predict. This will be reflected in the data included in the datasplit, if generated de novo after calling this script. Default is [&#39;nuc&#39;, &#39;er&#39;].</span>
+<span class="sd">        - model_name: Name of the model to use. If the config file constructs the PyTorch model, this name can be anything. If the config file does not construct the PyTorch model, the model_name will need to specify which included architecture to use. This includes &#39;2d_unet&#39;, &#39;2d_resnet&#39;, &#39;3d_unet&#39;, &#39;3d_resnet&#39;, and &#39;vitnet&#39;. Default is &#39;2d_unet&#39;. See the `models` module `README.md` for more information.</span>
+<span class="sd">        - model_to_load: Name of the pre-trained model to load. Default is the same as `model_name`.</span>
+<span class="sd">        - model_kwargs: Dictionary of keyword arguments to pass to the model constructor. Default is {}. If the PyTorch `model` is passed, this will be ignored. See the `models` module `README.md` for more information.</span>
+<span class="sd">        - model: PyTorch model to use for training. If this is provided, the `model_name` and `model_to_load` can be any string. Default is None.</span>
+<span class="sd">        - load_model: Which model checkpoint to load if it exists. Options are &#39;latest&#39; or &#39;best&#39;. If no checkpoints exist, will silently use the already initialized model. Default is &#39;latest&#39;.</span>
+<span class="sd">        - spatial_transforms: Dictionary of spatial transformations to apply to the training data. Default is {&#39;mirror&#39;: {&#39;axes&#39;: {&#39;x&#39;: 0.5, &#39;y&#39;: 0.5}}, &#39;transpose&#39;: {&#39;axes&#39;: [&#39;x&#39;, &#39;y&#39;]}, &#39;rotate&#39;: {&#39;axes&#39;: {&#39;x&#39;: [-180, 180], &#39;y&#39;: [-180, 180]}}}. See the `dataloader` module documentation for more information.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># %% Load the configuration file</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">SourceFileLoader</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">config_path</span><span class="p">))</span><span class="o">.</span><span class="n">load_module</span><span class="p">()</span>
+
+    <span class="c1"># %% Set hyperparameters and other configurations from the config file</span>
+    <span class="n">model_save_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s2">&quot;model_save_path&quot;</span><span class="p">,</span> <span class="s2">&quot;checkpoints/</span><span class="si">{model_name}</span><span class="s2">_</span><span class="si">{epoch}</span><span class="s2">.pth&quot;</span>
+    <span class="p">)</span>
+    <span class="n">logs_save_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;logs_save_path&quot;</span><span class="p">,</span> <span class="s2">&quot;tensorboard/</span><span class="si">{model_name}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">datasplit_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;datasplit_path&quot;</span><span class="p">,</span> <span class="s2">&quot;datasplit.csv&quot;</span><span class="p">)</span>
+    <span class="n">validation_prob</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;validation_prob&quot;</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">)</span>
+    <span class="n">learning_rate</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;learning_rate&quot;</span><span class="p">,</span> <span class="mf">0.0001</span><span class="p">)</span>
+    <span class="n">batch_size</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;batch_size&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="n">input_array_info</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s2">&quot;input_array_info&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span> <span class="s2">&quot;scale&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">)}</span>
+    <span class="p">)</span>
+    <span class="n">target_array_info</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;target_array_info&quot;</span><span class="p">,</span> <span class="n">input_array_info</span><span class="p">)</span>
+    <span class="n">epochs</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;epochs&quot;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+    <span class="n">iterations_per_epoch</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;iterations_per_epoch&quot;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+    <span class="n">random_seed</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;random_seed&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">)</span>
+    <span class="n">classes</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;classes&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;nuc&quot;</span><span class="p">,</span> <span class="s2">&quot;er&quot;</span><span class="p">])</span>
+    <span class="n">model_name</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;model_name&quot;</span><span class="p">,</span> <span class="s2">&quot;2d_unet&quot;</span><span class="p">)</span>
+    <span class="n">model_to_load</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;model_to_load&quot;</span><span class="p">,</span> <span class="n">model_name</span><span class="p">)</span>
+    <span class="n">model_kwargs</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;model_kwargs&quot;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;model&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">load_model</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;load_model&quot;</span><span class="p">,</span> <span class="s2">&quot;latest&quot;</span><span class="p">)</span>
+    <span class="n">spatial_transforms</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s2">&quot;spatial_transforms&quot;</span><span class="p">,</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;mirror&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;axes&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">}},</span>
+            <span class="s2">&quot;transpose&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;axes&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">]},</span>
+            <span class="s2">&quot;rotate&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;axes&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mi">180</span><span class="p">,</span> <span class="mi">180</span><span class="p">],</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mi">180</span><span class="p">,</span> <span class="mi">180</span><span class="p">]}},</span>
+        <span class="p">},</span>
+    <span class="p">)</span>
+
+    <span class="c1"># %% Make sure the save path exists</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">model_save_path</span><span class="p">),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">logs_save_path</span><span class="p">),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">datasplit_path</span><span class="p">),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># %% Set the random seed</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">random_seed</span><span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">random_seed</span><span class="p">)</span>
+
+    <span class="c1"># %% Check that the GPU is available</span>
+    <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Training device: </span><span class="si">{</span><span class="n">device</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># %% Make the datasplit file if it doesn&#39;t exist</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">datasplit_path</span><span class="p">):</span>
+        <span class="n">make_datasplit_csv</span><span class="p">(</span>
+            <span class="n">classes</span><span class="o">=</span><span class="n">classes</span><span class="p">,</span>
+            <span class="n">csv_path</span><span class="o">=</span><span class="n">datasplit_path</span><span class="p">,</span>
+            <span class="n">dry_run</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">validation_prob</span><span class="o">=</span><span class="n">validation_prob</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="c1"># %% Download the data and make the dataloader</span>
+    <span class="n">train_loader</span><span class="p">,</span> <span class="n">val_loader</span> <span class="o">=</span> <span class="n">get_dataloader</span><span class="p">(</span>
+        <span class="n">datasplit_path</span><span class="p">,</span>
+        <span class="n">classes</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+        <span class="n">input_array_info</span><span class="o">=</span><span class="n">input_array_info</span><span class="p">,</span>
+        <span class="n">target_array_info</span><span class="o">=</span><span class="n">target_array_info</span><span class="p">,</span>
+        <span class="n">spatial_transforms</span><span class="o">=</span><span class="n">spatial_transforms</span><span class="p">,</span>
+        <span class="n">iterations_per_epoch</span><span class="o">=</span><span class="n">iterations_per_epoch</span><span class="p">,</span>
+        <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># %% If no model is provided, create a new model</span>
+    <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;2d&quot;</span> <span class="ow">in</span> <span class="n">model_name</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+            <span class="k">if</span> <span class="s2">&quot;unet&quot;</span> <span class="ow">in</span> <span class="n">model_name</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="n">model</span> <span class="o">=</span> <span class="n">UNet_2D</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">classes</span><span class="p">),</span> <span class="o">**</span><span class="n">model_kwargs</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="s2">&quot;resnet&quot;</span> <span class="ow">in</span> <span class="n">model_name</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="n">model</span> <span class="o">=</span> <span class="n">ResNet</span><span class="p">(</span><span class="n">ndims</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">output_nc</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">classes</span><span class="p">),</span> <span class="o">**</span><span class="n">model_kwargs</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Unknown model name: </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">. Preconfigured 2D models are &#39;2d_unet&#39; and &#39;2d_resnet&#39;.&quot;</span>
+                <span class="p">)</span>
+        <span class="k">elif</span> <span class="s2">&quot;3d&quot;</span> <span class="ow">in</span> <span class="n">model_name</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+            <span class="k">if</span> <span class="s2">&quot;unet&quot;</span> <span class="ow">in</span> <span class="n">model_name</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="n">model</span> <span class="o">=</span> <span class="n">UNet_3D</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">classes</span><span class="p">),</span> <span class="o">**</span><span class="n">model_kwargs</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="s2">&quot;resnet&quot;</span> <span class="ow">in</span> <span class="n">model_name</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="n">model</span> <span class="o">=</span> <span class="n">ResNet</span><span class="p">(</span><span class="n">ndims</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">output_nc</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">classes</span><span class="p">),</span> <span class="o">**</span><span class="n">model_kwargs</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Unknown model name: </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">. Preconfigured 3D models are &#39;3d_unet&#39; and &#39;3d_resnet&#39;, or &#39;vitnet&#39;.&quot;</span>
+                <span class="p">)</span>
+        <span class="k">elif</span> <span class="s2">&quot;vitnet&quot;</span> <span class="ow">in</span> <span class="n">model_name</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">ViTVNet</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">classes</span><span class="p">),</span> <span class="o">**</span><span class="n">model_kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Unknown model name: </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">. Preconfigured models are &#39;2d_unet&#39;, &#39;2d_resnet&#39;, &#39;3d_unet&#39;, &#39;3d_resnet&#39;, and &#39;vitnet&#39;. Otherwise provide a custom model as a torch.nn.Module.&quot;</span>
+            <span class="p">)</span>
+
+    <span class="c1"># %% Move model to device</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+    <span class="c1"># Optionally, load a pre-trained model</span>
+    <span class="k">if</span> <span class="n">load_model</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;latest&quot;</span><span class="p">:</span>
+        <span class="c1"># Check to see if there are any checkpoints and if so load the latest one</span>
+        <span class="c1"># Use the command below for loading the latest model, otherwise comment it out</span>
+        <span class="n">load_latest</span><span class="p">(</span><span class="n">model_save_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">epoch</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="n">model_to_load</span><span class="p">),</span> <span class="n">model</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">load_model</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;best&quot;</span><span class="p">:</span>
+        <span class="c1"># Load the checkpoint with the best validation score</span>
+        <span class="c1"># Use the command below for loading the epoch with the best validation score, otherwise comment it out</span>
+        <span class="n">load_best_val</span><span class="p">(</span>
+            <span class="n">logs_save_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="n">model_to_load</span><span class="p">),</span>
+            <span class="n">model_save_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">epoch</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{epoch}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="n">model_to_load</span><span class="p">),</span>
+            <span class="n">model</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="c1"># %% Define the optimizer</span>
+    <span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">RAdam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="n">learning_rate</span><span class="p">)</span>
+
+    <span class="c1"># %% Define the loss function</span>
+    <span class="n">criterion</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">BCEWithLogitsLoss</span>
+
+    <span class="c1"># Use custom loss function wrapper that handles NaN values in the target. This works with any PyTorch loss function</span>
+    <span class="n">criterion</span> <span class="o">=</span> <span class="n">CellMapLossWrapper</span><span class="p">(</span><span class="n">criterion</span><span class="p">)</span>
+
+    <span class="c1"># %% Train the model</span>
+    <span class="n">post_fix_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># Define a summarywriter</span>
+    <span class="n">writer</span> <span class="o">=</span> <span class="n">SummaryWriter</span><span class="p">(</span><span class="n">logs_save_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="n">model_name</span><span class="p">))</span>
+
+    <span class="c1"># Create a variable to track iterations</span>
+    <span class="n">n_iter</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1"># Training outer loop, across epochs</span>
+    <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">epochs</span><span class="p">):</span>
+
+        <span class="c1"># Set the model to training mode to enable backpropagation</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+
+        <span class="c1"># Training loop for the epoch</span>
+        <span class="n">post_fix_dict</span><span class="p">[</span><span class="s2">&quot;Epoch&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">epoch</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">epoch_bar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">train_loader</span><span class="o">.</span><span class="n">loader</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Training&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">epoch_bar</span><span class="p">:</span>
+            <span class="c1"># Increment the training iteration</span>
+            <span class="n">n_iter</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="c1"># Get the inputs and targets</span>
+            <span class="n">inputs</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;input&quot;</span><span class="p">]</span>
+            <span class="n">targets</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">]</span>
+
+            <span class="c1"># Zero the gradients, so that they don&#39;t accumulate across iterations</span>
+            <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+
+            <span class="c1"># Forward pass (compute the output of the model)</span>
+            <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+
+            <span class="c1"># Compute the loss</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span>
+
+            <span class="c1"># Backward pass (compute the gradients)</span>
+            <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+
+            <span class="c1"># Update the weights</span>
+            <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+            <span class="c1"># Update the progress bar</span>
+            <span class="n">post_fix_dict</span><span class="p">[</span><span class="s2">&quot;Loss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">epoch_bar</span><span class="o">.</span><span class="n">set_postfix</span><span class="p">(</span><span class="n">post_fix_dict</span><span class="p">)</span>
+
+            <span class="c1"># Log the loss using tensorboard</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="s2">&quot;loss&quot;</span><span class="p">,</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="n">n_iter</span><span class="p">)</span>
+
+        <span class="c1"># Save the model</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+            <span class="n">model_save_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">epoch</span><span class="o">=</span><span class="n">epoch</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="n">model_name</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Set the model to evaluation mode to disable backpropagation</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+
+        <span class="c1"># Compute the validation score by averaging the loss across the validation set</span>
+        <span class="n">val_score</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">val_bar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">val_loader</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Validation&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">val_bar</span><span class="p">:</span>
+                <span class="n">inputs</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;input&quot;</span><span class="p">]</span>
+                <span class="n">targets</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">]</span>
+                <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+                <span class="n">val_score</span> <span class="o">+=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="n">val_score</span> <span class="o">/=</span> <span class="nb">len</span><span class="p">(</span><span class="n">val_loader</span><span class="p">)</span>
+
+        <span class="c1"># Log the validation using tensorboard</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="s2">&quot;validation&quot;</span><span class="p">,</span> <span class="n">val_score</span><span class="p">,</span> <span class="n">n_iter</span><span class="p">)</span>
+
+        <span class="c1"># Update the progress bar</span>
+        <span class="n">post_fix_dict</span><span class="p">[</span><span class="s2">&quot;Validation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">val_score</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="c1"># Generate and save figures from the last batch of the validation to appear in tensorboard</span>
+        <span class="n">figs</span> <span class="o">=</span> <span class="n">get_image_dict</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">classes</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">fig</span> <span class="ow">in</span> <span class="n">figs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">add_figure</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">n_iter</span><span class="p">)</span>
+
+        <span class="c1"># Refresh the train loader to shuffle the data yielded by the dataloader</span>
+        <span class="n">train_loader</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+
+    <span class="c1"># Close the summarywriter</span>
+    <span class="n">writer</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+    <span class="c1"># %%</span>
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Jeff Rhoades, Emma Avetissian, Davis Vann Bennett, Marwan Zouinkhi
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2024, Jeff Rhoades, Emma Avetissian, Davis Vann Bennett, Marwan Zouinkhi.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
