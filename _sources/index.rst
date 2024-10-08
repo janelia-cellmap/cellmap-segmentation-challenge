@@ -5,12 +5,12 @@
 
 .. mdinclude:: ../../README.md
 
-Contents
+API
 ==============
 .. autosummary::
-   
    :recursive:
    :toctree:
+
    
    cellmap_segmentation_challenge
    cellmap_segmentation_challenge.train
