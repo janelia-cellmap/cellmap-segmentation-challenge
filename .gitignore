@@ -176,6 +176,8 @@ cython_debug/
 tensorboard/
 *.err
 *.out
+*.zip
+*.json
 
 # visual studio code configuration
 .vscode
