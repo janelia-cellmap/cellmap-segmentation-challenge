@@ -50,6 +50,7 @@ docs = [
     "sphinx",
     "sphinx-book-theme",
     "recommonmark",
+    "sphinx_mdinclude",
 ]
 
 dev = [

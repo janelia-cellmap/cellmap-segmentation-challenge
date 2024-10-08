@@ -22,6 +22,7 @@ extensions = [
     "sphinx.ext.viewcode",
     # "sphinx.ext.linkcode",
     "sphinx.ext.coverage",
+    "sphinx_mdinclude",
 ]
 
 autodoc_default_options = {
