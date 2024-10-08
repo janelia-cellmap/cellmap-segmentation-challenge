@@ -10,7 +10,6 @@
    :toctree:
    :recursive:
 
-   benchmark
    dataloader
    datasplit
    evaluate
@@ -18,4 +17,5 @@
    models
    predict
    train
+   utils
    visualize

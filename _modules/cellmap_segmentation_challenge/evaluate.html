@@ -256,40 +256,7 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for cellmap_segmentation_challenge.evaluate</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Submission requirements:</span>
-<span class="sd">1. The submission should be a single zip file containing a single Zarr-2 file with the following structure:</span>
-<span class="sd">   - submission.zarr</span>
-<span class="sd">     - /&lt;test_volume_name&gt;</span>
-<span class="sd">        - /&lt;label_name&gt;</span>
-<span class="sd">2. The names of the test volumes and labels should match the names of the test volumes and labels in the test data.</span>
-<span class="sd">3. The scale for all volumes is 8x8x8 nm/voxel, except as otherwise specified.</span>
-
-<span class="sd">Assuming your data is already 8x8x8nm/voxel,and each label volume is either A) a 3D binary volume with the same shape and scale as the corresponding test volume, </span>
-<span class="sd">or B) instance IDs per object, you can convert the submission to the required format using the following convenience functions:</span>
-
-<span class="sd">- For converting a single 3D numpy array of class labels to a Zarr-2 file, use the following function:</span>
-<span class="sd">  `cellmap_segmentation_challenge.utils.evaluate.save_numpy_labels_to_zarr`</span>
-<span class="sd">Note: The class labels should start from 1, with 0 as background.</span>
-
-<span class="sd">- For converting a list of 3D numpy arrays of binary or instance labels to a Zarr-2 file, use the following function:</span>
-<span class="sd">  `cellmap_segmentation_challenge.utils.evaluate.save_numpy_binary_to_zarr`</span>
-<span class="sd">Note: The instance labels, if used, should be unique IDs per object, with 0 as background.</span>
-
-<span class="sd">The arguments for both functions are the same:</span>
-<span class="sd">- `submission_path`: The path to save the Zarr-2 file (ending with &lt;filename&gt;.zarr).</span>
-<span class="sd">- `test_volume_name`: The name of the test volume.</span>
-<span class="sd">- `label_names`: A list of label names corresponding to the list of 3D numpy arrays or the number of the class labels (0 is always assumed to be background).</span>
-<span class="sd">- `labels`: A list of 3D numpy arrays of binary labels or a single 3D numpy array of class labels.</span>
-<span class="sd">- `overwrite`: A boolean flag to overwrite the Zarr-2 file if it already exists.</span>
-
-<span class="sd">To zip the Zarr-2 file, you can use the following command:</span>
-<span class="sd">`zip -r submission.zip submission.zarr`</span>
-
-<span class="sd">To submit the zip file, upload it to the challenge platform.</span>
-<span class="sd">&quot;&quot;&quot;</span>
-
-<span class="kn">import</span> <span class="nn">json</span>
+<span></span><span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">zipfile</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
