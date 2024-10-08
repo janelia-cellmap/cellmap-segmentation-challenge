@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Cellmap Segmentation Challenge documentation &#8212; CellMap Segmentation Challenge</title>
+    <title>CellMap Segmentation Challenge &#8212; CellMap Segmentation Challenge</title>
   
   
   
@@ -292,7 +292,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Cellmap Segmentation Challenge documentation</h1>
+    <h1>CellMap Segmentation Challenge</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -302,7 +302,17 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Cellmap Segmentation Challenge documentation</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">CellMap Segmentation Challenge</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#getting-started">Getting started</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#set-up-your-environment">Set up your environment</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#clone-the-repository">Clone the repository</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#repository-structure">Repository structure</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#download-the-data">Download the data</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#train-a-model">Train a model</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#predict-on-test-data">Predict on test data</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submit-your-predictions">Submit your predictions</a></li>
+</ul>
+</li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#contents">Contents</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#links">Links</a></li>
 </ul>
@@ -317,10 +327,143 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <img alt="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/CellMapLogo.png" src="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/CellMapLogo.png" />
-<section id="cellmap-segmentation-challenge-documentation">
-<h1>Cellmap Segmentation Challenge documentation<a class="headerlink" href="#cellmap-segmentation-challenge-documentation" title="Link to this heading">#</a></h1>
+  <img src="https://raw.githubusercontent.com/janelia-cellmap/dacapo/main/docs/source/_static/CellMapLogo.png" alt="CellMap logo" width="85%"><section id="cellmap-segmentation-challenge">
+<h1>CellMap Segmentation Challenge<a class="headerlink" href="#cellmap-segmentation-challenge" title="Link to this heading">#</a></h1>
 <p>Welcome to Cellmap Segmentation Challenge’s documentation! This is a Python package for the Cellmap Segmentation Challenge. It provides a Python API for interacting with the challenge data, running training, prediction, and evaluation. The package is built on top of the <a class="reference external" href="https://github.com/janelia-cellmap/cellmap-data">cellmap-data</a> package, which provides a Python API for interacting with the Cellmap data format. The package is designed to be easy to use, flexible, and extensible.</p>
+</section>
+<section id="getting-started">
+<h1>Getting started<a class="headerlink" href="#getting-started" title="Link to this heading">#</a></h1>
+<section id="set-up-your-environment">
+<h2>Set up your environment<a class="headerlink" href="#set-up-your-environment" title="Link to this heading">#</a></h2>
+<p>We recommend using micromamba to create a new environment with the required dependencies. You can install micromamba by following the instructions <a class="reference external" href="https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html#automatic-install">here</a>. The fastest way to do this install is to run the following in your terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SHELL</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>&lt;<span class="o">(</span>curl<span class="w"> </span>-L<span class="w"> </span>micro.mamba.pm/install.sh<span class="o">)</span>
+</pre></div>
+</div>
+<p>Once you have micromamba installed, you can create a new environment with the required dependencies by running the following commands:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a new environment</span>
+micromamba<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>cellmap-segmentation-challenge<span class="w"> </span>-y<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.11
+
+<span class="c1"># Activate the environment</span>
+micromamba<span class="w"> </span>activate<span class="w"> </span>cellmap-segmentation-challenge
+</pre></div>
+</div>
+</section>
+<section id="clone-the-repository">
+<h2>Clone the repository<a class="headerlink" href="#clone-the-repository" title="Link to this heading">#</a></h2>
+<p>You can clone and install the repository by running the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Clone the repository</span>
+git<span class="w"> </span>clone<span class="w"> </span>github.com/janelia-cellmap/cellmap-segmentation-challenge
+
+<span class="c1"># Install the repo in editable mode</span>
+<span class="nb">cd</span><span class="w"> </span>cellmap-segmentation-challenge
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</pre></div>
+</div>
+</section>
+<section id="repository-structure">
+<h2>Repository structure<a class="headerlink" href="#repository-structure" title="Link to this heading">#</a></h2>
+<p>The repository is structured as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cellmap-segmentation-challenge/
+│
+├── examples/
+│   ├── train_2d.py
+│   ├── train_3d.py
+│   ├── predict_2d.py
+│   ├── predict_3d.py
+│   ├── ...
+│   └── README.md
+│
+├── src/
+│   ├── cellmap_segmentation_challenge/
+│   │   ├── models/
+│   │   │   ├── model_load.py
+│   │   │   ├── unet_model_2D.py
+│   │   │   ├── ...
+│   │   │   └── README.md
+│   │   └── ...
+│
+├── data/
+│   ├── ...
+│   └── README.md
+│
+├── ...
+│
+├── README.md
+└── ...
+</pre></div>
+</div>
+</section>
+<section id="download-the-data">
+<h2>Download the data<a class="headerlink" href="#download-the-data" title="Link to this heading">#</a></h2>
+<p>You can download the data by running the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>...
+</pre></div>
+</div>
+</section>
+<section id="train-a-model">
+<h2>Train a model<a class="headerlink" href="#train-a-model" title="Link to this heading">#</a></h2>
+<p>Example scripts for training 2D and 3D models are provided in the <code class="docutils literal notranslate"><span class="pre">src/cellmap_segmentation_challenge/examples</span></code> directory. The scripts are named <code class="docutils literal notranslate"><span class="pre">train_2d.py</span></code> and <code class="docutils literal notranslate"><span class="pre">train_3d.py</span></code>, respectively, and are thoroughly annotated for clarity. You can run one such script by running the following on the command line:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>src/cellmap_segmentation_challenge/examples
+python<span class="w"> </span>train_2d.py
+</pre></div>
+</div>
+<p>This will train a 2D model on the training data and save the model weights to a file (defaults to <code class="docutils literal notranslate"><span class="pre">./checkpoints/*.pth</span></code>), along with logging loss and validation metrics, and sample predictions, viewable in TensorBoard. To view the TensorBoard logs, and monitor training progress, run the following command (assuming you are using the default log directory):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tensorboard<span class="w"> </span>--logdir<span class="o">=</span>./tensorboard
+</pre></div>
+</div>
+<p>You can also train a 3D model by running the same command with <code class="docutils literal notranslate"><span class="pre">train_3d.py</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>train_3d.py
+</pre></div>
+</div>
+<p>For more information on the available options, see the <code class="docutils literal notranslate"><span class="pre">README.md</span></code> in the <code class="docutils literal notranslate"><span class="pre">examples</span></code> folder, as well as the documentation in <code class="docutils literal notranslate"><span class="pre">examples/train_2d.py</span></code> and <code class="docutils literal notranslate"><span class="pre">examples/train_3d.py</span></code>.</p>
+</section>
+<section id="predict-on-test-data">
+<h2>Predict on test data<a class="headerlink" href="#predict-on-test-data" title="Link to this heading">#</a></h2>
+<p>Example scripts for predicting on test data are provided in the <code class="docutils literal notranslate"><span class="pre">examples</span></code> directory. The scripts are named <code class="docutils literal notranslate"><span class="pre">predict_2D.py</span></code> and <code class="docutils literal notranslate"><span class="pre">predict_3D.py</span></code>, respectively, and are annotated for clarity. You can run one such script by simply running the following on the command line:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>predict_2D.py
+</pre></div>
+</div>
+<p>See the <code class="docutils literal notranslate"><span class="pre">README.md</span></code> in the <code class="docutils literal notranslate"><span class="pre">examples</span></code> folder for more information on the available options, as well as the documentation in <code class="docutils literal notranslate"><span class="pre">examples/predict_2D.py</span></code> and <code class="docutils literal notranslate"><span class="pre">examples/predict_3D.py</span></code>.</p>
+</section>
+<section id="submit-your-predictions">
+<h2>Submit your predictions<a class="headerlink" href="#submit-your-predictions" title="Link to this heading">#</a></h2>
+<p>To submit your predictions, first make sure that they are in the correct format (see below), then submit them through <a class="reference external" href="https://staging.cellmapchallenge.2i2c.cloud/upload">the online submission portal</a>. You will need to sign in with your GitHub account to submit your predictions.</p>
+<p>Submission file format requirements:</p>
+<ol class="arabic simple">
+<li><p>The submission should be a single zip file containing a single Zarr-2 file with the following structure:</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">submission</span><span class="o">.</span><span class="n">zarr</span>
+    <span class="o">-</span> <span class="o">/&lt;</span><span class="n">test_volume_name</span><span class="o">&gt;</span>
+    <span class="o">-</span> <span class="o">/&lt;</span><span class="n">label_name</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<ol class="arabic simple">
+<li><p>The names of the test volumes and labels should match the names of the test volumes and labels in the test data. See <code class="docutils literal notranslate"><span class="pre">examples/predict_2D.py</span></code> and <code class="docutils literal notranslate"><span class="pre">examples/predict_3D.py</span></code> for examples of how to generate predictions in the correct format.</p></li>
+<li><p>The scale for all volumes is 8x8x8 nm/voxel, except as otherwise specified.</p></li>
+</ol>
+<p>Assuming your data is already 8x8x8nm/voxel,and each label volume is either A) a 3D binary volume with the same shape and scale as the corresponding test volume,
+or B) instance IDs per object, you can convert the submission to the required format using the following convenience functions:</p>
+<ul class="simple">
+<li><p>For converting a single 3D numpy array of class labels to a Zarr-2 file, use the following function:
+<code class="docutils literal notranslate"><span class="pre">cellmap_segmentation_challenge.utils.evaluate.save_numpy_labels_to_zarr</span></code>
+Note: The class labels should start from 1, with 0 as background.</p></li>
+<li><p>For converting a list of 3D numpy arrays of binary or instance labels to a Zarr-2 file, use the following function:
+<code class="docutils literal notranslate"><span class="pre">cellmap_segmentation_challenge.utils.evaluate.save_numpy_binary_to_zarr</span></code>
+Note: The instance labels, if used, should be unique IDs per object, with 0 as background.</p></li>
+</ul>
+<p>The arguments for both functions are the same:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">submission_path</span></code>: The path to save the Zarr-2 file (ending with &lt;filename&gt;.zarr).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test_volume_name</span></code>: The name of the test volume.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">label_names</span></code>: A list of label names corresponding to the list of 3D numpy arrays or the number of the class labels (0 is always assumed to be background).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">labels</span></code>: A list of 3D numpy arrays of binary labels or a single 3D numpy array of class labels.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">overwrite</span></code>: A boolean flag to overwrite the Zarr-2 file if it already exists.</p></li>
+</ul>
+<p>To zip the Zarr-2 file, you can use the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>zip<span class="w"> </span>-r<span class="w"> </span>submission.zip<span class="w"> </span>submission.zarr
+</pre></div>
+</div>
+</section>
 </section>
 <section id="contents">
 <h1>Contents<a class="headerlink" href="#contents" title="Link to this heading">#</a></h1>
@@ -375,7 +518,17 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Cellmap Segmentation Challenge documentation</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">CellMap Segmentation Challenge</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#getting-started">Getting started</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#set-up-your-environment">Set up your environment</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#clone-the-repository">Clone the repository</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#repository-structure">Repository structure</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#download-the-data">Download the data</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#train-a-model">Train a model</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#predict-on-test-data">Predict on test data</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submit-your-predictions">Submit your predictions</a></li>
+</ul>
+</li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#contents">Contents</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#links">Links</a></li>
 </ul>
