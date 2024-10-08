@@ -4,7 +4,7 @@ import gunpowder as gp
 from skimage.measure import label
 import matplotlib.pyplot as plt
 
-from cellmap_segmentation_challenge.benchmark.pipeline import (
+from cellmap_segmentation_challenge.utils.pipeline import (
     random_source_pipeline,
     simulate_predictions_accuracy,
     simulate_predictions_iou,
@@ -16,7 +16,7 @@ show = True
 # %% First make a GT array
 
 # SET SHAPE, NUMBER OF POINTS, ETC. HERE
-size = 512
+size = 256  # size of the volume
 shape = (size, size, size)  # (z, y, x) shape of the volume
 num_points = [
     shape[0] // 10,
