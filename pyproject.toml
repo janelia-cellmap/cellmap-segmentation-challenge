@@ -14,6 +14,7 @@ authors = [
   { name = "Jeff Rhoades", email = "rhoadesj@janelia.hhmi.org" },
   { name = "Emma Avetissian", email = "avetissiane@janelia.hhmi.org" },
   { name = "Davis Vann Bennett", email = "davis.v.bennett@gmail.com" },
+  { name = "Marwan Zouinkhi", email = "zouinkhim@hhmi.org" },
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -40,12 +41,17 @@ dependencies = [
   "matplotlib",
   "scikit-learn",
   "daisy",
+  "funlib.persistence",
   ]
 
-# extras
-# https://peps.python.org/pep-0621/#dependencies-optional-dependencies
 [project.optional-dependencies]
 test = ["pytest>=6.0", "pytest-cov", "mypy", "black"]
+docs = [
+    "sphinx",
+    "sphinx-book-theme",
+    "recommonmark",
+]
+
 dev = [
     "black",
     "ipython",
@@ -62,6 +68,9 @@ dev = [
     "hatch",
     "python-semantic-release",
     "gunpowder",
+    "pdbpp",
+    "python-semantic-release",
+    "cellmap-segmentation-challenge[test,docs]",
 ]
 
 [project.urls]
