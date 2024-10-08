@@ -81,10 +81,7 @@ You can predict on test data by running the following command:
 ...
 ```
 
-## Evaluate your predictions
+## Submit your predictions
 
-You can evaluate your predictions by running the following command:
-
-```bash
+To submit your predictions, first make sure that they are in the correct format.
 ...
-```
