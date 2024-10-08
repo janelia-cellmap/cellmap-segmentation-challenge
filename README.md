@@ -83,5 +83,9 @@ You can predict on test data by running the following command:
 
 ## Submit your predictions
 
-To submit your predictions, first make sure that they are in the correct format.
+To submit your predictions, first make sure that they are in the correct format, then submit them through [the online submission portal](https://staging.cellmapchallenge.2i2c.cloud/upload). You will need to sign in with your GitHub account to submit your predictions.
+
+To make sure your predictions are in the correct format, ...
+
+```bash
 ...
