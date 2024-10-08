@@ -178,6 +178,7 @@ tensorboard/
 *.out
 *.zip
 *.json
+.nfs*
 
 # visual studio code configuration
 .vscode
