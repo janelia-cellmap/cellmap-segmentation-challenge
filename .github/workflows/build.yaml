@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  login:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Set up Docker Buildx
