@@ -54,7 +54,7 @@ csc fetch-data --crops all --dest path/to/dest
 This will retrieve groundtruth data and corresponding EM data for each crop and save it at a path 
 of your choosing on your local filesystem.
 
-To see all the options for the the `fetch-data` command, run 
+To see all the options for the `fetch-data` command, run 
 
 ```bash
 csc fetch-data --help
