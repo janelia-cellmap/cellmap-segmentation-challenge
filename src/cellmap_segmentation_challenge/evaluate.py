@@ -331,6 +331,24 @@ def score_submission(
 
     Example usage:
         scores = score_submission('submission.zip')
+
+    The results json is a dictionary with the following structure:
+    {
+        "volume" (the name of the ground truth volume): {
+            "label" (the name of the predicted class): {
+                (For semantic segmentation)
+                    "iou": (the intersection over union score),
+                    "dice_score": (the dice score),
+
+                OR
+
+                (For instance segmentation)
+                    "accuracy": (the accuracy score),
+                    "haussdorf_distance": (the haussdorf distance),
+                    "combined_score": (the geometric mean of the accuracy and haussdorf distance),
+            }
+        }
+    }
     """
     # Unzip the submission
     submission_path = unzip_file(submission_path)
@@ -371,9 +389,17 @@ if __name__ == "__main__":
     # When called on the commandline, evaluate the submission
     # example usage: python evaluate.py submission.zip
     argparser = argparse.ArgumentParser()
-    argparser.add_argument("submission_file", help="Path to submission zip file to score")
-    argparser.add_argument("result_file", nargs="?", help="If provided, store submission results in this file. Else print them to stdout")
-    argparser.add_argument("--truth-path", default=TRUTH_PATH, help="Path to zarr containing ground truth")
+    argparser.add_argument(
+        "submission_file", help="Path to submission zip file to score"
+    )
+    argparser.add_argument(
+        "result_file",
+        nargs="?",
+        help="If provided, store submission results in this file. Else print them to stdout",
+    )
+    argparser.add_argument(
+        "--truth-path", default=TRUTH_PATH, help="Path to zarr containing ground truth"
+    )
     args = argparser.parse_args()
 
     score_submission(args.submission_file, args.result_file, args.truth_path)
