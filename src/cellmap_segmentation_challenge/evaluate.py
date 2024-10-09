@@ -69,6 +69,7 @@ def save_numpy_class_labels_to_zarr(
     # Create a Zarr-2 file
     if not UPath(save_path).exists():
         os.makedirs(UPath(save_path).parent, exist_ok=True)
+    print(f"Saving to {save_path}")
     store = zarr.DirectoryStore(save_path)
     zarr_group = zarr.group(store)
 
@@ -77,12 +78,15 @@ def save_numpy_class_labels_to_zarr(
 
     # Save the labels
     for i, label_name in enumerate(label_name):
+        print(f"Saving {label_name}")
         zarr_group[test_volume_name].create_dataset(
             label_name,
             data=(labels == i + 1),
             chunks=(64, 64, 64),
             # compressor=zarr.Blosc(cname='zstd', clevel=3, shuffle=2),
         )
+
+    print("Done saving")
 
 
 def save_numpy_class_arrays_to_zarr(
@@ -108,6 +112,7 @@ def save_numpy_class_arrays_to_zarr(
     # Create a Zarr-2 file
     if not UPath(save_path).exists():
         os.makedirs(UPath(save_path).parent, exist_ok=True)
+    print(f"Saving to {save_path}")
     store = zarr.DirectoryStore(save_path)
     zarr_group = zarr.group(store)
 
@@ -116,6 +121,7 @@ def save_numpy_class_arrays_to_zarr(
 
     # Save the labels
     for i, label_name in enumerate(label_names):
+        print(f"Saving {label_name}")
         zarr_group[test_volume_name].create_dataset(
             label_name,
             data=labels[i],
@@ -123,20 +129,7 @@ def save_numpy_class_arrays_to_zarr(
             # compressor=zarr.Blosc(cname='zstd', clevel=3, shuffle=2),
         )
 
-
-# def dice(true, pred):
-#     true = true > 0
-#     pred = pred > 0
-#     intersection = np.logical_and(true, pred).sum()
-#     return (2 * intersection) / (true.sum() + pred.sum())
-
-
-# def iou(true, pred):
-#     true = true > 0
-#     pred = pred > 0
-#     intersection = np.logical_and(true, pred).sum()
-#     union = np.logical_or(true, pred).sum()
-#     return intersection / union
+    print("Done saving")
 
 
 def score_instance(
@@ -156,6 +149,7 @@ def score_instance(
         scores = score_instance(pred_label, truth_label)
     """
     # Relabel the predicted instance labels to be consistent with the ground truth instance labels
+    print("Scoring instance segmentation...")
     pred_label = label(pred_label, connectivity=len(pred_label.shape))
     # pred_label = label(pred_label)
 
@@ -206,6 +200,9 @@ def score_instance(
     accuracy = accuracy_score(truth_label.flatten(), matched_pred_label.flatten())
     hausdorff_dist = np.mean(hausdorff_distances)
     combined_score = (accuracy * hausdorff_dist) ** 0.5
+    print(f"Accuracy: {accuracy:.4f}")
+    print(f"Hausdorff Distance: {hausdorff_dist:.4f}")
+    print(f"Combined Score: {combined_score:.4f}")
     return {
         "accuracy": accuracy,
         "hausdorff_distance": hausdorff_dist,
@@ -227,6 +224,8 @@ def score_semantic(pred_label, truth_label) -> dict[str, float]:
     Example usage:
         scores = score_semantic(pred_label, truth_label)
     """
+    print("Scoring semantic segmentation...")
+    # Flatten the label volumes and convert to binary
     pred_label = (pred_label > 0.0).flatten()
     truth_label = (truth_label > 0.0).flatten()
     # Compute the scores
@@ -234,6 +233,9 @@ def score_semantic(pred_label, truth_label) -> dict[str, float]:
         "iou": jaccard_score(truth_label, pred_label),
         "dice_score": 1 - dice(truth_label, pred_label),
     }
+
+    print(f"IoU: {scores['iou']:.4f}")
+    print(f"Dice Score: {scores['dice_score']:.4f}")
 
     return scores
 
@@ -253,6 +255,7 @@ def score_label(
     Example usage:
         scores = score_label('pred.zarr/test_volume/label1')
     """
+    print(f"Scoring {pred_label_path}...")
     # Load the predicted and ground truth label volumes
     label_name = UPath(pred_label_path).name
     volume_name = UPath(pred_label_path).parent.name
@@ -261,6 +264,7 @@ def score_label(
     mask_path = UPath(truth_path) / volume_name / f"{label_name}_mask"
     if mask_path.exists():
         # Mask out uncertain regions resulting from low-res ground truth annotations
+        print(f"Masking {label_name} with {mask_path}...")
         mask = zarr.open(mask_path)[:]
         pred_label = pred_label * mask
         truth_label = truth_label * mask
@@ -292,6 +296,7 @@ def score_volume(
     Example usage:
         scores = score_volume('pred.zarr/test_volume')
     """
+    print(f"Scoring {pred_volume_path}...")
     # Find labels to score
     pred_labels = [a for a in zarr.open(pred_volume_path).array_keys()]
 
@@ -366,22 +371,32 @@ def score_submission(
         "overall_score": (the mean of the combined scores across all classes),
     }
     """
+    print(f"Scoring {submission_path}...")
     # Unzip the submission
     submission_path = unzip_file(submission_path)
 
     # Find volumes to score
+    print(f"Scoring volumes in {submission_path}...")
     pred_volumes = [
         str(d).removeprefix(submission_path + os.path.sep)
         for d in UPath(submission_path).glob("*")
         if d.is_dir()
     ]
+    print(f"Volumes: {pred_volumes}")
+    print(f"Truth path: {truth_path}")
     truth_volumes = [
         str(d).removeprefix(truth_path + os.path.sep)
         for d in UPath(truth_path).glob("*")
         if d.is_dir()
     ]
+    print(f"Truth volumes: {truth_volumes}")
 
     volumes = list(set(pred_volumes) & set(truth_volumes))
+    if len(volumes) == 0:
+        raise ValueError(
+            "No volumes found to score. Make sure the submission is formatted correctly."
+        )
+    print(f"Scoring volumes: {volumes}")
 
     # Score each volume
     scores = {
@@ -394,6 +409,7 @@ def score_submission(
     }
 
     # Combine label scores across volumes, normalizing by the number of voxels
+    print("Combining label scores...")
     label_scores = {}
     for volume in volumes:
         for label in scores[volume]:
@@ -427,6 +443,7 @@ def score_submission(
     scores["label_scores"] = label_scores
 
     # Compute the overall score
+    print("Computing overall score...")
     overall_score = 0
     for label in label_scores:
         if label in instance_classes:
@@ -437,6 +454,7 @@ def score_submission(
 
     # Save the scores
     if result_file:
+        print(f"Saving scores to {result_file}...")
         with open(result_file, "w") as f:
             json.dump(scores, f)
     else:
