@@ -10,9 +10,11 @@
    :toctree:
    :recursive:
 
+   cli
    dataloader
    datasplit
    evaluate
+   fetch_data
    loss
    models
    predict

@@ -4,6 +4,14 @@ cellmap\_segmentation\_challenge.utils package
 Submodules
 ----------
 
+cellmap\_segmentation\_challenge.utils.crops module
+---------------------------------------------------
+
+.. automodule:: cellmap_segmentation_challenge.utils.crops
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 cellmap\_segmentation\_challenge.utils.pipeline module
 ------------------------------------------------------
 
