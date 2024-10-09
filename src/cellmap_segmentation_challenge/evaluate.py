@@ -315,7 +315,7 @@ def score_volume(
 
 def score_submission(
     submission_path,
-    save_path=None,
+    result_file=None,
     truth_path=TRUTH_PATH,
     instance_classes=INSTANCE_CLASSES,
 ) -> dict[str, dict[str, dict[str, float]]]:
@@ -324,7 +324,7 @@ def score_submission(
 
     Args:
         submission_path (str): The path to the zipped submission Zarr-2 file.
-        save_path (str): The path to save the scores.
+        result_file (str): The path to save the scores.
 
     Returns:
         dict: A dictionary of scores for the submission.
@@ -360,8 +360,8 @@ def score_submission(
     }
 
     # Save the scores
-    if save_path:
-        with open(save_path, "w") as f:
+    if result_file:
+        with open(result_file, "w") as f:
             json.dump(scores, f)
     else:
         return scores
