@@ -309,6 +309,7 @@ def score_volume(
         )
         for label in labels
     }
+    scores["num_voxels"] = np.sum(zarr.open(truth_path).shape)
 
     return scores
 
@@ -347,7 +348,22 @@ def score_submission(
                     "haussdorf_distance": (the haussdorf distance),
                     "combined_score": (the geometric mean of the accuracy and haussdorf distance),
             }
+            "num_voxels": (the number of voxels in the ground truth volume),
         }
+        "label_scores": {
+            (the name of the predicted class): {
+                (For semantic segmentation)
+                    "iou": (the mean intersection over union score),
+                    "dice_score": (the mean dice score),
+
+                OR
+
+                (For instance segmentation)
+                    "accuracy": (the mean accuracy score),
+                    "haussdorf_distance": (the mean haussdorf distance),
+                    "combined_score": (the mean geometric mean of the accuracy and haussdorf distance),
+            }
+        "overall_score": (the mean of the combined scores across all classes),
     }
     """
     # Unzip the submission
@@ -376,6 +392,48 @@ def score_submission(
         )
         for volume in pred_volumes
     }
+
+    # Combine label scores across volumes, normalizing by the number of voxels
+    label_scores = {}
+    for volume in volumes:
+        for label in scores[volume]:
+            if label in instance_classes:
+                if label not in label_scores:
+                    label_scores[label] = {
+                        "accuracy": 0,
+                        "hausdorff_distance": 0,
+                        "combined_score": 0,
+                    }
+                label_scores[label]["accuracy"] += (
+                    scores[volume][label]["accuracy"] / scores[volume]["num_voxels"]
+                )
+                label_scores[label]["hausdorff_distance"] += (
+                    scores[volume][label]["hausdorff_distance"]
+                    / scores[volume]["num_voxels"]
+                )
+                label_scores[label]["combined_score"] += (
+                    scores[volume][label]["combined_score"]
+                    / scores[volume]["num_voxels"]
+                )
+            else:
+                if label not in label_scores:
+                    label_scores[label] = {"iou": 0, "dice_score": 0}
+                label_scores[label]["iou"] += (
+                    scores[volume][label]["iou"] / scores[volume]["num_voxels"]
+                )
+                label_scores[label]["dice_score"] += (
+                    scores[volume][label]["dice_score"] / scores[volume]["num_voxels"]
+                )
+    scores["label_scores"] = label_scores
+
+    # Compute the overall score
+    overall_score = 0
+    for label in label_scores:
+        if label in instance_classes:
+            overall_score += label_scores[label]["combined_score"]
+        else:
+            overall_score += label_scores[label]["dice_score"]
+    scores["overall_score"] = overall_score
 
     # Save the scores
     if result_file:
