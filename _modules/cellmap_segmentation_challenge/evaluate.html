@@ -634,6 +634,24 @@ document.write(`
 
 <span class="sd">    Example usage:</span>
 <span class="sd">        scores = score_submission(&#39;submission.zip&#39;)</span>
+
+<span class="sd">    The results json is a dictionary with the following structure:</span>
+<span class="sd">    {</span>
+<span class="sd">        &quot;volume&quot; (the name of the ground truth volume): {</span>
+<span class="sd">            &quot;label&quot; (the name of the predicted class): {</span>
+<span class="sd">                (For semantic segmentation)</span>
+<span class="sd">                    &quot;iou&quot;: (the intersection over union score),</span>
+<span class="sd">                    &quot;dice_score&quot;: (the dice score),</span>
+
+<span class="sd">                OR</span>
+
+<span class="sd">                (For instance segmentation)</span>
+<span class="sd">                    &quot;accuracy&quot;: (the accuracy score),</span>
+<span class="sd">                    &quot;haussdorf_distance&quot;: (the haussdorf distance),</span>
+<span class="sd">                    &quot;combined_score&quot;: (the geometric mean of the accuracy and haussdorf distance),</span>
+<span class="sd">            }</span>
+<span class="sd">        }</span>
+<span class="sd">    }</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Unzip the submission</span>
     <span class="n">submission_path</span> <span class="o">=</span> <span class="n">unzip_file</span><span class="p">(</span><span class="n">submission_path</span><span class="p">)</span>
@@ -675,9 +693,17 @@ document.write(`
     <span class="c1"># When called on the commandline, evaluate the submission</span>
     <span class="c1"># example usage: python evaluate.py submission.zip</span>
     <span class="n">argparser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
-    <span class="n">argparser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;submission_file&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to submission zip file to score&quot;</span><span class="p">)</span>
-    <span class="n">argparser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;result_file&quot;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">&quot;?&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If provided, store submission results in this file. Else print them to stdout&quot;</span><span class="p">)</span>
-    <span class="n">argparser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--truth-path&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">TRUTH_PATH</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to zarr containing ground truth&quot;</span><span class="p">)</span>
+    <span class="n">argparser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;submission_file&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to submission zip file to score&quot;</span>
+    <span class="p">)</span>
+    <span class="n">argparser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;result_file&quot;</span><span class="p">,</span>
+        <span class="n">nargs</span><span class="o">=</span><span class="s2">&quot;?&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If provided, store submission results in this file. Else print them to stdout&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">argparser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--truth-path&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">TRUTH_PATH</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to zarr containing ground truth&quot;</span>
+    <span class="p">)</span>
     <span class="n">args</span> <span class="o">=</span> <span class="n">argparser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
     <span class="n">score_submission</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">submission_file</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">result_file</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">truth_path</span><span class="p">)</span>

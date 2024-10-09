@@ -549,6 +549,31 @@ save_numpy_binary_to_zarr(‘submission.zarr’, ‘test_volume’, label_names,
 <dt>Example usage:</dt><dd><p>scores = score_submission(‘submission.zip’)</p>
 </dd>
 </dl>
+<p>The results json is a dictionary with the following structure:
+{</p>
+<blockquote>
+<div><dl>
+<dt>“volume” (the name of the ground truth volume): {</dt><dd><dl>
+<dt>“label” (the name of the predicted class): {</dt><dd><dl class="simple">
+<dt>(For semantic segmentation)</dt><dd><p>“iou”: (the intersection over union score),
+“dice_score”: (the dice score),</p>
+</dd>
+</dl>
+<p>OR</p>
+<dl class="simple">
+<dt>(For instance segmentation)</dt><dd><p>“accuracy”: (the accuracy score),
+“haussdorf_distance”: (the haussdorf distance),
+“combined_score”: (the geometric mean of the accuracy and haussdorf distance),</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>}</p>
+</dd>
+</dl>
+<p>}</p>
+</div></blockquote>
+<p>}</p>
 </dd></dl>
 
 </section>
