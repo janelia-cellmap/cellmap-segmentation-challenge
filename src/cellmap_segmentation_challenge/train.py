@@ -1,6 +1,6 @@
 from importlib.machinery import SourceFileLoader
 import os
-from typing import Optional
+import random
 
 import numpy as np
 import torch
@@ -9,15 +9,14 @@ from tqdm import tqdm
 from upath import UPath
 from cellmap_segmentation_challenge import (
     get_dataloader,
-    CellMapLossWrapper,
     load_latest,
     load_best_val,
     make_datasplit_csv,
 )
+from cellmap_segmentation_challenge.utils import CellMapLossWrapper
+from cellmap_segmentation_challenge.models import ResNet, UNet_2D, UNet_3D, ViTVNet
 from tensorboardX import SummaryWriter
 from cellmap_data.utils import get_image_dict
-
-from cellmap_segmentation_challenge.models import ResNet, UNet_2D, UNet_3D, ViTVNet
 
 
 def train(config_path: str):
@@ -56,30 +55,30 @@ def train(config_path: str):
     # %% Load the configuration file
     config = UPath(config_path).stem
     config = SourceFileLoader(config, str(config_path)).load_module()
-
     # %% Set hyperparameters and other configurations from the config file
-    model_save_path = config.get(
-        "model_save_path", "checkpoints/{model_name}_{epoch}.pth"
+    model_save_path = getattr(
+        config, "model_save_path", "checkpoints/{model_name}_{epoch}.pth"
     )
-    logs_save_path = config.get("logs_save_path", "tensorboard/{model_name}")
-    datasplit_path = config.get("datasplit_path", "datasplit.csv")
-    validation_prob = config.get("validation_prob", 0.3)
-    learning_rate = config.get("learning_rate", 0.0001)
-    batch_size = config.get("batch_size", 8)
-    input_array_info = config.get(
-        "input_array_info", {"shape": (1, 128, 128), "scale": (8, 8, 8)}
+    logs_save_path = getattr(config, "logs_save_path", "tensorboard/{model_name}")
+    datasplit_path = getattr(config, "datasplit_path", "datasplit.csv")
+    validation_prob = getattr(config, "validation_prob", 0.3)
+    learning_rate = getattr(config, "learning_rate", 0.0001)
+    batch_size = getattr(config, "batch_size", 8)
+    input_array_info = getattr(
+        config, "input_array_info", {"shape": (1, 128, 128), "scale": (8, 8, 8)}
     )
-    target_array_info = config.get("target_array_info", input_array_info)
-    epochs = config.get("epochs", 1000)
-    iterations_per_epoch = config.get("iterations_per_epoch", 1000)
-    random_seed = config.get("random_seed", 42)
-    classes = config.get("classes", ["nuc", "er"])
-    model_name = config.get("model_name", "2d_unet")
-    model_to_load = config.get("model_to_load", model_name)
-    model_kwargs = config.get("model_kwargs", {})
-    model = config.get("model", None)
-    load_model = config.get("load_model", "latest")
-    spatial_transforms = config.get(
+    target_array_info = getattr(config, "target_array_info", input_array_info)
+    epochs = getattr(config, "epochs", 1000)
+    iterations_per_epoch = getattr(config, "iterations_per_epoch", 1000)
+    random_seed = getattr(config, "random_seed", 42)
+    classes = getattr(config, "classes", ["nuc", "er"])
+    model_name = getattr(config, "model_name", "2d_unet")
+    model_to_load = getattr(config, "model_to_load", model_name)
+    model_kwargs = getattr(config, "model_kwargs", {})
+    model = getattr(config, "model", None)
+    load_model = getattr(config, "load_model", "latest")
+    spatial_transforms = getattr(
+        config,
         "spatial_transforms",
         {
             "mirror": {"axes": {"x": 0.5, "y": 0.5}},
@@ -89,13 +88,15 @@ def train(config_path: str):
     )
 
     # %% Make sure the save path exists
-    os.makedirs(os.path.dirname(model_save_path), exist_ok=True)
-    os.makedirs(os.path.dirname(logs_save_path), exist_ok=True)
-    os.makedirs(os.path.dirname(datasplit_path), exist_ok=True)
+    for path in [model_save_path, logs_save_path, datasplit_path]:
+        dirpath = os.path.dirname(path)
+        if len(dirpath) > 0:
+            os.makedirs(dirpath, exist_ok=True)
 
     # %% Set the random seed
     torch.manual_seed(random_seed)
     np.random.seed(random_seed)
+    random.seed(random_seed)
 
     # %% Check that the GPU is available
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -106,7 +107,6 @@ def train(config_path: str):
         make_datasplit_csv(
             classes=classes,
             csv_path=datasplit_path,
-            dry_run=False,
             validation_prob=validation_prob,
         )
 

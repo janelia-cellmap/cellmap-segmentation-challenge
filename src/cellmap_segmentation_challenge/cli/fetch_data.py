@@ -28,7 +28,7 @@ load_dotenv()
 
 # get constants from environment, falling back to defaults as needed
 # manifest_url = os.environ.get("CSC_FETCH_DATA_MANIFEST_URL", None)
-manifest_url = "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/download/src/cellmap_segmentation_challenge/utils/manifest.csv?token=GHSAT0AAAAAACW7MKPUL6FOP3IOWYKT4HG6ZYF7CHQ"
+manifest_url = "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/manifest.csv"
 if manifest_url is None:
     raise ValueError("No manifest url provided. Quitting.")
 num_workers = int(os.environ.get("CSC_FETCH_DATA_NUM_WORKERS", 32))

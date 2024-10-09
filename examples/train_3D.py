@@ -1,7 +1,4 @@
 # %%
-import os
-import torch
-import numpy as np
 from cellmap_segmentation_challenge.models import UNet_3D, ResNet, ViTVNet
 
 # %% Set hyperparameters and other configurations
@@ -39,6 +36,7 @@ model = UNet_3D(1, len(classes))
 # model_to_load = "3d_vnet"  # name of the pre-trained model to load
 # model = ViTVNet(len(classes))
 
+load_model = "latest"  # load the latest model or the best validation model
 
 # Define the paths for saving the model and logs, etc.
 data_base_path = "data"  # base path where the data is stored
@@ -54,21 +52,6 @@ spatial_transforms = {  # dictionary of spatial transformations to apply to the 
     "transpose": {"axes": ["x", "y", "z"]},
     "rotate": {"axes": {"x": [-180, 180], "y": [-180, 180], "z": [-180, 180]}},
 }
-
-# %% Make sure the save path exists
-os.makedirs(os.path.dirname(model_save_path), exist_ok=True)
-
-# %% Set the random seed
-torch.manual_seed(random_seed)
-np.random.seed(random_seed)
-
-# %% Check that the GPU is available
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"Training device: {device}")
-
-# %% Move model to device
-model = model.to(device)
-load_model = "latest"  # load the latest model or the best validation model
 
 if __name__ == "__main__":
     from cellmap_segmentation_challenge import train

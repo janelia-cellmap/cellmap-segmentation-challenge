@@ -1,4 +1,4 @@
-import csv
+# %%
 from glob import glob
 import shutil
 import sys
@@ -7,6 +7,11 @@ import numpy as np
 import os
 
 from tqdm import tqdm
+
+SEARCH_PATH = (
+    os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    + "/data/{dataset}/{dataset}.zarr/recon-1/labels/groundtruth/*/{label}"
+)
 
 
 def get_csv_string(
@@ -18,7 +23,7 @@ def get_csv_string(
     crops: Optional[list[str]] = None,
 ):
     dataset_name = path.removeprefix(datapath_prefix).split("/")[0]
-    gt_name = path.split(".zarr")[-1].strip("/")
+    gt_name = "crop" + path.split("crop")[-1].split("/")[0]
     if crops is not None and gt_name not in crops:
         bar_string = gt_name + " not in crops, skipping"
         return None, bar_string
@@ -44,12 +49,22 @@ def make_datasplit_csv(
     force_all_classes: bool | str = False,
     validation_prob: float = 0.3,
     datasets: list[str] = ["*"],
-    search_path: str = "./data/{dataset}.zarr/*/{label}",
+    search_path: str = SEARCH_PATH,
     raw_name: str = "recon-1/em/fibsem-uint8",
     csv_path: str = "datasplit.csv",
     dry_run: bool = False,
     crops: Optional[list[str]] = None,
 ):
+    print(f"Classes: {classes}")
+    print(f"Force all classes: {force_all_classes}")
+    print(f"Validation probability: {validation_prob}")
+    print(f"Datasets: {datasets}")
+    print(f"Search path: {search_path}")
+    print(f"Raw name: {raw_name}")
+    print(f"CSV path: {csv_path}")
+    print(f"Dry run: {dry_run}")
+    print(f"Crops: {crops}")
+
     # Define the paths to the raw and groundtruth data and the label classes by crawling the directories and writing the paths to a csv file
     datapath_prefix = search_path.split("{")[0]
     datapaths = {}
@@ -78,6 +93,7 @@ def make_datasplit_csv(
     num_train = num_validate = 0
     bar = tqdm(datapaths.keys())
     for path in bar:
+        print(f"Processing {path}")
         usage = usage_dict[path]
         if force_all_classes == usage:
             if len(datapaths[path]) != len(classes):
@@ -101,7 +117,7 @@ def make_datasplit_csv(
             else:
                 num_validate += 1
 
-    print(f"CSV written to {csv_path}")
+    assert num_train + num_validate > 0, "No datasets found"
     print(f"Number of datasets: {num_train + num_validate}")
     print(
         f"Number of training datasets: {num_train} ({num_train/(num_train+num_validate)*100:.2f}%)"
@@ -109,11 +125,12 @@ def make_datasplit_csv(
     print(
         f"Number of validation datasets: {num_validate} ({num_validate/(num_train+num_validate)*100:.2f}%)"
     )
+    print(f"CSV written to {csv_path}")
 
 
 def get_dataset_counts(
     classes: list[str] = ["nuc", "mito"],
-    search_path: str = ".../*/staging/groundtruth.zarr/*/{label}",
+    search_path: str = SEARCH_PATH,
     raw_name: str = "recon-1/em/fibsem-uint8",
 ):
     # Count the # of crops per class per dataset
@@ -142,45 +159,6 @@ def get_dataset_counts(
                 dataset_class_counts[dataset_name][label] += 1
 
     return dataset_class_counts
-
-
-def get_class_incl_ids(incl_ids_string):
-    if incl_ids_string is None or incl_ids_string == "":
-        return []
-    return [int(id) for id in incl_ids_string.split(",")]
-
-
-def get_class_relations(
-    csv_path: str = "classes.csv", named_classes: Optional[list[str]] = None
-):
-    classes_dict = {}
-    with open(csv_path, "r") as f:
-        reader = csv.reader(f)
-        for row in reader:
-            if named_classes is not None and row[0] not in named_classes:
-                continue
-            id = int(row[1])
-            if id not in classes_dict:
-                classes_dict[id] = {}
-            classes_dict[id]["name"] = row[0]
-            classes_dict[id]["incl_ids"] = set(get_class_incl_ids(*row[2:]) + [id])
-
-    # Get all potentially overlapping classes (e.g. cell can overlap with every organelle but not ecs)
-    class_relation_dict = {}
-    for id1, info1 in classes_dict.items():
-        if info1["name"] not in class_relation_dict:
-            class_relation_dict[info1["name"]] = set()
-        for id2, info2 in classes_dict.items():
-            if id1 == id2:
-                class_relation_dict[info1["name"]].add(info2["name"])
-            if len(info1["incl_ids"].intersection(info2["incl_ids"])) > 0:
-                class_relation_dict[info1["name"]].add(info2["name"])
-
-    class_ids = set(v["name"] for v in classes_dict.values())
-    for key, value in class_relation_dict.items():
-        class_relation_dict[key] = class_ids - value
-
-    return class_relation_dict
 
 
 if __name__ == "__main__":
