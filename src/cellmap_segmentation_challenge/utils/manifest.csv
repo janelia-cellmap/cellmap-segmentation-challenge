@@ -1,0 +1,2 @@
+crop_name, dataset, alignment, crop_url, em_url
+1,jrc_hela-2,recon-1,s3://janelia-cosem-datasets/jrc_hela-2/jrc_hela-2.zarr/recon-1/labels/crop1,s3://janelia-cosem-datasets/jrc_hela-2/jrc_hela-2.zarr/recon-1/em/fibsem-uint8
