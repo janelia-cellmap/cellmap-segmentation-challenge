@@ -1,3 +1,4 @@
+import argparse
 import json
 import sys
 import zipfile
@@ -367,6 +368,12 @@ def score_submission(
 
 
 if __name__ == "__main__":
-    # Evaluate a submission
+    # When called on the commandline, evaluate the submission
     # example usage: python evaluate.py submission.zip
-    score_submission(sys.argv[1])
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument("submission_file", help="Path to submission zip file to score")
+    argparser.add_argument("result_file", nargs="?", help="If provided, store submission results in this file. Else print them to stdout")
+    argparser.add_argument("--truth-path", default=TRUTH_PATH, help="Path to zarr containing ground truth")
+    args = argparser.parse_args()
+
+    score_submission(args.submission_file, args.result_file, args.truth_path)
