@@ -1,6 +1,5 @@
 import argparse
 import json
-import sys
 import zipfile
 import numpy as np
 from skimage.measure import label
@@ -199,13 +198,18 @@ def score_instance(
     # Compute the scores
     accuracy = accuracy_score(truth_label.flatten(), matched_pred_label.flatten())
     hausdorff_dist = np.mean(hausdorff_distances)
-    combined_score = (accuracy * hausdorff_dist) ** 0.5
+    normalized_hausdorff_dist = 32 ** (
+        -hausdorff_dist
+    )  # normalize Hausdorff distance to [0, 1]. 32 is abritrary chosen to have a reasonable range
+    combined_score = (accuracy * normalized_hausdorff_dist) ** 0.5
     print(f"Accuracy: {accuracy:.4f}")
     print(f"Hausdorff Distance: {hausdorff_dist:.4f}")
+    print(f"Normalized Hausdorff Distance: {normalized_hausdorff_dist:.4f}")
     print(f"Combined Score: {combined_score:.4f}")
     return {
         "accuracy": accuracy,
         "hausdorff_distance": hausdorff_dist,
+        "normalized_hausdorff_distance": normalized_hausdorff_dist,
         "combined_score": combined_score,
     }
 
@@ -351,7 +355,8 @@ def score_submission(
                 (For instance segmentation)
                     "accuracy": (the accuracy score),
                     "haussdorf_distance": (the haussdorf distance),
-                    "combined_score": (the geometric mean of the accuracy and haussdorf distance),
+                    "normalized_haussdorf_distance": (the normalized haussdorf distance),
+                    "combined_score": (the geometric mean of the accuracy and normalized haussdorf distance),
             }
             "num_voxels": (the number of voxels in the ground truth volume),
         }
@@ -418,6 +423,7 @@ def score_submission(
                     label_scores[label] = {
                         "accuracy": 0,
                         "hausdorff_distance": 0,
+                        "normalized_hausdorff_distance": 0,
                         "combined_score": 0,
                     }
                 label_scores[label]["accuracy"] += (
@@ -425,6 +431,10 @@ def score_submission(
                 )
                 label_scores[label]["hausdorff_distance"] += (
                     scores[volume][label]["hausdorff_distance"]
+                    / scores[volume]["num_voxels"]
+                )
+                label_scores[label]["normalized_hausdorff_distance"] += (
+                    scores[volume][label]["normalized_hausdorff_distance"]
                     / scores[volume]["num_voxels"]
                 )
                 label_scores[label]["combined_score"] += (
@@ -443,14 +453,19 @@ def score_submission(
     scores["label_scores"] = label_scores
 
     # Compute the overall score
-    print("Computing overall score...")
-    overall_score = 0
+    print("Computing overall scores...")
+    overall_instance_scores = []
+    overall_semantic_scores = []
     for label in label_scores:
         if label in instance_classes:
-            overall_score += label_scores[label]["combined_score"]
+            overall_instance_scores += [label_scores[label]["combined_score"]]
         else:
-            overall_score += label_scores[label]["dice_score"]
-    scores["overall_score"] = overall_score
+            overall_semantic_scores += [label_scores[label]["dice_score"]]
+    scores["overall_instance_score"] = np.mean(overall_instance_scores)
+    scores["overall_semantic_score"] = np.mean(overall_semantic_scores)
+    scores["overall_score"] = (
+        scores["overall_instance_score"] * scores["overall_semantic_score"]
+    ) ** 0.5  # geometric mean
 
     # Save the scores
     if result_file:
