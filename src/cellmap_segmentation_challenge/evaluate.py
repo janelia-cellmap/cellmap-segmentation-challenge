@@ -1,3 +1,4 @@
+import argparse
 import json
 import sys
 import zipfile
@@ -314,7 +315,7 @@ def score_volume(
 
 def score_submission(
     submission_path,
-    save_path=None,
+    result_file=None,
     truth_path=TRUTH_PATH,
     instance_classes=INSTANCE_CLASSES,
 ) -> dict[str, dict[str, dict[str, float]]]:
@@ -323,7 +324,7 @@ def score_submission(
 
     Args:
         submission_path (str): The path to the zipped submission Zarr-2 file.
-        save_path (str): The path to save the scores.
+        result_file (str): The path to save the scores.
 
     Returns:
         dict: A dictionary of scores for the submission.
@@ -359,14 +360,20 @@ def score_submission(
     }
 
     # Save the scores
-    if save_path:
-        with open(save_path, "w") as f:
+    if result_file:
+        with open(result_file, "w") as f:
             json.dump(scores, f)
     else:
         return scores
 
 
 if __name__ == "__main__":
-    # Evaluate a submission
+    # When called on the commandline, evaluate the submission
     # example usage: python evaluate.py submission.zip
-    score_submission(sys.argv[1])
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument("submission_file", help="Path to submission zip file to score")
+    argparser.add_argument("result_file", nargs="?", help="If provided, store submission results in this file. Else print them to stdout")
+    argparser.add_argument("--truth-path", default=TRUTH_PATH, help="Path to zarr containing ground truth")
+    args = argparser.parse_args()
+
+    score_submission(args.submission_file, args.result_file, args.truth_path)
