@@ -1,0 +1,33 @@
+name: build
+
+on:
+  push:
+    branches: main
+  pull_request:
+
+jobs:
+  login:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          # Get everything so chartpress knows how to properly tag this
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          # We only install dev-requirements here, as actual requirements
+          # are built from inside a docker environment
+          cache-dependency-path: dev-requirements.txt
+          cache: 'pip'
+
+      - name: Build image with Dockerfile & repo2docker
+        uses: jupyterhub/repo2docker-action@master
+        with:
+          NO_PUSH: true
+          IMAGE_NAME: test
