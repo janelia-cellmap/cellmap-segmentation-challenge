@@ -5,6 +5,12 @@
 
 .. mdinclude:: ../../README.md
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   cellmap-schemas.rst
+
 API
 ==============
 .. autosummary::
