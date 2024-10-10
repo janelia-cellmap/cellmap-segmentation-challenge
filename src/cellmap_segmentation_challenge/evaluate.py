@@ -38,9 +38,9 @@ def unzip_file(zip_path):
     with zipfile.ZipFile(zip_path, "r") as zip_ref:
         zip_ref.extractall(extract_path)
         saved_path = [
-            file.removesuffix(os.path.sep)
+            UPath(file).path
             for file in zip_ref.namelist()
-            if file.removesuffix(os.path.sep).endswith(".zarr")
+            if UPath(file).suffix == ".zarr"
         ][0]
         print(f"Unzipped {zip_path} to {extract_path} / {saved_path}")
 
@@ -384,18 +384,10 @@ def score_submission(
 
     # Find volumes to score
     print(f"Scoring volumes in {submission_path}...")
-    pred_volumes = [
-        str(d).removeprefix(submission_path + os.path.sep)
-        for d in UPath(submission_path).glob("*")
-        if d.is_dir()
-    ]
+    pred_volumes = [d.name for d in UPath(submission_path).glob("*") if d.is_dir()]
     print(f"Volumes: {pred_volumes}")
     print(f"Truth path: {truth_path}")
-    truth_volumes = [
-        str(d).removeprefix(truth_path + os.path.sep)
-        for d in UPath(truth_path).glob("*")
-        if d.is_dir()
-    ]
+    truth_volumes = [d.name for d in UPath(truth_path).glob("*") if d.is_dir()]
     print(f"Truth volumes: {truth_volumes}")
 
     volumes = list(set(pred_volumes) & set(truth_volumes))
@@ -408,7 +400,7 @@ def score_submission(
     # Score each volume
     scores = {
         volume: score_volume(
-            os.path.join(submission_path, volume),
+            submission_path / volume,
             truth_path=truth_path,
             instance_classes=instance_classes,
         )
