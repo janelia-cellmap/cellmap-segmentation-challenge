@@ -411,7 +411,7 @@ def score_submission(
     label_scores = {}
     for volume in volumes:
         for label in scores[volume]:
-            if label != "num_voxels":
+            if label == "num_voxels":
                 continue
             elif label in instance_classes:
                 if label not in label_scores:
