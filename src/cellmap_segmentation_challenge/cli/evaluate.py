@@ -1,42 +1,42 @@
 import click
-from ..evaluate import evaluate
+from ..evaluate import score_submission, TRUTH_PATH, INSTANCE_CLASSES
 
 
 @click.command
 @click.argument(
     "submission_path",
     type=click.Path(exists=True),
-    required=True,    
+    required=True,
 )
 @click.option(
     "--result_file",
     "-r",
     type=click.Path(),
-    required=True,
-    help="Path for the result json file",
+    default="result.json",
+    help="Path for the result json file. Defaults to 'result.json'",
 )
 @click.option(
-    "--output_path",
-    "-o",
-    type=click.Path(),
-    required=True,
-    help="Path to the output data",
+    "--truth_path",
+    "-t",
+    type=click.Path(exists=True),
+    default=TRUTH_PATH,
+    help=f"Path to the ground truth data. Defaults to {TRUTH_PATH}",
 )
 @click.option(
-    "--input_block_shape",
-    "-s",
+    "--instance_classes",
+    "-ic",
     type=click.STRING,
-    required=True,
-    help="A comma-separated list of describing the shape of the data blocks input to the model",
+    default=None,
+    help="A comma-separated list of class names that should be evaluated as instances. Defaults to None",
 )
-@click.option(
-    "--channels",
-    "-c",
-    type=click.STRING,
-    required=True,
-    help="A comma-separated list of channel names in order according to the output of the model",
-)
-def evaluate_cli(model, input_path, output_path, input_block_shape, channels):
-    input_block_shape = input_block_shape.split(",")
-    channels = channels.split(",")
-    evaluate(...
+def evaluate_cli(submission_path, result_file, truth_path, instance_classes):
+    """
+    Evaluate a submission against the ground truth data.
+
+    SUBMISSION_PATH: Path to the submission file
+    """
+    if instance_classes is not None:
+        instance_classes = instance_classes.split(",")
+    else:
+        instance_classes = INSTANCE_CLASSES
+    score_submission(submission_path, result_file, truth_path, instance_classes)

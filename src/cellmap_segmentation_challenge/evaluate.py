@@ -16,8 +16,7 @@ import os
 from upath import UPath
 
 
-INSTANCE_CLASSES = ["mito", "nuc"]
-# INSTANCE_THRESHOLD = 0.5
+INSTANCE_CLASSES = ["mito", "nuc", "instance"]
 HAUSDORFF_DISTANCE_MAX = np.inf
 
 # TODO: REPLACE WITH THE GROUND TRUTH LABEL VOLUME PATH
