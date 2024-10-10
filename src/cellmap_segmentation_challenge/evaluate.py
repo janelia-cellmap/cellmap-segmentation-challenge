@@ -44,7 +44,7 @@ def unzip_file(zip_path):
         ][0]
         print(f"Unzipped {zip_path} to {extract_path} / {saved_path}")
 
-    return os.path.join(extract_path, saved_path)
+    return extract_path / saved_path
 
 
 def save_numpy_class_labels_to_zarr(
