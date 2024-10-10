@@ -2,7 +2,7 @@ import argparse
 import json
 import zipfile
 import numpy as np
-from skimage.measure import label
+from skimage.measure import label as relabel
 from scipy.optimize import linear_sum_assignment
 from scipy.spatial.distance import dice  # , jaccard
 from sklearn.metrics import (
@@ -149,7 +149,7 @@ def score_instance(
     """
     # Relabel the predicted instance labels to be consistent with the ground truth instance labels
     print("Scoring instance segmentation...")
-    pred_label = label(pred_label, connectivity=len(pred_label.shape))
+    pred_label = relabel(pred_label, connectivity=len(pred_label.shape))
     # pred_label = label(pred_label)
 
     # Construct the cost matrix for Hungarian matching
@@ -301,10 +301,12 @@ def score_volume(
         scores = score_volume('pred.zarr/test_volume')
     """
     print(f"Scoring {pred_volume_path}...")
+    pred_volume_path = UPath(pred_volume_path)
+
     # Find labels to score
     pred_labels = [a for a in zarr.open(pred_volume_path).array_keys()]
 
-    volume_name = UPath(pred_volume_path).name
+    volume_name = pred_volume_path.name
     truth_labels = [a for a in zarr.open(UPath(truth_path) / volume_name).array_keys()]
 
     labels = list(set(pred_labels) & set(truth_labels))
@@ -318,9 +320,7 @@ def score_volume(
         )
         for label in labels
     }
-    scores["num_voxels"] = np.prod(
-        zarr.open(os.path.join(pred_volume_path, label)).shape
-    )
+    scores["num_voxels"] = np.prod(zarr.open(pred_volume_path / labels[0]).shape)
 
     return scores
 
