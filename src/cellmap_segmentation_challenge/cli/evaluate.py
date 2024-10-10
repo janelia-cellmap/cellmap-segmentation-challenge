@@ -3,19 +3,17 @@ from ..evaluate import evaluate
 
 
 @click.command
-@click.option(
-    "--model",
-    "-m",
+@click.argument(
+    "submission_path",
     type=click.Path(exists=True),
-    required=True,
-    help="Path to the python file defining the configuration to be used for training",
+    required=True,    
 )
 @click.option(
-    "--input_path",
-    "-i",
-    type=click.Path(exists=True),
+    "--result_file",
+    "-r",
+    type=click.Path(),
     required=True,
-    help="Path to the input data",
+    help="Path for the result json file",
 )
 @click.option(
     "--output_path",
