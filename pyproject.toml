@@ -43,7 +43,6 @@ dependencies = [
   "scipy",
   "numpy",
   "tensorstore",
-  "h5py",
   "python-dotenv",
   "universal-pathlib",
   "scikit-image",
@@ -58,25 +57,17 @@ test = ["pytest>=6.0", "pytest-cov", "mypy", "black"]
 docs = [
     "sphinx",
     "sphinx-book-theme",
-    "recommonmark",
     "sphinx_mdinclude",
 ]
 
 dev = [
-    "black",
     "ipython",
     "jupyter",
-    "mypy",
-    "pytest-cov",
-    "pytest>=6.0",
     "rich",
     "ruff",
     "snakeviz",
-    "sphinx",
-    "sphinx-book-theme",
     "twine",
     "hatch",
-    "python-semantic-release",
     "gunpowder",
     "pdbpp",
     "python-semantic-release",
