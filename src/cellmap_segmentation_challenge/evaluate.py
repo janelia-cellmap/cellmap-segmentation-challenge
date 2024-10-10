@@ -14,6 +14,7 @@ from skimage.metrics import hausdorff_distance
 import zarr
 import os
 from upath import UPath
+from tqdm import tqdm
 
 
 INSTANCE_CLASSES = ["mito", "nuc", "instance"]
@@ -155,7 +156,8 @@ def score_instance(
     pred_ids = np.unique(pred_label)
     truth_ids = np.unique(truth_label)
     cost_matrix = np.zeros((len(truth_ids), len(pred_ids)))
-    for j, pred_id in enumerate(pred_ids):
+    bar = tqdm(pred_ids, desc="Computing cost matrix", leave=True)
+    for j, pred_id in enumerate(bar):
         if pred_id == 0:
             # Don't score the background
             continue
@@ -176,7 +178,7 @@ def score_instance(
 
     # Contruct the volume for the matched instances
     matched_pred_label = np.zeros_like(pred_label)
-    for i, j in zip(col_inds, row_inds):
+    for i, j in tqdm(zip(col_inds, row_inds), desc="Relabeled matched instances"):
         if pred_ids[i] == 0 or truth_ids[j] == 0:
             # Don't score the background
             continue
@@ -184,7 +186,7 @@ def score_instance(
         matched_pred_label[pred_mask] = truth_ids[j]
 
     hausdorff_distances = []
-    for truth_id in truth_ids:
+    for truth_id in tqdm(truth_ids, desc="Computing Hausdorff distances"):
         if truth_id == 0:
             # Don't score the background
             continue
