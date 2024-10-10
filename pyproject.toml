@@ -50,7 +50,6 @@ dependencies = [
   "scikit-learn",
   "daisy",
   "funlib.persistence",
-  "gunpowder",
   ]
 
 [project.optional-dependencies]
@@ -59,6 +58,7 @@ docs = [
     "sphinx",
     "sphinx-book-theme",
     "sphinx_mdinclude",
+    "gunpowder",
 ]
 
 dev = [
@@ -70,6 +70,7 @@ dev = [
     "twine",
     "hatch",
     "pdbpp",
+    "gunpowder",
     "python-semantic-release",
     "cellmap-segmentation-challenge[test,docs]",
 ]
