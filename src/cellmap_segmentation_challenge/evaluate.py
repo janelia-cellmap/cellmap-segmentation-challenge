@@ -318,7 +318,7 @@ def score_volume(
         )
         for label in labels
     }
-    scores["num_voxels"] = np.sum(zarr.open(truth_path).shape)
+    scores["num_voxels"] = np.prod(zarr.open(truth_path).shape)
 
     return scores
 
