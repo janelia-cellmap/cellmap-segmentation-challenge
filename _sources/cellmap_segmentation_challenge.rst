@@ -15,9 +15,7 @@
    datasplit
    evaluate
    fetch_data
-   loss
    models
    predict
    train
    utils
-   visualize

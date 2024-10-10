@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>cellmap_segmentation_challenge.cli package &#8212; CellMap Segmentation Challenge</title>
+    <title>cellmap_segmentation_challenge.cli &#8212; CellMap Segmentation Challenge</title>
   
   
   
@@ -37,13 +37,15 @@
   <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'cellmap_segmentation_challenge.cli';</script>
     <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="cellmap_segmentation_challenge.cli.evaluate" href="cellmap_segmentation_challenge.cli.evaluate.html" />
+    <link rel="prev" title="cellmap_segmentation_challenge" href="cellmap_segmentation_challenge.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -106,8 +108,6 @@
       
       
       
-        
-      
       <div class="bd-sidebar-primary bd-sidebar">
         
 
@@ -155,12 +155,25 @@
  </script></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
-        <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.html">cellmap_segmentation_challenge</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="cellmap-schemas.html">CellMap Schemas</a></li>
+
+
+</ul>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="cellmap_segmentation_challenge.html">cellmap_segmentation_challenge</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active has-children"><a class="current reference internal" href="#">cellmap_segmentation_challenge.cli</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.evaluate.html">cellmap_segmentation_challenge.cli.evaluate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.fetch_data.html">cellmap_segmentation_challenge.cli.fetch_data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.predict.html">cellmap_segmentation_challenge.cli.predict</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.train.html">cellmap_segmentation_challenge.cli.train</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.dataloader.html">cellmap_segmentation_challenge.dataloader</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.datasplit.html">cellmap_segmentation_challenge.datasplit</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.evaluate.html">cellmap_segmentation_challenge.evaluate</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.loss.html">cellmap_segmentation_challenge.loss</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.fetch_data.html">cellmap_segmentation_challenge.fetch_data</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.model_load.html">cellmap_segmentation_challenge.models.model_load</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.resnet.html">cellmap_segmentation_challenge.models.resnet</a></li>
@@ -171,7 +184,13 @@
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.visualize.html">cellmap_segmentation_challenge.visualize</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.crops.html">cellmap_segmentation_challenge.utils.crops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.loss.html">cellmap_segmentation_challenge.utils.loss</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.pipeline.html">cellmap_segmentation_challenge.utils.pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.visualize.html">cellmap_segmentation_challenge.utils.visualize</a></li>
+</ul>
+</details></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
@@ -301,9 +320,7 @@ document.write(`
   </button>
 `);
 </script>
-<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="fa-solid fa-list"></span>
-</button>
+
 </div></div>
       
     </div>
@@ -314,21 +331,11 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>cellmap_segmentation_challenge.cli package</h1>
+    <h1>cellmap_segmentation_challenge.cli</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
             
-            <div>
-                <h2> Contents </h2>
-            </div>
-            <nav aria-label="Page">
-                <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap-segmentation-challenge-cli-fetch-data-module">cellmap_segmentation_challenge.cli.fetch_data module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module contents</a></li>
-</ul>
-            </nav>
         </div>
     </div>
 </div>
@@ -338,17 +345,26 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="cellmap-segmentation-challenge-cli-package">
-<h1>cellmap_segmentation_challenge.cli package<a class="headerlink" href="#cellmap-segmentation-challenge-cli-package" title="Link to this heading">#</a></h1>
-<section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">#</a></h2>
-</section>
-<section id="cellmap-segmentation-challenge-cli-fetch-data-module">
-<h2>cellmap_segmentation_challenge.cli.fetch_data module<a class="headerlink" href="#cellmap-segmentation-challenge-cli-fetch-data-module" title="Link to this heading">#</a></h2>
-</section>
-<section id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
-</section>
+  <section id="module-cellmap_segmentation_challenge.cli">
+<span id="cellmap-segmentation-challenge-cli"></span><h1>cellmap_segmentation_challenge.cli<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli" title="Link to this heading">#</a></h1>
+<p class="rubric">Modules</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.cli.evaluate.html#module-cellmap_segmentation_challenge.cli.evaluate" title="cellmap_segmentation_challenge.cli.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.cli.fetch_data.html#module-cellmap_segmentation_challenge.cli.fetch_data" title="cellmap_segmentation_challenge.cli.fetch_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fetch_data</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.cli.predict.html#module-cellmap_segmentation_challenge.cli.predict" title="cellmap_segmentation_challenge.cli.predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.cli.train.html#module-cellmap_segmentation_challenge.cli.train" title="cellmap_segmentation_challenge.cli.train"><code class="xref py py-obj docutils literal notranslate"><span class="pre">train</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
 </section>
 
 
@@ -362,29 +378,30 @@ document.write(`
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
+    <a class="left-prev"
+       href="cellmap_segmentation_challenge.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">cellmap_segmentation_challenge</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="cellmap_segmentation_challenge.cli.evaluate.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">cellmap_segmentation_challenge.cli.evaluate</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
 </div>
                 </footer>
               
             </div>
             
             
-              
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
-
-
-  <div class="sidebar-secondary-item">
-  <div class="page-toc tocsection onthispage">
-    <i class="fa-solid fa-list"></i> Contents
-  </div>
-  <nav class="bd-toc-nav page-toc">
-    <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap-segmentation-challenge-cli-fetch-data-module">cellmap_segmentation_challenge.cli.fetch_data module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module contents</a></li>
-</ul>
-  </nav></div>
-
-</div></div>
               
             
           </div>

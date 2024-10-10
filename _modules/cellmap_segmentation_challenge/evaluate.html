@@ -36,7 +36,7 @@
   <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
     <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
-    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/cellmap_segmentation_challenge/evaluate';</script>
@@ -154,12 +154,25 @@
  </script></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
-        <ul class="nav bd-sidenav">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../cellmap-schemas.html">CellMap Schemas</a></li>
+
+
+</ul>
+<ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../cellmap_segmentation_challenge.html">cellmap_segmentation_challenge</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.html">cellmap_segmentation_challenge.cli</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.evaluate.html">cellmap_segmentation_challenge.cli.evaluate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.fetch_data.html">cellmap_segmentation_challenge.cli.fetch_data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.predict.html">cellmap_segmentation_challenge.cli.predict</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.train.html">cellmap_segmentation_challenge.cli.train</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.dataloader.html">cellmap_segmentation_challenge.dataloader</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.datasplit.html">cellmap_segmentation_challenge.datasplit</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.evaluate.html">cellmap_segmentation_challenge.evaluate</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.loss.html">cellmap_segmentation_challenge.loss</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.fetch_data.html">cellmap_segmentation_challenge.fetch_data</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.models.model_load.html">cellmap_segmentation_challenge.models.model_load</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.models.resnet.html">cellmap_segmentation_challenge.models.resnet</a></li>
@@ -170,7 +183,13 @@
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.visualize.html">cellmap_segmentation_challenge.visualize</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.crops.html">cellmap_segmentation_challenge.utils.crops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.loss.html">cellmap_segmentation_challenge.utils.loss</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.pipeline.html">cellmap_segmentation_challenge.utils.pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.visualize.html">cellmap_segmentation_challenge.utils.visualize</a></li>
+</ul>
+</details></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="../../cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
@@ -280,10 +299,9 @@ document.write(`
   <h1>Source code for cellmap_segmentation_challenge.evaluate</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">argparse</span>
 <span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">zipfile</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">skimage.measure</span> <span class="kn">import</span> <span class="n">label</span>
+<span class="kn">from</span> <span class="nn">skimage.measure</span> <span class="kn">import</span> <span class="n">label</span> <span class="k">as</span> <span class="n">relabel</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">linear_sum_assignment</span>
 <span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">dice</span>  <span class="c1"># , jaccard</span>
 <span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="p">(</span>
@@ -295,10 +313,10 @@ document.write(`
 <span class="kn">import</span> <span class="nn">zarr</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">upath</span> <span class="kn">import</span> <span class="n">UPath</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
 
 
-<span class="n">INSTANCE_CLASSES</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;mito&quot;</span><span class="p">,</span> <span class="s2">&quot;nuc&quot;</span><span class="p">]</span>
-<span class="c1"># INSTANCE_THRESHOLD = 0.5</span>
+<span class="n">INSTANCE_CLASSES</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;mito&quot;</span><span class="p">,</span> <span class="s2">&quot;nuc&quot;</span><span class="p">,</span> <span class="s2">&quot;instance&quot;</span><span class="p">]</span>
 <span class="n">HAUSDORFF_DISTANCE_MAX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
 
 <span class="c1"># TODO: REPLACE WITH THE GROUND TRUTH LABEL VOLUME PATH</span>
@@ -321,13 +339,13 @@ document.write(`
     <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">zip_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">zip_ref</span><span class="p">:</span>
         <span class="n">zip_ref</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">extract_path</span><span class="p">)</span>
         <span class="n">saved_path</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">file</span><span class="o">.</span><span class="n">removesuffix</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
+            <span class="n">UPath</span><span class="p">(</span><span class="n">file</span><span class="p">)</span><span class="o">.</span><span class="n">path</span>
             <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">zip_ref</span><span class="o">.</span><span class="n">namelist</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">file</span><span class="o">.</span><span class="n">removesuffix</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.zarr&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">UPath</span><span class="p">(</span><span class="n">file</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span> <span class="o">==</span> <span class="s2">&quot;.zarr&quot;</span>
         <span class="p">][</span><span class="mi">0</span><span class="p">]</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unzipped </span><span class="si">{</span><span class="n">zip_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">extract_path</span><span class="si">}</span><span class="s2"> / </span><span class="si">{</span><span class="n">saved_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">saved_path</span></div>
+    <span class="k">return</span> <span class="n">extract_path</span> <span class="o">/</span> <span class="n">saved_path</span></div>
 
 
 
@@ -354,6 +372,7 @@ document.write(`
     <span class="c1"># Create a Zarr-2 file</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">UPath</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving to </span><span class="si">{</span><span class="n">save_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="n">store</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">DirectoryStore</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span>
     <span class="n">zarr_group</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">store</span><span class="p">)</span>
 
@@ -362,12 +381,15 @@ document.write(`
 
     <span class="c1"># Save the labels</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">label_name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">label_name</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving </span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">zarr_group</span><span class="p">[</span><span class="n">test_volume_name</span><span class="p">]</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
             <span class="n">label_name</span><span class="p">,</span>
             <span class="n">data</span><span class="o">=</span><span class="p">(</span><span class="n">labels</span> <span class="o">==</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
             <span class="n">chunks</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span>
             <span class="c1"># compressor=zarr.Blosc(cname=&#39;zstd&#39;, clevel=3, shuffle=2),</span>
-        <span class="p">)</span></div>
+        <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Done saving&quot;</span><span class="p">)</span></div>
 
 
 
@@ -396,6 +418,7 @@ document.write(`
     <span class="c1"># Create a Zarr-2 file</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">UPath</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving to </span><span class="si">{</span><span class="n">save_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="n">store</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">DirectoryStore</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span>
     <span class="n">zarr_group</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">store</span><span class="p">)</span>
 
@@ -404,28 +427,16 @@ document.write(`
 
     <span class="c1"># Save the labels</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">label_name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">label_names</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving </span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">zarr_group</span><span class="p">[</span><span class="n">test_volume_name</span><span class="p">]</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
             <span class="n">label_name</span><span class="p">,</span>
             <span class="n">data</span><span class="o">=</span><span class="n">labels</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
             <span class="n">chunks</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span>
             <span class="c1"># compressor=zarr.Blosc(cname=&#39;zstd&#39;, clevel=3, shuffle=2),</span>
-        <span class="p">)</span></div>
+        <span class="p">)</span>
 
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Done saving&quot;</span><span class="p">)</span></div>
 
-
-<span class="c1"># def dice(true, pred):</span>
-<span class="c1">#     true = true &gt; 0</span>
-<span class="c1">#     pred = pred &gt; 0</span>
-<span class="c1">#     intersection = np.logical_and(true, pred).sum()</span>
-<span class="c1">#     return (2 * intersection) / (true.sum() + pred.sum())</span>
-
-
-<span class="c1"># def iou(true, pred):</span>
-<span class="c1">#     true = true &gt; 0</span>
-<span class="c1">#     pred = pred &gt; 0</span>
-<span class="c1">#     intersection = np.logical_and(true, pred).sum()</span>
-<span class="c1">#     union = np.logical_or(true, pred).sum()</span>
-<span class="c1">#     return intersection / union</span>
 
 
 <div class="viewcode-block" id="score_instance">
@@ -447,14 +458,16 @@ document.write(`
 <span class="sd">        scores = score_instance(pred_label, truth_label)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Relabel the predicted instance labels to be consistent with the ground truth instance labels</span>
-    <span class="n">pred_label</span> <span class="o">=</span> <span class="n">label</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">pred_label</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Scoring instance segmentation...&quot;</span><span class="p">)</span>
+    <span class="n">pred_label</span> <span class="o">=</span> <span class="n">relabel</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">pred_label</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
     <span class="c1"># pred_label = label(pred_label)</span>
 
     <span class="c1"># Construct the cost matrix for Hungarian matching</span>
     <span class="n">pred_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">pred_label</span><span class="p">)</span>
     <span class="n">truth_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">truth_label</span><span class="p">)</span>
     <span class="n">cost_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">)))</span>
-    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">pred_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">):</span>
+    <span class="n">bar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Computing cost matrix&quot;</span><span class="p">,</span> <span class="n">leave</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">pred_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">bar</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">pred_id</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># Don&#39;t score the background</span>
             <span class="k">continue</span>
@@ -475,7 +488,7 @@ document.write(`
 
     <span class="c1"># Contruct the volume for the matched instances</span>
     <span class="n">matched_pred_label</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">pred_label</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">col_inds</span><span class="p">,</span> <span class="n">row_inds</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">col_inds</span><span class="p">,</span> <span class="n">row_inds</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Relabeled matched instances&quot;</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">pred_ids</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">truth_ids</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># Don&#39;t score the background</span>
             <span class="k">continue</span>
@@ -483,7 +496,7 @@ document.write(`
         <span class="n">matched_pred_label</span><span class="p">[</span><span class="n">pred_mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">truth_ids</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
 
     <span class="n">hausdorff_distances</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">truth_id</span> <span class="ow">in</span> <span class="n">truth_ids</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">truth_id</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Computing Hausdorff distances&quot;</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">truth_id</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># Don&#39;t score the background</span>
             <span class="k">continue</span>
@@ -496,10 +509,18 @@ document.write(`
     <span class="c1"># Compute the scores</span>
     <span class="n">accuracy</span> <span class="o">=</span> <span class="n">accuracy_score</span><span class="p">(</span><span class="n">truth_label</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">matched_pred_label</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
     <span class="n">hausdorff_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">hausdorff_distances</span><span class="p">)</span>
-    <span class="n">combined_score</span> <span class="o">=</span> <span class="p">(</span><span class="n">accuracy</span> <span class="o">*</span> <span class="n">hausdorff_dist</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span>
+    <span class="n">normalized_hausdorff_dist</span> <span class="o">=</span> <span class="mi">32</span> <span class="o">**</span> <span class="p">(</span>
+        <span class="o">-</span><span class="n">hausdorff_dist</span>
+    <span class="p">)</span>  <span class="c1"># normalize Hausdorff distance to [0, 1]. 32 is abritrary chosen to have a reasonable range</span>
+    <span class="n">combined_score</span> <span class="o">=</span> <span class="p">(</span><span class="n">accuracy</span> <span class="o">*</span> <span class="n">normalized_hausdorff_dist</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Accuracy: </span><span class="si">{</span><span class="n">accuracy</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hausdorff Distance: </span><span class="si">{</span><span class="n">hausdorff_dist</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Normalized Hausdorff Distance: </span><span class="si">{</span><span class="n">normalized_hausdorff_dist</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Combined Score: </span><span class="si">{</span><span class="n">combined_score</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">{</span>
         <span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="n">accuracy</span><span class="p">,</span>
         <span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">:</span> <span class="n">hausdorff_dist</span><span class="p">,</span>
+        <span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">:</span> <span class="n">normalized_hausdorff_dist</span><span class="p">,</span>
         <span class="s2">&quot;combined_score&quot;</span><span class="p">:</span> <span class="n">combined_score</span><span class="p">,</span>
     <span class="p">}</span></div>
 
@@ -521,6 +542,8 @@ document.write(`
 <span class="sd">    Example usage:</span>
 <span class="sd">        scores = score_semantic(pred_label, truth_label)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Scoring semantic segmentation...&quot;</span><span class="p">)</span>
+    <span class="c1"># Flatten the label volumes and convert to binary</span>
     <span class="n">pred_label</span> <span class="o">=</span> <span class="p">(</span><span class="n">pred_label</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
     <span class="n">truth_label</span> <span class="o">=</span> <span class="p">(</span><span class="n">truth_label</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
     <span class="c1"># Compute the scores</span>
@@ -528,6 +551,9 @@ document.write(`
         <span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="n">jaccard_score</span><span class="p">(</span><span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">),</span>
         <span class="s2">&quot;dice_score&quot;</span><span class="p">:</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">dice</span><span class="p">(</span><span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">),</span>
     <span class="p">}</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;IoU: </span><span class="si">{</span><span class="n">scores</span><span class="p">[</span><span class="s1">&#39;iou&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dice Score: </span><span class="si">{</span><span class="n">scores</span><span class="p">[</span><span class="s1">&#39;dice_score&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">scores</span></div>
 
@@ -550,6 +576,7 @@ document.write(`
 <span class="sd">    Example usage:</span>
 <span class="sd">        scores = score_label(&#39;pred.zarr/test_volume/label1&#39;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scoring </span><span class="si">{</span><span class="n">pred_label_path</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
     <span class="c1"># Load the predicted and ground truth label volumes</span>
     <span class="n">label_name</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">pred_label_path</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
     <span class="n">volume_name</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">pred_label_path</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span>
@@ -558,6 +585,7 @@ document.write(`
     <span class="n">mask_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">volume_name</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2">_mask&quot;</span>
     <span class="k">if</span> <span class="n">mask_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="c1"># Mask out uncertain regions resulting from low-res ground truth annotations</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Masking </span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2"> with </span><span class="si">{</span><span class="n">mask_path</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">mask_path</span><span class="p">)[:]</span>
         <span class="n">pred_label</span> <span class="o">=</span> <span class="n">pred_label</span> <span class="o">*</span> <span class="n">mask</span>
         <span class="n">truth_label</span> <span class="o">=</span> <span class="n">truth_label</span> <span class="o">*</span> <span class="n">mask</span>
@@ -592,10 +620,13 @@ document.write(`
 <span class="sd">    Example usage:</span>
 <span class="sd">        scores = score_volume(&#39;pred.zarr/test_volume&#39;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scoring </span><span class="si">{</span><span class="n">pred_volume_path</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+    <span class="n">pred_volume_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">pred_volume_path</span><span class="p">)</span>
+
     <span class="c1"># Find labels to score</span>
     <span class="n">pred_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">pred_volume_path</span><span class="p">)</span><span class="o">.</span><span class="n">array_keys</span><span class="p">()]</span>
 
-    <span class="n">volume_name</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">pred_volume_path</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
+    <span class="n">volume_name</span> <span class="o">=</span> <span class="n">pred_volume_path</span><span class="o">.</span><span class="n">name</span>
     <span class="n">truth_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">volume_name</span><span class="p">)</span><span class="o">.</span><span class="n">array_keys</span><span class="p">()]</span>
 
     <span class="n">labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">pred_labels</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">truth_labels</span><span class="p">))</span>
@@ -609,6 +640,7 @@ document.write(`
         <span class="p">)</span>
         <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">labels</span>
     <span class="p">}</span>
+    <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">pred_volume_path</span> <span class="o">/</span> <span class="n">labels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="n">scores</span></div>
 
@@ -648,40 +680,115 @@ document.write(`
 <span class="sd">                (For instance segmentation)</span>
 <span class="sd">                    &quot;accuracy&quot;: (the accuracy score),</span>
 <span class="sd">                    &quot;haussdorf_distance&quot;: (the haussdorf distance),</span>
-<span class="sd">                    &quot;combined_score&quot;: (the geometric mean of the accuracy and haussdorf distance),</span>
+<span class="sd">                    &quot;normalized_haussdorf_distance&quot;: (the normalized haussdorf distance),</span>
+<span class="sd">                    &quot;combined_score&quot;: (the geometric mean of the accuracy and normalized haussdorf distance),</span>
 <span class="sd">            }</span>
+<span class="sd">            &quot;num_voxels&quot;: (the number of voxels in the ground truth volume),</span>
 <span class="sd">        }</span>
+<span class="sd">        &quot;label_scores&quot;: {</span>
+<span class="sd">            (the name of the predicted class): {</span>
+<span class="sd">                (For semantic segmentation)</span>
+<span class="sd">                    &quot;iou&quot;: (the mean intersection over union score),</span>
+<span class="sd">                    &quot;dice_score&quot;: (the mean dice score),</span>
+
+<span class="sd">                OR</span>
+
+<span class="sd">                (For instance segmentation)</span>
+<span class="sd">                    &quot;accuracy&quot;: (the mean accuracy score),</span>
+<span class="sd">                    &quot;haussdorf_distance&quot;: (the mean haussdorf distance),</span>
+<span class="sd">                    &quot;combined_score&quot;: (the mean geometric mean of the accuracy and haussdorf distance),</span>
+<span class="sd">            }</span>
+<span class="sd">        &quot;overall_score&quot;: (the mean of the combined scores across all classes),</span>
 <span class="sd">    }</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scoring </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
     <span class="c1"># Unzip the submission</span>
     <span class="n">submission_path</span> <span class="o">=</span> <span class="n">unzip_file</span><span class="p">(</span><span class="n">submission_path</span><span class="p">)</span>
 
     <span class="c1"># Find volumes to score</span>
-    <span class="n">pred_volumes</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="nb">str</span><span class="p">(</span><span class="n">d</span><span class="p">)</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="n">submission_path</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">UPath</span><span class="p">(</span><span class="n">submission_path</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span>
-    <span class="p">]</span>
-    <span class="n">truth_volumes</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="nb">str</span><span class="p">(</span><span class="n">d</span><span class="p">)</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="n">truth_path</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span>
-    <span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scoring volumes in </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+    <span class="n">pred_volumes</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">UPath</span><span class="p">(</span><span class="n">submission_path</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Volumes: </span><span class="si">{</span><span class="n">pred_volumes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Truth path: </span><span class="si">{</span><span class="n">truth_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">truth_volumes</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Truth volumes: </span><span class="si">{</span><span class="n">truth_volumes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="n">volumes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">pred_volumes</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">truth_volumes</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">volumes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;No volumes found to score. Make sure the submission is formatted correctly.&quot;</span>
+        <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scoring volumes: </span><span class="si">{</span><span class="n">volumes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="c1"># Score each volume</span>
     <span class="n">scores</span> <span class="o">=</span> <span class="p">{</span>
         <span class="n">volume</span><span class="p">:</span> <span class="n">score_volume</span><span class="p">(</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">submission_path</span><span class="p">,</span> <span class="n">volume</span><span class="p">),</span>
+            <span class="n">submission_path</span> <span class="o">/</span> <span class="n">volume</span><span class="p">,</span>
             <span class="n">truth_path</span><span class="o">=</span><span class="n">truth_path</span><span class="p">,</span>
             <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="n">pred_volumes</span>
     <span class="p">}</span>
 
+    <span class="c1"># Combine label scores across volumes, normalizing by the number of voxels</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Combining label scores...&quot;</span><span class="p">)</span>
+    <span class="n">label_scores</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="n">volumes</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="s2">&quot;num_voxels&quot;</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">elif</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label_scores</span><span class="p">:</span>
+                    <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                        <span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                        <span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                        <span class="s2">&quot;combined_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="p">}</span>
+                <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;accuracy&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span>
+                    <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">][</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;accuracy&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">][</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span>
+                    <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">][</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">]</span>
+                    <span class="o">/</span> <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">][</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span>
+                    <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">][</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">]</span>
+                    <span class="o">/</span> <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">][</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;combined_score&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span>
+                    <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">][</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;combined_score&quot;</span><span class="p">]</span>
+                    <span class="o">/</span> <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">][</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label_scores</span><span class="p">:</span>
+                    <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;dice_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+                <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;iou&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span>
+                    <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">][</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;iou&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">][</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;dice_score&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span>
+                    <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">][</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;dice_score&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">][</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+    <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;label_scores&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">label_scores</span>
+
+    <span class="c1"># Compute the overall score</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Computing overall scores...&quot;</span><span class="p">)</span>
+    <span class="n">overall_instance_scores</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">overall_semantic_scores</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">label_scores</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
+            <span class="n">overall_instance_scores</span> <span class="o">+=</span> <span class="p">[</span><span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;combined_score&quot;</span><span class="p">]]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">overall_semantic_scores</span> <span class="o">+=</span> <span class="p">[</span><span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;dice_score&quot;</span><span class="p">]]</span>
+    <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;overall_instance_score&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">overall_instance_scores</span><span class="p">)</span>
+    <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;overall_semantic_score&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">overall_semantic_scores</span><span class="p">)</span>
+    <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;overall_score&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;overall_instance_score&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;overall_semantic_score&quot;</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span>  <span class="c1"># geometric mean</span>
+
     <span class="c1"># Save the scores</span>
     <span class="k">if</span> <span class="n">result_file</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving scores to </span><span class="si">{</span><span class="n">result_file</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">result_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>

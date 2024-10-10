@@ -37,14 +37,14 @@
   <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'index';</script>
     <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="cellmap_segmentation_challenge" href="cellmap_segmentation_challenge.html" />
+    <link rel="next" title="CellMap Schemas" href="cellmap-schemas.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -156,12 +156,25 @@
  </script></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
-        <ul class="nav bd-sidenav">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="cellmap-schemas.html">CellMap Schemas</a></li>
+
+
+</ul>
+<ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.html">cellmap_segmentation_challenge</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html">cellmap_segmentation_challenge.cli</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.evaluate.html">cellmap_segmentation_challenge.cli.evaluate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.fetch_data.html">cellmap_segmentation_challenge.cli.fetch_data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.predict.html">cellmap_segmentation_challenge.cli.predict</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.train.html">cellmap_segmentation_challenge.cli.train</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.dataloader.html">cellmap_segmentation_challenge.dataloader</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.datasplit.html">cellmap_segmentation_challenge.datasplit</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.evaluate.html">cellmap_segmentation_challenge.evaluate</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.loss.html">cellmap_segmentation_challenge.loss</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.fetch_data.html">cellmap_segmentation_challenge.fetch_data</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.model_load.html">cellmap_segmentation_challenge.models.model_load</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.resnet.html">cellmap_segmentation_challenge.models.resnet</a></li>
@@ -172,7 +185,13 @@
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.visualize.html">cellmap_segmentation_challenge.visualize</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.crops.html">cellmap_segmentation_challenge.utils.crops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.loss.html">cellmap_segmentation_challenge.utils.loss</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.pipeline.html">cellmap_segmentation_challenge.utils.pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.visualize.html">cellmap_segmentation_challenge.utils.visualize</a></li>
+</ul>
+</details></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
@@ -492,6 +511,18 @@ Note: The instance labels, if used, should be unique IDs per object, with 0 as b
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>zip<span class="w"> </span>-r<span class="w"> </span>submission.zip<span class="w"> </span>submission.zarr
 </pre></div>
 </div>
+<div class="toctree-wrapper compound">
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cellmap-schemas.html">CellMap Schemas</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cellmap-schemas.html#example-creating-an-n5-hierarchy-for-neuroglancer">Example: creating an N5 hierarchy for Neuroglancer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap-schemas.html#example-validating-a-container-with-the-cli">Example: validating a container with the cli</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cellmap-schemas.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cellmap-schemas.html#contributing">Contributing</a></li>
+</ul>
+</div>
 </section>
 </section>
 <section id="api">
@@ -532,11 +563,11 @@ Note: The instance labels, if used, should be unique IDs per object, with 0 as b
                   
 <div class="prev-next-area">
     <a class="right-next"
-       href="cellmap_segmentation_challenge.html"
+       href="cellmap-schemas.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">cellmap_segmentation_challenge</p>
+        <p class="prev-next-title">CellMap Schemas</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

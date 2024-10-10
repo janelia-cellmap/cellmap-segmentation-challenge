@@ -1,21 +1,16 @@
-cellmap\_segmentation\_challenge.cli package
-============================================
-
-Submodules
-----------
-
-cellmap\_segmentation\_challenge.cli.fetch\_data module
--------------------------------------------------------
-
-.. automodule:: cellmap_segmentation_challenge.cli.fetch_data
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Module contents
----------------
+cellmap\_segmentation\_challenge.cli
+====================================
 
 .. automodule:: cellmap_segmentation_challenge.cli
-   :members:
-   :undoc-members:
-   :show-inheritance:
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   evaluate
+   fetch_data
+   predict
+   train

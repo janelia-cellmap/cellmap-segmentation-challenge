@@ -37,14 +37,14 @@
   <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'cellmap_segmentation_challenge.evaluate';</script>
     <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="cellmap_segmentation_challenge.loss" href="cellmap_segmentation_challenge.loss.html" />
+    <link rel="next" title="cellmap_segmentation_challenge.fetch_data" href="cellmap_segmentation_challenge.fetch_data.html" />
     <link rel="prev" title="cellmap_segmentation_challenge.datasplit" href="cellmap_segmentation_challenge.datasplit.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -155,12 +155,25 @@
  </script></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
-        <ul class="current nav bd-sidenav">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="cellmap-schemas.html">CellMap Schemas</a></li>
+
+
+</ul>
+<ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="cellmap_segmentation_challenge.html">cellmap_segmentation_challenge</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html">cellmap_segmentation_challenge.cli</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.evaluate.html">cellmap_segmentation_challenge.cli.evaluate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.fetch_data.html">cellmap_segmentation_challenge.cli.fetch_data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.predict.html">cellmap_segmentation_challenge.cli.predict</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.train.html">cellmap_segmentation_challenge.cli.train</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.dataloader.html">cellmap_segmentation_challenge.dataloader</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.datasplit.html">cellmap_segmentation_challenge.datasplit</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">cellmap_segmentation_challenge.evaluate</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.loss.html">cellmap_segmentation_challenge.loss</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.fetch_data.html">cellmap_segmentation_challenge.fetch_data</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.model_load.html">cellmap_segmentation_challenge.models.model_load</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.resnet.html">cellmap_segmentation_challenge.models.resnet</a></li>
@@ -171,7 +184,13 @@
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.visualize.html">cellmap_segmentation_challenge.visualize</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.crops.html">cellmap_segmentation_challenge.utils.crops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.loss.html">cellmap_segmentation_challenge.utils.loss</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.pipeline.html">cellmap_segmentation_challenge.utils.pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.visualize.html">cellmap_segmentation_challenge.utils.visualize</a></li>
+</ul>
+</details></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
@@ -487,7 +506,7 @@ save_numpy_binary_to_zarr(‘submission.zarr’, ‘test_volume’, label_names,
 
 <dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.score_label">
-<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">score_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pred_label_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">truth_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'data/ground_truth.zarr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['mito',</span> <span class="pre">'nuc']</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#score_label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.score_label" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">score_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pred_label_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">truth_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'data/ground_truth.zarr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['mito',</span> <span class="pre">'nuc',</span> <span class="pre">'instance']</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#score_label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.score_label" title="Link to this definition">#</a></dt>
 <dd><p>Score a single label volume against the ground truth label volume.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -508,7 +527,7 @@ save_numpy_binary_to_zarr(‘submission.zarr’, ‘test_volume’, label_names,
 
 <dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.score_volume">
-<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">score_volume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pred_volume_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">truth_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'data/ground_truth.zarr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['mito',</span> <span class="pre">'nuc']</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#score_volume"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.score_volume" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">score_volume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pred_volume_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">truth_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'data/ground_truth.zarr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['mito',</span> <span class="pre">'nuc',</span> <span class="pre">'instance']</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#score_volume"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.score_volume" title="Link to this definition">#</a></dt>
 <dd><p>Score a single volume against the ground truth volume.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -529,7 +548,7 @@ save_numpy_binary_to_zarr(‘submission.zarr’, ‘test_volume’, label_names,
 
 <dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.score_submission">
-<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">score_submission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">submission_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">truth_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'data/ground_truth.zarr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['mito',</span> <span class="pre">'nuc']</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#score_submission"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.score_submission" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">score_submission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">submission_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">truth_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'data/ground_truth.zarr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['mito',</span> <span class="pre">'nuc',</span> <span class="pre">'instance']</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#score_submission"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.score_submission" title="Link to this definition">#</a></dt>
 <dd><p>Score a submission against the ground truth data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -563,15 +582,37 @@ save_numpy_binary_to_zarr(‘submission.zarr’, ‘test_volume’, label_names,
 <dl class="simple">
 <dt>(For instance segmentation)</dt><dd><p>“accuracy”: (the accuracy score),
 “haussdorf_distance”: (the haussdorf distance),
-“combined_score”: (the geometric mean of the accuracy and haussdorf distance),</p>
+“normalized_haussdorf_distance”: (the normalized haussdorf distance),
+“combined_score”: (the geometric mean of the accuracy and normalized haussdorf distance),</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>}
+“num_voxels”: (the number of voxels in the ground truth volume),</p>
+</dd>
+</dl>
+<p>}
+“label_scores”: {</p>
+<blockquote>
+<div><dl>
+<dt>(the name of the predicted class): {</dt><dd><dl class="simple">
+<dt>(For semantic segmentation)</dt><dd><p>“iou”: (the mean intersection over union score),
+“dice_score”: (the mean dice score),</p>
+</dd>
+</dl>
+<p>OR</p>
+<dl class="simple">
+<dt>(For instance segmentation)</dt><dd><p>“accuracy”: (the mean accuracy score),
+“haussdorf_distance”: (the mean haussdorf distance),
+“combined_score”: (the mean geometric mean of the accuracy and haussdorf distance),</p>
 </dd>
 </dl>
 </dd>
 </dl>
 <p>}</p>
-</dd>
-</dl>
-<p>}</p>
+</div></blockquote>
+<p>“overall_score”: (the mean of the combined scores across all classes),</p>
 </div></blockquote>
 <p>}</p>
 </dd></dl>
@@ -599,11 +640,11 @@ save_numpy_binary_to_zarr(‘submission.zarr’, ‘test_volume’, label_names,
       </div>
     </a>
     <a class="right-next"
-       href="cellmap_segmentation_challenge.loss.html"
+       href="cellmap_segmentation_challenge.fetch_data.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">cellmap_segmentation_challenge.loss</p>
+        <p class="prev-next-title">cellmap_segmentation_challenge.fetch_data</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

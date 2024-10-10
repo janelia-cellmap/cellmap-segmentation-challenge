@@ -1,0 +1,891 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>cellmap_segmentation_challenge.utils.pipeline &#8212; CellMap Segmentation Challenge</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'cellmap_segmentation_challenge.utils.pipeline';</script>
+    <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="cellmap_segmentation_challenge.utils.visualize" href="cellmap_segmentation_challenge.utils.visualize.html" />
+    <link rel="prev" title="cellmap_segmentation_challenge.utils.loss" href="cellmap_segmentation_challenge.utils.loss.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/CellMapLogo.png" class="logo__image only-light" alt="CellMap Segmentation Challenge - Home"/>
+    <script>document.write(`<img src="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/CellMapLogo.png" class="logo__image only-dark" alt="CellMap Segmentation Challenge - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="cellmap-schemas.html">CellMap Schemas</a></li>
+
+
+</ul>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="cellmap_segmentation_challenge.html">cellmap_segmentation_challenge</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html">cellmap_segmentation_challenge.cli</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.evaluate.html">cellmap_segmentation_challenge.cli.evaluate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.fetch_data.html">cellmap_segmentation_challenge.cli.fetch_data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.predict.html">cellmap_segmentation_challenge.cli.predict</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.train.html">cellmap_segmentation_challenge.cli.train</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.dataloader.html">cellmap_segmentation_challenge.dataloader</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.datasplit.html">cellmap_segmentation_challenge.datasplit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.evaluate.html">cellmap_segmentation_challenge.evaluate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.fetch_data.html">cellmap_segmentation_challenge.fetch_data</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.model_load.html">cellmap_segmentation_challenge.models.model_load</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.resnet.html">cellmap_segmentation_challenge.models.resnet</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.unet_model_2D.html">cellmap_segmentation_challenge.models.unet_model_2D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.unet_model_3D.html">cellmap_segmentation_challenge.models.unet_model_3D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.vitnet.html">cellmap_segmentation_challenge.models.vitnet</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.crops.html">cellmap_segmentation_challenge.utils.crops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.loss.html">cellmap_segmentation_challenge.utils.loss</a></li>
+<li class="toctree-l3 current active"><a class="current reference internal" href="#">cellmap_segmentation_challenge.utils.pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.visualize.html">cellmap_segmentation_challenge.utils.visualize</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/cellmap_segmentation_challenge.utils.pipeline.rst" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.rst</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>cellmap_segmentation_challenge.utils.pipeline</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.CreatePoints"><code class="docutils literal notranslate"><span class="pre">CreatePoints</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.CreatePoints.process"><code class="docutils literal notranslate"><span class="pre">CreatePoints.process()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.DilatePoints"><code class="docutils literal notranslate"><span class="pre">DilatePoints</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.DilatePoints.process"><code class="docutils literal notranslate"><span class="pre">DilatePoints.process()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.RandomDilateLabels"><code class="docutils literal notranslate"><span class="pre">RandomDilateLabels</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.RandomDilateLabels.labels"><code class="docutils literal notranslate"><span class="pre">RandomDilateLabels.labels</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.RandomDilateLabels.dilations"><code class="docutils literal notranslate"><span class="pre">RandomDilateLabels.dilations</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.RandomDilateLabels.process"><code class="docutils literal notranslate"><span class="pre">RandomDilateLabels.process()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id0"><code class="docutils literal notranslate"><span class="pre">RandomDilateLabels.process()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.Relabel"><code class="docutils literal notranslate"><span class="pre">Relabel</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.Relabel.process"><code class="docutils literal notranslate"><span class="pre">Relabel.process()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.ExpandLabels"><code class="docutils literal notranslate"><span class="pre">ExpandLabels</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.ExpandLabels.process"><code class="docutils literal notranslate"><span class="pre">ExpandLabels.process()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.ZerosSource"><code class="docutils literal notranslate"><span class="pre">ZerosSource</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.ZerosSource.setup"><code class="docutils literal notranslate"><span class="pre">ZerosSource.setup()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.ZerosSource.provide"><code class="docutils literal notranslate"><span class="pre">ZerosSource.provide()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.random_source_pipeline"><code class="docutils literal notranslate"><span class="pre">random_source_pipeline()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.simulate_predictions_iou"><code class="docutils literal notranslate"><span class="pre">simulate_predictions_iou()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.simulate_predictions_accuracy"><code class="docutils literal notranslate"><span class="pre">simulate_predictions_accuracy()</span></code></a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-cellmap_segmentation_challenge.utils.pipeline">
+<span id="cellmap-segmentation-challenge-utils-pipeline"></span><h1>cellmap_segmentation_challenge.utils.pipeline<a class="headerlink" href="#module-cellmap_segmentation_challenge.utils.pipeline" title="Link to this heading">#</a></h1>
+<p class="rubric">Functions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.utils.pipeline.random_source_pipeline" title="cellmap_segmentation_challenge.utils.pipeline.random_source_pipeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">random_source_pipeline</span></code></a>([voxel_size, shape, ...])</p></td>
+<td><p>Create a random source pipeline and batch request for example training.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.utils.pipeline.simulate_predictions_accuracy" title="cellmap_segmentation_challenge.utils.pipeline.simulate_predictions_accuracy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">simulate_predictions_accuracy</span></code></a>(true_labels, ...)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.utils.pipeline.simulate_predictions_iou" title="cellmap_segmentation_challenge.utils.pipeline.simulate_predictions_iou"><code class="xref py py-obj docutils literal notranslate"><span class="pre">simulate_predictions_iou</span></code></a>(true_labels, iou)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Classes</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.utils.pipeline.CreatePoints" title="cellmap_segmentation_challenge.utils.pipeline.CreatePoints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CreatePoints</span></code></a>(labels[, num_points])</p></td>
+<td><p>Initialize the Pipeline object.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.utils.pipeline.DilatePoints" title="cellmap_segmentation_challenge.utils.pipeline.DilatePoints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DilatePoints</span></code></a>(labels[, dilations])</p></td>
+<td><p>Initialize the DilatePoints batch filter.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.utils.pipeline.ExpandLabels" title="cellmap_segmentation_challenge.utils.pipeline.ExpandLabels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ExpandLabels</span></code></a>(labels[, background])</p></td>
+<td><p>Initialize the Pipeline object.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.utils.pipeline.RandomDilateLabels" title="cellmap_segmentation_challenge.utils.pipeline.RandomDilateLabels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RandomDilateLabels</span></code></a>(labels[, dilations])</p></td>
+<td><p>A batch filter that randomly dilates labels in a batch.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.utils.pipeline.Relabel" title="cellmap_segmentation_challenge.utils.pipeline.Relabel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Relabel</span></code></a>(labels[, connectivity])</p></td>
+<td><p>Initialize the Pipeline object.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.utils.pipeline.ZerosSource" title="cellmap_segmentation_challenge.utils.pipeline.ZerosSource"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZerosSource</span></code></a>(key, spec)</p></td>
+<td><p>Initialize a Pipeline object.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.pipeline.CreatePoints">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.pipeline.</span></span><span class="sig-name descname"><span class="pre">CreatePoints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(20,</span> <span class="pre">150)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/pipeline.html#CreatePoints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.pipeline.CreatePoints" title="Link to this definition">#</a></dt>
+<dd><p>Initialize the Pipeline object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>labels</strong> (<em>list</em>) – A list of labels.</p></li>
+<li><p><strong>num_points</strong> (<em>tuple</em><em>, </em><em>optional</em>) – A tuple representing the range of number of points. Defaults to (20, 150).</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">CreatePoints</span><span class="p">(</span><span class="n">labels</span><span class="o">=</span><span class="s2">&quot;LABELS&quot;</span><span class="p">,</span> <span class="n">num_points</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">150</span><span class="p">))</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.pipeline.CreatePoints.process">
+<span class="sig-name descname"><span class="pre">process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/pipeline.html#CreatePoints.process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.pipeline.CreatePoints.process" title="Link to this definition">#</a></dt>
+<dd><p>Process the batch by creating random points in the label volume.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>dict</em>) – The input batch containing label data.</p></li>
+<li><p><strong>request</strong> (<em>gp.BatchRequest</em>) – The batch request.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the number of points is not an integer.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">CreatePoints</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.pipeline.DilatePoints">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.pipeline.</span></span><span class="sig-name descname"><span class="pre">DilatePoints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dilations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[2,</span> <span class="pre">8]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/pipeline.html#DilatePoints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.pipeline.DilatePoints" title="Link to this definition">#</a></dt>
+<dd><p>Initialize the DilatePoints batch filter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>labels</strong> (<em>str</em>) – The key of the labels data in the batch.</p></li>
+<li><p><strong>dilations</strong> (<em>list</em><em>[</em><em>int</em><em>]</em>) – A list of two integers representing the range of dilations to apply.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the dilations are not integers.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">DilatePoints</span><span class="p">(</span><span class="n">labels</span><span class="o">=</span><span class="s2">&quot;LABELS&quot;</span><span class="p">,</span> <span class="n">dilations</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">8</span><span class="p">])</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.pipeline.DilatePoints.process">
+<span class="sig-name descname"><span class="pre">process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/pipeline.html#DilatePoints.process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.pipeline.DilatePoints.process" title="Link to this definition">#</a></dt>
+<dd><p>Process the batch by performing dilation on the labeled points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>Batch</em>) – The input batch.</p></li>
+<li><p><strong>request</strong> (<em>Request</em>) – The request object.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the dilations are not integers.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">DilatePoints</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.pipeline.RandomDilateLabels">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.pipeline.</span></span><span class="sig-name descname"><span class="pre">RandomDilateLabels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dilations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[2,</span> <span class="pre">8]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/pipeline.html#RandomDilateLabels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.pipeline.RandomDilateLabels" title="Link to this definition">#</a></dt>
+<dd><p>A batch filter that randomly dilates labels in a batch.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.pipeline.RandomDilateLabels.labels">
+<span class="sig-name descname"><span class="pre">labels</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.pipeline.RandomDilateLabels.labels" title="Link to this definition">#</a></dt>
+<dd><p>The key of the labels in the batch.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.pipeline.RandomDilateLabels.dilations">
+<span class="sig-name descname"><span class="pre">dilations</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.pipeline.RandomDilateLabels.dilations" title="Link to this definition">#</a></dt>
+<dd><p>A list of two integers representing the range of dilations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.pipeline.RandomDilateLabels.process">
+<span class="sig-name descname"><span class="pre">process</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/pipeline.html#RandomDilateLabels.process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.pipeline.RandomDilateLabels.process" title="Link to this definition">#</a></dt>
+<dd><p>Randomly dilate the labels in the batch.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/pipeline.html#RandomDilateLabels.process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Link to this definition">#</a></dt>
+<dd><p>Process the batch by randomly dilating labels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>dict</em>) – The input batch.</p></li>
+<li><p><strong>request</strong> – The request object.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the dilations are not integers.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">RandomDilateLabels</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.pipeline.Relabel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.pipeline.</span></span><span class="sig-name descname"><span class="pre">Relabel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connectivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/pipeline.html#Relabel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.pipeline.Relabel" title="Link to this definition">#</a></dt>
+<dd><p>Initialize the Pipeline object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>labels</strong> (<em>str</em>) – The name of the labels data in the batch.</p></li>
+<li><p><strong>connectivity</strong> (<em>int</em><em>, </em><em>optional</em>) – The connectivity used for relabeling. Defaults to 1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the connectivity is not an integer.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Relabel</span><span class="p">(</span><span class="n">labels</span><span class="o">=</span><span class="s2">&quot;LABELS&quot;</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.pipeline.Relabel.process">
+<span class="sig-name descname"><span class="pre">process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/pipeline.html#Relabel.process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.pipeline.Relabel.process" title="Link to this definition">#</a></dt>
+<dd><p>Process the batch and relabel the labels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>Batch</em>) – The input batch.</p></li>
+<li><p><strong>request</strong> (<em>Request</em>) – The request for processing.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The output batch.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Batch</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the connectivity is not an integer.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Relabel</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.pipeline.ExpandLabels">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.pipeline.</span></span><span class="sig-name descname"><span class="pre">ExpandLabels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/pipeline.html#ExpandLabels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.pipeline.ExpandLabels" title="Link to this definition">#</a></dt>
+<dd><p>Initialize the Pipeline object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>labels</strong> (<em>list</em>) – A list of labels.</p></li>
+<li><p><strong>background</strong> (<em>int</em><em>, </em><em>optional</em>) – The background value. Defaults to 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the background is not an integer.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ExpandLabels</span><span class="p">(</span><span class="n">labels</span><span class="o">=</span><span class="s2">&quot;LABELS&quot;</span><span class="p">,</span> <span class="n">background</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.pipeline.ExpandLabels.process">
+<span class="sig-name descname"><span class="pre">process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/pipeline.html#ExpandLabels.process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.pipeline.ExpandLabels.process" title="Link to this definition">#</a></dt>
+<dd><p>Process the batch by expanding the labels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>gp.Batch</em>) – The input batch.</p></li>
+<li><p><strong>request</strong> (<em>gp.BatchRequest</em>) – The batch request.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the background is not an integer.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ExpandLabels</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.pipeline.ZerosSource">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.pipeline.</span></span><span class="sig-name descname"><span class="pre">ZerosSource</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/pipeline.html#ZerosSource"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.pipeline.ZerosSource" title="Link to this definition">#</a></dt>
+<dd><p>Initialize a Pipeline object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>str</em>) – The key to use for the generated array.</p></li>
+<li><p><strong>spec</strong> (<em>ArraySpec</em>) – The specification of the array.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the key is not a string.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ZerosSource</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s2">&quot;LABELS&quot;</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="n">ArraySpec</span><span class="p">(</span><span class="n">roi</span><span class="o">=</span><span class="n">gp</span><span class="o">.</span><span class="n">Roi</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">)),</span> <span class="n">voxel_size</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">))</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.pipeline.ZerosSource.setup">
+<span class="sig-name descname"><span class="pre">setup</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/pipeline.html#ZerosSource.setup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.pipeline.ZerosSource.setup" title="Link to this definition">#</a></dt>
+<dd><p>Perform any necessary setup before providing batches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NotImplementedError</strong> – If the method is not implemented.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ZerosSource</span><span class="o">.</span><span class="n">setup</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.pipeline.ZerosSource.provide">
+<span class="sig-name descname"><span class="pre">provide</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/pipeline.html#ZerosSource.provide"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.pipeline.ZerosSource.provide" title="Link to this definition">#</a></dt>
+<dd><p>Provide a batch containing an array filled with zeros.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>request</strong> (<em>gp.BatchRequest</em>) – The request for the batch.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The provided batch.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>gp.Batch</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>NotImplementedError</strong> – If the method is not implemented.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ZerosSource</span><span class="o">.</span><span class="n">provide</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.pipeline.random_source_pipeline">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.pipeline.</span></span><span class="sig-name descname"><span class="pre">random_source_pipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">voxel_size=(8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">8)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape=(148</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">148</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">148)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype=&lt;class</span> <span class="pre">'numpy.uint8'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expand_labels=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relabel_connectivity=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_dilate=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_points=(20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">150)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/pipeline.html#random_source_pipeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.pipeline.random_source_pipeline" title="Link to this definition">#</a></dt>
+<dd><p>Create a random source pipeline and batch request for example training.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>voxel_size</strong> (<em>tuple</em><em> of </em><em>int</em>) – The size of a voxel in world units.</p></li>
+<li><p><strong>input_shape</strong> (<em>tuple</em><em> of </em><em>int</em>) – The shape of the input arrays.</p></li>
+<li><p><strong>dtype</strong> (<em>numpy.dtype</em>) – The dtype of the label arrays.</p></li>
+<li><p><strong>expand_labels</strong> (<em>bool</em>) – Whether to expand the labels into the background.</p></li>
+<li><p><strong>relabel_connectivity</strong> (<em>int</em>) – The connectivity used for for relabeling.</p></li>
+<li><p><strong>random_dilate</strong> (<em>bool</em>) – Whether to randomly dilate the individual labels.</p></li>
+<li><p><strong>num_points</strong> (<em>tuple</em><em> of </em><em>int</em>) – The range of the number of points to add to the labels.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The batch generating Gunpowder pipeline.
+gunpowder.BatchRequest: The batch request for the pipeline.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>gunpowder.Pipeline</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the input_shape is not an integer.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">random_source_pipeline</span><span class="p">(</span><span class="n">voxel_size</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">input_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">148</span><span class="p">,</span> <span class="mi">148</span><span class="p">,</span> <span class="mi">148</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="n">expand_labels</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                       <span class="n">relabel_connectivity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">random_dilate</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_points</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">150</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.pipeline.simulate_predictions_iou">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.pipeline.</span></span><span class="sig-name descname"><span class="pre">simulate_predictions_iou</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">true_labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iou</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/pipeline.html#simulate_predictions_iou"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.pipeline.simulate_predictions_iou" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.pipeline.simulate_predictions_accuracy">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.pipeline.</span></span><span class="sig-name descname"><span class="pre">simulate_predictions_accuracy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">true_labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accuracy</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/pipeline.html#simulate_predictions_accuracy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.pipeline.simulate_predictions_accuracy" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="cellmap_segmentation_challenge.utils.loss.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">cellmap_segmentation_challenge.utils.loss</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="cellmap_segmentation_challenge.utils.visualize.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">cellmap_segmentation_challenge.utils.visualize</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.CreatePoints"><code class="docutils literal notranslate"><span class="pre">CreatePoints</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.CreatePoints.process"><code class="docutils literal notranslate"><span class="pre">CreatePoints.process()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.DilatePoints"><code class="docutils literal notranslate"><span class="pre">DilatePoints</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.DilatePoints.process"><code class="docutils literal notranslate"><span class="pre">DilatePoints.process()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.RandomDilateLabels"><code class="docutils literal notranslate"><span class="pre">RandomDilateLabels</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.RandomDilateLabels.labels"><code class="docutils literal notranslate"><span class="pre">RandomDilateLabels.labels</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.RandomDilateLabels.dilations"><code class="docutils literal notranslate"><span class="pre">RandomDilateLabels.dilations</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.RandomDilateLabels.process"><code class="docutils literal notranslate"><span class="pre">RandomDilateLabels.process()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id0"><code class="docutils literal notranslate"><span class="pre">RandomDilateLabels.process()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.Relabel"><code class="docutils literal notranslate"><span class="pre">Relabel</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.Relabel.process"><code class="docutils literal notranslate"><span class="pre">Relabel.process()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.ExpandLabels"><code class="docutils literal notranslate"><span class="pre">ExpandLabels</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.ExpandLabels.process"><code class="docutils literal notranslate"><span class="pre">ExpandLabels.process()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.ZerosSource"><code class="docutils literal notranslate"><span class="pre">ZerosSource</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.ZerosSource.setup"><code class="docutils literal notranslate"><span class="pre">ZerosSource.setup()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.ZerosSource.provide"><code class="docutils literal notranslate"><span class="pre">ZerosSource.provide()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.random_source_pipeline"><code class="docutils literal notranslate"><span class="pre">random_source_pipeline()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.simulate_predictions_iou"><code class="docutils literal notranslate"><span class="pre">simulate_predictions_iou()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.pipeline.simulate_predictions_accuracy"><code class="docutils literal notranslate"><span class="pre">simulate_predictions_accuracy()</span></code></a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Jeff Rhoades, Emma Avetissian, Davis Vann Bennett, Marwan Zouinkhi
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2024, Jeff Rhoades, Emma Avetissian, Davis Vann Bennett, Marwan Zouinkhi.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

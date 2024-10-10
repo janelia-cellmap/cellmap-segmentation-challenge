@@ -1,0 +1,1 @@
+::: cellmap_schemas.annotation

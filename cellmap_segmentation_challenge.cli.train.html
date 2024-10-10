@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>cellmap_segmentation_challenge.loss &#8212; CellMap Segmentation Challenge</title>
+    <title>cellmap_segmentation_challenge.cli.train &#8212; CellMap Segmentation Challenge</title>
   
   
   
@@ -37,15 +37,15 @@
   <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'cellmap_segmentation_challenge.loss';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'cellmap_segmentation_challenge.cli.train';</script>
     <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="cellmap_segmentation_challenge.models" href="cellmap_segmentation_challenge.models.html" />
-    <link rel="prev" title="cellmap_segmentation_challenge.evaluate" href="cellmap_segmentation_challenge.evaluate.html" />
+    <link rel="next" title="cellmap_segmentation_challenge.dataloader" href="cellmap_segmentation_challenge.dataloader.html" />
+    <link rel="prev" title="cellmap_segmentation_challenge.cli.predict" href="cellmap_segmentation_challenge.cli.predict.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -155,12 +155,25 @@
  </script></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
-        <ul class="current nav bd-sidenav">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="cellmap-schemas.html">CellMap Schemas</a></li>
+
+
+</ul>
+<ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="cellmap_segmentation_challenge.html">cellmap_segmentation_challenge</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html">cellmap_segmentation_challenge.cli</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.evaluate.html">cellmap_segmentation_challenge.cli.evaluate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.fetch_data.html">cellmap_segmentation_challenge.cli.fetch_data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.predict.html">cellmap_segmentation_challenge.cli.predict</a></li>
+<li class="toctree-l3 current active"><a class="current reference internal" href="#">cellmap_segmentation_challenge.cli.train</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.dataloader.html">cellmap_segmentation_challenge.dataloader</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.datasplit.html">cellmap_segmentation_challenge.datasplit</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.evaluate.html">cellmap_segmentation_challenge.evaluate</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">cellmap_segmentation_challenge.loss</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.fetch_data.html">cellmap_segmentation_challenge.fetch_data</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.model_load.html">cellmap_segmentation_challenge.models.model_load</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.resnet.html">cellmap_segmentation_challenge.models.resnet</a></li>
@@ -171,7 +184,13 @@
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.visualize.html">cellmap_segmentation_challenge.visualize</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.crops.html">cellmap_segmentation_challenge.utils.crops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.loss.html">cellmap_segmentation_challenge.utils.loss</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.pipeline.html">cellmap_segmentation_challenge.utils.pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.visualize.html">cellmap_segmentation_challenge.utils.visualize</a></li>
+</ul>
+</details></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
@@ -230,7 +249,7 @@
       
       
       
-      <li><a href="_sources/cellmap_segmentation_challenge.loss.rst" target="_blank"
+      <li><a href="_sources/cellmap_segmentation_challenge.cli.train.rst" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -301,9 +320,7 @@ document.write(`
   </button>
 `);
 </script>
-<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="fa-solid fa-list"></span>
-</button>
+
 </div></div>
       
     </div>
@@ -314,22 +331,11 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>cellmap_segmentation_challenge.loss</h1>
+    <h1>cellmap_segmentation_challenge.cli.train</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
             
-            <div>
-                <h2> Contents </h2>
-            </div>
-            <nav aria-label="Page">
-                <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.loss.CellMapLossWrapper"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.loss.CellMapLossWrapper.forward"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper.forward()</span></code></a></li>
-</ul>
-</li>
-</ul>
-            </nav>
         </div>
     </div>
 </div>
@@ -339,50 +345,8 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="module-cellmap_segmentation_challenge.loss">
-<span id="cellmap-segmentation-challenge-loss"></span><h1>cellmap_segmentation_challenge.loss<a class="headerlink" href="#module-cellmap_segmentation_challenge.loss" title="Link to this heading">#</a></h1>
-<p class="rubric">Classes</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.loss.CellMapLossWrapper" title="cellmap_segmentation_challenge.loss.CellMapLossWrapper"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CellMapLossWrapper</span></code></a>(loss_fn, **kwargs)</p></td>
-<td><p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.loss.CellMapLossWrapper">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.loss.</span></span><span class="sig-name descname"><span class="pre">CellMapLossWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss_fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">_Loss</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">_WeightedLoss</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/loss.html#CellMapLossWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.loss.CellMapLossWrapper" title="Link to this definition">#</a></dt>
-<dd><p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>loss_fn</strong> (<em>_Loss</em><em> | </em><em>_WeightedLoss</em>)</p>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.loss.CellMapLossWrapper.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/loss.html#CellMapLossWrapper.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.loss.CellMapLossWrapper.forward" title="Link to this definition">#</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>outputs</strong> (<em>Tensor</em>)</p></li>
-<li><p><strong>target</strong> (<em>Tensor</em>)</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
+  <section id="module-cellmap_segmentation_challenge.cli.train">
+<span id="cellmap-segmentation-challenge-cli-train"></span><h1>cellmap_segmentation_challenge.cli.train<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli.train" title="Link to this heading">#</a></h1>
 </section>
 
 
@@ -397,20 +361,20 @@ registered hooks while the latter silently ignores them.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="cellmap_segmentation_challenge.evaluate.html"
+       href="cellmap_segmentation_challenge.cli.predict.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">cellmap_segmentation_challenge.evaluate</p>
+        <p class="prev-next-title">cellmap_segmentation_challenge.cli.predict</p>
       </div>
     </a>
     <a class="right-next"
-       href="cellmap_segmentation_challenge.models.html"
+       href="cellmap_segmentation_challenge.dataloader.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">cellmap_segmentation_challenge.models</p>
+        <p class="prev-next-title">cellmap_segmentation_challenge.dataloader</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -420,24 +384,6 @@ registered hooks while the latter silently ignores them.</p>
             </div>
             
             
-              
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
-
-
-  <div class="sidebar-secondary-item">
-  <div class="page-toc tocsection onthispage">
-    <i class="fa-solid fa-list"></i> Contents
-  </div>
-  <nav class="bd-toc-nav page-toc">
-    <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.loss.CellMapLossWrapper"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.loss.CellMapLossWrapper.forward"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper.forward()</span></code></a></li>
-</ul>
-</li>
-</ul>
-  </nav></div>
-
-</div></div>
               
             
           </div>

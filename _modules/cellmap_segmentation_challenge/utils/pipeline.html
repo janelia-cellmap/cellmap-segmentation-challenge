@@ -1,0 +1,867 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cellmap_segmentation_challenge.utils.pipeline &#8212; CellMap Segmentation Challenge</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=a3416100" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/cellmap_segmentation_challenge/utils/pipeline';</script>
+    <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/CellMapLogo.png" class="logo__image only-light" alt="CellMap Segmentation Challenge - Home"/>
+    <script>document.write(`<img src="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/CellMapLogo.png" class="logo__image only-dark" alt="CellMap Segmentation Challenge - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../cellmap-schemas.html">CellMap Schemas</a></li>
+
+
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../cellmap_segmentation_challenge.html">cellmap_segmentation_challenge</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../cellmap_segmentation_challenge.cli.html">cellmap_segmentation_challenge.cli</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.cli.evaluate.html">cellmap_segmentation_challenge.cli.evaluate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.cli.fetch_data.html">cellmap_segmentation_challenge.cli.fetch_data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.cli.predict.html">cellmap_segmentation_challenge.cli.predict</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.cli.train.html">cellmap_segmentation_challenge.cli.train</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cellmap_segmentation_challenge.dataloader.html">cellmap_segmentation_challenge.dataloader</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cellmap_segmentation_challenge.datasplit.html">cellmap_segmentation_challenge.datasplit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cellmap_segmentation_challenge.evaluate.html">cellmap_segmentation_challenge.evaluate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cellmap_segmentation_challenge.fetch_data.html">cellmap_segmentation_challenge.fetch_data</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.models.model_load.html">cellmap_segmentation_challenge.models.model_load</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.models.resnet.html">cellmap_segmentation_challenge.models.resnet</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.models.unet_model_2D.html">cellmap_segmentation_challenge.models.unet_model_2D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.models.unet_model_3D.html">cellmap_segmentation_challenge.models.unet_model_3D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.models.vitnet.html">cellmap_segmentation_challenge.models.vitnet</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.utils.crops.html">cellmap_segmentation_challenge.utils.crops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.utils.loss.html">cellmap_segmentation_challenge.utils.loss</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.utils.pipeline.html">cellmap_segmentation_challenge.utils.pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.utils.visualize.html">cellmap_segmentation_challenge.utils.visualize</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for cellmap_segmentation_challenge.utils.pipeline</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">gunpowder</span> <span class="k">as</span> <span class="nn">gp</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">from</span> <span class="nn">scipy.ndimage</span> <span class="kn">import</span> <span class="n">distance_transform_edt</span>
+<span class="kn">from</span> <span class="nn">skimage.measure</span> <span class="kn">import</span> <span class="n">label</span> <span class="k">as</span> <span class="n">relabel</span>
+
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="CreatePoints">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.CreatePoints">[docs]</a>
+<span class="k">class</span> <span class="nc">CreatePoints</span><span class="p">(</span><span class="n">gp</span><span class="o">.</span><span class="n">BatchFilter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A batch filter that creates random points in a 3D label volume.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        labels (str): The key of the label data in the batch.</span>
+<span class="sd">        num_points (tuple): A tuple specifying the range of the number of points to create.</span>
+<span class="sd">    Methods:</span>
+<span class="sd">        process: Create random points in the label volume.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">labels</span><span class="p">,</span>
+        <span class="n">num_points</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">150</span><span class="p">),</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the Pipeline object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            labels (list): A list of labels.</span>
+<span class="sd">            num_points (tuple, optional): A tuple representing the range of number of points. Defaults to (20, 150).</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; CreatePoints(labels=&quot;LABELS&quot;, num_points=(20, 150))</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_points</span> <span class="o">=</span> <span class="n">num_points</span>
+
+<div class="viewcode-block" id="CreatePoints.process">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.CreatePoints.process">[docs]</a>
+    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Process the batch by creating random points in the label volume.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            batch (dict): The input batch containing label data.</span>
+<span class="sd">            request (gp.BatchRequest): The batch request.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the number of points is not an integer.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; CreatePoints.process(batch, request)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+
+        <span class="n">num_points</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">num_points</span><span class="p">)</span>
+
+        <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_points</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_points</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_points</span><span class="p">)</span>
+
+        <span class="n">labels</span><span class="p">[</span><span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="n">batch</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">labels</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="DilatePoints">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.DilatePoints">[docs]</a>
+<span class="k">class</span> <span class="nc">DilatePoints</span><span class="p">(</span><span class="n">gp</span><span class="o">.</span><span class="n">BatchFilter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A batch filter that performs dilation on labeled points.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        labels (str): The key of the labels data in the batch.</span>
+<span class="sd">        dilations (list[int]): A list of two integers representing the range of dilations to apply.</span>
+<span class="sd">    Methods:</span>
+<span class="sd">        process: Perform dilation on the labeled points.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">dilations</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">8</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the DilatePoints batch filter.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            labels (str): The key of the labels data in the batch.</span>
+<span class="sd">            dilations (list[int]): A list of two integers representing the range of dilations to apply.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the dilations are not integers.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; DilatePoints(labels=&quot;LABELS&quot;, dilations=[2, 8])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dilations</span> <span class="o">=</span> <span class="n">dilations</span>
+
+<div class="viewcode-block" id="DilatePoints.process">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.DilatePoints.process">[docs]</a>
+    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Process the batch by performing dilation on the labeled points.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            batch (Batch): The input batch.</span>
+<span class="sd">            request (Request): The request object.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the dilations are not integers.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; DilatePoints.process(batch, request)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+
+        <span class="n">dilations</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">dilations</span><span class="p">)</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="p">(</span><span class="n">distance_transform_edt</span><span class="p">(</span><span class="n">labels</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">dilations</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+
+        <span class="n">batch</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">labels</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="RandomDilateLabels">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.RandomDilateLabels">[docs]</a>
+<span class="k">class</span> <span class="nc">RandomDilateLabels</span><span class="p">(</span><span class="n">gp</span><span class="o">.</span><span class="n">BatchFilter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A batch filter that randomly dilates labels in a batch.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        labels (str): The key of the labels in the batch.</span>
+<span class="sd">        dilations (list[int]): A list of two integers representing the range of dilations.</span>
+<span class="sd">    Methods:</span>
+<span class="sd">        process: Randomly dilate the labels in the batch.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">dilations</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">8</span><span class="p">]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dilations</span> <span class="o">=</span> <span class="n">dilations</span>
+
+<div class="viewcode-block" id="RandomDilateLabels.process">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.RandomDilateLabels.process">[docs]</a>
+    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Process the batch by randomly dilating labels.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            batch (dict): The input batch.</span>
+<span class="sd">            request: The request object.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the dilations are not integers.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; RandomDilateLabels.process(batch, request)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+
+        <span class="n">new_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+        <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">labels</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">id</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">dilations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">dilations</span><span class="p">)</span>
+
+            <span class="c1"># make sure we don&#39;t overlap existing labels</span>
+            <span class="n">new_labels</span><span class="p">[</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span>
+                    <span class="n">labels</span> <span class="o">==</span> <span class="nb">id</span><span class="p">,</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+                        <span class="n">distance_transform_edt</span><span class="p">(</span><span class="n">labels</span> <span class="o">!=</span> <span class="nb">id</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">dilations</span><span class="p">,</span> <span class="n">labels</span> <span class="o">==</span> <span class="mi">0</span>
+                    <span class="p">),</span>
+                <span class="p">)</span>
+            <span class="p">]</span> <span class="o">=</span> <span class="nb">id</span>  <span class="c1"># type: ignore</span>
+
+        <span class="n">batch</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">new_labels</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Relabel">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.Relabel">[docs]</a>
+<span class="k">class</span> <span class="nc">Relabel</span><span class="p">(</span><span class="n">gp</span><span class="o">.</span><span class="n">BatchFilter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A batch filter that relabels the labels in a batch.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        labels (str): The name of the labels data in the batch.</span>
+<span class="sd">        connectivity (int, optional): The connectivity used for relabeling. Defaults to 1.</span>
+<span class="sd">    Methods:</span>
+<span class="sd">        process: Process the batch and relabel the labels.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the Pipeline object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            labels (str): The name of the labels data in the batch.</span>
+<span class="sd">            connectivity (int, optional): The connectivity used for relabeling. Defaults to 1.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the connectivity is not an integer.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; Relabel(labels=&quot;LABELS&quot;, connectivity=1)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connectivity</span> <span class="o">=</span> <span class="n">connectivity</span>
+
+<div class="viewcode-block" id="Relabel.process">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.Relabel.process">[docs]</a>
+    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Process the batch and relabel the labels.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            batch (Batch): The input batch.</span>
+<span class="sd">            request (Request): The request for processing.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Batch: The output batch.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the connectivity is not an integer.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; Relabel.process(batch, request)</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+
+        <span class="n">relabeled</span> <span class="o">=</span> <span class="n">relabel</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">connectivity</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+
+        <span class="n">batch</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">relabeled</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ExpandLabels">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.ExpandLabels">[docs]</a>
+<span class="k">class</span> <span class="nc">ExpandLabels</span><span class="p">(</span><span class="n">gp</span><span class="o">.</span><span class="n">BatchFilter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A batch filter that expands labels by assigning the nearest label to each pixel within a specified distance.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        labels (str): The name of the labels data in the batch.</span>
+<span class="sd">        background (int): The label value representing the background.</span>
+<span class="sd">    Methods:</span>
+<span class="sd">        process: Process the batch and expand the labels.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">background</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the Pipeline object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            labels (list): A list of labels.</span>
+<span class="sd">            background (int, optional): The background value. Defaults to 0.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the background is not an integer.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; ExpandLabels(labels=&quot;LABELS&quot;, background=0)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">background</span> <span class="o">=</span> <span class="n">background</span>
+
+<div class="viewcode-block" id="ExpandLabels.process">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.ExpandLabels.process">[docs]</a>
+    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Process the batch by expanding the labels.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            batch (gp.Batch): The input batch.</span>
+<span class="sd">            request (gp.BatchRequest): The batch request.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the background is not an integer.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; ExpandLabels.process(batch, request)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">labels_data</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">distance</span> <span class="o">=</span> <span class="n">labels_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">distances</span><span class="p">,</span> <span class="n">indices</span> <span class="o">=</span> <span class="n">distance_transform_edt</span><span class="p">(</span>
+            <span class="n">labels_data</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">background</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>  <span class="c1"># type: ignore</span>
+
+        <span class="n">expanded_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">labels_data</span><span class="p">)</span>
+
+        <span class="n">dilate_mask</span> <span class="o">=</span> <span class="n">distances</span> <span class="o">&lt;=</span> <span class="n">distance</span>
+
+        <span class="n">masked_indices</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">dimension_indices</span><span class="p">[</span><span class="n">dilate_mask</span><span class="p">]</span> <span class="k">for</span> <span class="n">dimension_indices</span> <span class="ow">in</span> <span class="n">indices</span>
+        <span class="p">]</span>
+
+        <span class="n">nearest_labels</span> <span class="o">=</span> <span class="n">labels_data</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">masked_indices</span><span class="p">)]</span>
+
+        <span class="n">expanded_labels</span><span class="p">[</span><span class="n">dilate_mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">nearest_labels</span>
+
+        <span class="n">batch</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">expanded_labels</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ZerosSource">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.ZerosSource">[docs]</a>
+<span class="k">class</span> <span class="nc">ZerosSource</span><span class="p">(</span><span class="n">gp</span><span class="o">.</span><span class="n">BatchProvider</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A batch provider that generates arrays filled with zeros.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        key (str): The key to use for the generated array.</span>
+<span class="sd">        _spec (dict): A dictionary containing the specification of the array.</span>
+<span class="sd">    Methods:</span>
+<span class="sd">        setup: Perform any necessary setup before providing batches.</span>
+<span class="sd">        provide: Provide a batch containing an array filled with zeros.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">spec</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a Pipeline object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            key (str): The key to use for the generated array.</span>
+<span class="sd">            spec (ArraySpec): The specification of the array.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the key is not a string.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; ZerosSource(key=&quot;LABELS&quot;, spec=ArraySpec(roi=gp.Roi((0, 0, 0), (100, 100, 100)), voxel_size=(8, 8, 8), dtype=np.uint8))</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="n">key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_spec</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">spec</span><span class="p">}</span>
+
+<div class="viewcode-block" id="ZerosSource.setup">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.ZerosSource.setup">[docs]</a>
+    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform any necessary setup before providing batches.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: If the method is not implemented.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; ZerosSource.setup()</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ZerosSource.provide">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.ZerosSource.provide">[docs]</a>
+    <span class="k">def</span> <span class="nf">provide</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Provide a batch containing an array filled with zeros.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            request (gp.BatchRequest): The request for the batch.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            gp.Batch: The provided batch.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: If the method is not implemented.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; ZerosSource.provide(request)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">batch</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">Batch</span><span class="p">()</span>
+
+        <span class="n">roi</span> <span class="o">=</span> <span class="n">request</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">roi</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">roi</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spec</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">)</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spec</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">spec</span><span class="o">.</span><span class="n">roi</span> <span class="o">=</span> <span class="n">roi</span>
+
+        <span class="n">batch</span><span class="o">.</span><span class="n">arrays</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">Array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">spec</span><span class="o">.</span><span class="n">dtype</span><span class="p">),</span> <span class="n">spec</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">batch</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="random_source_pipeline">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.random_source_pipeline">[docs]</a>
+<span class="k">def</span> <span class="nf">random_source_pipeline</span><span class="p">(</span>
+    <span class="n">voxel_size</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+    <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">148</span><span class="p">,</span> <span class="mi">148</span><span class="p">,</span> <span class="mi">148</span><span class="p">),</span>
+    <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span>
+    <span class="n">expand_labels</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">relabel_connectivity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">random_dilate</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">num_points</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">150</span><span class="p">),</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a random source pipeline and batch request for example training.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        voxel_size (tuple of int): The size of a voxel in world units.</span>
+<span class="sd">        input_shape (tuple of int): The shape of the input arrays.</span>
+<span class="sd">        dtype (numpy.dtype): The dtype of the label arrays.</span>
+<span class="sd">        expand_labels (bool): Whether to expand the labels into the background.</span>
+<span class="sd">        relabel_connectivity (int): The connectivity used for for relabeling.</span>
+<span class="sd">        random_dilate (bool): Whether to randomly dilate the individual labels.</span>
+<span class="sd">        num_points (tuple of int): The range of the number of points to add to the labels.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        gunpowder.Pipeline: The batch generating Gunpowder pipeline.</span>
+<span class="sd">        gunpowder.BatchRequest: The batch request for the pipeline.</span>
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If the input_shape is not an integer.</span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; random_source_pipeline(voxel_size=(8, 8, 8), input_shape=(148, 148, 148), dtype=np.uint8, expand_labels=False,</span>
+<span class="sd">        &gt;&gt;&gt;                        relabel_connectivity=1, random_dilate=True, num_points=(20, 150))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">voxel_size</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">)</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">ArrayKey</span><span class="p">(</span><span class="s2">&quot;LABELS&quot;</span><span class="p">)</span>
+
+    <span class="n">input_size</span> <span class="o">=</span> <span class="n">shape</span> <span class="o">*</span> <span class="n">voxel_size</span>
+
+    <span class="n">request</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">BatchRequest</span><span class="p">()</span>
+
+    <span class="n">request</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">input_size</span><span class="p">)</span>
+
+    <span class="n">source_spec</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">ArraySpec</span><span class="p">(</span>
+        <span class="n">roi</span><span class="o">=</span><span class="n">gp</span><span class="o">.</span><span class="n">Roi</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">input_size</span><span class="p">),</span> <span class="n">voxel_size</span><span class="o">=</span><span class="n">voxel_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span>
+    <span class="p">)</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="n">ZerosSource</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">source_spec</span><span class="p">)</span>
+
+    <span class="n">pipeline</span> <span class="o">=</span> <span class="n">source</span>
+
+    <span class="c1"># randomly sample some points and write them into our zeros array as ones</span>
+    <span class="n">pipeline</span> <span class="o">+=</span> <span class="n">CreatePoints</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">num_points</span><span class="o">=</span><span class="n">num_points</span><span class="p">)</span>
+
+    <span class="c1"># grow the boundaries</span>
+    <span class="n">pipeline</span> <span class="o">+=</span> <span class="n">DilatePoints</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+
+    <span class="c1"># relabel connected components</span>
+    <span class="n">pipeline</span> <span class="o">+=</span> <span class="n">Relabel</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="n">relabel_connectivity</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">expand_labels</span><span class="p">:</span>
+        <span class="c1"># expand the labels outwards into the background</span>
+        <span class="n">pipeline</span> <span class="o">+=</span> <span class="n">ExpandLabels</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+
+        <span class="c1"># relabel ccs again to deal with incorrectly connected background</span>
+        <span class="n">pipeline</span> <span class="o">+=</span> <span class="n">Relabel</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="n">relabel_connectivity</span><span class="p">)</span>
+
+    <span class="c1"># randomly dilate labels</span>
+    <span class="k">if</span> <span class="n">random_dilate</span><span class="p">:</span>
+        <span class="n">pipeline</span> <span class="o">+=</span> <span class="n">RandomDilateLabels</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">pipeline</span><span class="p">,</span> <span class="n">request</span></div>
+
+
+
+<div class="viewcode-block" id="simulate_predictions_iou">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.simulate_predictions_iou">[docs]</a>
+<span class="k">def</span> <span class="nf">simulate_predictions_iou</span><span class="p">(</span><span class="n">true_labels</span><span class="p">,</span> <span class="n">iou</span><span class="p">):</span>
+    <span class="c1"># TODO: Add false positives (only makes false negatives currently)</span>
+
+    <span class="n">pred_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">true_labels</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">true_labels</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">pred_labels</span><span class="p">[</span><span class="n">true_labels</span> <span class="o">==</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">true_labels</span> <span class="o">==</span> <span class="n">i</span><span class="p">),</span> <span class="n">p</span><span class="o">=</span><span class="p">[</span><span class="n">iou</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">iou</span><span class="p">]</span>
+        <span class="p">)</span>
+
+    <span class="n">pred_labels</span> <span class="o">=</span> <span class="n">relabel</span><span class="p">(</span><span class="n">pred_labels</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">pred_labels</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">pred_labels</span></div>
+
+
+
+<div class="viewcode-block" id="simulate_predictions_accuracy">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.simulate_predictions_accuracy">[docs]</a>
+<span class="k">def</span> <span class="nf">simulate_predictions_accuracy</span><span class="p">(</span><span class="n">true_labels</span><span class="p">,</span> <span class="n">accuracy</span><span class="p">):</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="n">true_labels</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">true_labels</span> <span class="o">=</span> <span class="n">true_labels</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+    <span class="c1"># Get the total number of labels</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">true_labels</span><span class="p">)</span>
+
+    <span class="c1"># Calculate the number of correct predictions</span>
+    <span class="n">num_correct</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">accuracy</span> <span class="o">*</span> <span class="n">n</span><span class="p">)</span>
+
+    <span class="c1"># Create an array to store the simulated predictions (copy the true labels initially)</span>
+    <span class="n">simulated_predictions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">true_labels</span><span class="p">)</span>
+
+    <span class="c1"># Randomly select indices to be incorrect</span>
+    <span class="n">incorrect_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">n</span> <span class="o">-</span> <span class="n">num_correct</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># Flip the labels at the incorrect indices</span>
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">incorrect_indices</span><span class="p">:</span>
+        <span class="c1"># Assuming binary classification (0 or 1), flip the label</span>
+        <span class="n">simulated_predictions</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">simulated_predictions</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+    <span class="c1"># Relabel the predictions</span>
+    <span class="n">simulated_predictions</span> <span class="o">=</span> <span class="n">simulated_predictions</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">simulated_predictions</span> <span class="o">=</span> <span class="n">relabel</span><span class="p">(</span><span class="n">simulated_predictions</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">simulated_predictions</span></div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Jeff Rhoades, Emma Avetissian, Davis Vann Bennett, Marwan Zouinkhi
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2024, Jeff Rhoades, Emma Avetissian, Davis Vann Bennett, Marwan Zouinkhi.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

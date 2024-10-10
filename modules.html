@@ -37,7 +37,7 @@
   <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'modules';</script>
@@ -155,12 +155,25 @@
  </script></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
-        <ul class="nav bd-sidenav">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="cellmap-schemas.html">CellMap Schemas</a></li>
+
+
+</ul>
+<ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.html">cellmap_segmentation_challenge</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html">cellmap_segmentation_challenge.cli</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.evaluate.html">cellmap_segmentation_challenge.cli.evaluate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.fetch_data.html">cellmap_segmentation_challenge.cli.fetch_data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.predict.html">cellmap_segmentation_challenge.cli.predict</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.train.html">cellmap_segmentation_challenge.cli.train</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.dataloader.html">cellmap_segmentation_challenge.dataloader</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.datasplit.html">cellmap_segmentation_challenge.datasplit</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.evaluate.html">cellmap_segmentation_challenge.evaluate</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.loss.html">cellmap_segmentation_challenge.loss</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.fetch_data.html">cellmap_segmentation_challenge.fetch_data</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.model_load.html">cellmap_segmentation_challenge.models.model_load</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.resnet.html">cellmap_segmentation_challenge.models.resnet</a></li>
@@ -171,7 +184,13 @@
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.visualize.html">cellmap_segmentation_challenge.visualize</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.crops.html">cellmap_segmentation_challenge.utils.crops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.loss.html">cellmap_segmentation_challenge.utils.loss</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.pipeline.html">cellmap_segmentation_challenge.utils.pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.visualize.html">cellmap_segmentation_challenge.utils.visualize</a></li>
+</ul>
+</details></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
@@ -331,6 +350,13 @@ document.write(`
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="cellmap_segmentation_challenge.html">cellmap_segmentation_challenge</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html">cellmap_segmentation_challenge.cli</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.evaluate.html">cellmap_segmentation_challenge.cli.evaluate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.fetch_data.html">cellmap_segmentation_challenge.cli.fetch_data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.predict.html">cellmap_segmentation_challenge.cli.predict</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.train.html">cellmap_segmentation_challenge.cli.train</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.dataloader.html">cellmap_segmentation_challenge.dataloader</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.dataloader.html#cellmap_segmentation_challenge.dataloader.get_dataloader"><code class="docutils literal notranslate"><span class="pre">get_dataloader()</span></code></a></li>
 </ul>
@@ -339,8 +365,6 @@ document.write(`
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.datasplit.html#cellmap_segmentation_challenge.datasplit.get_csv_string"><code class="docutils literal notranslate"><span class="pre">get_csv_string()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.datasplit.html#cellmap_segmentation_challenge.datasplit.make_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_datasplit_csv()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.datasplit.html#cellmap_segmentation_challenge.datasplit.get_dataset_counts"><code class="docutils literal notranslate"><span class="pre">get_dataset_counts()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.datasplit.html#cellmap_segmentation_challenge.datasplit.get_class_incl_ids"><code class="docutils literal notranslate"><span class="pre">get_class_incl_ids()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.datasplit.html#cellmap_segmentation_challenge.datasplit.get_class_relations"><code class="docutils literal notranslate"><span class="pre">get_class_relations()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.evaluate.html">cellmap_segmentation_challenge.evaluate</a><ul>
@@ -354,11 +378,18 @@ document.write(`
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.evaluate.score_submission"><code class="docutils literal notranslate"><span class="pre">score_submission()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.loss.html">cellmap_segmentation_challenge.loss</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.loss.html#cellmap_segmentation_challenge.loss.CellMapLossWrapper"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.loss.html#cellmap_segmentation_challenge.loss.CellMapLossWrapper.forward"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper.forward()</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.fetch_data.html">cellmap_segmentation_challenge.fetch_data</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.fetch_data.html#cellmap_segmentation_challenge.fetch_data.copy_store"><code class="docutils literal notranslate"><span class="pre">copy_store()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.fetch_data.html#cellmap_segmentation_challenge.fetch_data.partition_copy_store"><code class="docutils literal notranslate"><span class="pre">partition_copy_store()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.fetch_data.html#cellmap_segmentation_challenge.fetch_data.get_url"><code class="docutils literal notranslate"><span class="pre">get_url()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.fetch_data.html#cellmap_segmentation_challenge.fetch_data.get_store_url"><code class="docutils literal notranslate"><span class="pre">get_store_url()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.fetch_data.html#cellmap_segmentation_challenge.fetch_data.get_fibsem_path"><code class="docutils literal notranslate"><span class="pre">get_fibsem_path()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.fetch_data.html#cellmap_segmentation_challenge.fetch_data.get_chunk_keys"><code class="docutils literal notranslate"><span class="pre">get_chunk_keys()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.fetch_data.html#cellmap_segmentation_challenge.fetch_data.get_array_objects"><code class="docutils literal notranslate"><span class="pre">get_array_objects()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.fetch_data.html#cellmap_segmentation_challenge.fetch_data.get_group_objects"><code class="docutils literal notranslate"><span class="pre">get_group_objects()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.fetch_data.html#cellmap_segmentation_challenge.fetch_data.read_group"><code class="docutils literal notranslate"><span class="pre">read_group()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.fetch_data.html#cellmap_segmentation_challenge.fetch_data.subset_to_slice"><code class="docutils literal notranslate"><span class="pre">subset_to_slice()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.fetch_data.html#cellmap_segmentation_challenge.fetch_data.resolve_em_url"><code class="docutils literal notranslate"><span class="pre">resolve_em_url()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models</a><ul>
@@ -421,9 +452,33 @@ document.write(`
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.train.html#cellmap_segmentation_challenge.train"><code class="docutils literal notranslate"><span class="pre">train()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.visualize.html">cellmap_segmentation_challenge.visualize</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.visualize.html#cellmap_segmentation_challenge.visualize.save_result_figs"><code class="docutils literal notranslate"><span class="pre">save_result_figs()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.visualize.html#cellmap_segmentation_challenge.visualize.get_loss_plot"><code class="docutils literal notranslate"><span class="pre">get_loss_plot()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.crops.html">cellmap_segmentation_challenge.utils.crops</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.crops.html#cellmap_segmentation_challenge.utils.crops.CropRow"><code class="docutils literal notranslate"><span class="pre">CropRow</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.crops.html#cellmap_segmentation_challenge.utils.crops.fetch_manifest"><code class="docutils literal notranslate"><span class="pre">fetch_manifest()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.loss.html">cellmap_segmentation_challenge.utils.loss</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.loss.html#cellmap_segmentation_challenge.utils.loss.CellMapLossWrapper"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.pipeline.html">cellmap_segmentation_challenge.utils.pipeline</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.CreatePoints"><code class="docutils literal notranslate"><span class="pre">CreatePoints</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.DilatePoints"><code class="docutils literal notranslate"><span class="pre">DilatePoints</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.RandomDilateLabels"><code class="docutils literal notranslate"><span class="pre">RandomDilateLabels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.Relabel"><code class="docutils literal notranslate"><span class="pre">Relabel</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.ExpandLabels"><code class="docutils literal notranslate"><span class="pre">ExpandLabels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.ZerosSource"><code class="docutils literal notranslate"><span class="pre">ZerosSource</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.random_source_pipeline"><code class="docutils literal notranslate"><span class="pre">random_source_pipeline()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.simulate_predictions_iou"><code class="docutils literal notranslate"><span class="pre">simulate_predictions_iou()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.simulate_predictions_accuracy"><code class="docutils literal notranslate"><span class="pre">simulate_predictions_accuracy()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.visualize.html">cellmap_segmentation_challenge.utils.visualize</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.visualize.html#cellmap_segmentation_challenge.utils.visualize.save_result_figs"><code class="docutils literal notranslate"><span class="pre">save_result_figs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.visualize.html#cellmap_segmentation_challenge.utils.visualize.get_loss_plot"><code class="docutils literal notranslate"><span class="pre">get_loss_plot()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
