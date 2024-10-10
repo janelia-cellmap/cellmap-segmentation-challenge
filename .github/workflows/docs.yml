@@ -21,7 +21,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install .[docs]
+        pip install .
 
     - name: Build documentation
       # run: make -C docs html  # Adjust the path to your docs directory if needed
