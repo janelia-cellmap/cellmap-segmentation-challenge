@@ -122,7 +122,13 @@ python predict_2D.py
 
 See the `README.md` in the `examples` folder for more information on the available options, as well as the documentation in `examples/predict_2D.py` and `examples/predict_3D.py`.
 
-## Submit your predictions
+## Post-process model predictions
+
+After making predictions on the test data, you may want to post-process the predictions to improve the results. An example script for post-processing is provided in the `examples` directory, named `postprocess.py` and is annotated for clarity. 
+
+... #TODO: Add more information on post-processing
+
+## Submit your final predictions
 
 To submit your predictions, first make sure that they are in the correct format (see below), then submit them through [the online submission portal](https://staging.cellmapchallenge.2i2c.cloud/upload). You will need to sign in with your GitHub account to submit your predictions.
 
