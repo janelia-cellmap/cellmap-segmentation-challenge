@@ -20,6 +20,10 @@ These configuration files can then be used to run training via two different com
 1. `python path/to/train_config.py`: Run the training script directly.
 2. `csc train path/to/train_config.py`: Run the training script using the `csc train` command-line interface.
 
+Training progress can be monitored using TensorBoard by running `tensorboard --logdir tensorboard` in the terminal.
+
+Once the model is trained, you can use the `predict` function to make predictions on new data using the trained model. See the `predict_3D.py` and `predict_2D.py` scripts (and below) for examples of how to use the `predict` function.
+
 ## Predicting on test data
 ...
 

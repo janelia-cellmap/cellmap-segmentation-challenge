@@ -93,16 +93,24 @@ class OutConv(nn.Module):
         return self.conv(x)
 
 
-# Original source code from:
-# https://github.com/milesial/Pytorch-UNet/blob/master/unet/unet_model.py
-
-
-""" Full assembly of the parts to form the complete network """
-
-# from torch import utils
-
-
 class UNet_3D(nn.Module):
+    """
+    3D U-Net model.
+
+    Adapted from:
+        https://github.com/milesial/Pytorch-UNet/blob/master/unet/unet_model.py
+    By Emma Avetissian, @aemmav
+
+    Parameters
+    ----------
+    n_channels : int
+        The number of input channels.
+    n_classes : int
+        The number of output channels.
+    trilinear : bool
+        Whether to use trilinear interpolation or not.
+    """
+
     def __init__(self, n_channels, n_classes, trilinear=False):
         super(UNet_3D, self).__init__()
         self.n_channels = n_channels

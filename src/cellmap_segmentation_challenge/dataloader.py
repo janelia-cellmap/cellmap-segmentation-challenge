@@ -17,6 +17,7 @@ def get_dataloader(
     input_array_info: Optional[Mapping[str, Sequence[int | float]]] = None,
     target_array_info: Optional[Mapping[str, Sequence[int | float]]] = None,
     spatial_transforms: Optional[Mapping[str, Any]] = None,
+    # TODO: Add value transforms
     iterations_per_epoch: int = 1000,
     device: str | torch.device = "cuda",
 ) -> tuple[CellMapDataLoader, DataLoader]:

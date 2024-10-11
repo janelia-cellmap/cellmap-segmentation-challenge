@@ -12,6 +12,10 @@
 # 1. `python train_2D.py`: Run the training script directly.
 # 2. `csc train train_2D.py`: Run the training script using the `csc train` command-line interface.
 
+# Training progress can be monitored using TensorBoard by running `tensorboard --logdir tensorboard` in the terminal.
+
+# Once the model is trained, you can use the `predict` function to make predictions on new data using the trained model. See the `predict_2D.py` example for more details.
+
 # %% Imports
 from cellmap_segmentation_challenge.models import UNet_2D, ResNet
 

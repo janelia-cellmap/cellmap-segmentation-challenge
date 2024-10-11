@@ -12,6 +12,7 @@ SEARCH_PATH = (
     os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
     + "/data/{dataset}/{dataset}.zarr/recon-1/labels/groundtruth/*/{label}"
 )
+RAW_NAME = "recon-1/em/fibsem-uint8"
 
 
 def get_csv_string(
@@ -70,10 +71,10 @@ def get_csv_string(
 def make_datasplit_csv(
     classes: list[str] = ["nuc", "mito"],
     force_all_classes: bool | str = False,
-    validation_prob: float = 0.3,
+    validation_prob: float = 0.1,
     datasets: list[str] = ["*"],
     search_path: str = SEARCH_PATH,
-    raw_name: str = "recon-1/em/fibsem-uint8",
+    raw_name: str = RAW_NAME,
     csv_path: str = "datasplit.csv",
     dry_run: bool = False,
     crops: Optional[list[str]] = None,
@@ -88,13 +89,13 @@ def make_datasplit_csv(
     force_all_classes : bool | str, optional
         If True, force all classes to be present in the training/validation datasets. If False, as long as at least one requested class is present, a crop will be included. If "train" or "validate", force all classes to be present in the training or validation datasets, respectively. By default False.
     validation_prob : float, optional
-        The probability of a dataset being in the validation set, by default 0.3
+        The probability of a dataset being in the validation set, by default 0.1
     datasets : list[str], optional
         The datasets to include in the csv, by default ["*"], which includes all datasets
     search_path : str, optional
         The search path to use to find the datasets, by default SEARCH_PATH
     raw_name : str, optional
-        The name of the raw data, by default "recon-1/em/fibsem-uint8"
+        The name of the raw data, by default RAW_NAME
     csv_path : str, optional
         The path to write the csv file to, by default "datasplit.csv"
     dry_run : bool, optional
@@ -168,9 +169,26 @@ def make_datasplit_csv(
 def get_dataset_counts(
     classes: list[str] = ["nuc", "mito"],
     search_path: str = SEARCH_PATH,
-    raw_name: str = "recon-1/em/fibsem-uint8",
+    raw_name: str = RAW_NAME,
 ):
-    # Count the # of crops per class per dataset
+    """
+    Get the counts of each class in each dataset.
+
+    Parameters
+    ----------
+    classes : list[str], optional
+        The classes to include in the csv, by default ["nuc", "mito"]
+    search_path : str, optional
+        The search path to use to find the datasets, by default SEARCH_PATH
+    raw_name : str, optional
+        The name of the raw data, by default RAW_NAME
+
+    Returns
+    -------
+    dict
+        A dictionary of the counts of each class in each dataset.
+    """
+
     datapath_prefix = search_path.split("*")[0]
     dataset_class_counts = {}
     for label in classes:
@@ -220,4 +238,4 @@ if __name__ == "__main__":
 
     os.remove("datasplit.csv")
 
-    make_datasplit_csv(classes=classes, search_path=search_path, validation_prob=0.3)
+    make_datasplit_csv(classes=classes, search_path=search_path, validation_prob=0.1)

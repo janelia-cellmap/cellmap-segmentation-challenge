@@ -13,6 +13,22 @@ def save_result_figs(
     classes: Sequence[str],
     figures_save_path: str,
 ):
+    """
+    Save the input, output, and target images to the specified path.
+
+    Parameters
+    ----------
+    inputs : torch.Tensor
+        The input images.
+    outputs : torch.Tensor
+        The output images.
+    targets : torch.Tensor
+        The target images.
+    classes : Sequence[str]
+        The classes present in the images.
+    figures_save_path : str
+        The path to save the figures to.
+    """
     # Make sure the save path exists
     os.makedirs(os.path.dirname(figures_save_path), exist_ok=True)
 
@@ -20,32 +36,3 @@ def save_result_figs(
     for label, fig in figs.items():
         fig.savefig(figures_save_path.format(label=label))
         plt.close(fig)
-
-
-def get_loss_plot(losses, validation_scores, iterations_per_epoch):
-    fig, ax = plt.subplots()
-    epoch_steps = range(0, len(losses), iterations_per_epoch)
-    average_losses = [
-        np.mean(losses[i : i + iterations_per_epoch])
-        for i in range(0, len(losses), iterations_per_epoch)
-    ]
-    ax.plot(
-        epoch_steps,
-        average_losses,
-        label="Average Training Loss",
-        color="blue",
-        linewidth=1.5,
-    )
-    ax.plot(losses, label="Training Loss", alpha=0.5, color="gray", linewidth=0.5)
-    ax.plot(
-        epoch_steps[: len(validation_scores)],
-        validation_scores,
-        label="Validation Score",
-        color="red",
-        linewidth=1.5,
-    )
-    ax.set_xlabel("Step")
-    ax.set_ylabel("Loss")
-    ax.legend()
-    fig.tight_layout()
-    return fig

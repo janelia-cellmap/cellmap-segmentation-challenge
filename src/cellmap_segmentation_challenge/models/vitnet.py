@@ -416,6 +416,21 @@ class RegistrationHead(nn.Sequential):
 
 
 class ViTVNet(nn.Module):
+    """
+    ViT-V-Net model
+
+    Parameters
+    ----------
+    out_channels : int
+        The number of output channels.
+    config : str or ml_collections.ConfigDict
+        The configuration of the model.
+    img_size : tuple of int
+        The size of the image. Should be the length of the dimensions of the image.
+    vis : bool
+        Whether to visualize the attention weights.
+    """
+
     def __init__(
         self, out_channels, config="ViT-V-Net", img_size=(128, 128, 128), vis=False
     ):

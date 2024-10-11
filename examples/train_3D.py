@@ -1,3 +1,21 @@
+# This is an example of a training configuration file that trains a 3D U-Net model to predict nuclei and endoplasmic reticulum in the CellMap Segmentation Challenge dataset.
+
+# The configuration file defines the hyperparameters, model, and other configurations required for training the model. The `train` function is then called with the configuration file as an argument to start the training process. The `train` function reads the configuration file, sets up the data loaders, model, optimizer, loss function, and other components, and trains the model for the specified number of epochs.
+
+# The configuration file includes the following components:
+# 1. Hyperparameters: learning rate, batch size, input and target array information, epochs, iterations per epoch, random seed, and initial number of features for the model.
+# 2. Model: 3D U-Net model with two classes (nuclei and endoplasmic reticulum). (You can also use a 3D ResNet or 3D ViT VNet model by uncommenting the relevant lines.)
+# 3. Paths: paths for saving logs, model checkpoints, and data split file.
+# 4. Spatial transformations: spatial transformations to apply to the training data.
+
+# This configuration file can be used to run training via two different commands:
+# 1. `python train_3D.py`: Run the training script directly.
+# 2. `csc train train_3D.py`: Run the training script using the `csc train` command-line interface.
+
+# Training progress can be monitored using TensorBoard by running `tensorboard --logdir tensorboard` in the terminal.
+
+# Once the model is trained, you can use the `predict` function to make predictions on new data using the trained model. See the `predict_3D.py` example for more details.
+
 # %%
 from cellmap_segmentation_challenge.models import UNet_3D, ResNet, ViTVNet
 
