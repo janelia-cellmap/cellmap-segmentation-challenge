@@ -22,6 +22,29 @@ def get_csv_string(
     raw_name: str,
     crops: Optional[list[str]] = None,
 ):
+    """
+    Get the csv string for a given dataset path, to be written to the datasplit csv file.
+
+    Parameters
+    ----------
+    path : str
+        The path to the dataset.
+    classes : list[str]
+        The classes present in the dataset.
+    datapath_prefix : str
+        The prefix of the path to the raw data.
+    usage : str
+        The usage of the dataset (train or validate).
+    raw_name : str
+        The name of the raw data.
+    crops : Optional[list[str]], optional
+        The crops to include in the csv, by default None. If None, all crops are included. Otherwise, only the crops in the list are included.
+
+    Returns
+    -------
+    str
+        The csv string for the dataset.
+    """
     dataset_name = path.removeprefix(datapath_prefix).split("/")[0]
     gt_name = "crop" + path.split("crop")[-1].split("/")[0]
     if crops is not None and gt_name not in crops:
@@ -55,16 +78,30 @@ def make_datasplit_csv(
     dry_run: bool = False,
     crops: Optional[list[str]] = None,
 ):
-    print(f"Classes: {classes}")
-    print(f"Force all classes: {force_all_classes}")
-    print(f"Validation probability: {validation_prob}")
-    print(f"Datasets: {datasets}")
-    print(f"Search path: {search_path}")
-    print(f"Raw name: {raw_name}")
-    print(f"CSV path: {csv_path}")
-    print(f"Dry run: {dry_run}")
-    print(f"Crops: {crops}")
+    """
+    Make a datasplit csv file for the given classes and datasets.
 
+    Parameters
+    ----------
+    classes : list[str], optional
+        The classes to include in the csv, by default ["nuc", "mito"]
+    force_all_classes : bool | str, optional
+        If True, force all classes to be present in the training/validation datasets. If False, as long as at least one requested class is present, a crop will be included. If "train" or "validate", force all classes to be present in the training or validation datasets, respectively. By default False.
+    validation_prob : float, optional
+        The probability of a dataset being in the validation set, by default 0.3
+    datasets : list[str], optional
+        The datasets to include in the csv, by default ["*"], which includes all datasets
+    search_path : str, optional
+        The search path to use to find the datasets, by default SEARCH_PATH
+    raw_name : str, optional
+        The name of the raw data, by default "recon-1/em/fibsem-uint8"
+    csv_path : str, optional
+        The path to write the csv file to, by default "datasplit.csv"
+    dry_run : bool, optional
+        If True, do not write the csv file - just return the found datapaths. By default False
+    crops : Optional[list[str]], optional
+        The crops to include in the csv, by default None. If None, all crops are included. Otherwise, only the crops in the list are included.
+    """
     # Define the paths to the raw and groundtruth data and the label classes by crawling the directories and writing the paths to a csv file
     datapath_prefix = search_path.split("{")[0]
     datapaths = {}
@@ -162,15 +199,25 @@ def get_dataset_counts(
 
 
 if __name__ == "__main__":
+    """
+    Usage: python datasplit.py [search_path] [classes]
+
+    search_path: The search path to use to find the datasets. Defaults to SEARCH_PATH.
+    classes: A comma-separated list of classes to include in the csv. Defaults to ["nuc", "er"].
+    """
     if len(sys.argv) > 1 and sys.argv[1][0] == "[":
         classes = sys.argv[1][1:-1].split(",")
+        if len(sys.argv) > 2:
+            search_path = sys.argv[2]
+        else:
+            search_path = SEARCH_PATH
     elif len(sys.argv) > 1:
         search_path = sys.argv[1]
         classes = ["nuc", "er"]
     else:
         classes = ["nuc", "er"]
-        search_path = "./data.zarr/{dataset}/{label}"
+        search_path = SEARCH_PATH
 
     os.remove("datasplit.csv")
 
-    make_datasplit_csv(classes=classes, search_path=search_path, validation_prob=0.15)
+    make_datasplit_csv(classes=classes, search_path=search_path, validation_prob=0.3)

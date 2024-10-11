@@ -1,3 +1,28 @@
+# CellMap Segmentation Challenge Examples
+
+This directory contains examples for the CellMap Segmentation Challenge. The examples include:
+1. Training 2D and 3D models
+2. Predicting on test data
+3. Evaluating predictions
+
+## Training 2D and 3D models
+The `train_2D.py` and `train_3D.py` scripts train 2D and 3D models, respectively, on the CellMap Segmentation Challenge dataset. The scripts use a configuration file to define the hyperparameters, model, and other configurations required for training the model. The `train` function is then called with the configuration file as an argument to start the training process.
+
+The configuration file defines the hyperparameters, model, and other configurations required for training the model. The `train` function is then called with the configuration file as an argument to start the training process. The `train` function reads the configuration file, sets up the data loaders, model, optimizer, loss function, and other components, and trains the model for the specified number of epochs.
+
+The configuration file includes the following components:
+1. Hyperparameters: learning rate, batch size, input and target array information, epochs, iterations per epoch, random seed, and initial number of features for the model.
+2. Model: model architecture, number of classes, and other model-specific configurations. This should return a PyTorch model.
+3. Paths: paths for saving logs, model checkpoints, and data split file.
+4. Spatial transformations: spatial transformations to apply to the training data.
+
+These configuration files can then be used to run training via two different commands:
+1. `python path/to/train_config.py`: Run the training script directly.
+2. `csc train path/to/train_config.py`: Run the training script using the `csc train` command-line interface.
+
+## Predicting on test data
+...
+
 ## Submission requirements:
 1. The submission should be a single zip file containing a single Zarr-2 file with the following structure:
    - submission.zarr
