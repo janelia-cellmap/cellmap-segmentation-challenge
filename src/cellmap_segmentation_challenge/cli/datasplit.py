@@ -1,6 +1,6 @@
 import click
 
-from cellmap_segmentation_challenge.datasplit import (
+from cellmap_segmentation_challenge.utils.datasplit import (
     make_datasplit_csv,
     get_dataset_counts,
     SEARCH_PATH,
