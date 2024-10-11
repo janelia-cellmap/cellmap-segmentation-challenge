@@ -11,11 +11,9 @@
    :recursive:
 
    cli
-   dataloader
-   datasplit
    evaluate
-   fetch_data
    models
+   postprocess
    predict
    train
    utils

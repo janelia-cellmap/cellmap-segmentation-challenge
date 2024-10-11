@@ -11,6 +11,9 @@ cellmap\_segmentation\_challenge.utils
    :recursive:
 
    crops
+   dataloader
+   datasplit
+   fetch_data
    loss
    pipeline
    visualize

@@ -8,6 +8,5 @@ cellmap\_segmentation\_challenge.utils.visualize
 
    .. autosummary::
    
-      get_loss_plot
       save_result_figs
    

@@ -1,7 +1,7 @@
-cellmap\_segmentation\_challenge.fetch\_data
-============================================
+cellmap\_segmentation\_challenge.utils.fetch\_data
+==================================================
 
-.. automodule:: cellmap_segmentation_challenge.fetch_data
+.. automodule:: cellmap_segmentation_challenge.utils.fetch_data
 
    
    .. rubric:: Functions

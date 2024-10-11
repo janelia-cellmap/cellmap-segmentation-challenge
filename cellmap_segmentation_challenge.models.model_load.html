@@ -163,17 +163,7 @@
 </ul>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="cellmap_segmentation_challenge.html">cellmap_segmentation_challenge</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html">cellmap_segmentation_challenge.cli</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.evaluate.html">cellmap_segmentation_challenge.cli.evaluate</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.fetch_data.html">cellmap_segmentation_challenge.cli.fetch_data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.predict.html">cellmap_segmentation_challenge.cli.predict</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.train.html">cellmap_segmentation_challenge.cli.train</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.dataloader.html">cellmap_segmentation_challenge.dataloader</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.datasplit.html">cellmap_segmentation_challenge.datasplit</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.evaluate.html">cellmap_segmentation_challenge.evaluate</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.fetch_data.html">cellmap_segmentation_challenge.fetch_data</a></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3 current active"><a class="current reference internal" href="#">cellmap_segmentation_challenge.models.model_load</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.resnet.html">cellmap_segmentation_challenge.models.resnet</a></li>
@@ -182,10 +172,14 @@
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.vitnet.html">cellmap_segmentation_challenge.models.vitnet</a></li>
 </ul>
 </details></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.postprocess.html">cellmap_segmentation_challenge.postprocess</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.crops.html">cellmap_segmentation_challenge.utils.crops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.dataloader.html">cellmap_segmentation_challenge.utils.dataloader</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.datasplit.html">cellmap_segmentation_challenge.utils.datasplit</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.fetch_data.html">cellmap_segmentation_challenge.utils.fetch_data</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.loss.html">cellmap_segmentation_challenge.utils.loss</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.pipeline.html">cellmap_segmentation_challenge.utils.pipeline</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.visualize.html">cellmap_segmentation_challenge.utils.visualize</a></li>
@@ -362,10 +356,10 @@ document.write(`
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.models.model_load.load_best_val" title="cellmap_segmentation_challenge.models.model_load.load_best_val"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_best_val</span></code></a>(logs_save_path, ...[, low_is_best])</p></td>
-<td><p></p></td>
+<td><p>Load the model weights with the best validation score from a directory into an existing model object in place.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.models.model_load.load_latest" title="cellmap_segmentation_challenge.models.model_load.load_latest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_latest</span></code></a>(search_path, model)</p></td>
-<td><p></p></td>
+<td><p>Load the latest checkpoint from a directory into a model (in place).</p></td>
 </tr>
 </tbody>
 </table>
@@ -373,12 +367,32 @@ document.write(`
 <dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.model_load.load_latest">
 <span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.model_load.</span></span><span class="sig-name descname"><span class="pre">load_latest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">search_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/model_load.html#load_latest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.model_load.load_latest" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><p>Load the latest checkpoint from a directory into a model (in place).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>search_path</strong> (<em>str</em>) – The path to search for checkpoints.</p></li>
+<li><p><strong>model</strong> (<em>torch.nn.Module</em>) – The model to load the checkpoint into.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.model_load.load_best_val">
 <span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.model_load.</span></span><span class="sig-name descname"><span class="pre">load_best_val</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logs_save_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_save_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">low_is_best</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/model_load.html#load_best_val"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.model_load.load_best_val" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><p>Load the model weights with the best validation score from a directory into an existing model object in place.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>logs_save_path</strong> (<em>str</em>) – The path to the directory with the tensorboard logs.</p></li>
+<li><p><strong>model_save_path</strong> (<em>str</em>) – The path to the model checkpoints.</p></li>
+<li><p><strong>model</strong> (<em>torch.nn.Module</em>) – The model to load the checkpoint into.</p></li>
+<li><p><strong>low_is_best</strong> (<em>bool</em>) – Whether a lower validation score is better.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 </section>
 

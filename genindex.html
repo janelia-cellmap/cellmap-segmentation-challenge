@@ -162,17 +162,7 @@
 </ul>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.html">cellmap_segmentation_challenge</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html">cellmap_segmentation_challenge.cli</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.evaluate.html">cellmap_segmentation_challenge.cli.evaluate</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.fetch_data.html">cellmap_segmentation_challenge.cli.fetch_data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.predict.html">cellmap_segmentation_challenge.cli.predict</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.train.html">cellmap_segmentation_challenge.cli.train</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.dataloader.html">cellmap_segmentation_challenge.dataloader</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.datasplit.html">cellmap_segmentation_challenge.datasplit</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.evaluate.html">cellmap_segmentation_challenge.evaluate</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.fetch_data.html">cellmap_segmentation_challenge.fetch_data</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.model_load.html">cellmap_segmentation_challenge.models.model_load</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.resnet.html">cellmap_segmentation_challenge.models.resnet</a></li>
@@ -181,10 +171,14 @@
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.vitnet.html">cellmap_segmentation_challenge.models.vitnet</a></li>
 </ul>
 </details></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.postprocess.html">cellmap_segmentation_challenge.postprocess</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.crops.html">cellmap_segmentation_challenge.utils.crops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.dataloader.html">cellmap_segmentation_challenge.utils.dataloader</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.datasplit.html">cellmap_segmentation_challenge.utils.datasplit</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.fetch_data.html">cellmap_segmentation_challenge.utils.fetch_data</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.loss.html">cellmap_segmentation_challenge.utils.loss</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.pipeline.html">cellmap_segmentation_challenge.utils.pipeline</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.visualize.html">cellmap_segmentation_challenge.utils.visualize</a></li>
@@ -360,52 +354,31 @@ document.write(`
 </li>
       </ul></li>
       <li>
-    cellmap_segmentation_challenge.cli
-
-      <ul>
-        <li><a href="cellmap_segmentation_challenge.cli.html#module-cellmap_segmentation_challenge.cli">module</a>
-</li>
-      </ul></li>
-      <li>
     cellmap_segmentation_challenge.cli.evaluate
 
       <ul>
-        <li><a href="cellmap_segmentation_challenge.cli.evaluate.html#module-cellmap_segmentation_challenge.cli.evaluate">module</a>
+        <li><a href="cellmap_segmentation_challenge.cli.html#module-cellmap_segmentation_challenge.cli.evaluate">module</a>
 </li>
       </ul></li>
       <li>
     cellmap_segmentation_challenge.cli.fetch_data
 
       <ul>
-        <li><a href="cellmap_segmentation_challenge.cli.fetch_data.html#module-cellmap_segmentation_challenge.cli.fetch_data">module</a>
+        <li><a href="cellmap_segmentation_challenge.cli.html#module-cellmap_segmentation_challenge.cli.fetch_data">module</a>
 </li>
       </ul></li>
       <li>
     cellmap_segmentation_challenge.cli.predict
 
       <ul>
-        <li><a href="cellmap_segmentation_challenge.cli.predict.html#module-cellmap_segmentation_challenge.cli.predict">module</a>
+        <li><a href="cellmap_segmentation_challenge.cli.html#module-cellmap_segmentation_challenge.cli.predict">module</a>
 </li>
       </ul></li>
       <li>
     cellmap_segmentation_challenge.cli.train
 
       <ul>
-        <li><a href="cellmap_segmentation_challenge.cli.train.html#module-cellmap_segmentation_challenge.cli.train">module</a>
-</li>
-      </ul></li>
-      <li>
-    cellmap_segmentation_challenge.dataloader
-
-      <ul>
-        <li><a href="cellmap_segmentation_challenge.dataloader.html#module-cellmap_segmentation_challenge.dataloader">module</a>
-</li>
-      </ul></li>
-      <li>
-    cellmap_segmentation_challenge.datasplit
-
-      <ul>
-        <li><a href="cellmap_segmentation_challenge.datasplit.html#module-cellmap_segmentation_challenge.datasplit">module</a>
+        <li><a href="cellmap_segmentation_challenge.cli.html#module-cellmap_segmentation_challenge.cli.train">module</a>
 </li>
       </ul></li>
       <li>
@@ -413,13 +386,6 @@ document.write(`
 
       <ul>
         <li><a href="cellmap_segmentation_challenge.evaluate.html#module-cellmap_segmentation_challenge.evaluate">module</a>
-</li>
-      </ul></li>
-      <li>
-    cellmap_segmentation_challenge.fetch_data
-
-      <ul>
-        <li><a href="cellmap_segmentation_challenge.fetch_data.html#module-cellmap_segmentation_challenge.fetch_data">module</a>
 </li>
       </ul></li>
       <li>
@@ -443,8 +409,6 @@ document.write(`
         <li><a href="cellmap_segmentation_challenge.models.resnet.html#module-cellmap_segmentation_challenge.models.resnet">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     cellmap_segmentation_challenge.models.unet_model_2D
 
@@ -467,6 +431,15 @@ document.write(`
 </li>
       </ul></li>
       <li>
+    cellmap_segmentation_challenge.postprocess
+
+      <ul>
+        <li><a href="cellmap_segmentation_challenge.postprocess.html#module-cellmap_segmentation_challenge.postprocess">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
     cellmap_segmentation_challenge.utils
 
       <ul>
@@ -478,6 +451,27 @@ document.write(`
 
       <ul>
         <li><a href="cellmap_segmentation_challenge.utils.crops.html#module-cellmap_segmentation_challenge.utils.crops">module</a>
+</li>
+      </ul></li>
+      <li>
+    cellmap_segmentation_challenge.utils.dataloader
+
+      <ul>
+        <li><a href="cellmap_segmentation_challenge.utils.dataloader.html#module-cellmap_segmentation_challenge.utils.dataloader">module</a>
+</li>
+      </ul></li>
+      <li>
+    cellmap_segmentation_challenge.utils.datasplit
+
+      <ul>
+        <li><a href="cellmap_segmentation_challenge.utils.datasplit.html#module-cellmap_segmentation_challenge.utils.datasplit">module</a>
+</li>
+      </ul></li>
+      <li>
+    cellmap_segmentation_challenge.utils.fetch_data
+
+      <ul>
+        <li><a href="cellmap_segmentation_challenge.utils.fetch_data.html#module-cellmap_segmentation_challenge.utils.fetch_data">module</a>
 </li>
       </ul></li>
       <li>
@@ -507,7 +501,7 @@ document.write(`
 </li>
       <li><a href="cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.Conv3dReLU">Conv3dReLU (class in cellmap_segmentation_challenge.models.vitnet)</a>
 </li>
-      <li><a href="cellmap_segmentation_challenge.fetch_data.html#cellmap_segmentation_challenge.fetch_data.copy_store">copy_store() (in module cellmap_segmentation_challenge.fetch_data)</a>
+      <li><a href="cellmap_segmentation_challenge.utils.fetch_data.html#cellmap_segmentation_challenge.utils.fetch_data.copy_store">copy_store() (in module cellmap_segmentation_challenge.utils.fetch_data)</a>
 </li>
       <li><a href="cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.CreatePoints">CreatePoints (class in cellmap_segmentation_challenge.utils.pipeline)</a>
 </li>
@@ -645,27 +639,25 @@ document.write(`
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.get_3DReg_config">get_3DReg_config() (in module cellmap_segmentation_challenge.models.vitnet)</a>
 </li>
-      <li><a href="cellmap_segmentation_challenge.fetch_data.html#cellmap_segmentation_challenge.fetch_data.get_array_objects">get_array_objects() (in module cellmap_segmentation_challenge.fetch_data)</a>
+      <li><a href="cellmap_segmentation_challenge.utils.fetch_data.html#cellmap_segmentation_challenge.utils.fetch_data.get_array_objects">get_array_objects() (in module cellmap_segmentation_challenge.utils.fetch_data)</a>
 </li>
-      <li><a href="cellmap_segmentation_challenge.fetch_data.html#cellmap_segmentation_challenge.fetch_data.get_chunk_keys">get_chunk_keys() (in module cellmap_segmentation_challenge.fetch_data)</a>
+      <li><a href="cellmap_segmentation_challenge.utils.fetch_data.html#cellmap_segmentation_challenge.utils.fetch_data.get_chunk_keys">get_chunk_keys() (in module cellmap_segmentation_challenge.utils.fetch_data)</a>
 </li>
-      <li><a href="cellmap_segmentation_challenge.datasplit.html#cellmap_segmentation_challenge.datasplit.get_csv_string">get_csv_string() (in module cellmap_segmentation_challenge.datasplit)</a>
+      <li><a href="cellmap_segmentation_challenge.utils.datasplit.html#cellmap_segmentation_challenge.utils.datasplit.get_csv_string">get_csv_string() (in module cellmap_segmentation_challenge.utils.datasplit)</a>
 </li>
-      <li><a href="cellmap_segmentation_challenge.dataloader.html#cellmap_segmentation_challenge.dataloader.get_dataloader">get_dataloader() (in module cellmap_segmentation_challenge.dataloader)</a>
-</li>
-      <li><a href="cellmap_segmentation_challenge.datasplit.html#cellmap_segmentation_challenge.datasplit.get_dataset_counts">get_dataset_counts() (in module cellmap_segmentation_challenge.datasplit)</a>
+      <li><a href="cellmap_segmentation_challenge.utils.dataloader.html#cellmap_segmentation_challenge.utils.dataloader.get_dataloader">get_dataloader() (in module cellmap_segmentation_challenge.utils.dataloader)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="cellmap_segmentation_challenge.fetch_data.html#cellmap_segmentation_challenge.fetch_data.get_fibsem_path">get_fibsem_path() (in module cellmap_segmentation_challenge.fetch_data)</a>
+      <li><a href="cellmap_segmentation_challenge.utils.datasplit.html#cellmap_segmentation_challenge.utils.datasplit.get_dataset_counts">get_dataset_counts() (in module cellmap_segmentation_challenge.utils.datasplit)</a>
 </li>
-      <li><a href="cellmap_segmentation_challenge.fetch_data.html#cellmap_segmentation_challenge.fetch_data.get_group_objects">get_group_objects() (in module cellmap_segmentation_challenge.fetch_data)</a>
+      <li><a href="cellmap_segmentation_challenge.utils.fetch_data.html#cellmap_segmentation_challenge.utils.fetch_data.get_fibsem_path">get_fibsem_path() (in module cellmap_segmentation_challenge.utils.fetch_data)</a>
 </li>
-      <li><a href="cellmap_segmentation_challenge.utils.visualize.html#cellmap_segmentation_challenge.utils.visualize.get_loss_plot">get_loss_plot() (in module cellmap_segmentation_challenge.utils.visualize)</a>
+      <li><a href="cellmap_segmentation_challenge.utils.fetch_data.html#cellmap_segmentation_challenge.utils.fetch_data.get_group_objects">get_group_objects() (in module cellmap_segmentation_challenge.utils.fetch_data)</a>
 </li>
-      <li><a href="cellmap_segmentation_challenge.fetch_data.html#cellmap_segmentation_challenge.fetch_data.get_store_url">get_store_url() (in module cellmap_segmentation_challenge.fetch_data)</a>
+      <li><a href="cellmap_segmentation_challenge.utils.fetch_data.html#cellmap_segmentation_challenge.utils.fetch_data.get_store_url">get_store_url() (in module cellmap_segmentation_challenge.utils.fetch_data)</a>
 </li>
-      <li><a href="cellmap_segmentation_challenge.fetch_data.html#cellmap_segmentation_challenge.fetch_data.get_url">get_url() (in module cellmap_segmentation_challenge.fetch_data)</a>
+      <li><a href="cellmap_segmentation_challenge.utils.fetch_data.html#cellmap_segmentation_challenge.utils.fetch_data.get_url">get_url() (in module cellmap_segmentation_challenge.utils.fetch_data)</a>
 </li>
       <li><a href="cellmap_segmentation_challenge.utils.crops.html#cellmap_segmentation_challenge.utils.crops.CropRow.gt_url">gt_url (cellmap_segmentation_challenge.utils.crops.CropRow attribute)</a>
 </li>
@@ -697,7 +689,7 @@ document.write(`
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="cellmap_segmentation_challenge.datasplit.html#cellmap_segmentation_challenge.datasplit.make_datasplit_csv">make_datasplit_csv() (in module cellmap_segmentation_challenge.datasplit)</a>
+      <li><a href="cellmap_segmentation_challenge.utils.datasplit.html#cellmap_segmentation_challenge.utils.datasplit.make_datasplit_csv">make_datasplit_csv() (in module cellmap_segmentation_challenge.utils.datasplit)</a>
 </li>
       <li><a href="cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.Mlp">Mlp (class in cellmap_segmentation_challenge.models.vitnet)</a>
 </li>
@@ -707,23 +699,15 @@ document.write(`
       <ul>
         <li><a href="cellmap_segmentation_challenge.html#module-cellmap_segmentation_challenge">cellmap_segmentation_challenge</a>
 </li>
-        <li><a href="cellmap_segmentation_challenge.cli.html#module-cellmap_segmentation_challenge.cli">cellmap_segmentation_challenge.cli</a>
+        <li><a href="cellmap_segmentation_challenge.cli.html#module-cellmap_segmentation_challenge.cli.evaluate">cellmap_segmentation_challenge.cli.evaluate</a>
 </li>
-        <li><a href="cellmap_segmentation_challenge.cli.evaluate.html#module-cellmap_segmentation_challenge.cli.evaluate">cellmap_segmentation_challenge.cli.evaluate</a>
+        <li><a href="cellmap_segmentation_challenge.cli.html#module-cellmap_segmentation_challenge.cli.fetch_data">cellmap_segmentation_challenge.cli.fetch_data</a>
 </li>
-        <li><a href="cellmap_segmentation_challenge.cli.fetch_data.html#module-cellmap_segmentation_challenge.cli.fetch_data">cellmap_segmentation_challenge.cli.fetch_data</a>
+        <li><a href="cellmap_segmentation_challenge.cli.html#module-cellmap_segmentation_challenge.cli.predict">cellmap_segmentation_challenge.cli.predict</a>
 </li>
-        <li><a href="cellmap_segmentation_challenge.cli.predict.html#module-cellmap_segmentation_challenge.cli.predict">cellmap_segmentation_challenge.cli.predict</a>
-</li>
-        <li><a href="cellmap_segmentation_challenge.cli.train.html#module-cellmap_segmentation_challenge.cli.train">cellmap_segmentation_challenge.cli.train</a>
-</li>
-        <li><a href="cellmap_segmentation_challenge.dataloader.html#module-cellmap_segmentation_challenge.dataloader">cellmap_segmentation_challenge.dataloader</a>
-</li>
-        <li><a href="cellmap_segmentation_challenge.datasplit.html#module-cellmap_segmentation_challenge.datasplit">cellmap_segmentation_challenge.datasplit</a>
+        <li><a href="cellmap_segmentation_challenge.cli.html#module-cellmap_segmentation_challenge.cli.train">cellmap_segmentation_challenge.cli.train</a>
 </li>
         <li><a href="cellmap_segmentation_challenge.evaluate.html#module-cellmap_segmentation_challenge.evaluate">cellmap_segmentation_challenge.evaluate</a>
-</li>
-        <li><a href="cellmap_segmentation_challenge.fetch_data.html#module-cellmap_segmentation_challenge.fetch_data">cellmap_segmentation_challenge.fetch_data</a>
 </li>
         <li><a href="cellmap_segmentation_challenge.models.html#module-cellmap_segmentation_challenge.models">cellmap_segmentation_challenge.models</a>
 </li>
@@ -737,9 +721,17 @@ document.write(`
 </li>
         <li><a href="cellmap_segmentation_challenge.models.vitnet.html#module-cellmap_segmentation_challenge.models.vitnet">cellmap_segmentation_challenge.models.vitnet</a>
 </li>
+        <li><a href="cellmap_segmentation_challenge.postprocess.html#module-cellmap_segmentation_challenge.postprocess">cellmap_segmentation_challenge.postprocess</a>
+</li>
         <li><a href="cellmap_segmentation_challenge.utils.html#module-cellmap_segmentation_challenge.utils">cellmap_segmentation_challenge.utils</a>
 </li>
         <li><a href="cellmap_segmentation_challenge.utils.crops.html#module-cellmap_segmentation_challenge.utils.crops">cellmap_segmentation_challenge.utils.crops</a>
+</li>
+        <li><a href="cellmap_segmentation_challenge.utils.dataloader.html#module-cellmap_segmentation_challenge.utils.dataloader">cellmap_segmentation_challenge.utils.dataloader</a>
+</li>
+        <li><a href="cellmap_segmentation_challenge.utils.datasplit.html#module-cellmap_segmentation_challenge.utils.datasplit">cellmap_segmentation_challenge.utils.datasplit</a>
+</li>
+        <li><a href="cellmap_segmentation_challenge.utils.fetch_data.html#module-cellmap_segmentation_challenge.utils.fetch_data">cellmap_segmentation_challenge.utils.fetch_data</a>
 </li>
         <li><a href="cellmap_segmentation_challenge.utils.loss.html#module-cellmap_segmentation_challenge.utils.loss">cellmap_segmentation_challenge.utils.loss</a>
 </li>
@@ -774,7 +766,7 @@ document.write(`
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="cellmap_segmentation_challenge.fetch_data.html#cellmap_segmentation_challenge.fetch_data.partition_copy_store">partition_copy_store() (in module cellmap_segmentation_challenge.fetch_data)</a>
+      <li><a href="cellmap_segmentation_challenge.utils.fetch_data.html#cellmap_segmentation_challenge.utils.fetch_data.partition_copy_store">partition_copy_store() (in module cellmap_segmentation_challenge.utils.fetch_data)</a>
 </li>
       <li><a href="cellmap_segmentation_challenge.predict.html#cellmap_segmentation_challenge.predict">predict() (in module cellmap_segmentation_challenge)</a>
 </li>
@@ -804,7 +796,7 @@ document.write(`
 </li>
       <li><a href="cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.RandomDilateLabels">RandomDilateLabels (class in cellmap_segmentation_challenge.utils.pipeline)</a>
 </li>
-      <li><a href="cellmap_segmentation_challenge.fetch_data.html#cellmap_segmentation_challenge.fetch_data.read_group">read_group() (in module cellmap_segmentation_challenge.fetch_data)</a>
+      <li><a href="cellmap_segmentation_challenge.utils.fetch_data.html#cellmap_segmentation_challenge.utils.fetch_data.read_group">read_group() (in module cellmap_segmentation_challenge.utils.fetch_data)</a>
 </li>
       <li><a href="cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.RegistrationHead">RegistrationHead (class in cellmap_segmentation_challenge.models.vitnet)</a>
 </li>
@@ -822,7 +814,7 @@ document.write(`
 </li>
       <li><a href="cellmap_segmentation_challenge.models.resnet.html#cellmap_segmentation_challenge.models.resnet.ResnetBlock3D">ResnetBlock3D (class in cellmap_segmentation_challenge.models.resnet)</a>
 </li>
-      <li><a href="cellmap_segmentation_challenge.fetch_data.html#cellmap_segmentation_challenge.fetch_data.resolve_em_url">resolve_em_url() (in module cellmap_segmentation_challenge.fetch_data)</a>
+      <li><a href="cellmap_segmentation_challenge.utils.fetch_data.html#cellmap_segmentation_challenge.utils.fetch_data.resolve_em_url">resolve_em_url() (in module cellmap_segmentation_challenge.utils.fetch_data)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -854,7 +846,7 @@ document.write(`
 </li>
       <li><a href="cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.simulate_predictions_iou">simulate_predictions_iou() (in module cellmap_segmentation_challenge.utils.pipeline)</a>
 </li>
-      <li><a href="cellmap_segmentation_challenge.fetch_data.html#cellmap_segmentation_challenge.fetch_data.subset_to_slice">subset_to_slice() (in module cellmap_segmentation_challenge.fetch_data)</a>
+      <li><a href="cellmap_segmentation_challenge.utils.fetch_data.html#cellmap_segmentation_challenge.utils.fetch_data.subset_to_slice">subset_to_slice() (in module cellmap_segmentation_challenge.utils.fetch_data)</a>
 </li>
       <li><a href="cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.swish">swish() (in module cellmap_segmentation_challenge.models.vitnet)</a>
 </li>
