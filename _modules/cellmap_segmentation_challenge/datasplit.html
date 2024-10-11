@@ -323,6 +323,29 @@ document.write(`
     <span class="n">raw_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">crops</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the csv string for a given dataset path, to be written to the datasplit csv file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : str</span>
+<span class="sd">        The path to the dataset.</span>
+<span class="sd">    classes : list[str]</span>
+<span class="sd">        The classes present in the dataset.</span>
+<span class="sd">    datapath_prefix : str</span>
+<span class="sd">        The prefix of the path to the raw data.</span>
+<span class="sd">    usage : str</span>
+<span class="sd">        The usage of the dataset (train or validate).</span>
+<span class="sd">    raw_name : str</span>
+<span class="sd">        The name of the raw data.</span>
+<span class="sd">    crops : Optional[list[str]], optional</span>
+<span class="sd">        The crops to include in the csv, by default None. If None, all crops are included. Otherwise, only the crops in the list are included.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        The csv string for the dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">dataset_name</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="n">datapath_prefix</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">gt_name</span> <span class="o">=</span> <span class="s2">&quot;crop&quot;</span> <span class="o">+</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;crop&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">crops</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">gt_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">crops</span><span class="p">:</span>
@@ -359,16 +382,30 @@ document.write(`
     <span class="n">dry_run</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">crops</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Classes: </span><span class="si">{</span><span class="n">classes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Force all classes: </span><span class="si">{</span><span class="n">force_all_classes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validation probability: </span><span class="si">{</span><span class="n">validation_prob</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Datasets: </span><span class="si">{</span><span class="n">datasets</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Search path: </span><span class="si">{</span><span class="n">search_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Raw name: </span><span class="si">{</span><span class="n">raw_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CSV path: </span><span class="si">{</span><span class="n">csv_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dry run: </span><span class="si">{</span><span class="n">dry_run</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Crops: </span><span class="si">{</span><span class="n">crops</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Make a datasplit csv file for the given classes and datasets.</span>
 
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    classes : list[str], optional</span>
+<span class="sd">        The classes to include in the csv, by default [&quot;nuc&quot;, &quot;mito&quot;]</span>
+<span class="sd">    force_all_classes : bool | str, optional</span>
+<span class="sd">        If True, force all classes to be present in the training/validation datasets. If False, as long as at least one requested class is present, a crop will be included. If &quot;train&quot; or &quot;validate&quot;, force all classes to be present in the training or validation datasets, respectively. By default False.</span>
+<span class="sd">    validation_prob : float, optional</span>
+<span class="sd">        The probability of a dataset being in the validation set, by default 0.3</span>
+<span class="sd">    datasets : list[str], optional</span>
+<span class="sd">        The datasets to include in the csv, by default [&quot;*&quot;], which includes all datasets</span>
+<span class="sd">    search_path : str, optional</span>
+<span class="sd">        The search path to use to find the datasets, by default SEARCH_PATH</span>
+<span class="sd">    raw_name : str, optional</span>
+<span class="sd">        The name of the raw data, by default &quot;recon-1/em/fibsem-uint8&quot;</span>
+<span class="sd">    csv_path : str, optional</span>
+<span class="sd">        The path to write the csv file to, by default &quot;datasplit.csv&quot;</span>
+<span class="sd">    dry_run : bool, optional</span>
+<span class="sd">        If True, do not write the csv file - just return the found datapaths. By default False</span>
+<span class="sd">    crops : Optional[list[str]], optional</span>
+<span class="sd">        The crops to include in the csv, by default None. If None, all crops are included. Otherwise, only the crops in the list are included.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Define the paths to the raw and groundtruth data and the label classes by crawling the directories and writing the paths to a csv file</span>
     <span class="n">datapath_prefix</span> <span class="o">=</span> <span class="n">search_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;{&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">datapaths</span> <span class="o">=</span> <span class="p">{}</span>
@@ -470,18 +507,28 @@ document.write(`
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Usage: python datasplit.py [search_path] [classes]</span>
+
+<span class="sd">    search_path: The search path to use to find the datasets. Defaults to SEARCH_PATH.</span>
+<span class="sd">    classes: A comma-separated list of classes to include in the csv. Defaults to [&quot;nuc&quot;, &quot;er&quot;].</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;[&quot;</span><span class="p">:</span>
         <span class="n">classes</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">search_path</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">search_path</span> <span class="o">=</span> <span class="n">SEARCH_PATH</span>
     <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">search_path</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">classes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;nuc&quot;</span><span class="p">,</span> <span class="s2">&quot;er&quot;</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">classes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;nuc&quot;</span><span class="p">,</span> <span class="s2">&quot;er&quot;</span><span class="p">]</span>
-        <span class="n">search_path</span> <span class="o">=</span> <span class="s2">&quot;./data.zarr/</span><span class="si">{dataset}</span><span class="s2">/</span><span class="si">{label}</span><span class="s2">&quot;</span>
+        <span class="n">search_path</span> <span class="o">=</span> <span class="n">SEARCH_PATH</span>
 
     <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;datasplit.csv&quot;</span><span class="p">)</span>
 
-    <span class="n">make_datasplit_csv</span><span class="p">(</span><span class="n">classes</span><span class="o">=</span><span class="n">classes</span><span class="p">,</span> <span class="n">search_path</span><span class="o">=</span><span class="n">search_path</span><span class="p">,</span> <span class="n">validation_prob</span><span class="o">=</span><span class="mf">0.15</span><span class="p">)</span>
+    <span class="n">make_datasplit_csv</span><span class="p">(</span><span class="n">classes</span><span class="o">=</span><span class="n">classes</span><span class="p">,</span> <span class="n">search_path</span><span class="o">=</span><span class="n">search_path</span><span class="p">,</span> <span class="n">validation_prob</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
 </pre></div>
 
                 </article>
