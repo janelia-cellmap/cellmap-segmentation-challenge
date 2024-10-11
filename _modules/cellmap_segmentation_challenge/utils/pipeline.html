@@ -161,31 +161,6 @@
 
 </ul>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../../cellmap_segmentation_challenge.html">cellmap_segmentation_challenge</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../cellmap_segmentation_challenge.evaluate.html">cellmap_segmentation_challenge.evaluate</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.models.model_load.html">cellmap_segmentation_challenge.models.model_load</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.models.resnet.html">cellmap_segmentation_challenge.models.resnet</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.models.unet_model_2D.html">cellmap_segmentation_challenge.models.unet_model_2D</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.models.unet_model_3D.html">cellmap_segmentation_challenge.models.unet_model_3D</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.models.vitnet.html">cellmap_segmentation_challenge.models.vitnet</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cellmap_segmentation_challenge.postprocess.html">cellmap_segmentation_challenge.postprocess</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.utils.crops.html">cellmap_segmentation_challenge.utils.crops</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.utils.dataloader.html">cellmap_segmentation_challenge.utils.dataloader</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.utils.datasplit.html">cellmap_segmentation_challenge.utils.datasplit</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.utils.fetch_data.html">cellmap_segmentation_challenge.utils.fetch_data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.utils.loss.html">cellmap_segmentation_challenge.utils.loss</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.utils.pipeline.html">cellmap_segmentation_challenge.utils.pipeline</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.utils.visualize.html">cellmap_segmentation_challenge.utils.visualize</a></li>
-</ul>
-</details></li>
-</ul>
-</details></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
 </ul>
@@ -302,7 +277,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="CreatePoints">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.CreatePoints">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.pipeline.CreatePoints">[docs]</a>
 <span class="k">class</span> <span class="nc">CreatePoints</span><span class="p">(</span><span class="n">gp</span><span class="o">.</span><span class="n">BatchFilter</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A batch filter that creates random points in a 3D label volume.</span>
@@ -332,7 +307,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">num_points</span> <span class="o">=</span> <span class="n">num_points</span>
 
 <div class="viewcode-block" id="CreatePoints.process">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.CreatePoints.process">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.pipeline.CreatePoints.process">[docs]</a>
     <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Process the batch by creating random points in the label volume.</span>
@@ -361,7 +336,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="DilatePoints">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.DilatePoints">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.pipeline.DilatePoints">[docs]</a>
 <span class="k">class</span> <span class="nc">DilatePoints</span><span class="p">(</span><span class="n">gp</span><span class="o">.</span><span class="n">BatchFilter</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A batch filter that performs dilation on labeled points.</span>
@@ -390,7 +365,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">dilations</span> <span class="o">=</span> <span class="n">dilations</span>
 
 <div class="viewcode-block" id="DilatePoints.process">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.DilatePoints.process">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.pipeline.DilatePoints.process">[docs]</a>
     <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Process the batch by performing dilation on the labeled points.</span>
@@ -415,7 +390,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="RandomDilateLabels">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.RandomDilateLabels">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.pipeline.RandomDilateLabels">[docs]</a>
 <span class="k">class</span> <span class="nc">RandomDilateLabels</span><span class="p">(</span><span class="n">gp</span><span class="o">.</span><span class="n">BatchFilter</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A batch filter that randomly dilates labels in a batch.</span>
@@ -433,7 +408,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">dilations</span> <span class="o">=</span> <span class="n">dilations</span>
 
 <div class="viewcode-block" id="RandomDilateLabels.process">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.RandomDilateLabels.process">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.pipeline.RandomDilateLabels.process">[docs]</a>
     <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Process the batch by randomly dilating labels.</span>
@@ -471,7 +446,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="Relabel">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.Relabel">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.pipeline.Relabel">[docs]</a>
 <span class="k">class</span> <span class="nc">Relabel</span><span class="p">(</span><span class="n">gp</span><span class="o">.</span><span class="n">BatchFilter</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A batch filter that relabels the labels in a batch.</span>
@@ -500,7 +475,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">connectivity</span> <span class="o">=</span> <span class="n">connectivity</span>
 
 <div class="viewcode-block" id="Relabel.process">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.Relabel.process">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.pipeline.Relabel.process">[docs]</a>
     <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Process the batch and relabel the labels.</span>
@@ -527,7 +502,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="ExpandLabels">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.ExpandLabels">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.pipeline.ExpandLabels">[docs]</a>
 <span class="k">class</span> <span class="nc">ExpandLabels</span><span class="p">(</span><span class="n">gp</span><span class="o">.</span><span class="n">BatchFilter</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A batch filter that expands labels by assigning the nearest label to each pixel within a specified distance.</span>
@@ -557,7 +532,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">background</span> <span class="o">=</span> <span class="n">background</span>
 
 <div class="viewcode-block" id="ExpandLabels.process">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.ExpandLabels.process">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.pipeline.ExpandLabels.process">[docs]</a>
     <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Process the batch by expanding the labels.</span>
@@ -596,7 +571,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="ZerosSource">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.ZerosSource">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.pipeline.ZerosSource">[docs]</a>
 <span class="k">class</span> <span class="nc">ZerosSource</span><span class="p">(</span><span class="n">gp</span><span class="o">.</span><span class="n">BatchProvider</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A batch provider that generates arrays filled with zeros.</span>
@@ -627,7 +602,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">_spec</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">spec</span><span class="p">}</span>
 
 <div class="viewcode-block" id="ZerosSource.setup">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.ZerosSource.setup">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.pipeline.ZerosSource.setup">[docs]</a>
     <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Perform any necessary setup before providing batches.</span>
@@ -642,7 +617,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="ZerosSource.provide">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.ZerosSource.provide">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.pipeline.ZerosSource.provide">[docs]</a>
     <span class="k">def</span> <span class="nf">provide</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Provide a batch containing an array filled with zeros.</span>
@@ -671,7 +646,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="random_source_pipeline">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.random_source_pipeline">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.pipeline.random_source_pipeline">[docs]</a>
 <span class="k">def</span> <span class="nf">random_source_pipeline</span><span class="p">(</span>
     <span class="n">voxel_size</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
     <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">148</span><span class="p">,</span> <span class="mi">148</span><span class="p">,</span> <span class="mi">148</span><span class="p">),</span>
@@ -744,7 +719,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="simulate_predictions_iou">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.simulate_predictions_iou">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.pipeline.simulate_predictions_iou">[docs]</a>
 <span class="k">def</span> <span class="nf">simulate_predictions_iou</span><span class="p">(</span><span class="n">true_labels</span><span class="p">,</span> <span class="n">iou</span><span class="p">):</span>
     <span class="c1"># TODO: Add false positives (only makes false negatives currently)</span>
 
@@ -762,7 +737,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="simulate_predictions_accuracy">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.pipeline.html#cellmap_segmentation_challenge.utils.pipeline.simulate_predictions_accuracy">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.pipeline.simulate_predictions_accuracy">[docs]</a>
 <span class="k">def</span> <span class="nf">simulate_predictions_accuracy</span><span class="p">(</span><span class="n">true_labels</span><span class="p">,</span> <span class="n">accuracy</span><span class="p">):</span>
     <span class="n">shape</span> <span class="o">=</span> <span class="n">true_labels</span><span class="o">.</span><span class="n">shape</span>
     <span class="n">true_labels</span> <span class="o">=</span> <span class="n">true_labels</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>

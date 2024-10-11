@@ -161,31 +161,6 @@
 
 </ul>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../../cellmap_segmentation_challenge.html">cellmap_segmentation_challenge</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../cellmap_segmentation_challenge.evaluate.html">cellmap_segmentation_challenge.evaluate</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.models.model_load.html">cellmap_segmentation_challenge.models.model_load</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.models.resnet.html">cellmap_segmentation_challenge.models.resnet</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.models.unet_model_2D.html">cellmap_segmentation_challenge.models.unet_model_2D</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.models.unet_model_3D.html">cellmap_segmentation_challenge.models.unet_model_3D</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.models.vitnet.html">cellmap_segmentation_challenge.models.vitnet</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cellmap_segmentation_challenge.postprocess.html">cellmap_segmentation_challenge.postprocess</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.utils.crops.html">cellmap_segmentation_challenge.utils.crops</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.utils.dataloader.html">cellmap_segmentation_challenge.utils.dataloader</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.utils.datasplit.html">cellmap_segmentation_challenge.utils.datasplit</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.utils.fetch_data.html">cellmap_segmentation_challenge.utils.fetch_data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.utils.loss.html">cellmap_segmentation_challenge.utils.loss</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.utils.pipeline.html">cellmap_segmentation_challenge.utils.pipeline</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.utils.visualize.html">cellmap_segmentation_challenge.utils.visualize</a></li>
-</ul>
-</details></li>
-</ul>
-</details></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
 </ul>
@@ -313,7 +288,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="get_3DReg_config">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.get_3DReg_config">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.get_3DReg_config">[docs]</a>
 <span class="k">def</span> <span class="nf">get_3DReg_config</span><span class="p">():</span>
     <span class="n">config</span> <span class="o">=</span> <span class="n">ml_collections</span><span class="o">.</span><span class="n">ConfigDict</span><span class="p">()</span>
     <span class="n">config</span><span class="o">.</span><span class="n">patches</span> <span class="o">=</span> <span class="n">ml_collections</span><span class="o">.</span><span class="n">ConfigDict</span><span class="p">({</span><span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">)})</span>
@@ -353,7 +328,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="np2th">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.np2th">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.np2th">[docs]</a>
 <span class="k">def</span> <span class="nf">np2th</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">conv</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Possibly convert HWIO to OIHW.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">conv</span><span class="p">:</span>
@@ -363,7 +338,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="swish">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.swish">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.swish">[docs]</a>
 <span class="k">def</span> <span class="nf">swish</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
 
@@ -377,7 +352,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="Attention">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.Attention">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Attention">[docs]</a>
 <span class="k">class</span> <span class="nc">Attention</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">vis</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Attention</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
@@ -397,7 +372,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">softmax</span> <span class="o">=</span> <span class="n">Softmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Attention.transpose_for_scores">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.Attention.transpose_for_scores">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Attention.transpose_for_scores">[docs]</a>
     <span class="k">def</span> <span class="nf">transpose_for_scores</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
         <span class="n">new_x_shape</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">()[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">num_attention_heads</span><span class="p">,</span>
@@ -408,7 +383,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="Attention.forward">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.Attention.forward">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Attention.forward">[docs]</a>
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hidden_states</span><span class="p">):</span>
         <span class="n">mixed_query_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">)</span>
         <span class="n">mixed_key_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">)</span>
@@ -436,7 +411,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="Mlp">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.Mlp">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Mlp">[docs]</a>
 <span class="k">class</span> <span class="nc">Mlp</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Mlp</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
@@ -454,7 +429,7 @@ document.write(`
         <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fc2</span><span class="o">.</span><span class="n">bias</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Mlp.forward">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.Mlp.forward">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Mlp.forward">[docs]</a>
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act_fn</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -467,7 +442,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="Embeddings">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.Embeddings">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Embeddings">[docs]</a>
 <span class="k">class</span> <span class="nc">Embeddings</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Construct the embeddings from patch, position embeddings.&quot;&quot;&quot;</span>
 
@@ -496,7 +471,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">Dropout</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">transformer</span><span class="p">[</span><span class="s2">&quot;dropout_rate&quot;</span><span class="p">])</span>
 
 <div class="viewcode-block" id="Embeddings.forward">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.Embeddings.forward">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Embeddings.forward">[docs]</a>
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
         <span class="n">x</span><span class="p">,</span> <span class="n">features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hybrid_model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">patch_embeddings</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># (B, hidden. n_patches^(1/2), n_patches^(1/2))</span>
@@ -510,7 +485,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="Block">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.Block">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Block">[docs]</a>
 <span class="k">class</span> <span class="nc">Block</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">vis</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Block</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
@@ -521,7 +496,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">attn</span> <span class="o">=</span> <span class="n">Attention</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">vis</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Block.forward">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.Block.forward">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Block.forward">[docs]</a>
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
         <span class="n">h</span> <span class="o">=</span> <span class="n">x</span>
 
@@ -539,7 +514,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="Encoder">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.Encoder">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Encoder">[docs]</a>
 <span class="k">class</span> <span class="nc">Encoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">vis</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Encoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
@@ -551,7 +526,7 @@ document.write(`
             <span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">layer</span><span class="p">))</span>
 
 <div class="viewcode-block" id="Encoder.forward">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.Encoder.forward">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Encoder.forward">[docs]</a>
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hidden_states</span><span class="p">):</span>
         <span class="n">attn_weights</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">layer_block</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="p">:</span>
@@ -565,7 +540,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="Transformer">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.Transformer">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Transformer">[docs]</a>
 <span class="k">class</span> <span class="nc">Transformer</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">img_size</span><span class="p">,</span> <span class="n">vis</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Transformer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
@@ -573,7 +548,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span> <span class="o">=</span> <span class="n">Encoder</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">vis</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Transformer.forward">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.Transformer.forward">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Transformer.forward">[docs]</a>
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_ids</span><span class="p">):</span>
         <span class="n">embedding_output</span><span class="p">,</span> <span class="n">features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embeddings</span><span class="p">(</span><span class="n">input_ids</span><span class="p">)</span>
         <span class="n">encoded</span><span class="p">,</span> <span class="n">attn_weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">embedding_output</span><span class="p">)</span>  <span class="c1"># (B, n_patch, hidden)</span>
@@ -583,7 +558,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="Conv3dReLU">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.Conv3dReLU">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Conv3dReLU">[docs]</a>
 <span class="k">class</span> <span class="nc">Conv3dReLU</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -611,7 +586,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="DecoderBlock">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.DecoderBlock">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.DecoderBlock">[docs]</a>
 <span class="k">class</span> <span class="nc">DecoderBlock</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -638,7 +613,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">up</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Upsample</span><span class="p">(</span><span class="n">scale_factor</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;trilinear&quot;</span><span class="p">,</span> <span class="n">align_corners</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
 <div class="viewcode-block" id="DecoderBlock.forward">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.DecoderBlock.forward">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.DecoderBlock.forward">[docs]</a>
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">up</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">skip</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -651,7 +626,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="DecoderCup">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.DecoderCup">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.DecoderCup">[docs]</a>
 <span class="k">class</span> <span class="nc">DecoderCup</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">img_size</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
@@ -678,7 +653,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">(</span><span class="n">blocks</span><span class="p">)</span>
 
 <div class="viewcode-block" id="DecoderCup.forward">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.DecoderCup.forward">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.DecoderCup.forward">[docs]</a>
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hidden_states</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">B</span><span class="p">,</span> <span class="n">n_patch</span><span class="p">,</span> <span class="n">hidden</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">hidden_states</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
@@ -704,7 +679,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="DoubleConv">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.DoubleConv">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.DoubleConv">[docs]</a>
 <span class="k">class</span> <span class="nc">DoubleConv</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;(convolution =&gt; [BN] =&gt; ReLU) * 2&quot;&quot;&quot;</span>
 
@@ -720,7 +695,7 @@ document.write(`
         <span class="p">)</span>
 
 <div class="viewcode-block" id="DoubleConv.forward">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.DoubleConv.forward">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.DoubleConv.forward">[docs]</a>
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">double_conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
 </div>
@@ -728,7 +703,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="Down">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.Down">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Down">[docs]</a>
 <span class="k">class</span> <span class="nc">Down</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Downscaling with maxpool then double conv&quot;&quot;&quot;</span>
 
@@ -739,7 +714,7 @@ document.write(`
         <span class="p">)</span>
 
 <div class="viewcode-block" id="Down.forward">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.Down.forward">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Down.forward">[docs]</a>
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxpool_conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
 </div>
@@ -747,7 +722,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="CNNEncoder">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.CNNEncoder">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.CNNEncoder">[docs]</a>
 <span class="k">class</span> <span class="nc">CNNEncoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">n_channels</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">CNNEncoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
@@ -761,7 +736,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="n">encoder_channels</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
 <div class="viewcode-block" id="CNNEncoder.forward">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.CNNEncoder.forward">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.CNNEncoder.forward">[docs]</a>
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
         <span class="n">features</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">x1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inc</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -780,7 +755,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="RegistrationHead">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.RegistrationHead">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.RegistrationHead">[docs]</a>
 <span class="k">class</span> <span class="nc">RegistrationHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">upsampling</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="n">conv3d</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv3d</span><span class="p">(</span>
@@ -793,7 +768,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="ViTVNet">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.ViTVNet">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.ViTVNet">[docs]</a>
 <span class="k">class</span> <span class="nc">ViTVNet</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    ViT-V-Net model</span>
@@ -830,7 +805,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
 
 <div class="viewcode-block" id="ViTVNet.forward">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.vitnet.html#cellmap_segmentation_challenge.models.vitnet.ViTVNet.forward">[docs]</a>
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.ViTVNet.forward">[docs]</a>
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
 
         <span class="n">x</span><span class="p">,</span> <span class="n">attn_weights</span><span class="p">,</span> <span class="n">features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># (B, n_patch, hidden)</span>

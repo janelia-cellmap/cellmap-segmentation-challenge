@@ -1,6 +1,14 @@
-cellmap\_segmentation\_challenge.predict
+﻿cellmap\_segmentation\_challenge.predict
 ========================================
 
-.. currentmodule:: cellmap_segmentation_challenge
+.. automodule:: cellmap_segmentation_challenge.predict
 
-.. autofunction:: predict
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      get_output_shape
+      predict
+      predict_ortho_planes
+   
