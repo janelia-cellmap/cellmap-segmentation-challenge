@@ -1,0 +1,2 @@
+crop_name, dataset, alignment, crop_url, em_url
+234,jrc_cos7-1a,recon-1,s3://janelia-cellmap-fg5f2y1pl8/jrc_cos7-1a/groundtruth.zarr/crop234,s3://janelia-cosem-datasets/jrc_cos7-1a/jrc_cos7-1a.zarr/recon-1/em/fibsem-uint8
