@@ -58,7 +58,6 @@ docs = [
     "sphinx",
     "sphinx-book-theme",
     "sphinx_mdinclude",
-    "gunpowder",
 ]
 
 dev = [
