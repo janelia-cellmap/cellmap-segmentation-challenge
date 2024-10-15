@@ -49,7 +49,7 @@ num_workers = int(os.environ.get("CSC_FETCH_DATA_NUM_WORKERS", 32))
     help="Padding to apply to raw data, in voxels. Default: 0.",
 )
 @click.option(
-    "--dest-dir",
+    "--dest",
     type=click.STRING,
     default="./data",
     help="Path to directory where data will be stored.",
@@ -71,7 +71,7 @@ num_workers = int(os.environ.get("CSC_FETCH_DATA_NUM_WORKERS", 32))
 def fetch_data_cli(
     crops: str,
     raw_padding: str,
-    dest_dir: str,
+    dest: str,
     access_mode: str,
     fetch_all_em_resolutions,
 ):
@@ -88,7 +88,7 @@ def fetch_data_cli(
         )
     fetch_save_start = time.time()
     pool = ThreadPoolExecutor(max_workers=num_workers)
-    dest_path_abs = Path(dest_dir).absolute()
+    dest_path_abs = Path(dest).absolute()
 
     log = structlog.get_logger()
     crops_parsed: tuple[CropRow, ...]
