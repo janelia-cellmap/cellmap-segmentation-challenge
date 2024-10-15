@@ -127,6 +127,7 @@ See the `README.md` in the `examples` folder for more information on the availab
 After making predictions on the test data, you may want to post-process the predictions to improve the results. An example script for post-processing is provided in the `examples` directory, named `postprocess.py` and is annotated for clarity. 
 
 ... #TODO: Add more information on post-processing
+# TODO: Add post-processing to CLI
 
 ## Submit your final predictions
 

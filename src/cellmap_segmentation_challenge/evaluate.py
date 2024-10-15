@@ -17,7 +17,20 @@ from upath import UPath
 from tqdm import tqdm
 
 
-INSTANCE_CLASSES = ["mito", "nuc", "instance"]
+INSTANCE_CLASSES = [
+    "nuc",
+    "vim",
+    "ves",
+    "endo",
+    "lyso",
+    "ld",
+    "perox",
+    "mito",
+    "np",
+    "mt",
+    "cell",
+    "instance",
+]
 HAUSDORFF_DISTANCE_MAX = np.inf
 
 # TODO: REPLACE WITH THE GROUND TRUTH LABEL VOLUME PATH

@@ -50,7 +50,6 @@ dependencies = [
   "scikit-learn",
   "daisy",
   "funlib.persistence",
-  "gunpowder",
   ]
 
 [project.optional-dependencies]
@@ -72,6 +71,7 @@ dev = [
     "pdbpp",
     "python-semantic-release",
     "cellmap-segmentation-challenge[test,docs]",
+    "gunpowder",
 ]
 
 [project.urls]

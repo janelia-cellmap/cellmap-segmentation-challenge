@@ -4,7 +4,7 @@ import gunpowder as gp
 from skimage.measure import label
 import matplotlib.pyplot as plt
 
-from cellmap_segmentation_challenge.utils.pipeline import (
+from benchmark.pipeline import (
     random_source_pipeline,
     simulate_predictions_accuracy,
     simulate_predictions_iou,
