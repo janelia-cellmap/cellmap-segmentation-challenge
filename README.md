@@ -78,7 +78,7 @@ cellmap-segmentation-challenge/
 Once you have installed this package, you can download the challenge data by running the following command:
 
 ```bash
-csc fetch-data --crops all --dest path/to/dest
+csc fetch-data --crops all --dest data
 ```
 
 This will retrieve groundtruth data and corresponding EM data for each crop and save it at a path 
