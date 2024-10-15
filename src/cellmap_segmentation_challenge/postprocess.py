@@ -4,7 +4,7 @@ from upath import UPath
 from tqdm import tqdm
 from funlib.persistence import open_ds, prepare_ds
 from importlib.machinery import SourceFileLoader
-from typing import Optional
+from typing import Optional, Union
 from skimage.transform import resize, rescale
 import zarr
 
@@ -59,7 +59,7 @@ def threshold_volume(
 
 def process_volume(
     input_container: str | UPath,
-    process_func: callable | list[callable] | dict[str, callable] | os.PathLike,
+    process_func: Union[callable, list[callable], dict[str, callable], os.PathLike],
     output_path: str | UPath,
     labels: Optional[list[str]] = None,
 ):

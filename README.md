@@ -92,10 +92,10 @@ csc fetch-data --help
 
 ## Train a model
 
-Example scripts for training 2D and 3D models are provided in the `src/cellmap_segmentation_challenge/examples` directory. The scripts are named `train_2d.py` and `train_3d.py`, respectively, and are thoroughly annotated for clarity. You can run one such script by running the following on the command line:
+Example scripts for training 2D and 3D models are provided in the `examples` directory. The scripts are named `train_2d.py` and `train_3d.py`, respectively, and are thoroughly annotated for clarity. You can run one such script by running the following on the command line:
 
 ```bash
-cd src/cellmap_segmentation_challenge/examples
+cd examples
 python train_2d.py
 ```
 This will train a 2D model on the training data and save the model weights to a file (defaults to `./checkpoints/*.pth`), along with logging loss and validation metrics, and sample predictions, viewable in TensorBoard. To view the TensorBoard logs, and monitor training progress, run the following command (assuming you are using the default log directory):
