@@ -1,4 +1,4 @@
-import csv
+# %%
 from glob import glob
 import shutil
 import sys
@@ -7,6 +7,12 @@ import numpy as np
 import os
 
 from tqdm import tqdm
+
+SEARCH_PATH = (
+    os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    + "/data/{dataset}/{dataset}.zarr/recon-1/labels/groundtruth/*/{label}"
+)
+RAW_NAME = "recon-1/em/fibsem-uint8"
 
 
 def get_csv_string(
@@ -17,8 +23,31 @@ def get_csv_string(
     raw_name: str,
     crops: Optional[list[str]] = None,
 ):
+    """
+    Get the csv string for a given dataset path, to be written to the datasplit csv file.
+
+    Parameters
+    ----------
+    path : str
+        The path to the dataset.
+    classes : list[str]
+        The classes present in the dataset.
+    datapath_prefix : str
+        The prefix of the path to the raw data.
+    usage : str
+        The usage of the dataset (train or validate).
+    raw_name : str
+        The name of the raw data.
+    crops : Optional[list[str]], optional
+        The crops to include in the csv, by default None. If None, all crops are included. Otherwise, only the crops in the list are included.
+
+    Returns
+    -------
+    str
+        The csv string for the dataset.
+    """
     dataset_name = path.removeprefix(datapath_prefix).split("/")[0]
-    gt_name = path.split(".zarr")[-1].strip("/")
+    gt_name = "crop" + path.split("crop")[-1].split("/")[0]
     if crops is not None and gt_name not in crops:
         bar_string = gt_name + " not in crops, skipping"
         return None, bar_string
@@ -42,14 +71,38 @@ def get_csv_string(
 def make_datasplit_csv(
     classes: list[str] = ["nuc", "mito"],
     force_all_classes: bool | str = False,
-    validation_prob: float = 0.3,
+    validation_prob: float = 0.1,
     datasets: list[str] = ["*"],
-    search_path: str = "./data/{dataset}.zarr/*/{label}",
-    raw_name: str = "recon-1/em/fibsem-uint8",
+    search_path: str = SEARCH_PATH,
+    raw_name: str = RAW_NAME,
     csv_path: str = "datasplit.csv",
     dry_run: bool = False,
     crops: Optional[list[str]] = None,
 ):
+    """
+    Make a datasplit csv file for the given classes and datasets.
+
+    Parameters
+    ----------
+    classes : list[str], optional
+        The classes to include in the csv, by default ["nuc", "mito"]
+    force_all_classes : bool | str, optional
+        If True, force all classes to be present in the training/validation datasets. If False, as long as at least one requested class is present, a crop will be included. If "train" or "validate", force all classes to be present in the training or validation datasets, respectively. By default False.
+    validation_prob : float, optional
+        The probability of a dataset being in the validation set, by default 0.1
+    datasets : list[str], optional
+        The datasets to include in the csv, by default ["*"], which includes all datasets
+    search_path : str, optional
+        The search path to use to find the datasets, by default SEARCH_PATH
+    raw_name : str, optional
+        The name of the raw data, by default RAW_NAME
+    csv_path : str, optional
+        The path to write the csv file to, by default "datasplit.csv"
+    dry_run : bool, optional
+        If True, do not write the csv file - just return the found datapaths. By default False
+    crops : Optional[list[str]], optional
+        The crops to include in the csv, by default None. If None, all crops are included. Otherwise, only the crops in the list are included.
+    """
     # Define the paths to the raw and groundtruth data and the label classes by crawling the directories and writing the paths to a csv file
     datapath_prefix = search_path.split("{")[0]
     datapaths = {}
@@ -78,6 +131,7 @@ def make_datasplit_csv(
     num_train = num_validate = 0
     bar = tqdm(datapaths.keys())
     for path in bar:
+        print(f"Processing {path}")
         usage = usage_dict[path]
         if force_all_classes == usage:
             if len(datapaths[path]) != len(classes):
@@ -101,7 +155,7 @@ def make_datasplit_csv(
             else:
                 num_validate += 1
 
-    print(f"CSV written to {csv_path}")
+    assert num_train + num_validate > 0, "No datasets found"
     print(f"Number of datasets: {num_train + num_validate}")
     print(
         f"Number of training datasets: {num_train} ({num_train/(num_train+num_validate)*100:.2f}%)"
@@ -109,14 +163,32 @@ def make_datasplit_csv(
     print(
         f"Number of validation datasets: {num_validate} ({num_validate/(num_train+num_validate)*100:.2f}%)"
     )
+    print(f"CSV written to {csv_path}")
 
 
 def get_dataset_counts(
     classes: list[str] = ["nuc", "mito"],
-    search_path: str = ".../*/staging/groundtruth.zarr/*/{label}",
-    raw_name: str = "recon-1/em/fibsem-uint8",
+    search_path: str = SEARCH_PATH,
+    raw_name: str = RAW_NAME,
 ):
-    # Count the # of crops per class per dataset
+    """
+    Get the counts of each class in each dataset.
+
+    Parameters
+    ----------
+    classes : list[str], optional
+        The classes to include in the csv, by default ["nuc", "mito"]
+    search_path : str, optional
+        The search path to use to find the datasets, by default SEARCH_PATH
+    raw_name : str, optional
+        The name of the raw data, by default RAW_NAME
+
+    Returns
+    -------
+    dict
+        A dictionary of the counts of each class in each dataset.
+    """
+
     datapath_prefix = search_path.split("*")[0]
     dataset_class_counts = {}
     for label in classes:
@@ -144,55 +216,26 @@ def get_dataset_counts(
     return dataset_class_counts
 
 
-def get_class_incl_ids(incl_ids_string):
-    if incl_ids_string is None or incl_ids_string == "":
-        return []
-    return [int(id) for id in incl_ids_string.split(",")]
-
-
-def get_class_relations(
-    csv_path: str = "classes.csv", named_classes: Optional[list[str]] = None
-):
-    classes_dict = {}
-    with open(csv_path, "r") as f:
-        reader = csv.reader(f)
-        for row in reader:
-            if named_classes is not None and row[0] not in named_classes:
-                continue
-            id = int(row[1])
-            if id not in classes_dict:
-                classes_dict[id] = {}
-            classes_dict[id]["name"] = row[0]
-            classes_dict[id]["incl_ids"] = set(get_class_incl_ids(*row[2:]) + [id])
-
-    # Get all potentially overlapping classes (e.g. cell can overlap with every organelle but not ecs)
-    class_relation_dict = {}
-    for id1, info1 in classes_dict.items():
-        if info1["name"] not in class_relation_dict:
-            class_relation_dict[info1["name"]] = set()
-        for id2, info2 in classes_dict.items():
-            if id1 == id2:
-                class_relation_dict[info1["name"]].add(info2["name"])
-            if len(info1["incl_ids"].intersection(info2["incl_ids"])) > 0:
-                class_relation_dict[info1["name"]].add(info2["name"])
-
-    class_ids = set(v["name"] for v in classes_dict.values())
-    for key, value in class_relation_dict.items():
-        class_relation_dict[key] = class_ids - value
-
-    return class_relation_dict
-
-
 if __name__ == "__main__":
+    """
+    Usage: python datasplit.py [search_path] [classes]
+
+    search_path: The search path to use to find the datasets. Defaults to SEARCH_PATH.
+    classes: A comma-separated list of classes to include in the csv. Defaults to ["nuc", "er"].
+    """
     if len(sys.argv) > 1 and sys.argv[1][0] == "[":
         classes = sys.argv[1][1:-1].split(",")
+        if len(sys.argv) > 2:
+            search_path = sys.argv[2]
+        else:
+            search_path = SEARCH_PATH
     elif len(sys.argv) > 1:
         search_path = sys.argv[1]
         classes = ["nuc", "er"]
     else:
         classes = ["nuc", "er"]
-        search_path = "./data.zarr/{dataset}/{label}"
+        search_path = SEARCH_PATH
 
     os.remove("datasplit.csv")
 
-    make_datasplit_csv(classes=classes, search_path=search_path, validation_prob=0.15)
+    make_datasplit_csv(classes=classes, search_path=search_path, validation_prob=0.1)

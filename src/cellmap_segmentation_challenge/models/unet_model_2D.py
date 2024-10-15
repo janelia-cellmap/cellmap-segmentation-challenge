@@ -1,5 +1,6 @@
-# Original source code from:
+# Adapted from:
 # https://github.com/milesial/Pytorch-UNet/blob/master/unet/unet_parts.py
+# By Emma Avetissian, @aemmav
 
 """ Parts of the U-Net model """
 
@@ -88,6 +89,23 @@ class OutConv(nn.Module):
 
 
 class UNet_2D(nn.Module):
+    """
+    2D U-Net model.
+
+    Adapted from:
+        https://github.com/milesial/Pytorch-UNet/blob/master/unet/unet_model.py
+    By Emma Avetissian, @aemmav
+
+    Parameters
+    ----------
+    n_channels : int
+        Number of input channels.
+    n_classes : int
+        Number of output channels.
+    trilinear : bool
+        Whether to use trilinear interpolation or not.
+    """
+
     def __init__(self, n_channels, n_classes, trilinear=False):
         super(UNet_2D, self).__init__()
         self.n_channels = n_channels

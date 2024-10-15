@@ -6,8 +6,17 @@ import numpy as np
 from tensorboard.backend.event_processing import event_accumulator
 
 
-# load_latest checks to see if there are any checkpoints and loads in the latest one
 def load_latest(search_path, model):
+    """
+    Load the latest checkpoint from a directory into a model (in place).
+
+    Parameters
+    ----------
+    search_path : str
+        The path to search for checkpoints.
+    model : torch.nn.Module
+        The model to load the checkpoint into.
+    """
 
     # Check if there are any files matching the checkpoint save path
     checkpoint_files = glob.glob(search_path)
@@ -24,9 +33,21 @@ def load_latest(search_path, model):
         print(f"Loaded latest checkpoint: {newest_checkpoint}")
 
 
-# Load the model with the best validation score
 def load_best_val(logs_save_path, model_save_path, model, low_is_best=True):
+    """
+    Load the model weights with the best validation score from a directory into an existing model object in place.
 
+    Parameters
+    ----------
+    logs_save_path : str
+        The path to the directory with the tensorboard logs.
+    model_save_path : str
+        The path to the model checkpoints.
+    model : torch.nn.Module
+        The model to load the checkpoint into.
+    low_is_best : bool
+        Whether a lower validation score is better.
+    """
     # Load the event file
     event_acc = event_accumulator.EventAccumulator(logs_save_path)
     print("Loading events files, may take a minute")

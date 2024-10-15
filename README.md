@@ -29,7 +29,7 @@ You can clone and install the repository by running the following command:
 
 ```bash
 # Clone the repository
-git clone github.com/janelia-cellmap/cellmap-segmentation-challenge
+git clone https://github.com/janelia-cellmap/cellmap-segmentation-challenge
 
 # Install the repo in editable mode
 cd cellmap-segmentation-challenge
@@ -78,7 +78,7 @@ cellmap-segmentation-challenge/
 Once you have installed this package, you can download the challenge data by running the following command:
 
 ```bash
-csc fetch-data --crops all --dest path/to/dest
+csc fetch-data --crops all --dest data
 ```
 
 This will retrieve groundtruth data and corresponding EM data for each crop and save it at a path 
@@ -92,10 +92,10 @@ csc fetch-data --help
 
 ## Train a model
 
-Example scripts for training 2D and 3D models are provided in the `src/cellmap_segmentation_challenge/examples` directory. The scripts are named `train_2d.py` and `train_3d.py`, respectively, and are thoroughly annotated for clarity. You can run one such script by running the following on the command line:
+Example scripts for training 2D and 3D models are provided in the `examples` directory. The scripts are named `train_2d.py` and `train_3d.py`, respectively, and are thoroughly annotated for clarity. You can run one such script by running the following on the command line:
 
 ```bash
-cd src/cellmap_segmentation_challenge/examples
+cd examples
 python train_2d.py
 ```
 This will train a 2D model on the training data and save the model weights to a file (defaults to `./checkpoints/*.pth`), along with logging loss and validation metrics, and sample predictions, viewable in TensorBoard. To view the TensorBoard logs, and monitor training progress, run the following command (assuming you are using the default log directory):
@@ -122,7 +122,14 @@ python predict_2D.py
 
 See the `README.md` in the `examples` folder for more information on the available options, as well as the documentation in `examples/predict_2D.py` and `examples/predict_3D.py`.
 
-## Submit your predictions
+## Post-process model predictions
+
+After making predictions on the test data, you may want to post-process the predictions to improve the results. An example script for post-processing is provided in the `examples` directory, named `postprocess.py` and is annotated for clarity. 
+
+... #TODO: Add more information on post-processing
+# TODO: Add post-processing to CLI
+
+## Submit your final predictions
 
 To submit your predictions, first make sure that they are in the correct format (see below), then submit them through [the online submission portal](https://staging.cellmapchallenge.2i2c.cloud/upload). You will need to sign in with your GitHub account to submit your predictions.
 

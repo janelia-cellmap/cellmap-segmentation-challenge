@@ -1,10 +1,10 @@
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 import time
 import click
 from xarray import DataArray
 from xarray_ome_ngff import read_multiscale_group
 from xarray_ome_ngff.v04.multiscale import transforms_from_coords
-from cellmap_segmentation_challenge.fetch_data import (
+from cellmap_segmentation_challenge.utils.fetch_data import (
     _resolve_em_dest_path,
     _resolve_gt_dest_path,
     subset_to_slice,
