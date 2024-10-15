@@ -119,7 +119,7 @@ def get_dataset_counts_cli(classes, search_path, raw_name):
     """Get the counts of each class in each dataset and print them to the stdout."""
     classes = classes.split(",")
     dataset_class_counts = get_dataset_counts(
-        classes=classes, search_path=search_path, raw_name=RAW_NAME, raw_name=raw_name
+        classes=classes, search_path=search_path, raw_name=raw_name
     )
 
     # Print the counts
