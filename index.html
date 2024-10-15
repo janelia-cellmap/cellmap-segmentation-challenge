@@ -163,6 +163,30 @@
 
 </ul>
 <ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.html">cellmap_segmentation_challenge</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.evaluate.html">cellmap_segmentation_challenge.evaluate</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.model_load.html">cellmap_segmentation_challenge.models.model_load</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.resnet.html">cellmap_segmentation_challenge.models.resnet</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.unet_model_2D.html">cellmap_segmentation_challenge.models.unet_model_2D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.unet_model_3D.html">cellmap_segmentation_challenge.models.unet_model_3D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.vitnet.html">cellmap_segmentation_challenge.models.vitnet</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.postprocess.html">cellmap_segmentation_challenge.postprocess</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.crops.html">cellmap_segmentation_challenge.utils.crops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.dataloader.html">cellmap_segmentation_challenge.utils.dataloader</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.datasplit.html">cellmap_segmentation_challenge.utils.datasplit</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.fetch_data.html">cellmap_segmentation_challenge.utils.fetch_data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.loss.html">cellmap_segmentation_challenge.utils.loss</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.visualize.html">cellmap_segmentation_challenge.utils.visualize</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
 <li class="toctree-l1"><a class="reference internal" href="cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
 </ul>
@@ -420,8 +444,8 @@ of your choosing on your local filesystem.</p>
 </section>
 <section id="train-a-model">
 <h2>Train a model<a class="headerlink" href="#train-a-model" title="Link to this heading">#</a></h2>
-<p>Example scripts for training 2D and 3D models are provided in the <code class="docutils literal notranslate"><span class="pre">src/cellmap_segmentation_challenge/examples</span></code> directory. The scripts are named <code class="docutils literal notranslate"><span class="pre">train_2d.py</span></code> and <code class="docutils literal notranslate"><span class="pre">train_3d.py</span></code>, respectively, and are thoroughly annotated for clarity. You can run one such script by running the following on the command line:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>src/cellmap_segmentation_challenge/examples
+<p>Example scripts for training 2D and 3D models are provided in the <code class="docutils literal notranslate"><span class="pre">examples</span></code> directory. The scripts are named <code class="docutils literal notranslate"><span class="pre">train_2d.py</span></code> and <code class="docutils literal notranslate"><span class="pre">train_3d.py</span></code>, respectively, and are thoroughly annotated for clarity. You can run one such script by running the following on the command line:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>examples
 python<span class="w"> </span>train_2d.py
 </pre></div>
 </div>
@@ -506,11 +530,14 @@ Note: The instance labels, if used, should be unique IDs per object, with 0 as b
 <h1>API<a class="headerlink" href="#api" title="Link to this heading">#</a></h1>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.train.html#module-cellmap_segmentation_challenge.train" title="cellmap_segmentation_challenge.train"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cellmap_segmentation_challenge.train</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.html#module-cellmap_segmentation_challenge" title="cellmap_segmentation_challenge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cellmap_segmentation_challenge</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.predict.html#module-cellmap_segmentation_challenge.predict" title="cellmap_segmentation_challenge.predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cellmap_segmentation_challenge.predict</span></code></a></p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.train.html#cellmap_segmentation_challenge.train" title="cellmap_segmentation_challenge.train"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cellmap_segmentation_challenge.train</span></code></a>(config_path)</p></td>
+<td><p>Train a model using the configuration file at the specified path.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.predict.html#cellmap_segmentation_challenge.predict" title="cellmap_segmentation_challenge.predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cellmap_segmentation_challenge.predict</span></code></a>(...)</p></td>
+<td><p>Predicts the output of a model on a large dataset by splitting it into blocks and predicting each block separately.</p></td>
 </tr>
 </tbody>
 </table>

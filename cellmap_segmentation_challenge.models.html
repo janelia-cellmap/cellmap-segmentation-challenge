@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>cellmap_segmentation_challenge.models package &#8212; CellMap Segmentation Challenge</title>
+    <title>cellmap_segmentation_challenge.models &#8212; CellMap Segmentation Challenge</title>
   
   
   
@@ -44,6 +44,8 @@
     <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="cellmap_segmentation_challenge.models.model_load" href="cellmap_segmentation_challenge.models.model_load.html" />
+    <link rel="prev" title="cellmap_segmentation_challenge.evaluate" href="cellmap_segmentation_challenge.evaluate.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -159,7 +161,31 @@
 
 
 </ul>
-<ul class="nav bd-sidenav">
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="cellmap_segmentation_challenge.html">cellmap_segmentation_challenge</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.evaluate.html">cellmap_segmentation_challenge.evaluate</a></li>
+<li class="toctree-l2 current active has-children"><a class="current reference internal" href="#">cellmap_segmentation_challenge.models</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.model_load.html">cellmap_segmentation_challenge.models.model_load</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.resnet.html">cellmap_segmentation_challenge.models.resnet</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.unet_model_2D.html">cellmap_segmentation_challenge.models.unet_model_2D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.unet_model_3D.html">cellmap_segmentation_challenge.models.unet_model_3D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.vitnet.html">cellmap_segmentation_challenge.models.vitnet</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.postprocess.html">cellmap_segmentation_challenge.postprocess</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.crops.html">cellmap_segmentation_challenge.utils.crops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.dataloader.html">cellmap_segmentation_challenge.utils.dataloader</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.datasplit.html">cellmap_segmentation_challenge.utils.datasplit</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.fetch_data.html">cellmap_segmentation_challenge.utils.fetch_data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.loss.html">cellmap_segmentation_challenge.utils.loss</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.visualize.html">cellmap_segmentation_challenge.utils.visualize</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
 <li class="toctree-l1"><a class="reference internal" href="cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
 </ul>
@@ -287,9 +313,7 @@ document.write(`
   </button>
 `);
 </script>
-<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="fa-solid fa-list"></span>
-</button>
+
 </div></div>
       
     </div>
@@ -300,152 +324,11 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>cellmap_segmentation_challenge.models package</h1>
+    <h1>cellmap_segmentation_challenge.models</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
             
-            <div>
-                <h2> Contents </h2>
-            </div>
-            <nav aria-label="Page">
-                <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.models.model_load">cellmap_segmentation_challenge.models.model_load module</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.model_load.load_latest"><code class="docutils literal notranslate"><span class="pre">load_latest()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.model_load.load_best_val"><code class="docutils literal notranslate"><span class="pre">load_best_val()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.models.resnet">cellmap_segmentation_challenge.models.resnet module</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.resnet.Resnet2D"><code class="docutils literal notranslate"><span class="pre">Resnet2D</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.resnet.Resnet2D.forward"><code class="docutils literal notranslate"><span class="pre">Resnet2D.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.resnet.ResnetBlock2D"><code class="docutils literal notranslate"><span class="pre">ResnetBlock2D</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.resnet.ResnetBlock2D.build_conv_block"><code class="docutils literal notranslate"><span class="pre">ResnetBlock2D.build_conv_block()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.resnet.ResnetBlock2D.crop"><code class="docutils literal notranslate"><span class="pre">ResnetBlock2D.crop()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.resnet.ResnetBlock2D.forward"><code class="docutils literal notranslate"><span class="pre">ResnetBlock2D.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.resnet.Resnet3D"><code class="docutils literal notranslate"><span class="pre">Resnet3D</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.resnet.Resnet3D.forward"><code class="docutils literal notranslate"><span class="pre">Resnet3D.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.resnet.ResnetBlock3D"><code class="docutils literal notranslate"><span class="pre">ResnetBlock3D</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.resnet.ResnetBlock3D.build_conv_block"><code class="docutils literal notranslate"><span class="pre">ResnetBlock3D.build_conv_block()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.resnet.ResnetBlock3D.crop"><code class="docutils literal notranslate"><span class="pre">ResnetBlock3D.crop()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.resnet.ResnetBlock3D.forward"><code class="docutils literal notranslate"><span class="pre">ResnetBlock3D.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.resnet.ResNet"><code class="docutils literal notranslate"><span class="pre">ResNet</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.models.unet_model_2D">cellmap_segmentation_challenge.models.unet_model_2D module</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_2D.DoubleConv"><code class="docutils literal notranslate"><span class="pre">DoubleConv</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_2D.DoubleConv.forward"><code class="docutils literal notranslate"><span class="pre">DoubleConv.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_2D.Down"><code class="docutils literal notranslate"><span class="pre">Down</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_2D.Down.forward"><code class="docutils literal notranslate"><span class="pre">Down.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_2D.Up"><code class="docutils literal notranslate"><span class="pre">Up</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_2D.Up.forward"><code class="docutils literal notranslate"><span class="pre">Up.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_2D.OutConv"><code class="docutils literal notranslate"><span class="pre">OutConv</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_2D.OutConv.forward"><code class="docutils literal notranslate"><span class="pre">OutConv.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_2D.UNet_2D"><code class="docutils literal notranslate"><span class="pre">UNet_2D</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_2D.UNet_2D.forward"><code class="docutils literal notranslate"><span class="pre">UNet_2D.forward()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.models.unet_model_3D">cellmap_segmentation_challenge.models.unet_model_3D module</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_3D.DoubleConv"><code class="docutils literal notranslate"><span class="pre">DoubleConv</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_3D.DoubleConv.forward"><code class="docutils literal notranslate"><span class="pre">DoubleConv.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_3D.Down"><code class="docutils literal notranslate"><span class="pre">Down</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_3D.Down.forward"><code class="docutils literal notranslate"><span class="pre">Down.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_3D.Up"><code class="docutils literal notranslate"><span class="pre">Up</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_3D.Up.forward"><code class="docutils literal notranslate"><span class="pre">Up.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_3D.OutConv"><code class="docutils literal notranslate"><span class="pre">OutConv</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_3D.OutConv.forward"><code class="docutils literal notranslate"><span class="pre">OutConv.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_3D.UNet_3D"><code class="docutils literal notranslate"><span class="pre">UNet_3D</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_3D.UNet_3D.forward"><code class="docutils literal notranslate"><span class="pre">UNet_3D.forward()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.models.vitnet">cellmap_segmentation_challenge.models.vitnet module</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.get_3DReg_config"><code class="docutils literal notranslate"><span class="pre">get_3DReg_config()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.np2th"><code class="docutils literal notranslate"><span class="pre">np2th()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.swish"><code class="docutils literal notranslate"><span class="pre">swish()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Attention"><code class="docutils literal notranslate"><span class="pre">Attention</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Attention.transpose_for_scores"><code class="docutils literal notranslate"><span class="pre">Attention.transpose_for_scores()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Attention.forward"><code class="docutils literal notranslate"><span class="pre">Attention.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Mlp"><code class="docutils literal notranslate"><span class="pre">Mlp</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Mlp.forward"><code class="docutils literal notranslate"><span class="pre">Mlp.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Embeddings"><code class="docutils literal notranslate"><span class="pre">Embeddings</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Embeddings.forward"><code class="docutils literal notranslate"><span class="pre">Embeddings.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Block"><code class="docutils literal notranslate"><span class="pre">Block</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Block.forward"><code class="docutils literal notranslate"><span class="pre">Block.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Encoder"><code class="docutils literal notranslate"><span class="pre">Encoder</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Encoder.forward"><code class="docutils literal notranslate"><span class="pre">Encoder.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Transformer"><code class="docutils literal notranslate"><span class="pre">Transformer</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Transformer.forward"><code class="docutils literal notranslate"><span class="pre">Transformer.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Conv3dReLU"><code class="docutils literal notranslate"><span class="pre">Conv3dReLU</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.DecoderBlock"><code class="docutils literal notranslate"><span class="pre">DecoderBlock</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.DecoderBlock.forward"><code class="docutils literal notranslate"><span class="pre">DecoderBlock.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.DecoderCup"><code class="docutils literal notranslate"><span class="pre">DecoderCup</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.DecoderCup.forward"><code class="docutils literal notranslate"><span class="pre">DecoderCup.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.DoubleConv"><code class="docutils literal notranslate"><span class="pre">DoubleConv</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.DoubleConv.forward"><code class="docutils literal notranslate"><span class="pre">DoubleConv.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Down"><code class="docutils literal notranslate"><span class="pre">Down</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Down.forward"><code class="docutils literal notranslate"><span class="pre">Down.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.CNNEncoder"><code class="docutils literal notranslate"><span class="pre">CNNEncoder</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.CNNEncoder.forward"><code class="docutils literal notranslate"><span class="pre">CNNEncoder.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.RegistrationHead"><code class="docutils literal notranslate"><span class="pre">RegistrationHead</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.ViTVNet"><code class="docutils literal notranslate"><span class="pre">ViTVNet</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.ViTVNet.forward"><code class="docutils literal notranslate"><span class="pre">ViTVNet.forward()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.models">Module contents</a></li>
-</ul>
-            </nav>
         </div>
     </div>
 </div>
@@ -455,721 +338,29 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="cellmap-segmentation-challenge-models-package">
-<h1>cellmap_segmentation_challenge.models package<a class="headerlink" href="#cellmap-segmentation-challenge-models-package" title="Link to this heading">#</a></h1>
-<section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">#</a></h2>
-</section>
-<section id="module-cellmap_segmentation_challenge.models.model_load">
-<span id="cellmap-segmentation-challenge-models-model-load-module"></span><h2>cellmap_segmentation_challenge.models.model_load module<a class="headerlink" href="#module-cellmap_segmentation_challenge.models.model_load" title="Link to this heading">#</a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.model_load.load_latest">
-<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.model_load.</span></span><span class="sig-name descname"><span class="pre">load_latest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">search_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/model_load.html#load_latest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.model_load.load_latest" title="Link to this definition">#</a></dt>
-<dd><p>Load the latest checkpoint from a directory into a model (in place).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>search_path</strong> (<em>str</em>) – The path to search for checkpoints.</p></li>
-<li><p><strong>model</strong> (<em>torch.nn.Module</em>) – The model to load the checkpoint into.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.model_load.load_best_val">
-<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.model_load.</span></span><span class="sig-name descname"><span class="pre">load_best_val</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logs_save_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_save_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">low_is_best</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/model_load.html#load_best_val"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.model_load.load_best_val" title="Link to this definition">#</a></dt>
-<dd><p>Load the model weights with the best validation score from a directory into an existing model object in place.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>logs_save_path</strong> (<em>str</em>) – The path to the directory with the tensorboard logs.</p></li>
-<li><p><strong>model_save_path</strong> (<em>str</em>) – The path to the model checkpoints.</p></li>
-<li><p><strong>model</strong> (<em>torch.nn.Module</em>) – The model to load the checkpoint into.</p></li>
-<li><p><strong>low_is_best</strong> (<em>bool</em>) – Whether a lower validation score is better.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-</section>
-<section id="module-cellmap_segmentation_challenge.models.resnet">
-<span id="cellmap-segmentation-challenge-models-resnet-module"></span><h2>cellmap_segmentation_challenge.models.resnet module<a class="headerlink" href="#module-cellmap_segmentation_challenge.models.resnet" title="Link to this heading">#</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.resnet.Resnet2D">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.resnet.</span></span><span class="sig-name descname"><span class="pre">Resnet2D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_nc=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_nc=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ngf=64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_layer=&lt;class</span> <span class="pre">'torch.nn.modules.instancenorm.InstanceNorm2d'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_dropout=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_blocks=6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding_type='reflect'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation=&lt;class</span> <span class="pre">'torch.nn.modules.activation.ReLU'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_downsampling=2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/resnet.html#Resnet2D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.resnet.Resnet2D" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Construct a Resnet
-:param input_nc:
-:type input_nc: int
-:param output_nc:
-:type output_nc: int)     – the number of channels in output images (default is ngf
-:param ngf:
-:type ngf: int
-:param norm_layer          – normalization layer:
-:param use_dropout:
-:type use_dropout: bool
-:param n_blocks:
-:type n_blocks: int
-:param padding_type: reflect | replicate | zeros | valid
-:type padding_type: str
-:param activation          – non-linearity layer to apply:
-:type activation          – non-linearity layer to apply: default is ReLU
-:param n_downsampling      – number of times to downsample data before ResBlocks:</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.resnet.Resnet2D.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/resnet.html#Resnet2D.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.resnet.Resnet2D.forward" title="Link to this definition">#</a></dt>
-<dd><p>Standard forward</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.resnet.ResnetBlock2D">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.resnet.</span></span><span class="sig-name descname"><span class="pre">ResnetBlock2D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_layer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_dropout</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_bias</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation=&lt;class</span> <span class="pre">'torch.nn.modules.activation.ReLU'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/resnet.html#ResnetBlock2D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.resnet.ResnetBlock2D" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initialize the Resnet block
-A resnet block is a conv block with skip connections
-We construct a conv block with build_conv_block function,
-and implement skip connections in &lt;forward&gt; function.
-Original Resnet paper: <a class="reference external" href="https://arxiv.org/pdf/1512.03385.pdf">https://arxiv.org/pdf/1512.03385.pdf</a></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.resnet.ResnetBlock2D.build_conv_block">
-<span class="sig-name descname"><span class="pre">build_conv_block</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_layer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_dropout</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_bias</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation=&lt;class</span> <span class="pre">'torch.nn.modules.activation.ReLU'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/resnet.html#ResnetBlock2D.build_conv_block"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.resnet.ResnetBlock2D.build_conv_block" title="Link to this definition">#</a></dt>
-<dd><p>Construct a convolutional block.
-:param dim:
-:type dim: int
-:param padding_type: reflect | replicate | zeros | valid
-:type padding_type: str
-:param norm_layer          – normalization layer:
-:param use_dropout:
-:type use_dropout: bool
-:param use_bias:
-:type use_bias: bool
-:param activation          – non-linearity layer to apply:
-:type activation          – non-linearity layer to apply: default is ReLU</p>
-<p>Returns a conv block (with a conv layer, a normalization layer, and a non-linearity layer)</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.resnet.ResnetBlock2D.crop">
-<span class="sig-name descname"><span class="pre">crop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/resnet.html#ResnetBlock2D.crop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.resnet.ResnetBlock2D.crop" title="Link to this definition">#</a></dt>
-<dd><p>Center-crop x to match spatial dimensions given by shape.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.resnet.ResnetBlock2D.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/resnet.html#ResnetBlock2D.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.resnet.ResnetBlock2D.forward" title="Link to this definition">#</a></dt>
-<dd><p>Forward function (with skip connections)</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.resnet.Resnet3D">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.resnet.</span></span><span class="sig-name descname"><span class="pre">Resnet3D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_nc=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_nc=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ngf=64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_layer=&lt;class</span> <span class="pre">'torch.nn.modules.instancenorm.InstanceNorm3d'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_dropout=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_blocks=6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding_type='reflect'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation=&lt;class</span> <span class="pre">'torch.nn.modules.activation.ReLU'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_downsampling=2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/resnet.html#Resnet3D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.resnet.Resnet3D" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Construct a Resnet
-:param input_nc:
-:type input_nc: int
-:param output_nc:
-:type output_nc: int
-:param ngf:
-:type ngf: int
-:param norm_layer          – normalization layer:
-:param use_dropout:
-:type use_dropout: bool
-:param n_blocks:
-:type n_blocks: int
-:param padding_type: reflect | replicate | zeros | valid
-:type padding_type: str
-:param activation          – non-linearity layer to apply:
-:type activation          – non-linearity layer to apply: default is ReLU
-:param n_downsampling      – number of times to downsample data before ResBlocks:</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.resnet.Resnet3D.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/resnet.html#Resnet3D.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.resnet.Resnet3D.forward" title="Link to this definition">#</a></dt>
-<dd><p>Standard forward</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.resnet.ResnetBlock3D">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.resnet.</span></span><span class="sig-name descname"><span class="pre">ResnetBlock3D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_layer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_dropout</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_bias</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation=&lt;class</span> <span class="pre">'torch.nn.modules.activation.ReLU'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/resnet.html#ResnetBlock3D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.resnet.ResnetBlock3D" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initialize the Resnet block
-A resnet block is a conv block with skip connections
-We construct a conv block with build_conv_block function,
-and implement skip connections in &lt;forward&gt; function.
-Original Resnet paper: <a class="reference external" href="https://arxiv.org/pdf/1512.03385.pdf">https://arxiv.org/pdf/1512.03385.pdf</a></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.resnet.ResnetBlock3D.build_conv_block">
-<span class="sig-name descname"><span class="pre">build_conv_block</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_layer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_dropout</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_bias</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation=&lt;class</span> <span class="pre">'torch.nn.modules.activation.ReLU'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/resnet.html#ResnetBlock3D.build_conv_block"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.resnet.ResnetBlock3D.build_conv_block" title="Link to this definition">#</a></dt>
-<dd><p>Construct a convolutional block.
-:param dim:
-:type dim: int
-:param padding_type: reflect | replicate | zeros | valid
-:type padding_type: str
-:param norm_layer          – normalization layer:
-:param use_dropout:
-:type use_dropout: bool
-:param use_bias:
-:type use_bias: bool
-:param activation          – non-linearity layer to apply:
-:type activation          – non-linearity layer to apply: default is ReLU</p>
-<p>Returns a conv block (with a conv layer, a normalization layer, and a non-linearity layer)</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.resnet.ResnetBlock3D.crop">
-<span class="sig-name descname"><span class="pre">crop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/resnet.html#ResnetBlock3D.crop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.resnet.ResnetBlock3D.crop" title="Link to this definition">#</a></dt>
-<dd><p>Center-crop x to match spatial dimensions given by shape.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.resnet.ResnetBlock3D.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/resnet.html#ResnetBlock3D.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.resnet.ResnetBlock3D.forward" title="Link to this definition">#</a></dt>
-<dd><p>Forward function (with skip connections)</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.resnet.ResNet">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.resnet.</span></span><span class="sig-name descname"><span class="pre">ResNet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ndims</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/resnet.html#ResNet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.resnet.ResNet" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#cellmap_segmentation_challenge.models.resnet.Resnet2D" title="cellmap_segmentation_challenge.models.resnet.Resnet2D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Resnet2D</span></code></a>, <a class="reference internal" href="#cellmap_segmentation_challenge.models.resnet.Resnet3D" title="cellmap_segmentation_challenge.models.resnet.Resnet3D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Resnet3D</span></code></a></p>
-<p>Construct a Resnet
-:param input_nc:
-:type input_nc: int
-:param output_nc:
-:type output_nc: int)     – the number of channels in output images (default is ngf
-:param ngf:
-:type ngf: int
-:param norm_layer          – normalization layer:
-:param use_dropout:
-:type use_dropout: bool
-:param n_blocks:
-:type n_blocks: int
-:param padding_type: reflect | replicate | zeros | valid
-:type padding_type: str
-:param activation          – non-linearity layer to apply:
-:type activation          – non-linearity layer to apply: default is ReLU
-:param n_downsampling      – number of times to downsample data before ResBlocks:</p>
-</dd></dl>
-
-</section>
-<section id="module-cellmap_segmentation_challenge.models.unet_model_2D">
-<span id="cellmap-segmentation-challenge-models-unet-model-2d-module"></span><h2>cellmap_segmentation_challenge.models.unet_model_2D module<a class="headerlink" href="#module-cellmap_segmentation_challenge.models.unet_model_2D" title="Link to this heading">#</a></h2>
-<p>Parts of the U-Net model</p>
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.unet_model_2D.DoubleConv">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.unet_model_2D.</span></span><span class="sig-name descname"><span class="pre">DoubleConv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mid_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/unet_model_2D.html#DoubleConv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.unet_model_2D.DoubleConv" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.unet_model_2D.DoubleConv.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/unet_model_2D.html#DoubleConv.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.unet_model_2D.DoubleConv.forward" title="Link to this definition">#</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
+  <section id="module-cellmap_segmentation_challenge.models">
+<span id="cellmap-segmentation-challenge-models"></span><h1>cellmap_segmentation_challenge.models<a class="headerlink" href="#module-cellmap_segmentation_challenge.models" title="Link to this heading">#</a></h1>
+<p class="rubric">Modules</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.models.model_load.html#module-cellmap_segmentation_challenge.models.model_load" title="cellmap_segmentation_challenge.models.model_load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">model_load</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.models.resnet.html#module-cellmap_segmentation_challenge.models.resnet" title="cellmap_segmentation_challenge.models.resnet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resnet</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.models.unet_model_2D.html#module-cellmap_segmentation_challenge.models.unet_model_2D" title="cellmap_segmentation_challenge.models.unet_model_2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unet_model_2D</span></code></a></p></td>
+<td><p>Parts of the U-Net model</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.models.unet_model_3D.html#module-cellmap_segmentation_challenge.models.unet_model_3D" title="cellmap_segmentation_challenge.models.unet_model_3D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unet_model_3D</span></code></a></p></td>
+<td><p>Parts of the U-Net model</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.models.vitnet.html#module-cellmap_segmentation_challenge.models.vitnet" title="cellmap_segmentation_challenge.models.vitnet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vitnet</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
 </div>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.unet_model_2D.Down">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.unet_model_2D.</span></span><span class="sig-name descname"><span class="pre">Down</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/unet_model_2D.html#Down"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.unet_model_2D.Down" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.unet_model_2D.Down.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/unet_model_2D.html#Down.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.unet_model_2D.Down.forward" title="Link to this definition">#</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.unet_model_2D.Up">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.unet_model_2D.</span></span><span class="sig-name descname"><span class="pre">Up</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bilinear</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/unet_model_2D.html#Up"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.unet_model_2D.Up" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.unet_model_2D.Up.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/unet_model_2D.html#Up.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.unet_model_2D.Up.forward" title="Link to this definition">#</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.unet_model_2D.OutConv">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.unet_model_2D.</span></span><span class="sig-name descname"><span class="pre">OutConv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/unet_model_2D.html#OutConv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.unet_model_2D.OutConv" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.unet_model_2D.OutConv.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/unet_model_2D.html#OutConv.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.unet_model_2D.OutConv.forward" title="Link to this definition">#</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.unet_model_2D.UNet_2D">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.unet_model_2D.</span></span><span class="sig-name descname"><span class="pre">UNet_2D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trilinear</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/unet_model_2D.html#UNet_2D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.unet_model_2D.UNet_2D" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.unet_model_2D.UNet_2D.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/unet_model_2D.html#UNet_2D.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.unet_model_2D.UNet_2D.forward" title="Link to this definition">#</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-</section>
-<section id="module-cellmap_segmentation_challenge.models.unet_model_3D">
-<span id="cellmap-segmentation-challenge-models-unet-model-3d-module"></span><h2>cellmap_segmentation_challenge.models.unet_model_3D module<a class="headerlink" href="#module-cellmap_segmentation_challenge.models.unet_model_3D" title="Link to this heading">#</a></h2>
-<p>Parts of the U-Net model</p>
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.unet_model_3D.DoubleConv">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.unet_model_3D.</span></span><span class="sig-name descname"><span class="pre">DoubleConv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mid_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/unet_model_3D.html#DoubleConv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.unet_model_3D.DoubleConv" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.unet_model_3D.DoubleConv.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/unet_model_3D.html#DoubleConv.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.unet_model_3D.DoubleConv.forward" title="Link to this definition">#</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.unet_model_3D.Down">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.unet_model_3D.</span></span><span class="sig-name descname"><span class="pre">Down</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/unet_model_3D.html#Down"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.unet_model_3D.Down" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.unet_model_3D.Down.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/unet_model_3D.html#Down.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.unet_model_3D.Down.forward" title="Link to this definition">#</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.unet_model_3D.Up">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.unet_model_3D.</span></span><span class="sig-name descname"><span class="pre">Up</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trilinear</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/unet_model_3D.html#Up"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.unet_model_3D.Up" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.unet_model_3D.Up.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/unet_model_3D.html#Up.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.unet_model_3D.Up.forward" title="Link to this definition">#</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.unet_model_3D.OutConv">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.unet_model_3D.</span></span><span class="sig-name descname"><span class="pre">OutConv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/unet_model_3D.html#OutConv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.unet_model_3D.OutConv" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.unet_model_3D.OutConv.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/unet_model_3D.html#OutConv.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.unet_model_3D.OutConv.forward" title="Link to this definition">#</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.unet_model_3D.UNet_3D">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.unet_model_3D.</span></span><span class="sig-name descname"><span class="pre">UNet_3D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trilinear</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/unet_model_3D.html#UNet_3D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.unet_model_3D.UNet_3D" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.unet_model_3D.UNet_3D.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/unet_model_3D.html#UNet_3D.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.unet_model_3D.UNet_3D.forward" title="Link to this definition">#</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-</section>
-<section id="module-cellmap_segmentation_challenge.models.vitnet">
-<span id="cellmap-segmentation-challenge-models-vitnet-module"></span><h2>cellmap_segmentation_challenge.models.vitnet module<a class="headerlink" href="#module-cellmap_segmentation_challenge.models.vitnet" title="Link to this heading">#</a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.get_3DReg_config">
-<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.vitnet.</span></span><span class="sig-name descname"><span class="pre">get_3DReg_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#get_3DReg_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.get_3DReg_config" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.np2th">
-<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.vitnet.</span></span><span class="sig-name descname"><span class="pre">np2th</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#np2th"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.np2th" title="Link to this definition">#</a></dt>
-<dd><p>Possibly convert HWIO to OIHW.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.swish">
-<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.vitnet.</span></span><span class="sig-name descname"><span class="pre">swish</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#swish"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.swish" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.Attention">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.vitnet.</span></span><span class="sig-name descname"><span class="pre">Attention</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#Attention"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.Attention" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.Attention.transpose_for_scores">
-<span class="sig-name descname"><span class="pre">transpose_for_scores</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#Attention.transpose_for_scores"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.Attention.transpose_for_scores" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.Attention.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hidden_states</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#Attention.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.Attention.forward" title="Link to this definition">#</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.Mlp">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.vitnet.</span></span><span class="sig-name descname"><span class="pre">Mlp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#Mlp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.Mlp" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.Mlp.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#Mlp.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.Mlp.forward" title="Link to this definition">#</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.Embeddings">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.vitnet.</span></span><span class="sig-name descname"><span class="pre">Embeddings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#Embeddings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.Embeddings" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.Embeddings.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#Embeddings.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.Embeddings.forward" title="Link to this definition">#</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.Block">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.vitnet.</span></span><span class="sig-name descname"><span class="pre">Block</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#Block"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.Block" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.Block.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#Block.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.Block.forward" title="Link to this definition">#</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.Encoder">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.vitnet.</span></span><span class="sig-name descname"><span class="pre">Encoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#Encoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.Encoder" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.Encoder.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hidden_states</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#Encoder.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.Encoder.forward" title="Link to this definition">#</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.Transformer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.vitnet.</span></span><span class="sig-name descname"><span class="pre">Transformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#Transformer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.Transformer" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.Transformer.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_ids</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#Transformer.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.Transformer.forward" title="Link to this definition">#</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.Conv3dReLU">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.vitnet.</span></span><span class="sig-name descname"><span class="pre">Conv3dReLU</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stride</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_batchnorm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#Conv3dReLU"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.Conv3dReLU" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequential</span></code></p>
-<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.DecoderBlock">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.vitnet.</span></span><span class="sig-name descname"><span class="pre">DecoderBlock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_batchnorm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#DecoderBlock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.DecoderBlock" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.DecoderBlock.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#DecoderBlock.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.DecoderBlock.forward" title="Link to this definition">#</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.DecoderCup">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.vitnet.</span></span><span class="sig-name descname"><span class="pre">DecoderCup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#DecoderCup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.DecoderCup" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.DecoderCup.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hidden_states</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">features</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#DecoderCup.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.DecoderCup.forward" title="Link to this definition">#</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.DoubleConv">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.vitnet.</span></span><span class="sig-name descname"><span class="pre">DoubleConv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mid_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#DoubleConv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.DoubleConv" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.DoubleConv.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#DoubleConv.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.DoubleConv.forward" title="Link to this definition">#</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.Down">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.vitnet.</span></span><span class="sig-name descname"><span class="pre">Down</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#Down"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.Down" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.Down.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#Down.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.Down.forward" title="Link to this definition">#</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.CNNEncoder">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.vitnet.</span></span><span class="sig-name descname"><span class="pre">CNNEncoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#CNNEncoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.CNNEncoder" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.CNNEncoder.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#CNNEncoder.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.CNNEncoder.forward" title="Link to this definition">#</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.RegistrationHead">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.vitnet.</span></span><span class="sig-name descname"><span class="pre">RegistrationHead</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upsampling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#RegistrationHead"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.RegistrationHead" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequential</span></code></p>
-<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.ViTVNet">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.vitnet.</span></span><span class="sig-name descname"><span class="pre">ViTVNet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ViT-V-Net'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(128,</span> <span class="pre">128,</span> <span class="pre">128)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#ViTVNet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.ViTVNet" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.vitnet.ViTVNet.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/vitnet.html#ViTVNet.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.vitnet.ViTVNet.forward" title="Link to this definition">#</a></dt>
-<dd><p>Define the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-</section>
-<section id="module-cellmap_segmentation_challenge.models">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-cellmap_segmentation_challenge.models" title="Link to this heading">#</a></h2>
-</section>
 </section>
 
 
@@ -1183,160 +374,30 @@ registered hooks while the latter silently ignores them.</p>
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
+    <a class="left-prev"
+       href="cellmap_segmentation_challenge.evaluate.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">cellmap_segmentation_challenge.evaluate</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="cellmap_segmentation_challenge.models.model_load.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">cellmap_segmentation_challenge.models.model_load</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
 </div>
                 </footer>
               
             </div>
             
             
-              
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
-
-
-  <div class="sidebar-secondary-item">
-  <div class="page-toc tocsection onthispage">
-    <i class="fa-solid fa-list"></i> Contents
-  </div>
-  <nav class="bd-toc-nav page-toc">
-    <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.models.model_load">cellmap_segmentation_challenge.models.model_load module</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.model_load.load_latest"><code class="docutils literal notranslate"><span class="pre">load_latest()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.model_load.load_best_val"><code class="docutils literal notranslate"><span class="pre">load_best_val()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.models.resnet">cellmap_segmentation_challenge.models.resnet module</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.resnet.Resnet2D"><code class="docutils literal notranslate"><span class="pre">Resnet2D</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.resnet.Resnet2D.forward"><code class="docutils literal notranslate"><span class="pre">Resnet2D.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.resnet.ResnetBlock2D"><code class="docutils literal notranslate"><span class="pre">ResnetBlock2D</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.resnet.ResnetBlock2D.build_conv_block"><code class="docutils literal notranslate"><span class="pre">ResnetBlock2D.build_conv_block()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.resnet.ResnetBlock2D.crop"><code class="docutils literal notranslate"><span class="pre">ResnetBlock2D.crop()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.resnet.ResnetBlock2D.forward"><code class="docutils literal notranslate"><span class="pre">ResnetBlock2D.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.resnet.Resnet3D"><code class="docutils literal notranslate"><span class="pre">Resnet3D</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.resnet.Resnet3D.forward"><code class="docutils literal notranslate"><span class="pre">Resnet3D.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.resnet.ResnetBlock3D"><code class="docutils literal notranslate"><span class="pre">ResnetBlock3D</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.resnet.ResnetBlock3D.build_conv_block"><code class="docutils literal notranslate"><span class="pre">ResnetBlock3D.build_conv_block()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.resnet.ResnetBlock3D.crop"><code class="docutils literal notranslate"><span class="pre">ResnetBlock3D.crop()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.resnet.ResnetBlock3D.forward"><code class="docutils literal notranslate"><span class="pre">ResnetBlock3D.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.resnet.ResNet"><code class="docutils literal notranslate"><span class="pre">ResNet</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.models.unet_model_2D">cellmap_segmentation_challenge.models.unet_model_2D module</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_2D.DoubleConv"><code class="docutils literal notranslate"><span class="pre">DoubleConv</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_2D.DoubleConv.forward"><code class="docutils literal notranslate"><span class="pre">DoubleConv.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_2D.Down"><code class="docutils literal notranslate"><span class="pre">Down</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_2D.Down.forward"><code class="docutils literal notranslate"><span class="pre">Down.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_2D.Up"><code class="docutils literal notranslate"><span class="pre">Up</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_2D.Up.forward"><code class="docutils literal notranslate"><span class="pre">Up.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_2D.OutConv"><code class="docutils literal notranslate"><span class="pre">OutConv</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_2D.OutConv.forward"><code class="docutils literal notranslate"><span class="pre">OutConv.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_2D.UNet_2D"><code class="docutils literal notranslate"><span class="pre">UNet_2D</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_2D.UNet_2D.forward"><code class="docutils literal notranslate"><span class="pre">UNet_2D.forward()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.models.unet_model_3D">cellmap_segmentation_challenge.models.unet_model_3D module</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_3D.DoubleConv"><code class="docutils literal notranslate"><span class="pre">DoubleConv</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_3D.DoubleConv.forward"><code class="docutils literal notranslate"><span class="pre">DoubleConv.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_3D.Down"><code class="docutils literal notranslate"><span class="pre">Down</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_3D.Down.forward"><code class="docutils literal notranslate"><span class="pre">Down.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_3D.Up"><code class="docutils literal notranslate"><span class="pre">Up</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_3D.Up.forward"><code class="docutils literal notranslate"><span class="pre">Up.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_3D.OutConv"><code class="docutils literal notranslate"><span class="pre">OutConv</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_3D.OutConv.forward"><code class="docutils literal notranslate"><span class="pre">OutConv.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_3D.UNet_3D"><code class="docutils literal notranslate"><span class="pre">UNet_3D</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.unet_model_3D.UNet_3D.forward"><code class="docutils literal notranslate"><span class="pre">UNet_3D.forward()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.models.vitnet">cellmap_segmentation_challenge.models.vitnet module</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.get_3DReg_config"><code class="docutils literal notranslate"><span class="pre">get_3DReg_config()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.np2th"><code class="docutils literal notranslate"><span class="pre">np2th()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.swish"><code class="docutils literal notranslate"><span class="pre">swish()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Attention"><code class="docutils literal notranslate"><span class="pre">Attention</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Attention.transpose_for_scores"><code class="docutils literal notranslate"><span class="pre">Attention.transpose_for_scores()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Attention.forward"><code class="docutils literal notranslate"><span class="pre">Attention.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Mlp"><code class="docutils literal notranslate"><span class="pre">Mlp</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Mlp.forward"><code class="docutils literal notranslate"><span class="pre">Mlp.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Embeddings"><code class="docutils literal notranslate"><span class="pre">Embeddings</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Embeddings.forward"><code class="docutils literal notranslate"><span class="pre">Embeddings.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Block"><code class="docutils literal notranslate"><span class="pre">Block</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Block.forward"><code class="docutils literal notranslate"><span class="pre">Block.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Encoder"><code class="docutils literal notranslate"><span class="pre">Encoder</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Encoder.forward"><code class="docutils literal notranslate"><span class="pre">Encoder.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Transformer"><code class="docutils literal notranslate"><span class="pre">Transformer</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Transformer.forward"><code class="docutils literal notranslate"><span class="pre">Transformer.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Conv3dReLU"><code class="docutils literal notranslate"><span class="pre">Conv3dReLU</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.DecoderBlock"><code class="docutils literal notranslate"><span class="pre">DecoderBlock</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.DecoderBlock.forward"><code class="docutils literal notranslate"><span class="pre">DecoderBlock.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.DecoderCup"><code class="docutils literal notranslate"><span class="pre">DecoderCup</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.DecoderCup.forward"><code class="docutils literal notranslate"><span class="pre">DecoderCup.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.DoubleConv"><code class="docutils literal notranslate"><span class="pre">DoubleConv</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.DoubleConv.forward"><code class="docutils literal notranslate"><span class="pre">DoubleConv.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Down"><code class="docutils literal notranslate"><span class="pre">Down</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.Down.forward"><code class="docutils literal notranslate"><span class="pre">Down.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.CNNEncoder"><code class="docutils literal notranslate"><span class="pre">CNNEncoder</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.CNNEncoder.forward"><code class="docutils literal notranslate"><span class="pre">CNNEncoder.forward()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.RegistrationHead"><code class="docutils literal notranslate"><span class="pre">RegistrationHead</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.ViTVNet"><code class="docutils literal notranslate"><span class="pre">ViTVNet</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.vitnet.ViTVNet.forward"><code class="docutils literal notranslate"><span class="pre">ViTVNet.forward()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.models">Module contents</a></li>
-</ul>
-  </nav></div>
-
-</div></div>
               
             
           </div>
