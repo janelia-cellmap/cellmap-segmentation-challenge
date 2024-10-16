@@ -440,12 +440,11 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <section id="download-the-data">
 <h2>Download the data<a class="headerlink" href="#download-the-data" title="Link to this heading">#</a></h2>
 <p>Once you have installed this package, you can download the challenge data by running the following command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>csc<span class="w"> </span>fetch-data<span class="w"> </span>--crops<span class="w"> </span>all<span class="w"> </span>--dest<span class="w"> </span>data
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>csc<span class="w"> </span>fetch-data
 </pre></div>
 </div>
-<p>This will retrieve groundtruth data and corresponding EM data for each crop and save it at a path
-of your choosing on your local filesystem.</p>
-<p>To see all the options for the <code class="docutils literal notranslate"><span class="pre">fetch-data</span></code> command, run</p>
+<p>This will retrieve all of the groundtruth data and corresponding EM data for each crop and save it to <code class="docutils literal notranslate"><span class="pre">./data</span></code> on your local filesystem.</p>
+<p>Additionally, you can request raw data in all resolutions (not just those matching the annotations), extra raw data beyond the borders of the annotation crops (i.e. padding), custom download location, and more. To see all the options for the <code class="docutils literal notranslate"><span class="pre">fetch-data</span></code> command, run</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>csc<span class="w"> </span>fetch-data<span class="w"> </span>--help
 </pre></div>
 </div>
