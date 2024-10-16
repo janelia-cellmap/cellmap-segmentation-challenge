@@ -27,8 +27,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # get constants from environment, falling back to defaults as needed
-# manifest_url = os.environ.get("CSC_FETCH_DATA_MANIFEST_URL", None)
-manifest_url = "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/manifest.csv"
+manifest_url = os.environ.get(
+    "CSC_FETCH_DATA_MANIFEST_URL",
+    "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/manifest.csv",
+)
 if manifest_url is None:
     raise ValueError("No manifest url provided. Quitting.")
 num_workers = int(os.environ.get("CSC_FETCH_DATA_NUM_WORKERS", 32))
@@ -119,7 +121,9 @@ def fetch_data_cli(
         em_source_url = crop.em_url
 
         try:
-            gt_source_group = read_group(str(gt_source_url))
+            gt_source_group = read_group(
+                str(gt_source_url), storage_options={"anon": True}
+            )
             log.info(f"Found GT data at {gt_source_url}.")
         except zarr.errors.GroupNotFoundError:
             log.info(
