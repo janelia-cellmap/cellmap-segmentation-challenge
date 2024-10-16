@@ -45,10 +45,10 @@ The repository is structured as follows:
 cellmap-segmentation-challenge/
 │
 ├── examples/
-│   ├── train_2d.py
-│   ├── train_3d.py
-│   ├── predict_2d.py
-│   ├── predict_3d.py
+│   ├── train_2D.py
+│   ├── train_3D.py
+│   ├── predict_2D.py
+│   ├── predict_3D.py
 │   ├── ...
 │   └── README.md
 │
@@ -92,11 +92,11 @@ csc fetch-data --help
 
 ## Train a model
 
-Example scripts for training 2D and 3D models are provided in the `examples` directory. The scripts are named `train_2d.py` and `train_3d.py`, respectively, and are thoroughly annotated for clarity. You can run one such script by running the following on the command line:
+Example scripts for training 2D and 3D models are provided in the `examples` directory. The scripts are named `train_2D.py` and `train_3D.py`, respectively, and are thoroughly annotated for clarity. You can run one such script by running the following on the command line:
 
 ```bash
 cd examples
-python train_2d.py
+python train_2D.py
 ```
 This will train a 2D model on the training data and save the model weights to a file (defaults to `./checkpoints/*.pth`), along with logging loss and validation metrics, and sample predictions, viewable in TensorBoard. To view the TensorBoard logs, and monitor training progress, run the following command (assuming you are using the default log directory):
 
@@ -104,13 +104,13 @@ This will train a 2D model on the training data and save the model weights to a 
 tensorboard --logdir=./tensorboard
 ```
 
-You can also train a 3D model by running the same command with `train_3d.py`:
+You can also train a 3D model by running the same command with `train_3D.py`:
 
 ```bash
-python train_3d.py
+python train_3D.py
 ```
 
-For more information on the available options, see the `README.md` in the `examples` folder, as well as the documentation in `examples/train_2d.py` and `examples/train_3d.py`.
+For more information on the available options, see the `README.md` in the `examples` folder, as well as the documentation in `examples/train_2D.py` and `examples/train_3D.py`.
 
 ## Predict on test data
 
