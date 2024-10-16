@@ -410,10 +410,10 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cellmap-segmentation-challenge/
 │
 ├── examples/
-│   ├── train_2d.py
-│   ├── train_3d.py
-│   ├── predict_2d.py
-│   ├── predict_3d.py
+│   ├── train_2D.py
+│   ├── train_3D.py
+│   ├── predict_2D.py
+│   ├── predict_3D.py
 │   ├── ...
 │   └── README.md
 │
@@ -452,20 +452,20 @@ of your choosing on your local filesystem.</p>
 </section>
 <section id="train-a-model">
 <h2>Train a model<a class="headerlink" href="#train-a-model" title="Link to this heading">#</a></h2>
-<p>Example scripts for training 2D and 3D models are provided in the <code class="docutils literal notranslate"><span class="pre">examples</span></code> directory. The scripts are named <code class="docutils literal notranslate"><span class="pre">train_2d.py</span></code> and <code class="docutils literal notranslate"><span class="pre">train_3d.py</span></code>, respectively, and are thoroughly annotated for clarity. You can run one such script by running the following on the command line:</p>
+<p>Example scripts for training 2D and 3D models are provided in the <code class="docutils literal notranslate"><span class="pre">examples</span></code> directory. The scripts are named <code class="docutils literal notranslate"><span class="pre">train_2D.py</span></code> and <code class="docutils literal notranslate"><span class="pre">train_3D.py</span></code>, respectively, and are thoroughly annotated for clarity. You can run one such script by running the following on the command line:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>examples
-python<span class="w"> </span>train_2d.py
+python<span class="w"> </span>train_2D.py
 </pre></div>
 </div>
 <p>This will train a 2D model on the training data and save the model weights to a file (defaults to <code class="docutils literal notranslate"><span class="pre">./checkpoints/*.pth</span></code>), along with logging loss and validation metrics, and sample predictions, viewable in TensorBoard. To view the TensorBoard logs, and monitor training progress, run the following command (assuming you are using the default log directory):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tensorboard<span class="w"> </span>--logdir<span class="o">=</span>./tensorboard
 </pre></div>
 </div>
-<p>You can also train a 3D model by running the same command with <code class="docutils literal notranslate"><span class="pre">train_3d.py</span></code>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>train_3d.py
+<p>You can also train a 3D model by running the same command with <code class="docutils literal notranslate"><span class="pre">train_3D.py</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>train_3D.py
 </pre></div>
 </div>
-<p>For more information on the available options, see the <code class="docutils literal notranslate"><span class="pre">README.md</span></code> in the <code class="docutils literal notranslate"><span class="pre">examples</span></code> folder, as well as the documentation in <code class="docutils literal notranslate"><span class="pre">examples/train_2d.py</span></code> and <code class="docutils literal notranslate"><span class="pre">examples/train_3d.py</span></code>.</p>
+<p>For more information on the available options, see the <code class="docutils literal notranslate"><span class="pre">README.md</span></code> in the <code class="docutils literal notranslate"><span class="pre">examples</span></code> folder, as well as the documentation in <code class="docutils literal notranslate"><span class="pre">examples/train_2D.py</span></code> and <code class="docutils literal notranslate"><span class="pre">examples/train_3D.py</span></code>.</p>
 </section>
 <section id="predict-on-test-data">
 <h2>Predict on test data<a class="headerlink" href="#predict-on-test-data" title="Link to this heading">#</a></h2>
