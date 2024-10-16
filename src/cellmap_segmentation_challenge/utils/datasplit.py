@@ -9,7 +9,7 @@ import os
 from tqdm import tqdm
 
 SEARCH_PATH = (
-    os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
     + "/data/{dataset}/{dataset}.zarr/recon-1/labels/groundtruth/*/{label}"
 )
 RAW_NAME = "recon-1/em/fibsem-uint8"
