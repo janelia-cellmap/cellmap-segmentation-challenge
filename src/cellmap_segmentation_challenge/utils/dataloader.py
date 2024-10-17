@@ -99,7 +99,7 @@ def get_dataloader(
         input_arrays=input_arrays,
         target_arrays=target_arrays,
         classes=classes,
-        pad=False,  # TODO: Make work with padding
+        pad=True,
         csv_path=datasplit_path,
         train_raw_value_transforms=value_transforms,
         val_raw_value_transforms=value_transforms,

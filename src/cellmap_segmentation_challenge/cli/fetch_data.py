@@ -16,10 +16,11 @@ from cellmap_segmentation_challenge.utils.crops import CropRow, fetch_manifest
 import structlog
 from yarl import URL
 import zarr
-from pathlib import Path
+from upath import UPath as Path
 import numpy as np
-from zarr.storage import FSStore
-from pydantic_zarr.v2 import GroupSpec
+
+# from zarr.storage import FSStore
+# from pydantic_zarr.v2 import GroupSpec
 import os
 
 from dotenv import load_dotenv
@@ -98,7 +99,6 @@ def fetch_data_cli(
     crops_from_manifest = fetch_manifest(manifest_url)
 
     if crops == "all":
-        # crops_parsed = CHALLENGE_CROPS
         crops_parsed = crops_from_manifest
     else:
         crops_split = tuple(int(x) for x in crops.split(","))
@@ -183,12 +183,16 @@ def fetch_data_cli(
             )
             continue
         else:
+            # ensure that intermediate groups are present
+            dest_root_group.require_group(em_dest_path)
+
             # model the em group locally
-            em_dest_group = GroupSpec.from_zarr(em_source_group).to_zarr(
-                FSStore(str(str(dest_root / em_dest_path))),
-                path="",
-                overwrite=(mode == "w"),
-            )
+            # em_dest_group = GroupSpec.from_zarr(em_source_group).to_zarr(
+            #     FSStore(str(dest_root / em_dest_path)),
+            #     path="",
+            #     overwrite=(mode == "w"),
+            # )
+            dest_em_group = zarr.open_group(str(dest_root / em_dest_path), mode=mode)
 
             # get the multiscale model of the source em group
             array_wrapper = {"name": "dask_array", "config": {"chunks": "auto"}}
@@ -270,24 +274,23 @@ def fetch_data_cli(
                             f"Gathering {len(new_chunks)} chunks from level {key}."
                         )
                         em_group_inventory += new_chunks
+                        em_group_inventory += (f"{key}/.zarray",)
                     else:
                         log.info(
                             f"Skipping scale level {key} because it is sampled more densely than the groundtruth data"
                         )
-
+                em_group_inventory += (".zattrs",)
                 log.info(
                     f"Preparing to fetch {len(em_group_inventory)} files from {em_source_url}."
                 )
                 partition_copy_store(
                     keys=em_group_inventory,
                     source_store=em_source_group.store,
-                    dest_store=em_dest_group.store,
+                    dest_store=dest_em_group.store,
                     batch_size=256,
                     pool=pool,
                     log=log,
                 )
-                # ensure that intermediate groups are present
-                dest_root_group.require_group(em_dest_path)
 
     log = log.unbind("crop_id", "dataset")
     log.info(f"Done after {time.time() - fetch_save_start:0.3f}s")
