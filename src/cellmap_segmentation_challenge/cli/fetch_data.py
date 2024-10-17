@@ -100,6 +100,16 @@ def fetch_data_cli(
 
     if crops == "all":
         crops_parsed = crops_from_manifest
+    elif crops == "test":
+        crops_parsed = tuple(
+            filter(
+                lambda v: "test"
+                in read_group(
+                    str(v.gt_url), storage_options={"anon": True}
+                ).group_keys(),
+                crops_from_manifest,
+            )
+        )
     else:
         crops_split = tuple(int(x) for x in crops.split(","))
         crops_parsed = tuple(filter(lambda v: v.id in crops_split, crops_from_manifest))
