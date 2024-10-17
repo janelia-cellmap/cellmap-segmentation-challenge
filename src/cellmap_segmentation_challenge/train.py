@@ -232,21 +232,22 @@ def train(config_path: str):
         model.eval()
 
         # Compute the validation score by averaging the loss across the validation set
-        val_score = 0
-        val_bar = tqdm(val_loader, desc="Validation")
-        with torch.no_grad():
-            for batch in val_bar:
-                inputs = batch["input"]
-                targets = batch["output"]
-                outputs = model(inputs)
-                val_score += criterion(outputs, targets).item()
-        val_score /= len(val_loader)
+        if len(val_loader) > 0:
+            val_score = 0
+            val_bar = tqdm(val_loader, desc="Validation")
+            with torch.no_grad():
+                for batch in val_bar:
+                    inputs = batch["input"]
+                    targets = batch["output"]
+                    outputs = model(inputs)
+                    val_score += criterion(outputs, targets).item()
+            val_score /= len(val_loader)
 
-        # Log the validation using tensorboard
-        writer.add_scalar("validation", val_score, n_iter)
+            # Log the validation using tensorboard
+            writer.add_scalar("validation", val_score, n_iter)
 
-        # Update the progress bar
-        post_fix_dict["Validation"] = f"{val_score:.4f}"
+            # Update the progress bar
+            post_fix_dict["Validation"] = f"{val_score:.4f}"
 
         # Generate and save figures from the last batch of the validation to appear in tensorboard
         figs = get_image_dict(inputs, targets, outputs, classes)

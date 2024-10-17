@@ -2,20 +2,84 @@ from glob import glob
 from importlib.machinery import SourceFileLoader
 import tempfile
 import torch
-from typing import Optional, Sequence
+from typing import Mapping, Optional, Sequence
 import os
 import daisy
 from funlib.persistence import open_ds, prepare_ds, Array
 import numpy as np
 from upath import UPath
+import zarr
 
 from cellmap_segmentation_challenge.utils.datasplit import (
+    CROP_NAME,
     REPO_ROOT,
     SEARCH_PATH,
     RAW_NAME,
+    get_raw_path,
     get_csv_string,
     make_datasplit_csv,
 )
+
+
+def find_level(
+    group, target_scale: Sequence[float]
+) -> tuple[str, np.ndarray, np.ndarray]:
+    """
+    Finds the multiscale level that is closest to the target scale.
+
+    Parameters
+    ----------
+    group : zarr.Group
+        The group to search for the multiscale levels.
+    target_scale : Sequence[float]
+        The target scale to find the closest multiscale level to.
+
+    Returns
+    -------
+    tuple[str, np.ndarray, np.ndarray]
+        The name of the closest multiscale level, the offset of the level, and the scale of the level.
+    """
+    last_path: str | None = None
+    offset = None
+    scale = None
+    for level in group.attrs["multiscales"][0]["datasets"]:
+        for transform in level["coordinateTransformations"]:
+            if "translation" in transform:
+                offset = np.array(transform["translation"])
+            if "scale" in transform:
+                scale = np.array(transform["scale"])
+            if offset is not None and scale is not None:
+                break
+        for ts, s in zip(target_scale, scale):
+            if ts <= s:
+                if last_path is None:
+                    return level["path"], offset, scale
+                else:
+                    return last_path, offset, scale
+        last_path = level["path"]
+    return last_path, offset, scale  # type: ignore
+
+
+def get_crop_roi(crop_path: str, output_scale: Sequence[int]) -> str:
+    """
+    Get the ROI of a crop from the crop path, formatted as a string: [start1:end1,start2:end2,...].
+
+    Parameters
+    ----------
+    crop_path : str
+        The path to the crop.
+
+    Returns
+    -------
+    roi_str : str
+        The ROI of the crop formatted as a string.
+    """
+    crop_group = zarr.open(crop_path)  # type: ignore
+    scale_level, offset, scale = find_level(crop_group, output_scale)
+    crop_dataset = zarr.open(UPath(crop_path) / scale_level)  # type: ignore
+    shape = np.array(crop_dataset.shape) * scale
+    roi = f"[{','.join([str(o) for o in offset])}:{','.join([str(o + s) for o, s in zip(offset, shape)])}]"
+    return roi
 
 
 def get_output_shape(
@@ -48,6 +112,7 @@ def predict_ortho_planes(
     input_block_shape: Sequence[int],
     channels: Sequence[str] | dict[str | int, str],
     roi: Optional[str] = None,
+    output_voxel_size: Optional[Sequence[int]] = None,
     min_raw: float = 0,
     max_raw: float = 255,
 ) -> None:
@@ -69,6 +134,8 @@ def predict_ortho_planes(
     roi : str, optional
         The region of interest to predict. If None, the entire dataset will be predicted.
         The format is a string of the form "[start1:end1,start2:end2,...]".
+    output_voxel_size : Sequence[int | float], optional
+        The voxel size of the output data. Default is the same as the input voxel size.
     min_raw : float, optional
         The minimum value of the raw data. Default is 0.
     max_raw : float, optional
@@ -84,35 +151,41 @@ def predict_ortho_planes(
         _predict(
             model,
             in_dataset,
-            os.path.join(tmp_dir.name, f"output.zarr", axis),
+            os.path.join(tmp_dir.name, "output.zarr", str(axis)),
             input_block_shape,
             channels,
             roi,
+            output_voxel_size,
             min_raw,
             max_raw,
         )
 
     # Combine the predictions from the x, y, and z orthogonal planes
     raw_dataset = open_ds(in_dataset)
-    for label in channels.values():
+    if output_voxel_size is None:
+        output_voxel_size = raw_dataset.voxel_size
+    labels = channels if isinstance(channels, Sequence) else channels.values()
+    for label in labels:
         # Load the predictions from the x, y, and z orthogonal planes
         predictions = []
         for axis in range(3):
             predictions.append(
-                open_ds(os.path.join(tmp_dir.name, f"output.zarr", axis, label))[:]
+                open_ds(os.path.join(tmp_dir.name, f"output.zarr", str(axis), label))[:]
             )
 
         # Combine the predictions
         combined_predictions = np.mean(predictions, axis=0)
 
         # Save the combined predictions
-        example_ds = open_ds(os.path.join(tmp_dir.name, f"output.zarr", axis, label))
-        total_write_roi = example_ds.roi
+        example_ds = open_ds(
+            os.path.join(tmp_dir.name, f"output.zarr", str(axis), label)
+        )
         dataset = prepare_ds(
             f"{out_dataset}/{label}",
-            total_roi=total_write_roi,
-            voxel_size=raw_dataset.voxel_size,
-            write_size=example_ds.chunk_shape,
+            shape=example_ds.roi.shape,
+            offset=example_ds.roi.offset,
+            voxel_size=example_ds.voxel_size,
+            chunk_shape=example_ds.chunk_shape,
             dtype=example_ds.dtype,
         )
         dataset[:] = combined_predictions
@@ -127,6 +200,7 @@ def _predict(
     input_block_shape: Sequence[int],
     channels: Sequence[str] | dict[str | int, str],
     roi: Optional[str] = None,
+    output_voxel_size: Optional[Sequence[int]] = None,
     min_raw: float = 0,
     max_raw: float = 255,
 ) -> None:
@@ -149,6 +223,8 @@ def _predict(
     roi : str, optional
         The region of interest to predict. If None, the entire dataset will be predicted.
         The format is a string of the form "[start1:end1,start2:end2,...]".
+    output_voxel_size : Sequence[int | float], optional
+        The voxel size of the output data. Default is the same as the input voxel size.
     min_raw : float, optional
         The minimum value of the raw data. Default is 0.
     max_raw : float, optional
@@ -160,6 +236,19 @@ def _predict(
     scale = max_raw - min_raw
 
     raw_dataset = open_ds(in_dataset)
+    if output_voxel_size is None:
+        output_voxel_size = raw_dataset.voxel_size
+
+    if len(input_block_shape) == 2:
+        input_block_shape = (1,) + tuple(input_block_shape)
+
+    read_shape = daisy.Coordinate(input_block_shape)
+    write_shape = daisy.Coordinate(get_output_shape(model, input_block_shape))
+
+    context = (read_shape - write_shape) / 2
+    read_roi = daisy.Roi((0,) * read_shape.dims, read_shape)
+    write_roi = read_roi.grow(-context, -context)
+
     if roi is not None:
         parsed_start, parsed_end = zip(
             *[
@@ -171,21 +260,15 @@ def _predict(
             daisy.Coordinate(parsed_start),
             daisy.Coordinate(parsed_end) - daisy.Coordinate(parsed_start),
         )
-        total_write_roi = parsed_roi.snap_to_grid(raw_dataset.voxel_size)
-        total_read_roi = total_write_roi.grow(context, context)
+        total_write_roi = parsed_roi.snap_to_grid(output_voxel_size)
+        total_read_roi = total_write_roi.grow(context, context).snap_to_grid(
+            raw_dataset.voxel_size, mode="grow"
+        )
     else:
         total_read_roi = raw_dataset.roi
-        total_write_roi = total_read_roi.grow(-context, -context)
-
-    if len(input_block_shape) == 2:
-        input_block_shape = (1,) + input_block_shape
-
-    read_shape = input_block_shape * raw_dataset.voxel_size
-    write_shape = get_output_shape(model, input_block_shape)
-
-    context = (read_shape - write_shape) / 2
-    read_roi = daisy.Roi((0,) * read_shape.dims, read_shape)
-    write_roi = read_roi.grow(-context, -context)
+        total_write_roi = total_read_roi.grow(-context, -context).snap_to_grid(
+            output_voxel_size
+        )
 
     if isinstance(channels, Sequence):
         channels = {i: c for i, c in enumerate(channels)}
@@ -194,9 +277,10 @@ def _predict(
     for channel, label in channels.items():
         dataset = prepare_ds(
             f"{out_dataset}/{label}",
-            total_roi=total_write_roi,
+            shape=total_write_roi.shape,
+            offset=total_write_roi.offset,
             voxel_size=raw_dataset.voxel_size,
-            write_size=write_roi.shape,
+            chunk_shape=write_roi.shape,
             dtype=np.float32,
         )
         out_datasets[channel] = dataset
@@ -266,9 +350,7 @@ def _predict(
 def predict(
     config_path: str,
     crops: str = "test",
-    output_path: str = str(
-        REPO_ROOT / "data/predictions/predictions.zarr/{crop}/{label}"
-    ),
+    output_path: str = str(REPO_ROOT / "data/predictions/predictions.zarr/{crop}"),
     do_orthoplanes: bool = True,
 ):
     """
@@ -289,6 +371,8 @@ def predict(
     config = SourceFileLoader(UPath(config_path).stem, str(config_path)).load_module()
     model = config.model
     input_block_shape = config.input_array_info["shape"]
+    input_scale = config.input_array_info["scale"]
+    output_scale = config.target_array_info["scale"]
     classes = config.classes
 
     if do_orthoplanes and any([s == 1 for s in input_block_shape]):
@@ -299,15 +383,59 @@ def predict(
 
     # Get the crops to predict on
     if crops == "test":
-        crops_paths = glob(SEARCH_PATH.format(dataset="*", label="cell"))
+        # TODO: Could make this more general to work for any class label
+        raw_search_label = crop_search_label = "test"
+        crops_paths = glob(
+            SEARCH_PATH.format(
+                dataset="*", name=CROP_NAME.format(crop="*", label="test")
+            )
+        )
     else:
-        ...  # TODO
+        crop_list = crops.split(",")
+        assert all(
+            [crop.isnumeric() for crop in crop_list]
+        ), "Crop numbers must be numeric or `test`."
+        crop_paths = []
+        raw_search_label = ""
+        crop_search_label = classes[0]
+        for crop in crop_list:
+            crop_paths.extend(
+                glob(
+                    SEARCH_PATH.format(
+                        dataset="*", name=CROP_NAME.format(crop=f"crop{crop}", label="")
+                    ).rstrip(os.path.sep)
+                )
+            )
 
-    for crop in crops.split(","):
+    crop_args = []
+    for crop_path in crops_paths:
+        # Find raw scale level
+        raw_path = get_raw_path(crop_path, label=raw_search_label)
+        raw_group = zarr.open(raw_path)
+        scale_level, _, _ = find_level(raw_group, input_scale)
+        in_dataset = UPath(raw_path) / scale_level
+        assert in_dataset.exists(), f"Input dataset {in_dataset} does not exist."
 
-        crop_path = SEARCH_PATH.format(dataset="*", label=RAW_NAME)
+        roi = get_crop_roi(str(UPath(crop_path) / crop_search_label), output_scale)
 
-        in_dataset = glob(SEARCH_PATH.format(dataset="*", label=RAW_NAME))
+        out_dataset = output_path.format(crop=crop, label="")
+
+        crop_args.append(
+            {
+                "in_dataset": str(in_dataset),
+                "roi": roi,
+                "out_dataset": out_dataset,
+            }
+        )
+
+    for args in crop_args:
+        predict_func(
+            model,
+            input_block_shape=input_block_shape,
+            channels=classes,
+            output_voxel_size=output_scale,
+            *args,
+        )
 
 
 if __name__ == "__main__":

@@ -1,88 +1,49 @@
 import click
-from ..predict import _predict, predict_ortho_planes
+
+from cellmap_segmentation_challenge.utils.datasplit import REPO_ROOT
+from ..predict import predict
 
 
 @click.command
-@click.option(
-    "--model",
-    "-m",
+@click.argument(
+    "config_path",
     type=click.Path(exists=True),
     required=True,
-    help="Path to the python file defining the configuration to be used for training",
 )
 @click.option(
-    "--input_path",
-    "-i",
-    type=click.Path(exists=True),
-    required=True,
-    help="Path to the input data",
-)
-@click.option(
-    "--output_path",
-    "-o",
-    type=click.Path(),
-    required=True,
-    help="Path to the output data",
-)
-@click.option(
-    "--input_block_shape",
-    "-s",
-    type=click.STRING,
-    required=True,
-    help="A comma-separated list of describing the shape of the data blocks input to the model",
-)
-@click.option(
-    "--channels",
+    "--crops",
     "-c",
     type=click.STRING,
     required=True,
-    help="A comma-separated list of channel names in order according to the output of the model",
-)
-def predict_cli(model, input_path, output_path, input_block_shape, channels):
-    input_block_shape = input_block_shape.split(",")
-    channels = channels.split(",")
-    _predict(model, input_path, output_path, input_block_shape, channels)
-
-
-@click.command
-@click.option(
-    "--model",
-    "-m",
-    type=click.Path(exists=True),
-    required=True,
-    help="Path to the python file defining the configuration to be used for training",
+    default="test",
+    help="Comma-separated list of crops to predict on (Example: '111,112,113') or 'test'. Default: 'test'.",
 )
 @click.option(
-    "--input_path",
-    "-i",
-    type=click.Path(exists=True),
-    required=True,
-    help="Path to the input data",
-)
-@click.option(
-    "--output_path",
+    "--output-path",
     "-o",
-    type=click.Path(),
-    required=True,
-    help="Path to the output data",
-)
-@click.option(
-    "--input_block_shape",
-    "-s",
     type=click.STRING,
     required=True,
-    help="A comma-separated list of describing the shape of the data blocks input to the model",
+    default=str(REPO_ROOT / "data/predictions/predictions.zarr/{crop}"),
+    help=f"Path to save the predicted crops with {'{crop}'} placeholder for formatting. Default: {str(REPO_ROOT / 'data/predictions/predictions.zarr/{crop}')}.",
 )
 @click.option(
-    "--channels",
-    "-c",
-    type=click.STRING,
-    required=True,
-    help="A comma-separated list of channel names in order according to the output of the model",
+    "--do-orthoplanes",
+    "-do",
+    type=click.BOOL,
+    is_flag=True,
+    required=False,
+    default=True,
+    help="Whether to predict the orthoplanes if the model is 2D. Default: True.",
 )
-def predict_ortho_planes_cli(
-    model, input_path, output_path, input_block_shape, channels
-):
-    input_block_shape = input_block_shape.split(",")
-    channels = channels.split(",")
-    predict_ortho_planes(model, input_path, output_path, input_block_shape, channels)
+def predict_cli(config_path, crops, output_path, do_orthoplanes):
+    """
+    Predict the output of a model on a large dataset by splitting it into blocks and predicting each block separately.
+
+    CONFIG_PATH: The path to the model configuration file. This can be the same as the config file used for training.
+    """
+    predict(
+        config_path=config_path,
+        crops=crops,
+        output_path=output_path,
+        do_orthoplanes=do_orthoplanes,
+    )
