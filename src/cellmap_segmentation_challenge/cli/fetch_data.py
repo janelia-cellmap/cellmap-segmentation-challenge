@@ -43,7 +43,7 @@ num_workers = int(os.environ.get("CSC_FETCH_DATA_NUM_WORKERS", 32))
     type=click.STRING,
     required=True,
     default="all",
-    help='A comma-separated list of crops to download, e.g., "111,112,113", or "all" to download all crops. Default: "all".',
+    help='A comma-separated list of crops to download, e.g., "111,112,113", "test" to only download test crops, or "all" to download all crops. Default: "all".',
 )
 @click.option(
     "--raw-padding",
