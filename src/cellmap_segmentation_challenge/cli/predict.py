@@ -1,5 +1,5 @@
 import click
-from ..predict import predict, predict_ortho_planes
+from ..predict import _predict, predict_ortho_planes
 
 
 @click.command
@@ -41,7 +41,7 @@ from ..predict import predict, predict_ortho_planes
 def predict_cli(model, input_path, output_path, input_block_shape, channels):
     input_block_shape = input_block_shape.split(",")
     channels = channels.split(",")
-    predict(model, input_path, output_path, input_block_shape, channels)
+    _predict(model, input_path, output_path, input_block_shape, channels)
 
 
 @click.command

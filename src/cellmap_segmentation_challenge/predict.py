@@ -1,12 +1,21 @@
+from glob import glob
 from importlib.machinery import SourceFileLoader
 import tempfile
 import torch
-from typing import Sequence
+from typing import Optional, Sequence
 import os
 import daisy
 from funlib.persistence import open_ds, prepare_ds, Array
 import numpy as np
 from upath import UPath
+
+from cellmap_segmentation_challenge.utils.datasplit import (
+    REPO_ROOT,
+    SEARCH_PATH,
+    RAW_NAME,
+    get_csv_string,
+    make_datasplit_csv,
+)
 
 
 def get_output_shape(
@@ -38,7 +47,7 @@ def predict_ortho_planes(
     out_dataset: str | os.PathLike,
     input_block_shape: Sequence[int],
     channels: Sequence[str] | dict[str | int, str],
-    roi: str = None,
+    roi: Optional[str] = None,
     min_raw: float = 0,
     max_raw: float = 255,
 ) -> None:
@@ -72,7 +81,7 @@ def predict_ortho_planes(
     tmp_dir = tempfile.TemporaryDirectory()
     print(f"Temporary directory for predictions: {tmp_dir.name}")
     for axis in range(3):
-        predict(
+        _predict(
             model,
             in_dataset,
             os.path.join(tmp_dir.name, f"output.zarr", axis),
@@ -111,13 +120,13 @@ def predict_ortho_planes(
     tmp_dir.cleanup()
 
 
-def predict(
+def _predict(
     model: torch.nn.Module,
     in_dataset: str | os.PathLike,
     out_dataset: str | os.PathLike,
     input_block_shape: Sequence[int],
     channels: Sequence[str] | dict[str | int, str],
-    roi: str = None,
+    roi: Optional[str] = None,
     min_raw: float = 0,
     max_raw: float = 255,
 ) -> None:
@@ -254,6 +263,53 @@ def predict(
     daisy.run_blockwise([task])
 
 
+def predict(
+    config_path: str,
+    crops: str = "test",
+    output_path: str = str(
+        REPO_ROOT / "data/predictions/predictions.zarr/{crop}/{label}"
+    ),
+    do_orthoplanes: bool = True,
+):
+    """
+    Given a model configuration file and list of crop numbers, predicts the output of a model on a large dataset by splitting it into blocks
+    and predicting each block separately.
+
+    Parameters
+    ----------
+    config_path : str
+        The path to the model configuration file. This can be the same as the config file used for training.
+    crops: str, optional
+        A comma-separated list of crop numbers to predict on, or "test" to predict on the entire test set. Default is "test".
+    output_path: str, optional
+        The path to save the output predictions to, formatted as a string with a placeholders for the crop number, and label class. Default is "cellmap-segmentation-challenge/data/predictions/predictions.zarr/{crop}/{label}".
+    do_orthoplanes: bool, optional
+        Whether to compute the average of predictions from x, y, and z orthogonal planes for the full 3D volume. This is sometimes called 2.5D predictions. It expects a model that yields 2D outputs. Similarly, it expects the input shape to the model to be 2D. Default is True for 2D models.
+    """
+    config = SourceFileLoader(UPath(config_path).stem, str(config_path)).load_module()
+    model = config.model
+    input_block_shape = config.input_array_info["shape"]
+    classes = config.classes
+
+    if do_orthoplanes and any([s == 1 for s in input_block_shape]):
+        # If the model is a 2D model, compute the average of predictions from x, y, and z orthogonal planes
+        predict_func = predict_ortho_planes
+    else:
+        predict_func = _predict
+
+    # Get the crops to predict on
+    if crops == "test":
+        crops_paths = glob(SEARCH_PATH.format(dataset="*", label="cell"))
+    else:
+        ...  # TODO
+
+    for crop in crops.split(","):
+
+        crop_path = SEARCH_PATH.format(dataset="*", label=RAW_NAME)
+
+        in_dataset = glob(SEARCH_PATH.format(dataset="*", label=RAW_NAME))
+
+
 if __name__ == "__main__":
     import argparse
 
@@ -357,7 +413,7 @@ if __name__ == "__main__":
             max_raw,
         )
     else:
-        predict(
+        _predict(
             model,
             in_dataset,
             out_dataset,

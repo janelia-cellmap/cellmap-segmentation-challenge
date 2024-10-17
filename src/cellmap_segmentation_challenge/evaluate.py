@@ -418,7 +418,7 @@ def score_submission(
             truth_path=truth_path,
             instance_classes=instance_classes,
         )
-        for volume in pred_volumes
+        for volume in volumes
     }
 
     # Combine label scores across volumes, normalizing by the number of voxels
