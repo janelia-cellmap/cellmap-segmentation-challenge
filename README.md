@@ -1,7 +1,17 @@
 <img src="https://raw.githubusercontent.com/janelia-cellmap/dacapo/main/docs/source/_static/CellMapLogo.png" alt="CellMap logo" width="85%">
 
 # CellMap Segmentation Challenge
-Welcome to Cellmap Segmentation Challenge's documentation! This is a Python package for the Cellmap Segmentation Challenge. It provides a Python API for interacting with the challenge data, running training, prediction, and evaluation. The package is built on top of the `cellmap-data <https://github.com/janelia-cellmap/cellmap-data>`_ package, which provides a Python API for interacting with the Cellmap data format. The package is designed to be easy to use, flexible, and extensible.
+
+Welcome to the **CellMap Segmentation Challenge** documentation!
+
+This Python package provides a simple and flexible API for:
+
+- Accessing challenge data
+- Running model training
+- Making predictions
+- Evaluating results
+
+The package is built on top of the [`cellmap-data`](https://github.com/janelia-cellmap/cellmap-data) package, which offers tools for interacting with the CellMap data format. Whether you're a beginner or advanced user, this package is designed to be easy to use and highly extensible.
 
 # Getting started
 
