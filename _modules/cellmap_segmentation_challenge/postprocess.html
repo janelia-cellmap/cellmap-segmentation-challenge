@@ -304,7 +304,7 @@ document.write(`
 <span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
 <span class="kn">from</span> <span class="nn">funlib.persistence</span> <span class="kn">import</span> <span class="n">open_ds</span><span class="p">,</span> <span class="n">prepare_ds</span>
 <span class="kn">from</span> <span class="nn">importlib.machinery</span> <span class="kn">import</span> <span class="n">SourceFileLoader</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">from</span> <span class="nn">skimage.transform</span> <span class="kn">import</span> <span class="n">resize</span><span class="p">,</span> <span class="n">rescale</span>
 <span class="kn">import</span> <span class="nn">zarr</span>
 
@@ -351,7 +351,7 @@ document.write(`
         <span class="n">data</span> <span class="o">=</span> <span class="n">data</span> <span class="o">&gt;</span> <span class="n">threshold_value</span>
 
         <span class="n">output_ds</span> <span class="o">=</span> <span class="n">prepare_ds</span><span class="p">(</span>
-            <span class="n">output_path</span> <span class="o">/</span> <span class="n">label</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
             <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
             <span class="n">offset</span><span class="o">=</span><span class="n">input_ds</span><span class="o">.</span><span class="n">offset</span><span class="p">,</span>
             <span class="n">voxel_size</span><span class="o">=</span><span class="n">input_ds</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">,</span>
@@ -364,7 +364,7 @@ document.write(`
 <a class="viewcode-back" href="../../cellmap_segmentation_challenge.postprocess.html#cellmap_segmentation_challenge.postprocess.process_volume">[docs]</a>
 <span class="k">def</span> <span class="nf">process_volume</span><span class="p">(</span>
     <span class="n">input_container</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">UPath</span><span class="p">,</span>
-    <span class="n">process_func</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">callable</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">callable</span><span class="p">],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">callable</span><span class="p">],</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">],</span>
+    <span class="n">process_func</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Callable</span><span class="p">],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">],</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">],</span>
     <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">UPath</span><span class="p">,</span>
     <span class="n">labels</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
@@ -375,18 +375,20 @@ document.write(`
 <span class="sd">    ----------</span>
 <span class="sd">    input_container : str | UPath</span>
 <span class="sd">        The path to the zarr container containing the data for each label.</span>
-<span class="sd">    process_func : callable | list[callable] | dict[str, callable] | os.PathLike</span>
-<span class="sd">        The function(s) to apply to each label. If a callable, the same function is applied to all labels. If a list, the functions are applied to the labels in order. If a dict, the functions are applied to the labels with the corresponding keys. If an os.PathLike, the function is loaded from the file at the path (the function should be called `process_func` in the python file). This last option should take a numpy array as input and return a numpy array as output. This allows for more complex postprocessing functions to be used.</span>
+<span class="sd">    process_func : Callable | list[Callable] | dict[str, Callable] | os.PathLike</span>
+<span class="sd">        The function(s) to apply to each label. If a Callable, the same function is applied to all labels. If a list, the functions are applied to the labels in order. If a dict, the functions are applied to the labels with the corresponding keys. If an os.PathLike, the function is loaded from the file at the path (the function should be called `process_func` in the python file). This last option should take a numpy array as input and return a numpy array as output. This allows for more complex postprocessing functions to be used.</span>
 <span class="sd">    output_path : UPath</span>
 <span class="sd">        The path to the zarr container to write the thresholded data to.</span>
 <span class="sd">    labels : Optional[list[str]], optional</span>
 <span class="sd">        The labels to process in the zarr container. If None, all labels are processed. Default is None.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">labels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">labels</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open_group</span><span class="p">(</span><span class="n">input_container</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">zarr</span><span class="o">.</span><span class="n">open_group</span><span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">input_container</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">process_func</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">):</span>
         <span class="n">process_func</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">SourceFileLoader</span><span class="p">(</span><span class="s2">&quot;process_func&quot;</span><span class="p">,</span> <span class="n">process_func</span><span class="p">)</span><span class="o">.</span><span class="n">load_module</span><span class="p">()</span><span class="o">.</span><span class="n">process_func</span>
+            <span class="n">SourceFileLoader</span><span class="p">(</span><span class="s2">&quot;process_func&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">process_func</span><span class="p">))</span>
+            <span class="o">.</span><span class="n">load_module</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">process_func</span>
         <span class="p">)</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tqdm</span><span class="p">(</span><span class="n">labels</span><span class="p">)):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">process_func</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
@@ -406,7 +408,7 @@ document.write(`
         <span class="n">data</span> <span class="o">=</span> <span class="n">label_process_func</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 
         <span class="n">output_ds</span> <span class="o">=</span> <span class="n">prepare_ds</span><span class="p">(</span>
-            <span class="n">output_path</span> <span class="o">/</span> <span class="n">label</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
             <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
             <span class="n">offset</span><span class="o">=</span><span class="n">input_ds</span><span class="o">.</span><span class="n">offset</span><span class="p">,</span>
             <span class="n">voxel_size</span><span class="o">=</span><span class="n">input_ds</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">,</span>
@@ -438,7 +440,7 @@ document.write(`
 <span class="sd">        The labels to rescale in the zarr container. If None, all labels are rescaled. Default is None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">labels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">labels</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open_group</span><span class="p">(</span><span class="n">input_container</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">zarr</span><span class="o">.</span><span class="n">open_group</span><span class="p">(</span><span class="n">input_container</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tqdm</span><span class="p">(</span><span class="n">labels</span><span class="p">)):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output_voxel_size</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">output_voxel_size</span><span class="p">:</span>
@@ -457,7 +459,7 @@ document.write(`
         <span class="n">data</span> <span class="o">=</span> <span class="n">input_ds</span><span class="p">[:]</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">rescale</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">output_ds</span> <span class="o">=</span> <span class="n">prepare_ds</span><span class="p">(</span>
-            <span class="n">output_path</span> <span class="o">/</span> <span class="n">label</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
             <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
             <span class="n">offset</span><span class="o">=</span><span class="n">input_ds</span><span class="o">.</span><span class="n">offset</span><span class="p">,</span>
             <span class="n">voxel_size</span><span class="o">=</span><span class="n">voxel_size</span><span class="p">,</span>
@@ -489,7 +491,7 @@ document.write(`
 <span class="sd">        The labels to resize in the zarr container. If None, all labels are resized. Default is None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">labels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">labels</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open_group</span><span class="p">(</span><span class="n">input_container</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">zarr</span><span class="o">.</span><span class="n">open_group</span><span class="p">(</span><span class="n">input_container</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tqdm</span><span class="p">(</span><span class="n">labels</span><span class="p">)):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output_shape</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">output_shape</span><span class="p">:</span>
@@ -506,7 +508,7 @@ document.write(`
         <span class="n">data</span> <span class="o">=</span> <span class="n">input_ds</span><span class="p">[:]</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">resize</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">output_ds</span> <span class="o">=</span> <span class="n">prepare_ds</span><span class="p">(</span>
-            <span class="n">output_path</span> <span class="o">/</span> <span class="n">label</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
             <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
             <span class="n">offset</span><span class="o">=</span><span class="n">input_ds</span><span class="o">.</span><span class="n">offset</span><span class="p">,</span>
             <span class="n">voxel_size</span><span class="o">=</span><span class="n">input_ds</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">,</span>

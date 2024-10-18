@@ -333,8 +333,7 @@ document.write(`
 <span class="p">]</span>
 <span class="n">HAUSDORFF_DISTANCE_MAX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
 
-<span class="c1"># TODO: REPLACE WITH THE GROUND TRUTH LABEL VOLUME PATH</span>
-<span class="n">TRUTH_PATH</span> <span class="o">=</span> <span class="s2">&quot;data/ground_truth.zarr&quot;</span>
+<span class="n">TRUTH_PATH</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="s2">&quot;data/ground_truth.zarr&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span>
 
 
 <div class="viewcode-block" id="unzip_file">
@@ -595,8 +594,8 @@ document.write(`
     <span class="n">label_name</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">pred_label_path</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
     <span class="n">volume_name</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">pred_label_path</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span>
     <span class="n">pred_label</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">pred_label_path</span><span class="p">)[:]</span>
-    <span class="n">truth_label</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">volume_name</span> <span class="o">/</span> <span class="n">label_name</span><span class="p">)[:]</span>
-    <span class="n">mask_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">volume_name</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2">_mask&quot;</span>
+    <span class="n">truth_label</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">((</span><span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">volume_name</span> <span class="o">/</span> <span class="n">label_name</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">)[:]</span>
+    <span class="n">mask_path</span> <span class="o">=</span> <span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">volume_name</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2">_mask&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span>
     <span class="k">if</span> <span class="n">mask_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="c1"># Mask out uncertain regions resulting from low-res ground truth annotations</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Masking </span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2"> with </span><span class="si">{</span><span class="n">mask_path</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
@@ -638,10 +637,12 @@ document.write(`
     <span class="n">pred_volume_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">pred_volume_path</span><span class="p">)</span>
 
     <span class="c1"># Find labels to score</span>
-    <span class="n">pred_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">pred_volume_path</span><span class="p">)</span><span class="o">.</span><span class="n">array_keys</span><span class="p">()]</span>
+    <span class="n">pred_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">pred_volume_path</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">array_keys</span><span class="p">()]</span>
 
     <span class="n">volume_name</span> <span class="o">=</span> <span class="n">pred_volume_path</span><span class="o">.</span><span class="n">name</span>
-    <span class="n">truth_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">volume_name</span><span class="p">)</span><span class="o">.</span><span class="n">array_keys</span><span class="p">()]</span>
+    <span class="n">truth_labels</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">((</span><span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">volume_name</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">array_keys</span><span class="p">()</span>
+    <span class="p">]</span>
 
     <span class="n">labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">pred_labels</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">truth_labels</span><span class="p">))</span>
 
@@ -654,7 +655,9 @@ document.write(`
         <span class="p">)</span>
         <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">labels</span>
     <span class="p">}</span>
-    <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">pred_volume_path</span> <span class="o">/</span> <span class="n">labels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+    <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">((</span><span class="n">pred_volume_path</span> <span class="o">/</span> <span class="n">labels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">scores</span></div>
 

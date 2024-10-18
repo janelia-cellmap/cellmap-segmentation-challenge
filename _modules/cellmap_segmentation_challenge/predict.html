@@ -301,6 +301,7 @@ document.write(`
 <span></span><span class="kn">from</span> <span class="nn">glob</span> <span class="kn">import</span> <span class="n">glob</span>
 <span class="kn">from</span> <span class="nn">importlib.machinery</span> <span class="kn">import</span> <span class="n">SourceFileLoader</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span>
 <span class="kn">import</span> <span class="nn">torch</span>
 
 <span class="c1"># torch.multiprocessing.set_start_method(&quot;spawn&quot;, force=True)</span>
@@ -484,7 +485,7 @@ document.write(`
             <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_dir</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;output.zarr&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">axis</span><span class="p">),</span> <span class="n">label</span><span class="p">)</span>
         <span class="p">)</span>
         <span class="n">dataset</span> <span class="o">=</span> <span class="n">prepare_ds</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">out_dataset</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">UPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">out_dataset</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
             <span class="n">shape</span><span class="o">=</span><span class="n">example_ds</span><span class="o">.</span><span class="n">roi</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
             <span class="n">offset</span><span class="o">=</span><span class="n">example_ds</span><span class="o">.</span><span class="n">roi</span><span class="o">.</span><span class="n">offset</span><span class="p">,</span>
             <span class="n">voxel_size</span><span class="o">=</span><span class="n">example_ds</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">,</span>
@@ -543,6 +544,7 @@ document.write(`
     <span class="n">raw_dataset</span> <span class="o">=</span> <span class="n">open_ds</span><span class="p">(</span><span class="n">in_dataset</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">output_voxel_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">output_voxel_size</span> <span class="o">=</span> <span class="n">raw_dataset</span><span class="o">.</span><span class="n">voxel_size</span>
+    <span class="n">output_voxel_size</span> <span class="o">=</span> <span class="n">daisy</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">output_voxel_size</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_block_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
         <span class="n">input_block_shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">input_block_shape</span><span class="p">)</span>
@@ -551,8 +553,8 @@ document.write(`
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">output_block_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
         <span class="n">output_block_shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">output_block_shape</span><span class="p">)</span>
 
-    <span class="n">read_shape</span> <span class="o">=</span> <span class="n">daisy</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">input_block_shape</span><span class="p">)</span>
-    <span class="n">write_shape</span> <span class="o">=</span> <span class="n">daisy</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">output_block_shape</span><span class="p">)</span>
+    <span class="n">read_shape</span> <span class="o">=</span> <span class="n">daisy</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">input_block_shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">raw_dataset</span><span class="o">.</span><span class="n">voxel_size</span>
+    <span class="n">write_shape</span> <span class="o">=</span> <span class="n">daisy</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">output_block_shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">output_voxel_size</span>
 
     <span class="n">context</span> <span class="o">=</span> <span class="p">(</span><span class="n">read_shape</span> <span class="o">-</span> <span class="n">write_shape</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
     <span class="n">read_roi</span> <span class="o">=</span> <span class="n">daisy</span><span class="o">.</span><span class="n">Roi</span><span class="p">((</span><span class="mi">0</span><span class="p">,)</span> <span class="o">*</span> <span class="n">read_shape</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span> <span class="n">read_shape</span><span class="p">)</span>
@@ -586,18 +588,24 @@ document.write(`
     <span class="n">out_datasets</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">channel</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">channels</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">dataset</span> <span class="o">=</span> <span class="n">prepare_ds</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">out_dataset</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-            <span class="n">shape</span><span class="o">=</span><span class="n">total_write_roi</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+            <span class="n">UPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">out_dataset</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="n">total_write_roi</span><span class="o">.</span><span class="n">shape</span> <span class="o">/</span> <span class="n">output_voxel_size</span><span class="p">,</span>
             <span class="n">offset</span><span class="o">=</span><span class="n">total_write_roi</span><span class="o">.</span><span class="n">offset</span><span class="p">,</span>
-            <span class="n">voxel_size</span><span class="o">=</span><span class="n">raw_dataset</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">,</span>
-            <span class="n">chunk_shape</span><span class="o">=</span><span class="n">write_roi</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+            <span class="n">voxel_size</span><span class="o">=</span><span class="n">output_voxel_size</span><span class="p">,</span>
+            <span class="n">chunk_shape</span><span class="o">=</span><span class="n">output_block_shape</span><span class="p">,</span>
             <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
+            <span class="n">units</span><span class="o">=</span><span class="p">[</span>
+                <span class="s2">&quot;nm&quot;</span><span class="p">,</span>
+            <span class="p">]</span>
+            <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">output_voxel_size</span><span class="p">),</span>
         <span class="p">)</span>
         <span class="n">out_datasets</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataset</span>
 
     <span class="n">device</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">device</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Predicting on </span><span class="si">{</span><span class="n">in_dataset</span><span class="si">}</span><span class="s2"> and saving to </span><span class="si">{</span><span class="n">out_dataset</span><span class="si">}</span><span class="s2"> using </span><span class="si">{</span><span class="n">device</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">predict_worker</span><span class="p">(</span><span class="n">block</span><span class="p">):</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
         <span class="n">raw_input</span> <span class="o">=</span> <span class="p">(</span>
             <span class="mf">2.0</span>
             <span class="o">*</span> <span class="p">(</span>
@@ -608,17 +616,21 @@ document.write(`
             <span class="p">)</span>
             <span class="o">/</span> <span class="n">scale</span>
         <span class="p">)</span> <span class="o">-</span> <span class="mf">1.0</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reading from </span><span class="si">{</span><span class="n">block</span><span class="o">.</span><span class="n">read_roi</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s.&quot;</span><span class="p">)</span>
         <span class="n">ndims</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">raw_input</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
         <span class="n">raw_input</span> <span class="o">=</span> <span class="n">raw_input</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
-        <span class="n">write_roi</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">write_roi</span>  <span class="c1"># .intersect(out_datasets[0].roi)</span>
+        <span class="n">write_roi</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">write_roi</span>  <span class="c1"># .intersect(out_datasets[0].roi))</span>
 
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="c1"># Time the prediction</span>
+            <span class="c1"># start_time = time()</span>
             <span class="n">output</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="n">model</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">raw_input</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="o">.</span><span class="n">detach</span><span class="p">()</span>
                 <span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
                 <span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
             <span class="p">)</span>
+            <span class="c1"># print(f&quot;Prediction time: {time() - start_time:.2f} s&quot;)</span>
             <span class="k">if</span> <span class="n">ndims</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
                 <span class="n">output</span> <span class="o">=</span> <span class="n">output</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
             <span class="n">predictions</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span>
@@ -628,7 +640,9 @@ document.write(`
             <span class="p">)</span>
 
             <span class="n">write_data</span> <span class="o">=</span> <span class="n">predictions</span><span class="o">.</span><span class="n">to_ndarray</span><span class="p">(</span><span class="n">write_roi</span><span class="p">)</span>
+            <span class="c1"># print(f&quot;Writing to {write_roi}...&quot;)</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">out_dataset</span> <span class="ow">in</span> <span class="n">out_datasets</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="c1"># start_time = time()</span>
                 <span class="k">if</span> <span class="s2">&quot;-&quot;</span> <span class="ow">in</span> <span class="n">i</span><span class="p">:</span>
                     <span class="n">indexes</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
                     <span class="n">indexes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">indexes</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">indexes</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
@@ -640,6 +654,9 @@ document.write(`
                     <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">out_dataset</span><span class="p">[</span><span class="n">write_roi</span><span class="p">]</span> <span class="o">=</span> <span class="n">write_data</span><span class="p">[</span><span class="n">indexes</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+                <span class="c1"># print(</span>
+                <span class="c1">#     f&quot;Finished writing to output(s) {i} in {time() - start_time:.2f} s.&quot;</span>
+                <span class="c1"># )</span>
         <span class="c1"># block.status = daisy.BlockStatus.SUCCESS</span>
 
     <span class="n">task</span> <span class="o">=</span> <span class="n">daisy</span><span class="o">.</span><span class="n">Task</span><span class="p">(</span>
@@ -663,7 +680,9 @@ document.write(`
 <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span>
     <span class="n">config_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">crops</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span>
-    <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">REPO_ROOT</span> <span class="o">/</span> <span class="s2">&quot;data/predictions/predictions.zarr/</span><span class="si">{crop}</span><span class="s2">&quot;</span><span class="p">),</span>
+    <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span>
+        <span class="n">REPO_ROOT</span> <span class="o">/</span> <span class="s2">&quot;data/predictions/predictions.zarr/</span><span class="si">{crop}</span><span class="s2">&quot;</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
     <span class="n">do_orthoplanes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
