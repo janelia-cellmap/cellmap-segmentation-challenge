@@ -129,7 +129,13 @@ Example scripts for predicting on test data are provided in the `examples` direc
 python predict_2D.py
 ```
 
-See the `README.md` in the `examples` folder for more information on the available options, as well as the documentation in `examples/predict_2D.py` and `examples/predict_3D.py`.
+There is also a built in command to run predictions, given the path to a model (or training) configuration file. To learn more, you can run the following in the terminal:
+
+```bash
+csc predict --help
+```
+
+Also see the `README.md` in the `examples` folder for more information on the available options, as well as the documentation in `examples/predict_2D.py` and `examples/predict_3D.py`.
 
 ## Post-process model predictions
 

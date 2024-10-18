@@ -220,7 +220,6 @@ def get_dataset_counts(
     raw_name: str = RAW_NAME,
     crop_name: str = CROP_NAME,
 ):
-    # TODO: FIx this function
     """
     Get the counts of each class in each dataset.
 

@@ -285,7 +285,7 @@ class Resnet3D(torch.nn.Module):
                     stride=2,
                     padding=updown_p,
                     bias=use_bias,
-                ),  # TODO: Make actually use padding_type for every convolution (currently does zeros if not valid)
+                ),
                 norm_layer(ngf * mult * 2),
                 activation(),
             ]
