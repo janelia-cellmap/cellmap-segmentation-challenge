@@ -17,6 +17,7 @@
 # Once the model is trained, you can use the `predict` function to make predictions on new data using the trained model. See the `predict_2D.py` example for more details.
 
 # %% Imports
+from upath import UPath
 from cellmap_segmentation_challenge.models import UNet_2D, ResNet
 
 # %% Set hyperparameters and other configurations
@@ -52,10 +53,12 @@ load_model = "latest"  # load the "latest" model or the "best" validation model
 
 # Define the paths for saving the model and logs, etc.
 data_base_path = "data"  # base path where the data is stored
-logs_save_path = "tensorboard/{model_name}"  # path to save the logs from tensorboard
-model_save_path = (
+logs_save_path = UPath(
+    "tensorboard/{model_name}"
+).path  # path to save the logs from tensorboard
+model_save_path = UPath(
     "checkpoints/{model_name}_{epoch}.pth"  # path to save the model checkpoints
-)
+).path
 datasplit_path = "datasplit.csv"  # path to the datasplit file that defines the train/val split the dataloader should use
 
 # Define the spatial transformations to apply to the training data

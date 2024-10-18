@@ -1,6 +1,7 @@
 from glob import glob
 from importlib.machinery import SourceFileLoader
 import tempfile
+from time import time
 import torch
 
 # torch.multiprocessing.set_start_method("spawn", force=True)
@@ -184,7 +185,7 @@ def predict_ortho_planes(
             os.path.join(tmp_dir.name, f"output.zarr", str(axis), label)
         )
         dataset = prepare_ds(
-            f"{out_dataset}/{label}",
+            UPath(f"{out_dataset}/{label}").path,
             shape=example_ds.roi.shape,
             offset=example_ds.roi.offset,
             voxel_size=example_ds.voxel_size,
@@ -243,6 +244,7 @@ def _predict(
     raw_dataset = open_ds(in_dataset)
     if output_voxel_size is None:
         output_voxel_size = raw_dataset.voxel_size
+    output_voxel_size = daisy.Coordinate(output_voxel_size)
 
     if len(input_block_shape) == 2:
         input_block_shape = (1,) + tuple(input_block_shape)
@@ -251,8 +253,8 @@ def _predict(
     if len(output_block_shape) == 2:
         output_block_shape = (1,) + tuple(output_block_shape)
 
-    read_shape = daisy.Coordinate(input_block_shape)
-    write_shape = daisy.Coordinate(output_block_shape)
+    read_shape = daisy.Coordinate(input_block_shape) * raw_dataset.voxel_size
+    write_shape = daisy.Coordinate(output_block_shape) * output_voxel_size
 
     context = (read_shape - write_shape) / 2
     read_roi = daisy.Roi((0,) * read_shape.dims, read_shape)
@@ -286,18 +288,24 @@ def _predict(
     out_datasets = {}
     for channel, label in channels.items():
         dataset = prepare_ds(
-            f"{out_dataset}/{label}",
-            shape=total_write_roi.shape,
+            UPath(f"{out_dataset}/{label}").path,
+            shape=total_write_roi.shape / output_voxel_size,
             offset=total_write_roi.offset,
-            voxel_size=raw_dataset.voxel_size,
-            chunk_shape=write_roi.shape,
+            voxel_size=output_voxel_size,
+            chunk_shape=output_block_shape,
             dtype=np.float32,
+            units=[
+                "nm",
+            ]
+            * len(output_voxel_size),
         )
         out_datasets[channel] = dataset
 
     device = list(model.parameters())[0].device
+    print(f"Predicting on {in_dataset} and saving to {out_dataset} using {device}.")
 
     def predict_worker(block):
+        start_time = time()
         raw_input = (
             2.0
             * (
@@ -308,17 +316,21 @@ def _predict(
             )
             / scale
         ) - 1.0
+        print(f"Reading from {block.read_roi} in {time() - start_time:.2f} s.")
         ndims = len(raw_input.squeeze().shape)
         raw_input = raw_input.squeeze()[None, None, ...]
-        write_roi = block.write_roi  # .intersect(out_datasets[0].roi)
+        write_roi = block.write_roi  # .intersect(out_datasets[0].roi))
 
         with torch.no_grad():
+            # Time the prediction
+            # start_time = time()
             output = (
                 model(torch.Tensor(raw_input).to(device=device, dtype=torch.float32))[0]
                 .detach()
                 .cpu()
                 .numpy()
             )
+            # print(f"Prediction time: {time() - start_time:.2f} s")
             if ndims == 2:
                 output = output[:, None, ...]
             predictions = Array(
@@ -328,7 +340,9 @@ def _predict(
             )
 
             write_data = predictions.to_ndarray(write_roi)
+            # print(f"Writing to {write_roi}...")
             for i, out_dataset in out_datasets.items():
+                # start_time = time()
                 if "-" in i:
                     indexes = i.split("-")
                     indexes = np.arange(int(indexes[0]), int(indexes[1]) + 1)
@@ -340,6 +354,9 @@ def _predict(
                     )
                 else:
                     out_dataset[write_roi] = write_data[indexes[0]]
+                # print(
+                #     f"Finished writing to output(s) {i} in {time() - start_time:.2f} s."
+                # )
         # block.status = daisy.BlockStatus.SUCCESS
 
     task = daisy.Task(
@@ -361,7 +378,9 @@ def _predict(
 def predict(
     config_path: str,
     crops: str = "test",
-    output_path: str = str(REPO_ROOT / "data/predictions/predictions.zarr/{crop}"),
+    output_path: str = UPath(
+        REPO_ROOT / "data/predictions/predictions.zarr/{crop}"
+    ).path,
     do_orthoplanes: bool = True,
 ):
     """

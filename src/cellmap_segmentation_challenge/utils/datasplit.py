@@ -11,9 +11,9 @@ from tqdm import tqdm
 from upath import UPath
 
 REPO_ROOT = UPath(__file__).parent.parent.parent.parent
-SEARCH_PATH = str(REPO_ROOT / "data/{dataset}/{dataset}.zarr/recon-1/{name}")
-CROP_NAME = "labels/groundtruth/{crop}/{label}"
-RAW_NAME = "em/fibsem-uint8"
+SEARCH_PATH = (REPO_ROOT / "data/{dataset}/{dataset}.zarr/recon-1/{name}").path
+CROP_NAME = UPath("labels/groundtruth/{crop}/{label}").path
+RAW_NAME = UPath("em/fibsem-uint8").path
 
 
 def get_dataset_name(
@@ -26,7 +26,7 @@ def get_dataset_name(
     assert "{dataset}" in path_base, (
         f"search_path {search_path} must contain" + "{dataset}"
     )
-    for rp, sp in zip(raw_path.split("/"), path_base.split("/")):
+    for rp, sp in zip(raw_path.split(os.path.sep), path_base.split(os.path.sep)):
         if sp == "{dataset}":
             return rp
     raise ValueError(
@@ -53,8 +53,10 @@ def get_raw_path(crop_path: str, raw_name: str = RAW_NAME, label: str = "") -> s
         The path to the raw data.
     """
     crop_path = crop_path.rstrip(label + os.path.sep)
-    crop_name = CROP_NAME.format(crop=os.path.basename(crop_path), label="").rstrip("/")
-    return str(UPath(crop_path.removesuffix(crop_name)) / raw_name)
+    crop_name = CROP_NAME.format(crop=os.path.basename(crop_path), label="").rstrip(
+        os.path.sep
+    )
+    return (UPath(crop_path.removesuffix(crop_name)) / raw_name).path
 
 
 def get_csv_string(

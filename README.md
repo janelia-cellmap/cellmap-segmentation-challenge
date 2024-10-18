@@ -110,7 +110,7 @@ python train_2D.py
 This will train a 2D model on the training data and save the model weights to a file (defaults to `./checkpoints/*.pth`), along with logging loss and validation metrics, and sample predictions, viewable in TensorBoard. To view the TensorBoard logs, and monitor training progress, run the following command (assuming you are using the default log directory):
 
 ```bash
-tensorboard --logdir=./tensorboard
+tensorboard --logdir=tensorboard
 ```
 
 You can also train a 3D model by running the same command with `train_3D.py`:

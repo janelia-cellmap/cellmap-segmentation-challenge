@@ -33,8 +33,7 @@ INSTANCE_CLASSES = [
 ]
 HAUSDORFF_DISTANCE_MAX = np.inf
 
-# TODO: REPLACE WITH THE GROUND TRUTH LABEL VOLUME PATH
-TRUTH_PATH = "data/ground_truth.zarr"
+TRUTH_PATH = UPath("data/ground_truth.zarr").path
 
 
 def unzip_file(zip_path):
@@ -278,8 +277,8 @@ def score_label(
     label_name = UPath(pred_label_path).name
     volume_name = UPath(pred_label_path).parent.name
     pred_label = zarr.open(pred_label_path)[:]
-    truth_label = zarr.open(UPath(truth_path) / volume_name / label_name)[:]
-    mask_path = UPath(truth_path) / volume_name / f"{label_name}_mask"
+    truth_label = zarr.open((UPath(truth_path) / volume_name / label_name).path)[:]
+    mask_path = (UPath(truth_path) / volume_name / f"{label_name}_mask").path
     if mask_path.exists():
         # Mask out uncertain regions resulting from low-res ground truth annotations
         print(f"Masking {label_name} with {mask_path}...")
@@ -318,10 +317,12 @@ def score_volume(
     pred_volume_path = UPath(pred_volume_path)
 
     # Find labels to score
-    pred_labels = [a for a in zarr.open(pred_volume_path).array_keys()]
+    pred_labels = [a for a in zarr.open(pred_volume_path.path).array_keys()]
 
     volume_name = pred_volume_path.name
-    truth_labels = [a for a in zarr.open(UPath(truth_path) / volume_name).array_keys()]
+    truth_labels = [
+        a for a in zarr.open((UPath(truth_path) / volume_name).path).array_keys()
+    ]
 
     labels = list(set(pred_labels) & set(truth_labels))
 
@@ -334,7 +335,9 @@ def score_volume(
         )
         for label in labels
     }
-    scores["num_voxels"] = int(np.prod(zarr.open(pred_volume_path / labels[0]).shape))
+    scores["num_voxels"] = int(
+        np.prod(zarr.open((pred_volume_path / labels[0]).path).shape)
+    )
 
     return scores
 

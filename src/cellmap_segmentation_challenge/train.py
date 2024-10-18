@@ -57,9 +57,11 @@ def train(config_path: str):
     config = SourceFileLoader(config, str(config_path)).load_module()
     # %% Set hyperparameters and other configurations from the config file
     model_save_path = getattr(
-        config, "model_save_path", "checkpoints/{model_name}_{epoch}.pth"
+        config, "model_save_path", UPath("checkpoints/{model_name}_{epoch}.pth").path
     )
-    logs_save_path = getattr(config, "logs_save_path", "tensorboard/{model_name}")
+    logs_save_path = getattr(
+        config, "logs_save_path", UPath("tensorboard/{model_name}").path
+    )
     datasplit_path = getattr(config, "datasplit_path", "datasplit.csv")
     validation_prob = getattr(config, "validation_prob", 0.3)
     learning_rate = getattr(config, "learning_rate", 0.0001)

@@ -4,7 +4,7 @@ from upath import UPath
 from tqdm import tqdm
 from funlib.persistence import open_ds, prepare_ds
 from importlib.machinery import SourceFileLoader
-from typing import Optional, Union
+from typing import Callable, Optional, Union
 from skimage.transform import resize, rescale
 import zarr
 
@@ -49,7 +49,7 @@ def threshold_volume(
         data = data > threshold_value
 
         output_ds = prepare_ds(
-            output_path / label,
+            (UPath(output_path) / label).path,
             data.shape,
             offset=input_ds.offset,
             voxel_size=input_ds.voxel_size,
@@ -59,7 +59,7 @@ def threshold_volume(
 
 def process_volume(
     input_container: str | UPath,
-    process_func: Union[callable, list[callable], dict[str, callable], os.PathLike],
+    process_func: Union[Callable, list[Callable], dict[str, Callable], os.PathLike],
     output_path: str | UPath,
     labels: Optional[list[str]] = None,
 ):
@@ -70,18 +70,20 @@ def process_volume(
     ----------
     input_container : str | UPath
         The path to the zarr container containing the data for each label.
-    process_func : callable | list[callable] | dict[str, callable] | os.PathLike
-        The function(s) to apply to each label. If a callable, the same function is applied to all labels. If a list, the functions are applied to the labels in order. If a dict, the functions are applied to the labels with the corresponding keys. If an os.PathLike, the function is loaded from the file at the path (the function should be called `process_func` in the python file). This last option should take a numpy array as input and return a numpy array as output. This allows for more complex postprocessing functions to be used.
+    process_func : Callable | list[Callable] | dict[str, Callable] | os.PathLike
+        The function(s) to apply to each label. If a Callable, the same function is applied to all labels. If a list, the functions are applied to the labels in order. If a dict, the functions are applied to the labels with the corresponding keys. If an os.PathLike, the function is loaded from the file at the path (the function should be called `process_func` in the python file). This last option should take a numpy array as input and return a numpy array as output. This allows for more complex postprocessing functions to be used.
     output_path : UPath
         The path to the zarr container to write the thresholded data to.
     labels : Optional[list[str]], optional
         The labels to process in the zarr container. If None, all labels are processed. Default is None.
     """
     if labels is None:
-        labels = zarr.open_group(input_container).keys()
+        labels = list(zarr.open_group(UPath(input_container).path).keys())
     if isinstance(process_func, os.PathLike):
         process_func = (
-            SourceFileLoader("process_func", process_func).load_module().process_func
+            SourceFileLoader("process_func", str(process_func))
+            .load_module()
+            .process_func
         )
     for i, label in enumerate(tqdm(labels)):
         if isinstance(process_func, dict):
@@ -101,7 +103,7 @@ def process_volume(
         data = label_process_func(data)
 
         output_ds = prepare_ds(
-            output_path / label,
+            (UPath(output_path) / label).path,
             data.shape,
             offset=input_ds.offset,
             voxel_size=input_ds.voxel_size,
@@ -130,7 +132,7 @@ def rescale_volume(
         The labels to rescale in the zarr container. If None, all labels are rescaled. Default is None
     """
     if labels is None:
-        labels = zarr.open_group(input_container).keys()
+        labels = list(zarr.open_group(input_container).keys())
     for i, label in enumerate(tqdm(labels)):
         if isinstance(output_voxel_size, dict):
             if label not in output_voxel_size:
@@ -149,7 +151,7 @@ def rescale_volume(
         data = input_ds[:]
         data = rescale(data, scale, order=0)
         output_ds = prepare_ds(
-            output_path / label,
+            (UPath(output_path) / label).path,
             data.shape,
             offset=input_ds.offset,
             voxel_size=voxel_size,
@@ -178,7 +180,7 @@ def resize_volume(
         The labels to resize in the zarr container. If None, all labels are resized. Default is None
     """
     if labels is None:
-        labels = zarr.open_group(input_container).keys()
+        labels = list(zarr.open_group(input_container).keys())
     for i, label in enumerate(tqdm(labels)):
         if isinstance(output_shape, dict):
             if label not in output_shape:
@@ -195,7 +197,7 @@ def resize_volume(
         data = input_ds[:]
         data = resize(data, shape, order=0)
         output_ds = prepare_ds(
-            output_path / label,
+            (UPath(output_path) / label).path,
             data.shape,
             offset=input_ds.offset,
             voxel_size=input_ds.voxel_size,

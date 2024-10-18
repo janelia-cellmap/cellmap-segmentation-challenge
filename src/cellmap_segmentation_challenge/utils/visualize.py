@@ -1,9 +1,9 @@
 from typing import Sequence
 import torch
 import os
-import numpy as np
 import matplotlib.pyplot as plt
 from cellmap_data.utils import get_image_dict
+from upath import UPath
 
 
 def save_result_figs(
@@ -34,5 +34,5 @@ def save_result_figs(
 
     figs = get_image_dict(inputs, outputs, targets, classes)
     for label, fig in figs.items():
-        fig.savefig(figures_save_path.format(label=label))
+        fig.savefig(UPath(figures_save_path.format(label=label)).path)
         plt.close(fig)
