@@ -20,12 +20,24 @@ These configuration files can then be used to run training via two different com
 1. `python path/to/train_config.py`: Run the training script directly.
 2. `csc train path/to/train_config.py`: Run the training script using the `csc train` command-line interface.
 
+For example, to train a 3D model using the configuration file `train_3D.py`, you can run the following command from the `examples` directory:
+
+```bash
+csc train train_3D.py
+```
+
 Training progress can be monitored using TensorBoard by running `tensorboard --logdir tensorboard` in the terminal.
 
 Once the model is trained, you can use the `predict` function to make predictions on new data using the trained model. See the `predict_3D.py` and `predict_2D.py` scripts (and below) for examples of how to use the `predict` function.
 
 ## Predicting on test data
-...
+The `predict_2D.py` and `predict_3D.py` scripts demonstrate how to use a trained model to make predictions on test data. The predictions are saved as Zarr-2 files in the specified output directory. The scripts use a configuration file to define model and other configurations required for making predictions, this file can be the same used for training the model. The scripts call the `predict` function with the path to this configuration file as an argument. For example, to predict on the test data using the 3D model from `train_3D.py`, you can run the following command:
+
+```bash
+csc predict train_3D.py
+```
+
+To see the other options available for the `predict` command, such as picking crops to predict on or setting an output path, you can run `csc predict --help`.
 
 ## Submission requirements:
 1. The submission should be a single zip file containing a single Zarr-2 file with the following structure:
