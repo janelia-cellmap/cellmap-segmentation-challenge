@@ -33,9 +33,9 @@ micromamba create -n cellmap-segmentation-challenge -y python=3.11
 micromamba activate cellmap-segmentation-challenge
 ```
 
-## Install the package
+## Clone the repository
 
-You can install the package by running the following command:
+You can clone and install the repository by running the following command:
 
 ```bash
 # Clone the repository
