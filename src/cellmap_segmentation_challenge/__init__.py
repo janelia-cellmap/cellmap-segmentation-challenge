@@ -9,7 +9,7 @@ from .evaluate import (
     score_submission,
     score_volume,
 )
-from .predict import _predict, predict_ortho_planes
+from .predict import _predict, predict_ortho_planes, predict
 from .utils.datasplit import make_datasplit_csv
 from .train import train
 from .postprocess import threshold_volume, process_volume, rescale_volume, resize_volume

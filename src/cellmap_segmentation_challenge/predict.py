@@ -2,7 +2,10 @@ from glob import glob
 from importlib.machinery import SourceFileLoader
 import tempfile
 import torch
-from typing import Mapping, Optional, Sequence
+
+# torch.multiprocessing.set_start_method("spawn", force=True)
+
+from typing import Optional, Sequence
 import os
 import daisy
 from funlib.persistence import open_ds, prepare_ds, Array
@@ -14,10 +17,7 @@ from cellmap_segmentation_challenge.utils.datasplit import (
     CROP_NAME,
     REPO_ROOT,
     SEARCH_PATH,
-    RAW_NAME,
     get_raw_path,
-    get_csv_string,
-    make_datasplit_csv,
 )
 
 
@@ -74,11 +74,13 @@ def get_crop_roi(crop_path: str, output_scale: Sequence[int]) -> str:
     roi_str : str
         The ROI of the crop formatted as a string.
     """
-    crop_group = zarr.open(crop_path)  # type: ignore
+    crop_group = zarr.open(crop_path, mode="r")  # type: ignore
     scale_level, offset, scale = find_level(crop_group, output_scale)
-    crop_dataset = zarr.open(UPath(crop_path) / scale_level)  # type: ignore
+    crop_dataset = zarr.open(UPath(crop_path) / scale_level, mode="r")  # type: ignore
     shape = np.array(crop_dataset.shape) * scale
-    roi = f"[{','.join([str(o) for o in offset])}:{','.join([str(o + s) for o, s in zip(offset, shape)])}]"
+    starts = np.array(offset).astype(int)
+    ends = (starts + shape).astype(int)
+    roi = f"[{','.join([f'{str(s)}:{str(e)}' for s, e in zip(starts, ends)])}]"
     return roi
 
 
@@ -100,8 +102,9 @@ def get_output_shape(
     Sequence[int]
         The output shape of the model.
     """
-    input_tensor = torch.zeros((1, 1), *input_shape)
-    output_tensor = model(input_tensor)
+    input_tensor = torch.zeros(input_shape).squeeze()[None, None, ...]
+    device = list(model.parameters())[0].device
+    output_tensor = model(input_tensor.to(device))
     return output_tensor.shape[2:]
 
 
@@ -231,6 +234,8 @@ def _predict(
         The maximum value of the raw data. Default is 255.
     """
     model.eval()
+    if torch.cuda.is_available():
+        model = model.cuda()
 
     shift = min_raw
     scale = max_raw - min_raw
@@ -242,14 +247,19 @@ def _predict(
     if len(input_block_shape) == 2:
         input_block_shape = (1,) + tuple(input_block_shape)
 
+    output_block_shape = get_output_shape(model, input_block_shape)
+    if len(output_block_shape) == 2:
+        output_block_shape = (1,) + tuple(output_block_shape)
+
     read_shape = daisy.Coordinate(input_block_shape)
-    write_shape = daisy.Coordinate(get_output_shape(model, input_block_shape))
+    write_shape = daisy.Coordinate(output_block_shape)
 
     context = (read_shape - write_shape) / 2
     read_roi = daisy.Roi((0,) * read_shape.dims, read_shape)
     write_roi = read_roi.grow(-context, -context)
 
     if roi is not None:
+        print(f"Predicting on ROI: {roi}")
         parsed_start, parsed_end = zip(
             *[
                 tuple(int(coord) for coord in axis.split(":"))
@@ -271,7 +281,7 @@ def _predict(
         )
 
     if isinstance(channels, Sequence):
-        channels = {i: c for i, c in enumerate(channels)}
+        channels = {str(i): c for i, c in enumerate(channels)}
 
     out_datasets = {}
     for channel, label in channels.items():
@@ -285,51 +295,52 @@ def _predict(
         )
         out_datasets[channel] = dataset
 
-    def predict_worker():
-        client = daisy.Client()
-        device = model.device
-        while True:
-            with client.acquire_block() as block:
-                if block is None:
-                    break
+    device = list(model.parameters())[0].device
 
-                raw_input = (
-                    2.0
-                    * (
-                        raw_dataset.to_ndarray(
-                            roi=block.read_roi, fill_value=shift + scale
-                        ).astype(np.float32)
-                        - shift
+    def predict_worker(block):
+        raw_input = (
+            2.0
+            * (
+                raw_dataset.to_ndarray(
+                    roi=block.read_roi, fill_value=shift + scale
+                ).astype(np.float32)
+                - shift
+            )
+            / scale
+        ) - 1.0
+        ndims = len(raw_input.squeeze().shape)
+        raw_input = raw_input.squeeze()[None, None, ...]
+        write_roi = block.write_roi  # .intersect(out_datasets[0].roi)
+
+        with torch.no_grad():
+            output = (
+                model(torch.Tensor(raw_input).to(device=device, dtype=torch.float32))[0]
+                .detach()
+                .cpu()
+                .numpy()
+            )
+            if ndims == 2:
+                output = output[:, None, ...]
+            predictions = Array(
+                output,
+                block.write_roi.offset,
+                dataset.voxel_size,
+            )
+
+            write_data = predictions.to_ndarray(write_roi)
+            for i, out_dataset in out_datasets.items():
+                if "-" in i:
+                    indexes = i.split("-")
+                    indexes = np.arange(int(indexes[0]), int(indexes[1]) + 1)
+                else:
+                    indexes = [int(i)]
+                if len(indexes) > 1:
+                    out_dataset[write_roi] = np.stack(
+                        [write_data[j] for j in indexes], axis=0
                     )
-                    / scale
-                ) - 1.0
-                raw_input = np.expand_dims(raw_input, (0, 1))
-                write_roi = block.write_roi  # .intersect(out_datasets[0].roi)
-
-                with torch.no_grad():
-                    predictions = Array(
-                        model.forward(torch.from_numpy(raw_input).float().to(device))
-                        .detach()
-                        .cpu()
-                        .numpy()[0],
-                        block.write_roi,
-                        dataset.voxel_size,
-                    )
-
-                    write_data = predictions.to_ndarray(write_roi)
-                    for i, out_dataset in enumerate(out_datasets):
-                        if "-" in i:
-                            indexes = i.split("-")
-                            indexes = np.arange(int(indexes[0]), int(indexes[1]) + 1)
-                        else:
-                            indexes = [int(i)]
-                        if len(indexes) > 1:
-                            out_dataset[write_roi] = np.stack(
-                                [write_data[j] for j in indexes], axis=0
-                            )
-                        else:
-                            out_dataset[write_roi] = write_data[indexes[0]]
-                block.status = daisy.BlockStatus.SUCCESS
+                else:
+                    out_dataset[write_roi] = write_data[indexes[0]]
+        # block.status = daisy.BlockStatus.SUCCESS
 
     task = daisy.Task(
         f"predict_{in_dataset}",
@@ -344,7 +355,7 @@ def _predict(
         max_retries=0,
         timeout=None,
     )
-    daisy.run_blockwise([task])
+    daisy.run_blockwise([task], multiprocessing=False)
 
 
 def predict(
@@ -384,7 +395,8 @@ def predict(
     # Get the crops to predict on
     if crops == "test":
         # TODO: Could make this more general to work for any class label
-        raw_search_label = crop_search_label = "test"
+        raw_search_label = "test"
+        crop_search_label = ""
         crops_paths = glob(
             SEARCH_PATH.format(
                 dataset="*", name=CROP_NAME.format(crop="*", label="test")
@@ -411,13 +423,14 @@ def predict(
     for crop_path in crops_paths:
         # Find raw scale level
         raw_path = get_raw_path(crop_path, label=raw_search_label)
-        raw_group = zarr.open(raw_path)
+        raw_group = zarr.open(raw_path, mode="r")
         scale_level, _, _ = find_level(raw_group, input_scale)
         in_dataset = UPath(raw_path) / scale_level
         assert in_dataset.exists(), f"Input dataset {in_dataset} does not exist."
 
         roi = get_crop_roi(str(UPath(crop_path) / crop_search_label), output_scale)
 
+        crop = UPath(crop_path).stem
         out_dataset = output_path.format(crop=crop, label="")
 
         crop_args.append(
@@ -434,7 +447,7 @@ def predict(
             input_block_shape=input_block_shape,
             channels=classes,
             output_voxel_size=output_scale,
-            *args,
+            **args,
         )
 
 
@@ -443,58 +456,58 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "model",
-        "m",
+        "--model",
+        "-m",
         type=str,
         help="Path to a script that will load the model. Often this can be the path to the training script (such as with the examples).",
     )
     parser.add_argument(
-        "in_dataset",
-        "in",
+        "--in_dataset",
+        "-in",
         type=str,
         help="Full path to the input dataset. This dataset should contain the raw data to predict on. Example: `/path/to/test_raw.zarr/em/s0`",
     )
     parser.add_argument(
-        "out_dataset",
-        "out",
+        "--out_dataset",
+        "-out",
         type=str,
         help="Path to the output dataset, minus the class label name(s). For example, the output dataset should be `/path/to/outputs.zarr/dataset_1`.",
     )
     parser.add_argument(
-        "input_block_shape",
-        "in_shape",
+        "--input_block_shape",
+        "-in_shape",
         type=Sequence[int],
         help="Shape of the input blocks to use for prediction.",
     )
     parser.add_argument(
-        "channels",
-        "ch",
+        "--channels",
+        "-ch",
         type=Sequence[str] | dict[str | int, str],
         help="The label classes to predict and their corresponding channels. Specify multiple channels for a single label class as a string of the form '0-2'. Example: {'0-2':'nuc'}.",
     )
     parser.add_argument(
-        "roi",
+        "-roi",
         type=str,
         default=None,
         help="Region of interest to predict. Default is to use the entire ROI of the input dataset. Format is a string of the form '[start1:end1,start2:end2,...]'.",
     )
     parser.add_argument(
-        "min_raw",
-        "min",
+        "--min_raw",
+        "-min",
         type=float,
         default=0,
         help="Minimum value of the raw data. Default is 0.",
     )
     parser.add_argument(
-        "max_raw",
-        "max",
+        "--max_raw",
+        "-max",
         type=float,
         default=255,
         help="Maximum value of the raw data. Default is 255.",
     )
     parser.add_argument(
-        "do_ortho_planes",
-        "ortho",
+        "--do_ortho_planes",
+        "-ortho",
         action="store_true",
         help="Whether to compute the average of predictions from x, y, and z orthogonal planes for the full 3D volume. This is sometimes called 2.5D predictions. It expects a model that yields 2D outputs. Similarly, it expects the `input_shape` to be 2D (i.e. a sequence of 2 integers).",
     )
