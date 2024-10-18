@@ -17,7 +17,20 @@ from upath import UPath
 from tqdm import tqdm
 
 
-INSTANCE_CLASSES = ["mito", "nuc", "instance"]
+INSTANCE_CLASSES = [
+    "nuc",
+    "vim",
+    "ves",
+    "endo",
+    "lyso",
+    "ld",
+    "perox",
+    "mito",
+    "np",
+    "mt",
+    "cell",
+    "instance",
+]
 HAUSDORFF_DISTANCE_MAX = np.inf
 
 # TODO: REPLACE WITH THE GROUND TRUTH LABEL VOLUME PATH
@@ -405,7 +418,7 @@ def score_submission(
             truth_path=truth_path,
             instance_classes=instance_classes,
         )
-        for volume in pred_volumes
+        for volume in volumes
     }
 
     # Combine label scores across volumes, normalizing by the number of voxels

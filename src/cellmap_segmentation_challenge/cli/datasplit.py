@@ -5,6 +5,7 @@ from cellmap_segmentation_challenge.utils.datasplit import (
     get_dataset_counts,
     SEARCH_PATH,
     RAW_NAME,
+    CROP_NAME,
 )
 
 
@@ -46,14 +47,21 @@ from cellmap_segmentation_challenge.utils.datasplit import (
     "-sp",
     type=str,
     default=SEARCH_PATH,
-    help="The search path to use to find the datasets. Default is {SEARCH_PATH}.",
+    help=f"The search path to use to find the datasets. Default is {SEARCH_PATH}.",
 )
 @click.option(
     "--raw_name",
     "-rn",
     type=str,
     default=RAW_NAME,
-    help=f"The name of the raw dataset. Default is {RAW_NAME}.",
+    help=f"The base name of the raw datasets. Default is {RAW_NAME}.",
+)
+@click.option(
+    "--crop_name",
+    "-cn",
+    type=str,
+    default=CROP_NAME,
+    help=f"The base name of the crop datasets. Default is {CROP_NAME}.",
 )
 @click.option(
     "--csv_path",
@@ -70,6 +78,7 @@ def make_datasplit_csv_cli(
     validate_ratio,
     search_path,
     raw_name,
+    crop_name,
     csv_path,
 ):
     """
@@ -89,6 +98,7 @@ def make_datasplit_csv_cli(
         validation_prob=validate_ratio,
         search_path=search_path,
         raw_name=raw_name,
+        crop_name=crop_name,
         csv_path=csv_path,
     )
 
@@ -113,13 +123,20 @@ def make_datasplit_csv_cli(
     "-rn",
     type=str,
     default=RAW_NAME,
-    help=f"The name of the raw dataset. Default is {RAW_NAME}.",
+    help=f"The base name of the raw datasets. Default is {RAW_NAME}.",
 )
-def get_dataset_counts_cli(classes, search_path, raw_name):
+@click.option(
+    "--crop_name",
+    "-cn",
+    type=str,
+    default=CROP_NAME,
+    help=f"The base name of the crop datasets. Default is {CROP_NAME}.",
+)
+def get_dataset_counts_cli(classes, search_path, raw_name, crop_name):
     """Get the counts of each class in each dataset and print them to the stdout."""
     classes = classes.split(",")
     dataset_class_counts = get_dataset_counts(
-        classes=classes, search_path=search_path, raw_name=RAW_NAME, raw_name=raw_name
+        classes=classes, search_path=search_path, raw_name=raw_name, crop_name=crop_name
     )
 
     # Print the counts

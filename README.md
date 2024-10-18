@@ -38,7 +38,12 @@ micromamba activate cellmap-segmentation-challenge
 You can install the package by running the following command:
 
 ```bash
-pip install git+https://github.com/janelia-cellmap/cellmap-segmentation-challenge.git
+# Clone the repository
+git clone https://github.com/janelia-cellmap/cellmap-segmentation-challenge
+
+# Install the repo in editable mode
+cd cellmap-segmentation-challenge
+pip install -e .
 ```
 
 ## Repository structure
@@ -50,10 +55,10 @@ The repository is structured as follows:
 cellmap-segmentation-challenge/
 │
 ├── examples/
-│   ├── train_2d.py
-│   ├── train_3d.py
-│   ├── predict_2d.py
-│   ├── predict_3d.py
+│   ├── train_2D.py
+│   ├── train_3D.py
+│   ├── predict_2D.py
+│   ├── predict_3D.py
 │   ├── ...
 │   └── README.md
 │
@@ -83,13 +88,12 @@ cellmap-segmentation-challenge/
 Once you have installed this package, you can download the challenge data by running the following command:
 
 ```bash
-csc fetch-data --crops all --dest path/to/dest
+csc fetch-data
 ```
 
-This will retrieve groundtruth data and corresponding EM data for each crop and save it at a path 
-of your choosing on your local filesystem.
+This will retrieve all of the groundtruth data and corresponding EM data for each crop and save it to `./data` on your local filesystem.
 
-To see all the options for the `fetch-data` command, run 
+Additionally, you can request raw data in all resolutions (not just those matching the annotations), extra raw data beyond the borders of the annotation crops (i.e. padding), custom download location, and more. To see all the options for the `fetch-data` command, run 
 
 ```bash
 csc fetch-data --help
@@ -97,11 +101,11 @@ csc fetch-data --help
 
 ## Train a model
 
-Example scripts for training 2D and 3D models are provided in the `src/cellmap_segmentation_challenge/examples` directory. The scripts are named `train_2d.py` and `train_3d.py`, respectively, and are thoroughly annotated for clarity. You can run one such script by running the following on the command line:
+Example scripts for training 2D and 3D models are provided in the `examples` directory. The scripts are named `train_2D.py` and `train_3D.py`, respectively, and are thoroughly annotated for clarity. You can run one such script by running the following on the command line:
 
 ```bash
-cd src/cellmap_segmentation_challenge/examples
-python train_2d.py
+cd examples
+python train_2D.py
 ```
 This will train a 2D model on the training data and save the model weights to a file (defaults to `./checkpoints/*.pth`), along with logging loss and validation metrics, and sample predictions, viewable in TensorBoard. To view the TensorBoard logs, and monitor training progress, run the following command (assuming you are using the default log directory):
 
@@ -109,13 +113,13 @@ This will train a 2D model on the training data and save the model weights to a 
 tensorboard --logdir=./tensorboard
 ```
 
-You can also train a 3D model by running the same command with `train_3d.py`:
+You can also train a 3D model by running the same command with `train_3D.py`:
 
 ```bash
-python train_3d.py
+python train_3D.py
 ```
 
-For more information on the available options, see the `README.md` in the `examples` folder, as well as the documentation in `examples/train_2d.py` and `examples/train_3d.py`.
+For more information on the available options and how training works, see the `README.md` in the `examples` folder, as well as the documentation in `examples/train_2D.py` and `examples/train_3D.py`.
 
 ## Predict on test data
 
@@ -132,6 +136,7 @@ See the `README.md` in the `examples` folder for more information on the availab
 After making predictions on the test data, you may want to post-process the predictions to improve the results. An example script for post-processing is provided in the `examples` directory, named `postprocess.py` and is annotated for clarity. 
 
 ... #TODO: Add more information on post-processing
+# TODO: Add post-processing to CLI
 
 ## Submit your final predictions
 

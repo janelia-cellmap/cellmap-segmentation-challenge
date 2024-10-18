@@ -16,10 +16,11 @@ from cellmap_segmentation_challenge.utils.crops import CropRow, fetch_manifest
 import structlog
 from yarl import URL
 import zarr
-from pathlib import Path
+from upath import UPath as Path
 import numpy as np
-from zarr.storage import FSStore
-from pydantic_zarr.v2 import GroupSpec
+
+# from zarr.storage import FSStore
+# from pydantic_zarr.v2 import GroupSpec
 import os
 
 from dotenv import load_dotenv
@@ -27,8 +28,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # get constants from environment, falling back to defaults as needed
-# manifest_url = os.environ.get("CSC_FETCH_DATA_MANIFEST_URL", None)
-manifest_url = "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/manifest.csv"
+manifest_url = os.environ.get(
+    "CSC_FETCH_DATA_MANIFEST_URL",
+    "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/manifest.csv",
+)
 if manifest_url is None:
     raise ValueError("No manifest url provided. Quitting.")
 num_workers = int(os.environ.get("CSC_FETCH_DATA_NUM_WORKERS", 32))
@@ -40,7 +43,7 @@ num_workers = int(os.environ.get("CSC_FETCH_DATA_NUM_WORKERS", 32))
     type=click.STRING,
     required=True,
     default="all",
-    help='A comma-separated list of crops to download, e.g., "111,112,113", or "all" to download all crops. Default: "all".',
+    help='A comma-separated list of crops to download, e.g., "111,112,113", "test" to only download test crops, or "all" to download all crops. Default: "all".',
 )
 @click.option(
     "--raw-padding",
@@ -49,7 +52,7 @@ num_workers = int(os.environ.get("CSC_FETCH_DATA_NUM_WORKERS", 32))
     help="Padding to apply to raw data, in voxels. Default: 0.",
 )
 @click.option(
-    "--dest-dir",
+    "--dest",
     type=click.STRING,
     default="./data",
     help="Path to directory where data will be stored.",
@@ -71,7 +74,7 @@ num_workers = int(os.environ.get("CSC_FETCH_DATA_NUM_WORKERS", 32))
 def fetch_data_cli(
     crops: str,
     raw_padding: str,
-    dest_dir: str,
+    dest: str,
     access_mode: str,
     fetch_all_em_resolutions,
 ):
@@ -88,7 +91,7 @@ def fetch_data_cli(
         )
     fetch_save_start = time.time()
     pool = ThreadPoolExecutor(max_workers=num_workers)
-    dest_path_abs = Path(dest_dir).absolute()
+    dest_path_abs = Path(dest).absolute()
 
     log = structlog.get_logger()
     crops_parsed: tuple[CropRow, ...]
@@ -96,8 +99,17 @@ def fetch_data_cli(
     crops_from_manifest = fetch_manifest(manifest_url)
 
     if crops == "all":
-        # crops_parsed = CHALLENGE_CROPS
         crops_parsed = crops_from_manifest
+    elif crops == "test":
+        crops_parsed = tuple(
+            filter(
+                lambda v: "test"
+                in read_group(
+                    str(v.gt_url), storage_options={"anon": True}
+                ).group_keys(),
+                crops_from_manifest,
+            )
+        )
     else:
         crops_split = tuple(int(x) for x in crops.split(","))
         crops_parsed = tuple(filter(lambda v: v.id in crops_split, crops_from_manifest))
@@ -119,7 +131,9 @@ def fetch_data_cli(
         em_source_url = crop.em_url
 
         try:
-            gt_source_group = read_group(str(gt_source_url))
+            gt_source_group = read_group(
+                str(gt_source_url), storage_options={"anon": True}
+            )
             log.info(f"Found GT data at {gt_source_url}.")
         except zarr.errors.GroupNotFoundError:
             log.info(
@@ -179,12 +193,16 @@ def fetch_data_cli(
             )
             continue
         else:
+            # ensure that intermediate groups are present
+            dest_root_group.require_group(em_dest_path)
+
             # model the em group locally
-            em_dest_group = GroupSpec.from_zarr(em_source_group).to_zarr(
-                FSStore(str(str(dest_root / em_dest_path))),
-                path="",
-                overwrite=(mode == "w"),
-            )
+            # em_dest_group = GroupSpec.from_zarr(em_source_group).to_zarr(
+            #     FSStore(str(dest_root / em_dest_path)),
+            #     path="",
+            #     overwrite=(mode == "w"),
+            # )
+            dest_em_group = zarr.open_group(str(dest_root / em_dest_path), mode=mode)
 
             # get the multiscale model of the source em group
             array_wrapper = {"name": "dask_array", "config": {"chunks": "auto"}}
@@ -266,24 +284,23 @@ def fetch_data_cli(
                             f"Gathering {len(new_chunks)} chunks from level {key}."
                         )
                         em_group_inventory += new_chunks
+                        em_group_inventory += (f"{key}/.zarray",)
                     else:
                         log.info(
                             f"Skipping scale level {key} because it is sampled more densely than the groundtruth data"
                         )
-
+                em_group_inventory += (".zattrs",)
                 log.info(
                     f"Preparing to fetch {len(em_group_inventory)} files from {em_source_url}."
                 )
                 partition_copy_store(
                     keys=em_group_inventory,
                     source_store=em_source_group.store,
-                    dest_store=em_dest_group.store,
+                    dest_store=dest_em_group.store,
                     batch_size=256,
                     pool=pool,
                     log=log,
                 )
-                # ensure that intermediate groups are present
-                dest_root_group.require_group(em_dest_path)
 
     log = log.unbind("crop_id", "dataset")
     log.info(f"Done after {time.time() - fetch_save_start:0.3f}s")

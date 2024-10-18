@@ -1,27 +1,67 @@
 # %%
-from glob import glob
+import os
 import shutil
 import sys
-from typing import Optional
-import numpy as np
-import os
+from glob import glob
 
+import numpy as np
 from tqdm import tqdm
 
-SEARCH_PATH = (
-    os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-    + "/data/{dataset}/{dataset}.zarr/recon-1/labels/groundtruth/*/{label}"
-)
-RAW_NAME = "recon-1/em/fibsem-uint8"
+
+from upath import UPath
+
+REPO_ROOT = UPath(__file__).parent.parent.parent.parent
+SEARCH_PATH = str(REPO_ROOT / "data/{dataset}/{dataset}.zarr/recon-1/{name}")
+CROP_NAME = "labels/groundtruth/{crop}/{label}"
+RAW_NAME = "em/fibsem-uint8"
+
+
+def get_dataset_name(
+    raw_path: str, search_path: str = SEARCH_PATH, raw_name: str = RAW_NAME
+) -> str:
+    """
+    Get the name of the dataset from the raw path.
+    """
+    path_base = search_path.format(dataset="{dataset}", name=raw_name)
+    assert "{dataset}" in path_base, (
+        f"search_path {search_path} must contain" + "{dataset}"
+    )
+    for rp, sp in zip(raw_path.split("/"), path_base.split("/")):
+        if sp == "{dataset}":
+            return rp
+    raise ValueError(
+        f"Could not find dataset name in {raw_path} with {search_path} as template"
+    )
+
+
+def get_raw_path(crop_path: str, raw_name: str = RAW_NAME, label: str = "") -> str:
+    """
+    Get the path to the raw data for a given crop path.
+
+    Parameters
+    ----------
+    crop_path : str
+        The path to the crop.
+    raw_name : str, optional
+        The name of the raw data, by default RAW_NAME
+    label : str, optional
+        The label class at the crop_path, by default ""
+
+    Returns
+    -------
+    str
+        The path to the raw data.
+    """
+    crop_path = crop_path.rstrip(label + os.path.sep)
+    crop_name = CROP_NAME.format(crop=os.path.basename(crop_path), label="").rstrip("/")
+    return str(UPath(crop_path.removesuffix(crop_name)) / raw_name)
 
 
 def get_csv_string(
     path: str,
     classes: list[str],
-    datapath_prefix: str,
     usage: str,
-    raw_name: str,
-    crops: Optional[list[str]] = None,
+    raw_name: str = RAW_NAME,
 ):
     """
     Get the csv string for a given dataset path, to be written to the datasplit csv file.
@@ -32,38 +72,35 @@ def get_csv_string(
         The path to the dataset.
     classes : list[str]
         The classes present in the dataset.
-    datapath_prefix : str
-        The prefix of the path to the raw data.
     usage : str
         The usage of the dataset (train or validate).
-    raw_name : str
-        The name of the raw data.
-    crops : Optional[list[str]], optional
-        The crops to include in the csv, by default None. If None, all crops are included. Otherwise, only the crops in the list are included.
+    raw_name : str, optional
+        The name of the raw data. Default is RAW_NAME.
 
     Returns
     -------
     str
         The csv string for the dataset.
     """
-    dataset_name = path.removeprefix(datapath_prefix).split("/")[0]
-    gt_name = "crop" + path.split("crop")[-1].split("/")[0]
-    if crops is not None and gt_name not in crops:
-        bar_string = gt_name + " not in crops, skipping"
-        return None, bar_string
-    gt_path = path.removesuffix(gt_name).rstrip("/")
-    raw_path = os.path.join(datapath_prefix, dataset_name, f"{dataset_name}.zarr")
-    if not os.path.exists(os.path.join(raw_path, raw_name)):
-        bar_string = f"No raw data found for {dataset_name} at {os.path.join(raw_path, raw_name)}, trying n5 format"
-        raw_path = os.path.join(datapath_prefix, dataset_name, f"{dataset_name}.n5")
-        if not os.path.exists(os.path.join(raw_path, raw_name)):
-            bar_string = f"No raw data found for {dataset_name} at {os.path.join(raw_path, raw_name)}, skipping"
+    raw_path = get_raw_path(path, raw_name)
+    dataset_name = get_dataset_name(raw_path)
+
+    if not UPath(raw_path).exists():
+        bar_string = (
+            f"No raw data found for {dataset_name} at {raw_path}, trying n5 format"
+        )
+        raw_path = raw_path.replace(".zarr", ".n5")
+        if not UPath(raw_path).exists():
+            bar_string = f"No raw data found for {dataset_name} at {raw_path}, skipping"
             return None, bar_string
-    bar_string = (
-        f"Found raw data for {dataset_name} at {os.path.join(raw_path, raw_name)}"
-    )
+        zarr_path = raw_path.split(".n5")[0] + ".n5"
+    else:
+        zarr_path = raw_path.split(".zarr")[0] + ".zarr"
+    raw_ds_name = raw_path.removeprefix(zarr_path + os.path.sep)
+    gt_ds_name = path.removeprefix(zarr_path + os.path.sep)
+    bar_string = f"Found raw data for {dataset_name} at {raw_path}"
     return (
-        f'"{usage}","{raw_path}","{raw_name}","{gt_path}","{gt_name+os.path.sep}[{",".join([c for c in classes])}]"\n',
+        f'"{usage}","{zarr_path}","{raw_ds_name}","{zarr_path}","{gt_ds_name+os.path.sep}[{",".join([c for c in classes])}]"\n',
         bar_string,
     )
 
@@ -73,11 +110,12 @@ def make_datasplit_csv(
     force_all_classes: bool | str = False,
     validation_prob: float = 0.1,
     datasets: list[str] = ["*"],
+    crops: list[str] = ["*"],
     search_path: str = SEARCH_PATH,
     raw_name: str = RAW_NAME,
+    crop_name: str = CROP_NAME,
     csv_path: str = "datasplit.csv",
     dry_run: bool = False,
-    crops: Optional[list[str]] = None,
 ):
     """
     Make a datasplit csv file for the given classes and datasets.
@@ -92,37 +130,47 @@ def make_datasplit_csv(
         The probability of a dataset being in the validation set, by default 0.1
     datasets : list[str], optional
         The datasets to include in the csv, by default ["*"], which includes all datasets
+    crops : list[str], optional
+        The crops to include in the csv, by default all crops are included. Otherwise, only the crops in the list are included.
     search_path : str, optional
         The search path to use to find the datasets, by default SEARCH_PATH
     raw_name : str, optional
         The name of the raw data, by default RAW_NAME
+    crop_name : str, optional
+        The name of the crop, by default CROP_NAME
     csv_path : str, optional
         The path to write the csv file to, by default "datasplit.csv"
     dry_run : bool, optional
         If True, do not write the csv file - just return the found datapaths. By default False
-    crops : Optional[list[str]], optional
-        The crops to include in the csv, by default None. If None, all crops are included. Otherwise, only the crops in the list are included.
     """
     # Define the paths to the raw and groundtruth data and the label classes by crawling the directories and writing the paths to a csv file
-    datapath_prefix = search_path.split("{")[0]
     datapaths = {}
     for dataset in datasets:
-        for label in classes:
-            these_datapaths = glob(search_path.format(dataset=dataset, label=label))
-            these_datapaths = [
-                path.removesuffix(os.path.sep + label) for path in these_datapaths
-            ]
-            for path in these_datapaths:
-                if path not in datapaths:
-                    datapaths[path] = []
-                datapaths[path].append(label)
+        for crop in crops:
+            for label in classes:
+                these_datapaths = glob(
+                    search_path.format(
+                        dataset=dataset, name=crop_name.format(crop=crop, label=label)
+                    )
+                )
+                if len(these_datapaths) == 0:
+                    continue
+                these_datapaths = [
+                    path.removesuffix(os.path.sep + label) for path in these_datapaths
+                ]
+                for path in these_datapaths:
+                    if path not in datapaths:
+                        datapaths[path] = []
+                    datapaths[path].append(label)
 
     if dry_run:
         print("Dry run, not writing csv")
         return datapaths
 
     shutil.rmtree(csv_path, ignore_errors=True)
-    assert not os.path.exists(csv_path), f"CSV file {csv_path} already exists"
+    assert not os.path.exists(
+        csv_path
+    ), f"CSV file {csv_path} already exists and cannot be overwritten"
 
     usage_dict = {
         k: "train" if np.random.rand() > validation_prob else "validate"
@@ -142,9 +190,7 @@ def make_datasplit_csv(
                 continue
         usage_dict[path] = usage
 
-        csv_string, bar_string = get_csv_string(
-            path, datapaths[path], datapath_prefix, usage, raw_name, crops
-        )
+        csv_string, bar_string = get_csv_string(path, datapaths[path], usage, raw_name)
         bar.set_postfix_str(bar_string)
         if csv_string is not None:
             with open(csv_path, "a") as f:
@@ -170,7 +216,9 @@ def get_dataset_counts(
     classes: list[str] = ["nuc", "mito"],
     search_path: str = SEARCH_PATH,
     raw_name: str = RAW_NAME,
+    crop_name: str = CROP_NAME,
 ):
+    # TODO: FIx this function
     """
     Get the counts of each class in each dataset.
 
@@ -182,30 +230,34 @@ def get_dataset_counts(
         The search path to use to find the datasets, by default SEARCH_PATH
     raw_name : str, optional
         The name of the raw data, by default RAW_NAME
+    crop_name : str, optional
+        The name of the crop, by default CROP_NAME
 
     Returns
     -------
     dict
         A dictionary of the counts of each class in each dataset.
     """
-
-    datapath_prefix = search_path.split("*")[0]
     dataset_class_counts = {}
     for label in classes:
-        these_datapaths = glob(search_path.format(label=label))
-        these_datapaths = [
-            path.removesuffix(os.path.sep + label) for path in these_datapaths
-        ]
-        for path in these_datapaths:
-            dataset_name = path.removeprefix(datapath_prefix).split("/")[0]
-            raw_path = os.path.join(
-                datapath_prefix, dataset_name, f"{dataset_name}.zarr"
+        these_datapaths = glob(
+            search_path.format(
+                dataset="*", name=crop_name.format(crop="*", label=label)
             )
-            if not os.path.exists(os.path.join(raw_path, raw_name)):
+        )
+        for path in these_datapaths:
+            raw_path = get_raw_path(path, raw_name, label)
+            dataset_name = get_dataset_name(raw_path)
+            if not UPath(raw_path).exists():
                 print(
-                    f"No raw data found for {dataset_name} at {os.path.join(raw_path, raw_name)}, trying n5 format"
+                    f"No raw data found for {dataset_name} at {raw_path}, trying n5 format"
                 )
-                continue
+                raw_path = raw_path.replace(".zarr", ".n5")
+                if not UPath(raw_path).exists():
+                    print(
+                        f"No raw data found for {dataset_name} at {raw_path}, skipping"
+                    )
+                    continue
             if dataset_name not in dataset_class_counts:
                 dataset_class_counts[dataset_name] = {}
             if label not in dataset_class_counts[dataset_name]:

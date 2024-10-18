@@ -69,9 +69,9 @@ dev = [
     "twine",
     "hatch",
     "pdbpp",
-    "gunpowder",
     "python-semantic-release",
     "cellmap-segmentation-challenge[test,docs]",
+    "gunpowder",
 ]
 
 [project.urls]

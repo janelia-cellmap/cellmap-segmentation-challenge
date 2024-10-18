@@ -29,8 +29,12 @@ def load_latest(search_path, model):
         newest_checkpoint = checkpoint_files[0]
 
         # Loads the most recent checkpoint into the model and prints out the file path
-        model.load_state_dict(torch.load(newest_checkpoint))
-        print(f"Loaded latest checkpoint: {newest_checkpoint}")
+        try:
+            model.load_state_dict(torch.load(newest_checkpoint, weights_only=True), strict=False)
+            print(f"Loaded latest checkpoint: {newest_checkpoint}")
+        except Exception as e:
+            print(f"Error loading checkpoint: {newest_checkpoint}")
+            print(e)
 
 
 def load_best_val(logs_save_path, model_save_path, model, low_is_best=True):
@@ -67,8 +71,11 @@ def load_best_val(logs_save_path, model_save_path, model, low_is_best=True):
 
         # Load the model with the best validation score
         checkpoint_path = model_save_path.format(epoch=best_epoch)
-        checkpoint = torch.load(checkpoint_path)
+        checkpoint = torch.load(checkpoint_path, weights_only=True)
 
-        model.load_state_dict(checkpoint)
-
-        print(f"Loaded best validation checkpoint from epoch: {best_epoch}")
+        try:
+            model.load_state_dict(checkpoint, strict=False)
+            print(f"Loaded best validation checkpoint from epoch: {best_epoch}")
+        except Exception as e:
+            print(f"Error loading checkpoint: {checkpoint_path}")
+            print(e)
