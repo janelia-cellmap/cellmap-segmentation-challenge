@@ -123,7 +123,7 @@ For more information on the available options and how training works, see the `R
 
 ## Predict on test data
 
-Example scripts for predicting on test data are provided in the `examples` directory. The scripts are named `predict_2D.py` and `predict_3D.py`, respectively, and are annotated for clarity. You can run one such script by simply running the following on the command line:
+Example scripts for predicting on test data are also provided in the `examples` directory. The scripts are named `predict_2D.py` and `predict_3D.py`, respectively. You can use one such script by simply running the following on the command line:
 
 ```bash
 python predict_2D.py

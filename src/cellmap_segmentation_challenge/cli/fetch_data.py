@@ -19,8 +19,8 @@ import zarr
 from upath import UPath as Path
 import numpy as np
 
-# from zarr.storage import FSStore
-# from pydantic_zarr.v2 import GroupSpec
+from zarr.storage import FSStore
+from pydantic_zarr.v2 import GroupSpec
 import os
 
 from dotenv import load_dotenv
@@ -194,15 +194,15 @@ def fetch_data_cli(
             continue
         else:
             # ensure that intermediate groups are present
-            dest_root_group.require_group(em_dest_path)
+            # dest_root_group.require_group(em_dest_path)
 
             # model the em group locally
-            # em_dest_group = GroupSpec.from_zarr(em_source_group).to_zarr(
-            #     FSStore(str(dest_root / em_dest_path)),
-            #     path="",
-            #     overwrite=(mode == "w"),
-            # )
-            dest_em_group = zarr.open_group(str(dest_root / em_dest_path), mode=mode)
+            dest_em_group = GroupSpec.from_zarr(em_source_group).to_zarr(
+                FSStore(str(dest_root / em_dest_path)),
+                path="",
+                overwrite=(mode == "w"),
+            )
+            # dest_em_group = zarr.open_group(str(dest_root / em_dest_path), mode=mode)
 
             # get the multiscale model of the source em group
             array_wrapper = {"name": "dask_array", "config": {"chunks": "auto"}}
@@ -289,7 +289,7 @@ def fetch_data_cli(
                         log.info(
                             f"Skipping scale level {key} because it is sampled more densely than the groundtruth data"
                         )
-                em_group_inventory += (".zattrs",)
+                # em_group_inventory += (".zattrs",)
                 log.info(
                     f"Preparing to fetch {len(em_group_inventory)} files from {em_source_url}."
                 )

@@ -6,17 +6,15 @@ This directory contains examples for the CellMap Segmentation Challenge. The exa
 3. Evaluating predictions
 
 ## Training 2D and 3D models
-The `train_2D.py` and `train_3D.py` scripts train 2D and 3D models, respectively, on the CellMap Segmentation Challenge dataset. The scripts use a configuration file to define the hyperparameters, model, and other configurations required for training the model. The `train` function is then called with the configuration file as an argument to start the training process.
-
-The configuration file defines the hyperparameters, model, and other configurations required for training the model. The `train` function is then called with the configuration file as an argument to start the training process. The `train` function reads the configuration file, sets up the data loaders, model, optimizer, loss function, and other components, and trains the model for the specified number of epochs.
+The `train_2D.py` and `train_3D.py` scripts train 2D and 3D models, respectively, on the CellMap Segmentation Challenge dataset. The scripts use a configuration file, which defines the hyperparameters, model, and other configurations required for training the model. The `train` function is then called with the configuration file path as an argument to start the training process. The `train` function reads the configuration file, sets up the data loaders, model, optimizer, loss function, and other components, and trains the model for the specified number of epochs.
 
 The configuration file includes the following components:
-1. Hyperparameters: learning rate, batch size, input and target array information, epochs, iterations per epoch, random seed, and initial number of features for the model.
-2. Model: model architecture, number of classes, and other model-specific configurations. This should return a PyTorch model.
+1. Hyperparameters: learning rate, batch size, input and target array information, epochs, iterations per epoch, and random seed.
+2. Model: model architecture, number and type of classes, and other model-specific configurations. This should return a PyTorch model.
 3. Paths: paths for saving logs, model checkpoints, and data split file.
-4. Spatial transformations: spatial transformations to apply to the training data.
+4. Spatial transformations: spatial augmentations to apply to the training data.
 
-These configuration files can then be used to run training via two different commands:
+These configuration files can then be used to run training via either one of two commands:
 1. `python path/to/train_config.py`: Run the training script directly.
 2. `csc train path/to/train_config.py`: Run the training script using the `csc train` command-line interface.
 
@@ -31,7 +29,7 @@ Training progress can be monitored using TensorBoard by running `tensorboard --l
 Once the model is trained, you can use the `predict` function to make predictions on new data using the trained model. See the `predict_3D.py` and `predict_2D.py` scripts (and below) for examples of how to use the `predict` function.
 
 ## Predicting on test data
-The `predict_2D.py` and `predict_3D.py` scripts demonstrate how to use a trained model to make predictions on test data. The predictions are saved as Zarr-2 files in the specified output directory. The scripts use a configuration file to define model and other configurations required for making predictions, this file can be the same used for training the model. The scripts call the `predict` function with the path to this configuration file as an argument. For example, to predict on the test data using the 3D model from `train_3D.py`, you can run the following command:
+The `predict_2D.py` and `predict_3D.py` scripts demonstrate how to use a trained model to make predictions on test data. The predictions are saved as Zarr-2 files in the specified output directory. The scripts use a configuration file to define model and other configurations required for making predictions, this file can be the same used for training the model. The scripts call the `predict` function with the path to this configuration file as an argument. For example, to predict on the test data using the 3D model from `train_3D.py`, you can do so directly by running the following command:
 
 ```bash
 csc predict train_3D.py
