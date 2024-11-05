@@ -1,205 +1,151 @@
-import os
-import numpy as np
-from upath import UPath
+from glob import glob
 from tqdm import tqdm
-from funlib.persistence import open_ds, prepare_ds
-from importlib.machinery import SourceFileLoader
-from typing import Callable, Optional, Union
-from skimage.transform import resize, rescale
-import zarr
+import os
+from typing import Any, Callable
+from upath import UPath
+from .utils import load_safe_config
+from .utils.datasplit import (
+    REPO_ROOT,
+    SEARCH_PATH,
+    CROP_NAME,
+    get_dataset_name,
+)
+from cellmap_data import CellMapImage, CellMapDatasetWriter
 
 
-def threshold_volume(
-    input_container: str | UPath,
-    threshold: float | list[float] | dict[str, float] = 0.5,
-    output_path: str | UPath = "thresholded.zarr",
-    labels: Optional[list[str]] = None,
-):
+def _process(
+    dataset_writer_kwargs: dict[str, Any], process_func: Callable, batch_size: int = 8
+) -> None:
     """
-    Threshold a volume in a zarr container.
+    Process and save arrays using an arbitrary process function.
 
     Parameters
     ----------
-    input_container : str | UPath
-        The path to the zarr container containing the data for each label.
-    threshold : float | list[float] | dict[str, float]
-        The threshold(s) to apply to each label. If a float, the same threshold is applied to all labels. If a list, the thresholds are applied to the labels in order. If a dict, the thresholds are applied to the labels with the corresponding keys.
-    output_path : UPath
-        The path to the zarr container to write the thresholded data to.
-    labels : Optional[list[str]], optional
-        The labels to threshold in the zarr container. If None, all labels are thresholded. Default is None.
+    dataset_writer_kwargs : dict
+        A dictionary containing the specifications for data loading and writing.
+    process_func : Callable
+        The function to apply to the input data. Should take a numpy array as input and return a numpy array as output.
+    batch_size : int, optional
+        The batch size to use for processing the data. Default is 8.
     """
-    if labels is None:
-        labels = zarr.open_group(input_container).keys()
-    for i, label in enumerate(tqdm(labels)):
-        if isinstance(threshold, dict):
-            if label not in threshold:
-                print(f"Skipping {label} as it is not in the threshold dict")
-                continue
-            threshold_value = threshold[label]
-        elif isinstance(threshold, list):
-            if len(threshold) <= i:
-                continue
-            threshold_value = threshold[i]
-        else:
-            threshold_value = threshold
-        input_ds = open_ds(UPath(input_container) / label)
+    # Create the dataset writer
+    dataset_writer = CellMapDatasetWriter(**dataset_writer_kwargs)
 
-        data = input_ds[:]
-        data = data > threshold_value
+    # Process the data
+    for batch in tqdm(dataset_writer.loader(batch_size=batch_size)):
+        # Get the input data
+        inputs = batch["input"]
 
-        output_ds = prepare_ds(
-            (UPath(output_path) / label).path,
-            data.shape,
-            offset=input_ds.offset,
-            voxel_size=input_ds.voxel_size,
-        )
-        output_ds[:] = data
+        # Process the data
+        outputs = process_func(inputs)
+
+        # Write the data
+        dataset_writer[batch["idx"]] = {"output": outputs}
 
 
-def process_volume(
-    input_container: str | UPath,
-    process_func: Union[Callable, list[Callable], dict[str, Callable], os.PathLike],
-    output_path: str | UPath,
-    labels: Optional[list[str]] = None,
-):
+def process(
+    config_path: str | UPath,
+    crops: str = "test",
+    input_path: str = UPath(REPO_ROOT / "data/predictions/{dataset}.zarr/{crop}").path,
+    output_path: str = UPath(REPO_ROOT / "data/processed/{dataset}.zarr/{crop}").path,
+    overwrite: bool = False,
+) -> None:
     """
-    Postprocess a volume in a zarr container with an arbitrary function.
+    Process and save arrays using an arbitrary process function defined in a config python file.
 
     Parameters
     ----------
-    input_container : str | UPath
-        The path to the zarr container containing the data for each label.
-    process_func : Callable | list[Callable] | dict[str, Callable] | os.PathLike
-        The function(s) to apply to each label. If a Callable, the same function is applied to all labels. If a list, the functions are applied to the labels in order. If a dict, the functions are applied to the labels with the corresponding keys. If an os.PathLike, the function is loaded from the file at the path (the function should be called `process_func` in the python file). This last option should take a numpy array as input and return a numpy array as output. This allows for more complex postprocessing functions to be used.
-    output_path : UPath
-        The path to the zarr container to write the thresholded data to.
-    labels : Optional[list[str]], optional
-        The labels to process in the zarr container. If None, all labels are processed. Default is None.
+    config_path : str | UPath
+        The path to the python file containing the process function and other configurations. The script should specify the process function as `process_func`; `input_array_info` and `target_array_info` corresponding to the chunk sizes and scales for the input and output datasets, respectively; `batch_size`; `classes`; and any other required configurations.
+        The process function should take a numpy array as input and return a numpy array as output.
+    crops: str, optional
+        A comma-separated list of crop numbers to process, or "test" to process the entire test set. Default is "test".
+    input_path: str, optional
+        The path to the data to process, formatted as a string with a placeholders for the crop number and dataset. Default is "cellmap-segmentation-challenge/data/predictions/{dataset}.zarr/{crop}".
+    output_path: str, optional
+        The path to save the processed output to, formatted as a string with a placeholders for the crop number and dataset. Default is "cellmap-segmentation-challenge/data/processed/{dataset}.zarr/{crop}".
+    overwrite: bool, optional
+        Whether to overwrite the output dataset if it already exists. Default is False.
     """
-    if labels is None:
-        labels = list(zarr.open_group(UPath(input_container).path).keys())
-    if isinstance(process_func, os.PathLike):
-        process_func = (
-            SourceFileLoader("process_func", str(process_func))
-            .load_module()
-            .process_func
+    config = load_safe_config(config_path)
+    process_func = config.process_func
+    classes = config.classes
+    batch_size = getattr(config, "batch_size", 8)
+    input_array_info = getattr(
+        config, "input_array_info", {"shape": (1, 128, 128), "scale": (8, 8, 8)}
+    )
+    target_array_info = getattr(config, "target_array_info", input_array_info)
+
+    input_arrays = {"input": input_array_info}
+    target_arrays = {"output": target_array_info}
+    assert (
+        input_arrays is not None and target_arrays is not None
+    ), "No array info provided"
+
+    # Get the crops to predict on
+    if crops == "test":
+        # TODO: Could make this more general to work for any class label
+        crops_paths = glob(
+            SEARCH_PATH.format(
+                dataset="*", name=CROP_NAME.format(crop="*", label="test")
+            ).rstrip(os.path.sep)
         )
-    for i, label in enumerate(tqdm(labels)):
-        if isinstance(process_func, dict):
-            if label not in process_func:
-                print(f"Skipping {label} as it is not in the process_func dict")
-                continue
-            label_process_func = process_func[label]
-        elif isinstance(process_func, list):
-            if len(process_func) <= i:
-                continue
-            label_process_func = process_func[i]
-        else:
-            label_process_func = process_func
-        input_ds = open_ds(UPath(input_container) / label)
 
-        data = input_ds[:]
-        data = label_process_func(data)
+        # Make crop list
+        crops_list = [UPath(crop_path).parts[-2] for crop_path in crops_paths]
+    else:
+        crop_list = crops.split(",")
+        assert all(
+            [crop.isnumeric() for crop in crop_list]
+        ), "Crop numbers must be numeric or `test`."
+        crop_paths = []
+        for crop in crop_list:
+            crop_paths.extend(
+                glob(
+                    input_path.format(
+                        dataset="*", name=CROP_NAME.format(crop=f"crop{crop}")
+                    ).rstrip(os.path.sep)
+                )
+            )
+    crop_dict = {
+        crop: [
+            input_path.format(crop=crop, dataset=get_dataset_name(path)),
+            output_path.format(crop=crop, dataset=get_dataset_name(path)),
+        ]
+        for crop, path in zip(crops_list, crops_paths)
+    }
 
-        output_ds = prepare_ds(
-            (UPath(output_path) / label).path,
-            data.shape,
-            offset=input_ds.offset,
-            voxel_size=input_ds.voxel_size,
+    dataset_writers = []
+    for crop, (input_path, output_path) in crop_dict.items():
+        # Get the boundaries of the crop
+        input_images = {
+            array_name: CellMapImage(
+                str(UPath(input_path) / classes[0]),
+                target_class=classes[0],
+                target_scale=array_info["scale"],
+                target_voxel_shape=array_info["shape"],
+                pad=True,
+                pad_value=0,
+            )
+            for array_name, array_info in target_arrays.items()
+        }
+
+        target_bounds = {
+            array_name: image.bounding_box for array_name, image in input_images.items()
+        }
+
+        # Create the writer
+        dataset_writers.append(
+            {
+                "raw_path": input_path,
+                "target_path": output_path,
+                "classes": classes,
+                "input_arrays": input_arrays,
+                "target_arrays": target_arrays,
+                "target_bounds": target_bounds,
+                "overwrite": overwrite,
+            }
         )
-        output_ds[:] = data
 
-
-def rescale_volume(
-    input_container: str | UPath,
-    output_path: str | UPath,
-    output_voxel_size: list[float] | list[list[float]] | dict[str, list[float]],
-    labels: Optional[list[str]] = None,
-):
-    """
-    Rescale volumes within a zarr container.
-
-    Parameters
-    ----------
-    input_container : str | UPath
-        The path to the zarr container containing the data for each label.
-    output_path : UPath
-        The path to the zarr container to write the rescaled data to.
-    output_voxel_size : list[float] | list[list[float]] | dict[str, list[float]]
-        The voxel size(s) to rescale the labels to. If a list, the same voxel size is applied to all labels. If a list of lists, the voxel sizes are applied to the labels in order. If a dict, the voxel sizes are applied to the labels with the corresponding keys.
-    labels : Optional[list[str]], optional
-        The labels to rescale in the zarr container. If None, all labels are rescaled. Default is None
-    """
-    if labels is None:
-        labels = list(zarr.open_group(input_container).keys())
-    for i, label in enumerate(tqdm(labels)):
-        if isinstance(output_voxel_size, dict):
-            if label not in output_voxel_size:
-                print(f"Skipping {label} as it is not in the output_voxel_size dict")
-                continue
-            voxel_size = output_voxel_size[label]
-        elif isinstance(output_voxel_size, list):
-            if len(output_voxel_size) <= i:
-                continue
-            voxel_size = output_voxel_size[i]
-        else:
-            voxel_size = output_voxel_size
-        input_ds = open_ds(UPath(input_container) / label)
-        input_voxel_size = input_ds.voxel_size
-        scale = np.array(input_voxel_size) / np.array(voxel_size)
-        data = input_ds[:]
-        data = rescale(data, scale, order=0)
-        output_ds = prepare_ds(
-            (UPath(output_path) / label).path,
-            data.shape,
-            offset=input_ds.offset,
-            voxel_size=voxel_size,
-        )
-        output_ds[:] = data
-
-
-def resize_volume(
-    input_container: str | UPath,
-    output_path: str | UPath,
-    output_shape: list[int] | list[list[int]] | dict[str, list[int]],
-    labels: Optional[list[str]] = None,
-):
-    """
-    Resize volumes within a zarr container to a given shape.
-
-    Parameters
-    ----------
-    input_container : str | UPath
-        The path to the zarr container containing the data for each label.
-    output_path : UPath
-        The path to the zarr container to write the resized data to.
-    output_shape : list[int] | list[list[int]] | dict[str, list[int]]
-        The shape(s) to resize the labels to. If a list, the same shape is applied to all labels. If a list of lists, the shapes are applied to the labels in order. If a dict, the shapes are applied to the labels with the corresponding keys.
-    labels : Optional[list[str]], optional
-        The labels to resize in the zarr container. If None, all labels are resized. Default is None
-    """
-    if labels is None:
-        labels = list(zarr.open_group(input_container).keys())
-    for i, label in enumerate(tqdm(labels)):
-        if isinstance(output_shape, dict):
-            if label not in output_shape:
-                print(f"Skipping {label} as it is not in the output_shape dict")
-                continue
-            shape = output_shape[label]
-        elif isinstance(output_shape, list):
-            if len(output_shape) <= i:
-                continue
-            shape = output_shape[i]
-        else:
-            shape = output_shape
-        input_ds = open_ds(UPath(input_container) / label)
-        data = input_ds[:]
-        data = resize(data, shape, order=0)
-        output_ds = prepare_ds(
-            (UPath(output_path) / label).path,
-            data.shape,
-            offset=input_ds.offset,
-            voxel_size=input_ds.voxel_size,
-        )
-        output_ds[:] = data
+    for dataset_writer in dataset_writers:
+        _process(dataset_writer, process_func, batch_size)

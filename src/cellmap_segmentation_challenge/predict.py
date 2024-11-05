@@ -117,7 +117,7 @@ def _predict(
     model.eval()
     with torch.no_grad():
         for batch in tqdm(dataloader):
-            # Get the inputs and targets
+            # Get the inputs and outputs
             inputs = batch["input"]
             outputs = model(inputs)
             outputs = {"output": model(inputs)}
@@ -143,7 +143,7 @@ def predict(
     crops: str, optional
         A comma-separated list of crop numbers to predict on, or "test" to predict on the entire test set. Default is "test".
     output_path: str, optional
-        The path to save the output predictions to, formatted as a string with a placeholders for the crop number, and label class. Default is "cellmap-segmentation-challenge/data/predictions/{dataset}.zarr/{crop}/{label}".
+        The path to save the output predictions to, formatted as a string with a placeholders for the dataset and crop number. Default is "cellmap-segmentation-challenge/data/predictions/{dataset}.zarr/{crop}".
     do_orthoplanes: bool, optional
         Whether to compute the average of predictions from x, y, and z orthogonal planes for the full 3D volume. This is sometimes called 2.5D predictions. It expects a model that yields 2D outputs. Similarly, it expects the input shape to the model to be 2D. Default is True for 2D models.
     overwrite: bool, optional
