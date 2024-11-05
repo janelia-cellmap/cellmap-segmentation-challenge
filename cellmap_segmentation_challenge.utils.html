@@ -338,6 +338,11 @@
 </li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils.security">cellmap_segmentation_challenge.utils.security module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.analyze_script"><code class="docutils literal notranslate"><span class="pre">analyze_script()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.load_safe_config"><code class="docutils literal notranslate"><span class="pre">load_safe_config()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils.visualize">cellmap_segmentation_challenge.utils.visualize module</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.visualize.save_result_figs"><code class="docutils literal notranslate"><span class="pre">save_result_figs()</span></code></a></li>
 </ul>
@@ -818,6 +823,22 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 </section>
+<section id="module-cellmap_segmentation_challenge.utils.security">
+<span id="cellmap-segmentation-challenge-utils-security-module"></span><h2>cellmap_segmentation_challenge.utils.security module<a class="headerlink" href="#module-cellmap_segmentation_challenge.utils.security" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.security.analyze_script">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.security.</span></span><span class="sig-name descname"><span class="pre">analyze_script</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/security.html#analyze_script"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.security.analyze_script" title="Link to this definition">#</a></dt>
+<dd><p>Analyzes the script at <cite>filepath</cite> using <cite>ast</cite> for potentially unsafe imports and function calls.
+Returns a boolean indicating whether the script is safe and a list of detected issues.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.security.load_safe_config">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.security.</span></span><span class="sig-name descname"><span class="pre">load_safe_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/security.html#load_safe_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.security.load_safe_config" title="Link to this definition">#</a></dt>
+<dd><p>Loads the configuration script at <cite>config_path</cite> after verifying its safety.</p>
+</dd></dl>
+
+</section>
 <section id="module-cellmap_segmentation_challenge.utils.visualize">
 <span id="cellmap-segmentation-challenge-utils-visualize-module"></span><h2>cellmap_segmentation_challenge.utils.visualize module<a class="headerlink" href="#module-cellmap_segmentation_challenge.utils.visualize" title="Link to this heading">#</a></h2>
 <dl class="py function">
@@ -916,6 +937,11 @@ registered hooks while the latter silently ignores them.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.loss.CellMapLossWrapper.forward"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper.forward()</span></code></a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils.security">cellmap_segmentation_challenge.utils.security module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.analyze_script"><code class="docutils literal notranslate"><span class="pre">analyze_script()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.load_safe_config"><code class="docutils literal notranslate"><span class="pre">load_safe_config()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils.visualize">cellmap_segmentation_challenge.utils.visualize module</a><ul class="nav section-nav flex-column">

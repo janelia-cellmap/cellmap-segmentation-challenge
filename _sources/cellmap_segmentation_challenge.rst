@@ -22,18 +22,18 @@ cellmap\_segmentation\_challenge.evaluate module
    :undoc-members:
    :show-inheritance:
 
-cellmap\_segmentation\_challenge.postprocess module
----------------------------------------------------
-
-.. automodule:: cellmap_segmentation_challenge.postprocess
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 cellmap\_segmentation\_challenge.predict module
 -----------------------------------------------
 
 .. automodule:: cellmap_segmentation_challenge.predict
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+cellmap\_segmentation\_challenge.process module
+-----------------------------------------------
+
+.. automodule:: cellmap_segmentation_challenge.process
    :members:
    :undoc-members:
    :show-inheritance:

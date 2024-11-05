@@ -44,6 +44,14 @@ cellmap\_segmentation\_challenge.utils.loss module
    :undoc-members:
    :show-inheritance:
 
+cellmap\_segmentation\_challenge.utils.security module
+------------------------------------------------------
+
+.. automodule:: cellmap_segmentation_challenge.utils.security
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 cellmap\_segmentation\_challenge.utils.visualize module
 -------------------------------------------------------
 

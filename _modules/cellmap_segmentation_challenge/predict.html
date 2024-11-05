@@ -248,7 +248,6 @@
                   
   <h1>Source code for cellmap_segmentation_challenge.predict</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">glob</span> <span class="kn">import</span> <span class="n">glob</span>
-<span class="kn">from</span> <span class="nn">importlib.machinery</span> <span class="kn">import</span> <span class="n">SourceFileLoader</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
@@ -258,7 +257,7 @@
 <span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
 <span class="kn">from</span> <span class="nn">upath</span> <span class="kn">import</span> <span class="n">UPath</span>
 <span class="kn">from</span> <span class="nn">cellmap_segmentation_challenge.models</span> <span class="kn">import</span> <span class="n">load_best_val</span><span class="p">,</span> <span class="n">load_latest</span>
-<span class="kn">from</span> <span class="nn">cellmap_segmentation_challenge.utils.datasplit</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span> <span class="nn">.utils.datasplit</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">CROP_NAME</span><span class="p">,</span>
     <span class="n">REPO_ROOT</span><span class="p">,</span>
     <span class="n">SEARCH_PATH</span><span class="p">,</span>
@@ -268,6 +267,7 @@
     <span class="n">Normalize</span><span class="p">,</span>
     <span class="n">NaNtoNum</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">load_safe_config</span>
 
 
 <div class="viewcode-block" id="predict_orthoplanes">
@@ -404,7 +404,7 @@
 <span class="sd">    overwrite: bool, optional</span>
 <span class="sd">        Whether to overwrite the output dataset if it already exists. Default is False.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">config</span> <span class="o">=</span> <span class="n">SourceFileLoader</span><span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">config_path</span><span class="p">))</span><span class="o">.</span><span class="n">load_module</span><span class="p">()</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">load_safe_config</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span>
     <span class="n">classes</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">classes</span>
     <span class="n">batch_size</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;batch_size&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
     <span class="n">input_array_info</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span>
