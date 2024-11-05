@@ -150,38 +150,6 @@
 
 </ul>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../cellmap_segmentation_challenge.html">cellmap_segmentation_challenge</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.html">cellmap_segmentation_challenge.cli</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.datasplit.html">cellmap_segmentation_challenge.cli.datasplit</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.evaluate.html">cellmap_segmentation_challenge.cli.evaluate</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.fetch_data.html">cellmap_segmentation_challenge.cli.fetch_data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.predict.html">cellmap_segmentation_challenge.cli.predict</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.train.html">cellmap_segmentation_challenge.cli.train</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.evaluate.html">cellmap_segmentation_challenge.evaluate</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.models.model_load.html">cellmap_segmentation_challenge.models.model_load</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.models.resnet.html">cellmap_segmentation_challenge.models.resnet</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.models.unet_model_2D.html">cellmap_segmentation_challenge.models.unet_model_2D</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.models.unet_model_3D.html">cellmap_segmentation_challenge.models.unet_model_3D</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.models.vitnet.html">cellmap_segmentation_challenge.models.vitnet</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.postprocess.html">cellmap_segmentation_challenge.postprocess</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.crops.html">cellmap_segmentation_challenge.utils.crops</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.dataloader.html">cellmap_segmentation_challenge.utils.dataloader</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.datasplit.html">cellmap_segmentation_challenge.utils.datasplit</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.fetch_data.html">cellmap_segmentation_challenge.utils.fetch_data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.loss.html">cellmap_segmentation_challenge.utils.loss</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.visualize.html">cellmap_segmentation_challenge.utils.visualize</a></li>
-</ul>
-</details></li>
-</ul>
-</details></li>
 <li class="toctree-l1"><a class="reference internal" href="../../cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
 </ul>
@@ -281,383 +249,136 @@
   <h1>Source code for cellmap_segmentation_challenge.predict</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">glob</span> <span class="kn">import</span> <span class="n">glob</span>
 <span class="kn">from</span> <span class="nn">importlib.machinery</span> <span class="kn">import</span> <span class="n">SourceFileLoader</span>
-<span class="kn">import</span> <span class="nn">tempfile</span>
-<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span>
-<span class="kn">import</span> <span class="nn">torch</span>
-
-<span class="c1"># torch.multiprocessing.set_start_method(&quot;spawn&quot;, force=True)</span>
-
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">daisy</span>
-<span class="kn">from</span> <span class="nn">funlib.persistence</span> <span class="kn">import</span> <span class="n">open_ds</span><span class="p">,</span> <span class="n">prepare_ds</span><span class="p">,</span> <span class="n">Array</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">cellmap_data</span> <span class="kn">import</span> <span class="n">CellMapDatasetWriter</span><span class="p">,</span> <span class="n">CellMapImage</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torchvision.transforms.v2</span> <span class="k">as</span> <span class="nn">T</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
 <span class="kn">from</span> <span class="nn">upath</span> <span class="kn">import</span> <span class="n">UPath</span>
-<span class="kn">import</span> <span class="nn">zarr</span>
-
+<span class="kn">from</span> <span class="nn">cellmap_segmentation_challenge.models</span> <span class="kn">import</span> <span class="n">load_best_val</span><span class="p">,</span> <span class="n">load_latest</span>
 <span class="kn">from</span> <span class="nn">cellmap_segmentation_challenge.utils.datasplit</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">CROP_NAME</span><span class="p">,</span>
     <span class="n">REPO_ROOT</span><span class="p">,</span>
     <span class="n">SEARCH_PATH</span><span class="p">,</span>
     <span class="n">get_raw_path</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span> <span class="nn">cellmap_data.transforms.augment</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Normalize</span><span class="p">,</span>
+    <span class="n">NaNtoNum</span><span class="p">,</span>
+<span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">find_level</span><span class="p">(</span>
-    <span class="n">group</span><span class="p">,</span> <span class="n">target_scale</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Finds the multiscale level that is closest to the target scale.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    group : zarr.Group</span>
-<span class="sd">        The group to search for the multiscale levels.</span>
-<span class="sd">    target_scale : Sequence[float]</span>
-<span class="sd">        The target scale to find the closest multiscale level to.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    tuple[str, np.ndarray, np.ndarray]</span>
-<span class="sd">        The name of the closest multiscale level, the offset of the level, and the scale of the level.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">last_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">offset</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">scale</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">for</span> <span class="n">level</span> <span class="ow">in</span> <span class="n">group</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;multiscales&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;datasets&quot;</span><span class="p">]:</span>
-        <span class="k">for</span> <span class="n">transform</span> <span class="ow">in</span> <span class="n">level</span><span class="p">[</span><span class="s2">&quot;coordinateTransformations&quot;</span><span class="p">]:</span>
-            <span class="k">if</span> <span class="s2">&quot;translation&quot;</span> <span class="ow">in</span> <span class="n">transform</span><span class="p">:</span>
-                <span class="n">offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">transform</span><span class="p">[</span><span class="s2">&quot;translation&quot;</span><span class="p">])</span>
-            <span class="k">if</span> <span class="s2">&quot;scale&quot;</span> <span class="ow">in</span> <span class="n">transform</span><span class="p">:</span>
-                <span class="n">scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">transform</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">])</span>
-            <span class="k">if</span> <span class="n">offset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">scale</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">break</span>
-        <span class="k">for</span> <span class="n">ts</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">target_scale</span><span class="p">,</span> <span class="n">scale</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">ts</span> <span class="o">&lt;=</span> <span class="n">s</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">last_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">level</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">],</span> <span class="n">offset</span><span class="p">,</span> <span class="n">scale</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">last_path</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">scale</span>
-        <span class="n">last_path</span> <span class="o">=</span> <span class="n">level</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">last_path</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">scale</span>  <span class="c1"># type: ignore</span>
-
-
-<span class="k">def</span> <span class="nf">get_crop_roi</span><span class="p">(</span><span class="n">crop_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">output_scale</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Get the ROI of a crop from the crop path, formatted as a string: [start1:end1,start2:end2,...].</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    crop_path : str</span>
-<span class="sd">        The path to the crop.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    roi_str : str</span>
-<span class="sd">        The ROI of the crop formatted as a string.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">crop_group</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">crop_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
-    <span class="n">scale_level</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">scale</span> <span class="o">=</span> <span class="n">find_level</span><span class="p">(</span><span class="n">crop_group</span><span class="p">,</span> <span class="n">output_scale</span><span class="p">)</span>
-    <span class="n">crop_dataset</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">crop_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">scale_level</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
-    <span class="n">shape</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">crop_dataset</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">scale</span>
-    <span class="n">starts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
-    <span class="n">ends</span> <span class="o">=</span> <span class="p">(</span><span class="n">starts</span> <span class="o">+</span> <span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
-    <span class="n">roi</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="si">}</span><span class="s1">:</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="n">e</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="nb">zip</span><span class="p">(</span><span class="n">starts</span><span class="p">,</span><span class="w"> </span><span class="n">ends</span><span class="p">)])</span><span class="si">}</span><span class="s2">]&quot;</span>
-    <span class="k">return</span> <span class="n">roi</span>
-
-
-<span class="k">def</span> <span class="nf">get_output_shape</span><span class="p">(</span>
-    <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Computes the output shape of a model given an input shape.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    model : torch.nn.Module</span>
-<span class="sd">        The model to compute the output shape for.</span>
-<span class="sd">    input_shape : Sequence[int]</span>
-<span class="sd">        The input shape of the model.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    Sequence[int]</span>
-<span class="sd">        The output shape of the model.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">input_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">input_shape</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
-    <span class="n">device</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">device</span>
-    <span class="n">output_tensor</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">output_tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span>
-
-
-<span class="k">def</span> <span class="nf">predict_ortho_planes</span><span class="p">(</span>
-    <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
-    <span class="n">in_dataset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span>
-    <span class="n">out_dataset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span>
-    <span class="n">input_block_shape</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
-    <span class="n">channels</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
-    <span class="n">roi</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">output_voxel_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">min_raw</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-    <span class="n">max_raw</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">255</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Predicts the average 3D output of a 2D model on a large dataset by splitting it into blocks and predicting each block separately, then averaging the predictions from the x, y, and z orthogonal planes.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    model : torch.nn.Module</span>
-<span class="sd">        The model to use for prediction.</span>
-<span class="sd">    in_dataset: str | os.PathLike</span>
-<span class="sd">        The path to the input dataset.</span>
-<span class="sd">    out_dataset: str | os.PathLike</span>
-<span class="sd">        The path to the output dataset, not including the name of the channel.</span>
-<span class="sd">    input_block_shape : Sequence[int]</span>
-<span class="sd">        The shape of the input slices to use for prediction.</span>
-<span class="sd">    channels : Sequence[str] | dict[str | int, str]</span>
-<span class="sd">        The label classes to predict. The output will be saved in separate datasets for each label class. If multiple output channels belong to the same label class (such as for x,y,z affinities), they can be combined by indicating chanel:label matches with a dictionary and specifying the channels as a string of the form &quot;0-2&quot;. Example: {&quot;0-2&quot;:&quot;nuc&quot;}. For single channel per label class predictions, the channels can be specified as strings in a list or tuple.</span>
-<span class="sd">    roi : str, optional</span>
-<span class="sd">        The region of interest to predict. If None, the entire dataset will be predicted.</span>
-<span class="sd">        The format is a string of the form &quot;[start1:end1,start2:end2,...]&quot;.</span>
-<span class="sd">    output_voxel_size : Sequence[int | float], optional</span>
-<span class="sd">        The voxel size of the output data. Default is the same as the input voxel size.</span>
-<span class="sd">    min_raw : float, optional</span>
-<span class="sd">        The minimum value of the raw data. Default is 0.</span>
-<span class="sd">    max_raw : float, optional</span>
-<span class="sd">        The maximum value of the raw data. Default is 255.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
+<div class="viewcode-block" id="predict_orthoplanes">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.predict.html#cellmap_segmentation_challenge.predict.predict_orthoplanes">[docs]</a>
+<span class="k">def</span> <span class="nf">predict_orthoplanes</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">dataset_writer_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span>
+<span class="p">):</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Predicting orthogonal planes.&quot;</span><span class="p">)</span>
 
     <span class="c1"># Make a temporary prediction for each axis</span>
     <span class="n">tmp_dir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Temporary directory for predictions: </span><span class="si">{</span><span class="n">tmp_dir</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+        <span class="n">temp_kwargs</span> <span class="o">=</span> <span class="n">dataset_writer_kwargs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">temp_kwargs</span><span class="p">[</span><span class="s2">&quot;target_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">tmp_dir</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;output.zarr&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">_predict</span><span class="p">(</span>
             <span class="n">model</span><span class="p">,</span>
-            <span class="n">in_dataset</span><span class="p">,</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_dir</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;output.zarr&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">axis</span><span class="p">)),</span>
-            <span class="n">input_block_shape</span><span class="p">,</span>
-            <span class="n">channels</span><span class="p">,</span>
-            <span class="n">roi</span><span class="p">,</span>
-            <span class="n">output_voxel_size</span><span class="p">,</span>
-            <span class="n">min_raw</span><span class="p">,</span>
-            <span class="n">max_raw</span><span class="p">,</span>
+            <span class="n">temp_kwargs</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
         <span class="p">)</span>
+
+    <span class="c1"># Get dataset writer for the average of predictions from x, y, and z orthogonal planes</span>
+    <span class="c1"># TODO: Skip loading raw data</span>
+    <span class="n">dataset_writer</span> <span class="o">=</span> <span class="n">CellMapDatasetWriter</span><span class="p">(</span><span class="o">**</span><span class="n">dataset_writer_kwargs</span><span class="p">)</span>
+
+    <span class="c1"># Load the images for the individual predictions</span>
+    <span class="n">single_axis_images</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">array_name</span><span class="p">:</span> <span class="p">{</span>
+            <span class="n">label</span><span class="p">:</span> <span class="p">[</span>
+                <span class="n">CellMapImage</span><span class="p">(</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_dir</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;output.zarr&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">axis</span><span class="p">),</span> <span class="n">label</span><span class="p">),</span>
+                    <span class="n">target_class</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+                    <span class="n">target_scale</span><span class="o">=</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">],</span>
+                    <span class="n">target_voxel_shape</span><span class="o">=</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">],</span>
+                    <span class="n">pad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">pad_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            <span class="p">]</span>
+            <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">dataset_writer_kwargs</span><span class="p">[</span><span class="s2">&quot;classes&quot;</span><span class="p">]</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">array_name</span><span class="p">,</span> <span class="n">array_info</span> <span class="ow">in</span> <span class="n">dataset_writer_kwargs</span><span class="p">[</span><span class="s2">&quot;target_arrays&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="p">}</span>
 
     <span class="c1"># Combine the predictions from the x, y, and z orthogonal planes</span>
-    <span class="n">raw_dataset</span> <span class="o">=</span> <span class="n">open_ds</span><span class="p">(</span><span class="n">in_dataset</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">output_voxel_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">output_voxel_size</span> <span class="o">=</span> <span class="n">raw_dataset</span><span class="o">.</span><span class="n">voxel_size</span>
-    <span class="n">labels</span> <span class="o">=</span> <span class="n">channels</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">)</span> <span class="k">else</span> <span class="n">channels</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">:</span>
-        <span class="c1"># Load the predictions from the x, y, and z orthogonal planes</span>
-        <span class="n">predictions</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
-            <span class="n">predictions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="n">open_ds</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_dir</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;output.zarr&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">axis</span><span class="p">),</span> <span class="n">label</span><span class="p">))[:]</span>
-            <span class="p">)</span>
+    <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">dataset_writer</span><span class="o">.</span><span class="n">loader</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">)):</span>
+        <span class="c1"># For each class, get the predictions from the x, y, and z orthogonal planes</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">array_name</span><span class="p">,</span> <span class="n">images</span> <span class="ow">in</span> <span class="n">single_axis_images</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">outputs</span><span class="p">[</span><span class="n">array_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">dataset_writer_kwargs</span><span class="p">[</span><span class="s2">&quot;classes&quot;</span><span class="p">]:</span>
+                <span class="n">outputs</span><span class="p">[</span><span class="n">array_name</span><span class="p">][</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;idx&quot;</span><span class="p">]:</span>
+                    <span class="n">average_prediction</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">images</span><span class="p">[</span><span class="n">label</span><span class="p">]:</span>
+                        <span class="n">average_prediction</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">image</span><span class="p">[</span><span class="n">dataset_writer</span><span class="o">.</span><span class="n">get_center</span><span class="p">(</span><span class="n">idx</span><span class="p">)])</span>
+                    <span class="n">average_prediction</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">average_prediction</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="n">outputs</span><span class="p">[</span><span class="n">array_name</span><span class="p">][</span><span class="n">label</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">average_prediction</span><span class="p">)</span>
+                <span class="n">outputs</span><span class="p">[</span><span class="n">array_name</span><span class="p">][</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">outputs</span><span class="p">[</span><span class="n">array_name</span><span class="p">][</span><span class="n">label</span><span class="p">])</span>
 
-        <span class="c1"># Combine the predictions</span>
-        <span class="n">combined_predictions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># Save the outputs</span>
+        <span class="n">dataset_writer</span><span class="p">[</span><span class="n">batch</span><span class="p">[</span><span class="s2">&quot;idx&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">outputs</span>
 
-        <span class="c1"># Save the combined predictions</span>
-        <span class="n">example_ds</span> <span class="o">=</span> <span class="n">open_ds</span><span class="p">(</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_dir</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;output.zarr&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">axis</span><span class="p">),</span> <span class="n">label</span><span class="p">)</span>
-        <span class="p">)</span>
-        <span class="n">dataset</span> <span class="o">=</span> <span class="n">prepare_ds</span><span class="p">(</span>
-            <span class="n">UPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">out_dataset</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
-            <span class="n">shape</span><span class="o">=</span><span class="n">example_ds</span><span class="o">.</span><span class="n">roi</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
-            <span class="n">offset</span><span class="o">=</span><span class="n">example_ds</span><span class="o">.</span><span class="n">roi</span><span class="o">.</span><span class="n">offset</span><span class="p">,</span>
-            <span class="n">voxel_size</span><span class="o">=</span><span class="n">example_ds</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">,</span>
-            <span class="n">chunk_shape</span><span class="o">=</span><span class="n">example_ds</span><span class="o">.</span><span class="n">chunk_shape</span><span class="p">,</span>
-            <span class="n">dtype</span><span class="o">=</span><span class="n">example_ds</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="n">dataset</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">combined_predictions</span>
+    <span class="n">tmp_dir</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span></div>
 
-    <span class="n">tmp_dir</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
 
 
 <span class="k">def</span> <span class="nf">_predict</span><span class="p">(</span>
-    <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
-    <span class="n">in_dataset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span>
-    <span class="n">out_dataset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span>
-    <span class="n">input_block_shape</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
-    <span class="n">channels</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
-    <span class="n">roi</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">output_voxel_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">min_raw</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-    <span class="n">max_raw</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">255</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">dataset_writer_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Predicts the output of a model on a large dataset by splitting it into blocks</span>
-<span class="sd">    and predicting each block separately.</span>
+<span class="sd">    Predicts the output of a model on a large dataset by splitting it into blocks and predicting each block separately.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    model : torch.nn.Module</span>
 <span class="sd">        The model to use for prediction.</span>
-<span class="sd">    in_dataset: str | os.PathLike</span>
-<span class="sd">        The path to the input dataset.</span>
-<span class="sd">    out_dataset: str | os.PathLike</span>
-<span class="sd">        The path to the output dataset, not including the name of the channel.</span>
-<span class="sd">    input_block_shape : Sequence[int]</span>
-<span class="sd">        The shape of the input blocks to use for prediction.</span>
-<span class="sd">    channels : Sequence[str] | dict[str | int, str]</span>
-<span class="sd">        The label classes to predict. The output will be saved in separate datasets for each label class. If multiple output channels belong to the same label class (such as for x,y,z affinities), they can be combined by indicating chanel:label matches with a dictionary and specifying the channels as a string of the form &quot;0-2&quot;. Example: {&quot;0-2&quot;:&quot;nuc&quot;}. For single channel per label class predictions, the channels can be specified as strings in a list or tuple.</span>
-<span class="sd">    roi : str, optional</span>
-<span class="sd">        The region of interest to predict. If None, the entire dataset will be predicted.</span>
-<span class="sd">        The format is a string of the form &quot;[start1:end1,start2:end2,...]&quot;.</span>
-<span class="sd">    output_voxel_size : Sequence[int | float], optional</span>
-<span class="sd">        The voxel size of the output data. Default is the same as the input voxel size.</span>
-<span class="sd">    min_raw : float, optional</span>
-<span class="sd">        The minimum value of the raw data. Default is 0.</span>
-<span class="sd">    max_raw : float, optional</span>
-<span class="sd">        The maximum value of the raw data. Default is 255.</span>
+<span class="sd">    dataset_writer_kwargs : dict[str, Any]</span>
+<span class="sd">        A dictionary containing the arguments for the dataset writer.</span>
+<span class="sd">    batch_size : int</span>
+<span class="sd">        The batch size to use for prediction</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
-        <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
 
-    <span class="n">shift</span> <span class="o">=</span> <span class="n">min_raw</span>
-    <span class="n">scale</span> <span class="o">=</span> <span class="n">max_raw</span> <span class="o">-</span> <span class="n">min_raw</span>
-
-    <span class="n">raw_dataset</span> <span class="o">=</span> <span class="n">open_ds</span><span class="p">(</span><span class="n">in_dataset</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">output_voxel_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">output_voxel_size</span> <span class="o">=</span> <span class="n">raw_dataset</span><span class="o">.</span><span class="n">voxel_size</span>
-    <span class="n">output_voxel_size</span> <span class="o">=</span> <span class="n">daisy</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">output_voxel_size</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_block_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="n">input_block_shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">input_block_shape</span><span class="p">)</span>
-
-    <span class="n">output_block_shape</span> <span class="o">=</span> <span class="n">get_output_shape</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">input_block_shape</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">output_block_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="n">output_block_shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">output_block_shape</span><span class="p">)</span>
-
-    <span class="n">read_shape</span> <span class="o">=</span> <span class="n">daisy</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">input_block_shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">raw_dataset</span><span class="o">.</span><span class="n">voxel_size</span>
-    <span class="n">write_shape</span> <span class="o">=</span> <span class="n">daisy</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">output_block_shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">output_voxel_size</span>
-
-    <span class="n">context</span> <span class="o">=</span> <span class="p">(</span><span class="n">read_shape</span> <span class="o">-</span> <span class="n">write_shape</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
-    <span class="n">read_roi</span> <span class="o">=</span> <span class="n">daisy</span><span class="o">.</span><span class="n">Roi</span><span class="p">((</span><span class="mi">0</span><span class="p">,)</span> <span class="o">*</span> <span class="n">read_shape</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span> <span class="n">read_shape</span><span class="p">)</span>
-    <span class="n">write_roi</span> <span class="o">=</span> <span class="n">read_roi</span><span class="o">.</span><span class="n">grow</span><span class="p">(</span><span class="o">-</span><span class="n">context</span><span class="p">,</span> <span class="o">-</span><span class="n">context</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">roi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Predicting on ROI: </span><span class="si">{</span><span class="n">roi</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">parsed_start</span><span class="p">,</span> <span class="n">parsed_end</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span>
-            <span class="o">*</span><span class="p">[</span>
-                <span class="nb">tuple</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span> <span class="k">for</span> <span class="n">coord</span> <span class="ow">in</span> <span class="n">axis</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">))</span>
-                <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">roi</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;[]&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
-            <span class="p">]</span>
-        <span class="p">)</span>
-        <span class="n">parsed_roi</span> <span class="o">=</span> <span class="n">daisy</span><span class="o">.</span><span class="n">Roi</span><span class="p">(</span>
-            <span class="n">daisy</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">parsed_start</span><span class="p">),</span>
-            <span class="n">daisy</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">parsed_end</span><span class="p">)</span> <span class="o">-</span> <span class="n">daisy</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">parsed_start</span><span class="p">),</span>
-        <span class="p">)</span>
-        <span class="n">total_write_roi</span> <span class="o">=</span> <span class="n">parsed_roi</span><span class="o">.</span><span class="n">snap_to_grid</span><span class="p">(</span><span class="n">output_voxel_size</span><span class="p">)</span>
-        <span class="n">total_read_roi</span> <span class="o">=</span> <span class="n">total_write_roi</span><span class="o">.</span><span class="n">grow</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span><span class="o">.</span><span class="n">snap_to_grid</span><span class="p">(</span>
-            <span class="n">raw_dataset</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;grow&quot;</span>
-        <span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">total_read_roi</span> <span class="o">=</span> <span class="n">raw_dataset</span><span class="o">.</span><span class="n">roi</span>
-        <span class="n">total_write_roi</span> <span class="o">=</span> <span class="n">total_read_roi</span><span class="o">.</span><span class="n">grow</span><span class="p">(</span><span class="o">-</span><span class="n">context</span><span class="p">,</span> <span class="o">-</span><span class="n">context</span><span class="p">)</span><span class="o">.</span><span class="n">snap_to_grid</span><span class="p">(</span>
-            <span class="n">output_voxel_size</span>
-        <span class="p">)</span>
-
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">):</span>
-        <span class="n">channels</span> <span class="o">=</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">):</span> <span class="n">c</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">channels</span><span class="p">)}</span>
-
-    <span class="n">out_datasets</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">channel</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">channels</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">dataset</span> <span class="o">=</span> <span class="n">prepare_ds</span><span class="p">(</span>
-            <span class="n">UPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">out_dataset</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
-            <span class="n">shape</span><span class="o">=</span><span class="n">total_write_roi</span><span class="o">.</span><span class="n">shape</span> <span class="o">/</span> <span class="n">output_voxel_size</span><span class="p">,</span>
-            <span class="n">offset</span><span class="o">=</span><span class="n">total_write_roi</span><span class="o">.</span><span class="n">offset</span><span class="p">,</span>
-            <span class="n">voxel_size</span><span class="o">=</span><span class="n">output_voxel_size</span><span class="p">,</span>
-            <span class="n">chunk_shape</span><span class="o">=</span><span class="n">output_block_shape</span><span class="p">,</span>
-            <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
-            <span class="n">units</span><span class="o">=</span><span class="p">[</span>
-                <span class="s2">&quot;nm&quot;</span><span class="p">,</span>
-            <span class="p">]</span>
-            <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">output_voxel_size</span><span class="p">),</span>
-        <span class="p">)</span>
-        <span class="n">out_datasets</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataset</span>
-
-    <span class="n">device</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">device</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Predicting on </span><span class="si">{</span><span class="n">in_dataset</span><span class="si">}</span><span class="s2"> and saving to </span><span class="si">{</span><span class="n">out_dataset</span><span class="si">}</span><span class="s2"> using </span><span class="si">{</span><span class="n">device</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">predict_worker</span><span class="p">(</span><span class="n">block</span><span class="p">):</span>
-        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
-        <span class="n">raw_input</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="mf">2.0</span>
-            <span class="o">*</span> <span class="p">(</span>
-                <span class="n">raw_dataset</span><span class="o">.</span><span class="n">to_ndarray</span><span class="p">(</span>
-                    <span class="n">roi</span><span class="o">=</span><span class="n">block</span><span class="o">.</span><span class="n">read_roi</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">shift</span> <span class="o">+</span> <span class="n">scale</span>
-                <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-                <span class="o">-</span> <span class="n">shift</span>
-            <span class="p">)</span>
-            <span class="o">/</span> <span class="n">scale</span>
-        <span class="p">)</span> <span class="o">-</span> <span class="mf">1.0</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reading from </span><span class="si">{</span><span class="n">block</span><span class="o">.</span><span class="n">read_roi</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s.&quot;</span><span class="p">)</span>
-        <span class="n">ndims</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">raw_input</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-        <span class="n">raw_input</span> <span class="o">=</span> <span class="n">raw_input</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
-        <span class="n">write_roi</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">write_roi</span>  <span class="c1"># .intersect(out_datasets[0].roi))</span>
-
-        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-            <span class="c1"># Time the prediction</span>
-            <span class="c1"># start_time = time()</span>
-            <span class="n">output</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">model</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">raw_input</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="o">.</span><span class="n">detach</span><span class="p">()</span>
-                <span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
-                <span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
-            <span class="p">)</span>
-            <span class="c1"># print(f&quot;Prediction time: {time() - start_time:.2f} s&quot;)</span>
-            <span class="k">if</span> <span class="n">ndims</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-                <span class="n">output</span> <span class="o">=</span> <span class="n">output</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
-            <span class="n">predictions</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span>
-                <span class="n">output</span><span class="p">,</span>
-                <span class="n">block</span><span class="o">.</span><span class="n">write_roi</span><span class="o">.</span><span class="n">offset</span><span class="p">,</span>
-                <span class="n">dataset</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">,</span>
-            <span class="p">)</span>
-
-            <span class="n">write_data</span> <span class="o">=</span> <span class="n">predictions</span><span class="o">.</span><span class="n">to_ndarray</span><span class="p">(</span><span class="n">write_roi</span><span class="p">)</span>
-            <span class="c1"># print(f&quot;Writing to {write_roi}...&quot;)</span>
-            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">out_dataset</span> <span class="ow">in</span> <span class="n">out_datasets</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="c1"># start_time = time()</span>
-                <span class="k">if</span> <span class="s2">&quot;-&quot;</span> <span class="ow">in</span> <span class="n">i</span><span class="p">:</span>
-                    <span class="n">indexes</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
-                    <span class="n">indexes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">indexes</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">indexes</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">indexes</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indexes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="n">out_dataset</span><span class="p">[</span><span class="n">write_roi</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>
-                        <span class="p">[</span><span class="n">write_data</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">indexes</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span>
-                    <span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">out_dataset</span><span class="p">[</span><span class="n">write_roi</span><span class="p">]</span> <span class="o">=</span> <span class="n">write_data</span><span class="p">[</span><span class="n">indexes</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
-                <span class="c1"># print(</span>
-                <span class="c1">#     f&quot;Finished writing to output(s) {i} in {time() - start_time:.2f} s.&quot;</span>
-                <span class="c1"># )</span>
-        <span class="c1"># block.status = daisy.BlockStatus.SUCCESS</span>
-
-    <span class="n">task</span> <span class="o">=</span> <span class="n">daisy</span><span class="o">.</span><span class="n">Task</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;predict_</span><span class="si">{</span><span class="n">in_dataset</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="n">total_roi</span><span class="o">=</span><span class="n">total_read_roi</span><span class="p">,</span>
-        <span class="n">read_roi</span><span class="o">=</span><span class="n">read_roi</span><span class="p">,</span>
-        <span class="n">write_roi</span><span class="o">=</span><span class="n">write_roi</span><span class="p">,</span>
-        <span class="n">process_function</span><span class="o">=</span><span class="n">predict_worker</span><span class="p">,</span>
-        <span class="n">check_function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">read_write_conflict</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="c1"># fit=&quot;overhang&quot;,</span>
-        <span class="n">num_workers</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-        <span class="n">max_retries</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-        <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">value_transforms</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">Compose</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">Normalize</span><span class="p">(),</span>
+            <span class="n">T</span><span class="o">.</span><span class="n">ToDtype</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+            <span class="n">NaNtoNum</span><span class="p">({</span><span class="s2">&quot;nan&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;posinf&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;neginf&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}),</span>
+        <span class="p">],</span>
     <span class="p">)</span>
-    <span class="n">daisy</span><span class="o">.</span><span class="n">run_blockwise</span><span class="p">([</span><span class="n">task</span><span class="p">],</span> <span class="n">multiprocessing</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">dataset_writer</span> <span class="o">=</span> <span class="n">CellMapDatasetWriter</span><span class="p">(</span>
+        <span class="o">**</span><span class="n">dataset_writer_kwargs</span><span class="p">,</span> <span class="n">raw_value_transforms</span><span class="o">=</span><span class="n">value_transforms</span>
+    <span class="p">)</span>
+    <span class="n">dataloader</span> <span class="o">=</span> <span class="n">dataset_writer</span><span class="o">.</span><span class="n">loader</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">dataloader</span><span class="p">):</span>
+            <span class="c1"># Get the inputs and targets</span>
+            <span class="n">inputs</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;input&quot;</span><span class="p">]</span>
+            <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+            <span class="n">outputs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)}</span>
+
+            <span class="c1"># Save the outputs</span>
+            <span class="n">dataset_writer</span><span class="p">[</span><span class="n">batch</span><span class="p">[</span><span class="s2">&quot;idx&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">outputs</span>
 
 
 <div class="viewcode-block" id="predict">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.predict.html#cellmap_segmentation_challenge.predict">[docs]</a>
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.predict.html#cellmap_segmentation_challenge.predict.predict">[docs]</a>
 <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span>
     <span class="n">config_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">crops</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span>
@@ -665,10 +386,10 @@
         <span class="n">REPO_ROOT</span> <span class="o">/</span> <span class="s2">&quot;data/predictions/predictions.zarr/</span><span class="si">{crop}</span><span class="s2">&quot;</span>
     <span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
     <span class="n">do_orthoplanes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given a model configuration file and list of crop numbers, predicts the output of a model on a large dataset by splitting it into blocks</span>
-<span class="sd">    and predicting each block separately.</span>
+<span class="sd">    Given a model configuration file and list of crop numbers, predicts the output of a model on a large dataset by splitting it into blocks and predicting each block separately.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -680,20 +401,64 @@
 <span class="sd">        The path to save the output predictions to, formatted as a string with a placeholders for the crop number, and label class. Default is &quot;cellmap-segmentation-challenge/data/predictions/predictions.zarr/{crop}/{label}&quot;.</span>
 <span class="sd">    do_orthoplanes: bool, optional</span>
 <span class="sd">        Whether to compute the average of predictions from x, y, and z orthogonal planes for the full 3D volume. This is sometimes called 2.5D predictions. It expects a model that yields 2D outputs. Similarly, it expects the input shape to the model to be 2D. Default is True for 2D models.</span>
+<span class="sd">    overwrite: bool, optional</span>
+<span class="sd">        Whether to overwrite the output dataset if it already exists. Default is False.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">config</span> <span class="o">=</span> <span class="n">SourceFileLoader</span><span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">config_path</span><span class="p">))</span><span class="o">.</span><span class="n">load_module</span><span class="p">()</span>
-    <span class="n">model</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">model</span>
-    <span class="n">input_block_shape</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">input_array_info</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">]</span>
-    <span class="n">input_scale</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">input_array_info</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">]</span>
-    <span class="n">output_scale</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">target_array_info</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">]</span>
     <span class="n">classes</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">classes</span>
+    <span class="n">batch_size</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;batch_size&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="n">input_array_info</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span>
+        <span class="n">config</span><span class="p">,</span> <span class="s2">&quot;input_array_info&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span> <span class="s2">&quot;scale&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">)}</span>
+    <span class="p">)</span>
+    <span class="n">target_array_info</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;target_array_info&quot;</span><span class="p">,</span> <span class="n">input_array_info</span><span class="p">)</span>
+    <span class="n">model_name</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;model_name&quot;</span><span class="p">,</span> <span class="s2">&quot;2d_unet&quot;</span><span class="p">)</span>
+    <span class="n">model_to_load</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;model_to_load&quot;</span><span class="p">,</span> <span class="n">model_name</span><span class="p">)</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">model</span>
+    <span class="n">load_model</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;load_model&quot;</span><span class="p">,</span> <span class="s2">&quot;latest&quot;</span><span class="p">)</span>
+    <span class="n">model_save_path</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span>
+        <span class="n">config</span><span class="p">,</span> <span class="s2">&quot;model_save_path&quot;</span><span class="p">,</span> <span class="n">UPath</span><span class="p">(</span><span class="s2">&quot;checkpoints/</span><span class="si">{model_name}</span><span class="s2">_</span><span class="si">{epoch}</span><span class="s2">.pth&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span>
+    <span class="p">)</span>
+    <span class="n">logs_save_path</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span>
+        <span class="n">config</span><span class="p">,</span> <span class="s2">&quot;logs_save_path&quot;</span><span class="p">,</span> <span class="n">UPath</span><span class="p">(</span><span class="s2">&quot;tensorboard/</span><span class="si">{model_name}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span>
+    <span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">do_orthoplanes</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">([</span><span class="n">s</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">input_block_shape</span><span class="p">]):</span>
+    <span class="c1"># %% Check that the GPU is available</span>
+    <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span>
+    <span class="k">elif</span> <span class="n">torch</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">mps</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;mps&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cpu&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Prediction device: </span><span class="si">{</span><span class="n">device</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># %% Move model to device</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+    <span class="c1"># Optionally, load a pre-trained model</span>
+    <span class="k">if</span> <span class="n">load_model</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;latest&quot;</span><span class="p">:</span>
+        <span class="c1"># Check to see if there are any checkpoints and if so load the latest one</span>
+        <span class="c1"># Use the command below for loading the latest model, otherwise comment it out</span>
+        <span class="n">load_latest</span><span class="p">(</span><span class="n">model_save_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">epoch</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="n">model_to_load</span><span class="p">),</span> <span class="n">model</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">load_model</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;best&quot;</span><span class="p">:</span>
+        <span class="c1"># Load the checkpoint with the best validation score</span>
+        <span class="c1"># Use the command below for loading the epoch with the best validation score, otherwise comment it out</span>
+        <span class="n">load_best_val</span><span class="p">(</span>
+            <span class="n">logs_save_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="n">model_to_load</span><span class="p">),</span>
+            <span class="n">model_save_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">epoch</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{epoch}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="n">model_to_load</span><span class="p">),</span>
+            <span class="n">model</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">do_orthoplanes</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">([</span><span class="n">s</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">input_array_info</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">]]):</span>
         <span class="c1"># If the model is a 2D model, compute the average of predictions from x, y, and z orthogonal planes</span>
-        <span class="n">predict_func</span> <span class="o">=</span> <span class="n">predict_ortho_planes</span>
+        <span class="n">predict_func</span> <span class="o">=</span> <span class="n">predict_orthoplanes</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">predict_func</span> <span class="o">=</span> <span class="n">_predict</span>
 
+    <span class="n">input_arrays</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;input&quot;</span><span class="p">:</span> <span class="n">input_array_info</span><span class="p">}</span>
+    <span class="n">target_arrays</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="n">target_array_info</span><span class="p">}</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="n">input_arrays</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">target_arrays</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="p">),</span> <span class="s2">&quot;No array info provided&quot;</span>
     <span class="c1"># Get the crops to predict on</span>
     <span class="k">if</span> <span class="n">crops</span> <span class="o">==</span> <span class="s2">&quot;test&quot;</span><span class="p">:</span>
         <span class="c1"># TODO: Could make this more general to work for any class label</span>
@@ -721,152 +486,44 @@
                 <span class="p">)</span>
             <span class="p">)</span>
 
-    <span class="n">crop_args</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">dataset_writers</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">crop_path</span> <span class="ow">in</span> <span class="n">crops_paths</span><span class="p">:</span>
-        <span class="c1"># Find raw scale level</span>
+        <span class="c1"># Get path to raw dataset</span>
         <span class="n">raw_path</span> <span class="o">=</span> <span class="n">get_raw_path</span><span class="p">(</span><span class="n">crop_path</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">raw_search_label</span><span class="p">)</span>
-        <span class="n">raw_group</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">raw_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
-        <span class="n">scale_level</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">find_level</span><span class="p">(</span><span class="n">raw_group</span><span class="p">,</span> <span class="n">input_scale</span><span class="p">)</span>
-        <span class="n">in_dataset</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">raw_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">scale_level</span>
-        <span class="k">assert</span> <span class="n">in_dataset</span><span class="o">.</span><span class="n">exists</span><span class="p">(),</span> <span class="sa">f</span><span class="s2">&quot;Input dataset </span><span class="si">{</span><span class="n">in_dataset</span><span class="si">}</span><span class="s2"> does not exist.&quot;</span>
 
-        <span class="n">roi</span> <span class="o">=</span> <span class="n">get_crop_roi</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">crop_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">crop_search_label</span><span class="p">),</span> <span class="n">output_scale</span><span class="p">)</span>
+        <span class="c1"># Get the boundaries of the crop</span>
+        <span class="n">gt_images</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">array_name</span><span class="p">:</span> <span class="n">CellMapImage</span><span class="p">(</span>
+                <span class="nb">str</span><span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">crop_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">crop_search_label</span><span class="p">),</span>
+                <span class="n">target_class</span><span class="o">=</span><span class="n">classes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">target_scale</span><span class="o">=</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">],</span>
+                <span class="n">target_voxel_shape</span><span class="o">=</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">],</span>
+                <span class="n">pad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">pad_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">array_name</span><span class="p">,</span> <span class="n">array_info</span> <span class="ow">in</span> <span class="n">target_arrays</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
 
-        <span class="n">crop</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">crop_path</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span>
-        <span class="n">out_dataset</span> <span class="o">=</span> <span class="n">output_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">crop</span><span class="o">=</span><span class="n">crop</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">target_bounds</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">array_name</span><span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">bounding_box</span> <span class="k">for</span> <span class="n">array_name</span><span class="p">,</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">gt_images</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
 
-        <span class="n">crop_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="c1"># Create the writer</span>
+        <span class="n">dataset_writers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
             <span class="p">{</span>
-                <span class="s2">&quot;in_dataset&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">in_dataset</span><span class="p">),</span>
-                <span class="s2">&quot;roi&quot;</span><span class="p">:</span> <span class="n">roi</span><span class="p">,</span>
-                <span class="s2">&quot;out_dataset&quot;</span><span class="p">:</span> <span class="n">out_dataset</span><span class="p">,</span>
+                <span class="s2">&quot;raw_path&quot;</span><span class="p">:</span> <span class="n">raw_path</span><span class="p">,</span>
+                <span class="s2">&quot;target_path&quot;</span><span class="p">:</span> <span class="n">output_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">crop</span><span class="o">=</span><span class="n">UPath</span><span class="p">(</span><span class="n">crop_path</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span><span class="p">),</span>
+                <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="n">classes</span><span class="p">,</span>
+                <span class="s2">&quot;input_arrays&quot;</span><span class="p">:</span> <span class="n">input_arrays</span><span class="p">,</span>
+                <span class="s2">&quot;target_arrays&quot;</span><span class="p">:</span> <span class="n">target_arrays</span><span class="p">,</span>
+                <span class="s2">&quot;target_bounds&quot;</span><span class="p">:</span> <span class="n">target_bounds</span><span class="p">,</span>
+                <span class="s2">&quot;overwrite&quot;</span><span class="p">:</span> <span class="n">overwrite</span><span class="p">,</span>
             <span class="p">}</span>
         <span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">args</span> <span class="ow">in</span> <span class="n">crop_args</span><span class="p">:</span>
-        <span class="n">predict_func</span><span class="p">(</span>
-            <span class="n">model</span><span class="p">,</span>
-            <span class="n">input_block_shape</span><span class="o">=</span><span class="n">input_block_shape</span><span class="p">,</span>
-            <span class="n">channels</span><span class="o">=</span><span class="n">classes</span><span class="p">,</span>
-            <span class="n">output_voxel_size</span><span class="o">=</span><span class="n">output_scale</span><span class="p">,</span>
-            <span class="o">**</span><span class="n">args</span><span class="p">,</span>
-        <span class="p">)</span></div>
+    <span class="k">for</span> <span class="n">dataset_writer</span> <span class="ow">in</span> <span class="n">dataset_writers</span><span class="p">:</span>
+        <span class="n">predict_func</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">dataset_writer</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span></div>
 
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">argparse</span>
-
-    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s2">&quot;--model&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;-m&quot;</span><span class="p">,</span>
-        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to a script that will load the model. Often this can be the path to the training script (such as with the examples).&quot;</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s2">&quot;--in_dataset&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;-in&quot;</span><span class="p">,</span>
-        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Full path to the input dataset. This dataset should contain the raw data to predict on. Example: `/path/to/test_raw.zarr/em/s0`&quot;</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s2">&quot;--out_dataset&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;-out&quot;</span><span class="p">,</span>
-        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to the output dataset, minus the class label name(s). For example, the output dataset should be `/path/to/outputs.zarr/dataset_1`.&quot;</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s2">&quot;--input_block_shape&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;-in_shape&quot;</span><span class="p">,</span>
-        <span class="nb">type</span><span class="o">=</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
-        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Shape of the input blocks to use for prediction.&quot;</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s2">&quot;--channels&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;-ch&quot;</span><span class="p">,</span>
-        <span class="nb">type</span><span class="o">=</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
-        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The label classes to predict and their corresponding channels. Specify multiple channels for a single label class as a string of the form &#39;0-2&#39;. Example: {&#39;0-2&#39;:&#39;nuc&#39;}.&quot;</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s2">&quot;-roi&quot;</span><span class="p">,</span>
-        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
-        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Region of interest to predict. Default is to use the entire ROI of the input dataset. Format is a string of the form &#39;[start1:end1,start2:end2,...]&#39;.&quot;</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s2">&quot;--min_raw&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;-min&quot;</span><span class="p">,</span>
-        <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
-        <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Minimum value of the raw data. Default is 0.&quot;</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s2">&quot;--max_raw&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;-max&quot;</span><span class="p">,</span>
-        <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
-        <span class="n">default</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Maximum value of the raw data. Default is 255.&quot;</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s2">&quot;--do_ortho_planes&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;-ortho&quot;</span><span class="p">,</span>
-        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Whether to compute the average of predictions from x, y, and z orthogonal planes for the full 3D volume. This is sometimes called 2.5D predictions. It expects a model that yields 2D outputs. Similarly, it expects the `input_shape` to be 2D (i.e. a sequence of 2 integers).&quot;</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
-
-    <span class="n">model_path</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">model</span>
-    <span class="n">model_script</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span>
-    <span class="n">model_script</span> <span class="o">=</span> <span class="n">SourceFileLoader</span><span class="p">(</span><span class="n">model_script</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">model_path</span><span class="p">))</span><span class="o">.</span><span class="n">load_module</span><span class="p">()</span>
-    <span class="n">model</span> <span class="o">=</span> <span class="n">model_script</span><span class="o">.</span><span class="n">model</span>
-    <span class="n">in_dataset</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">in_dataset</span>
-    <span class="n">out_dataset</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">out_dataset</span>
-    <span class="n">input_block_shape</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">input_block_shape</span>
-    <span class="n">channels</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">channels</span>
-    <span class="n">roi</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">roi</span>
-    <span class="n">min_raw</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">min_raw</span>
-    <span class="n">max_raw</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">max_raw</span>
-    <span class="n">do_ortho_planes</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">do_ortho</span>
-
-    <span class="c1"># if isinstance(channels, str):</span>
-    <span class="c1">#     channels = {</span>
-    <span class="c1">#         i: c for channel in channels.split(&quot;,&quot;) for i, c in channel.split(&quot;:&quot;)</span>
-    <span class="c1">#     }</span>
-    <span class="c1"># elif:</span>
-    <span class="c1">#     channels = {i: c for i, c in enumerate(channels)}</span>
-
-    <span class="c1"># parsed_channels = [channel.split(&quot;:&quot;) for channel in channels.split(&quot;,&quot;)]</span>
-
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Predicting on dataset </span><span class="si">{</span><span class="n">in_dataset</span><span class="si">}</span><span class="s2"> and saving to </span><span class="si">{</span><span class="n">out_dataset</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">do_ortho_planes</span><span class="p">:</span>
-        <span class="c1"># If the model is a 2D model, compute the average of predictions from x, y, and z orthogonal planes</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_block_shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;The input shape must be 2D for computing orthogonal planes.&quot;</span>
-            <span class="p">)</span>
-        <span class="n">predict_ortho_planes</span><span class="p">(</span>
-            <span class="n">model</span><span class="p">,</span>
-            <span class="n">in_dataset</span><span class="p">,</span>
-            <span class="n">out_dataset</span><span class="p">,</span>
-            <span class="n">input_block_shape</span><span class="p">,</span>
-            <span class="n">channels</span><span class="p">,</span>
-            <span class="n">roi</span><span class="p">,</span>
-            <span class="n">min_raw</span><span class="p">,</span>
-            <span class="n">max_raw</span><span class="p">,</span>
-        <span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">_predict</span><span class="p">(</span>
-            <span class="n">model</span><span class="p">,</span>
-            <span class="n">in_dataset</span><span class="p">,</span>
-            <span class="n">out_dataset</span><span class="p">,</span>
-            <span class="n">input_block_shape</span><span class="p">,</span>
-            <span class="n">channels</span><span class="p">,</span>
-            <span class="n">roi</span><span class="p">,</span>
-            <span class="n">min_raw</span><span class="p">,</span>
-            <span class="n">max_raw</span><span class="p">,</span>
-        <span class="p">)</span>
 </pre></div>
 
                 </article>

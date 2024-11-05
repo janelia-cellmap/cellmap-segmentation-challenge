@@ -150,38 +150,6 @@
 
 </ul>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../cellmap_segmentation_challenge.html">cellmap_segmentation_challenge</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.html">cellmap_segmentation_challenge.cli</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.datasplit.html">cellmap_segmentation_challenge.cli.datasplit</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.evaluate.html">cellmap_segmentation_challenge.cli.evaluate</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.fetch_data.html">cellmap_segmentation_challenge.cli.fetch_data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.predict.html">cellmap_segmentation_challenge.cli.predict</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.train.html">cellmap_segmentation_challenge.cli.train</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.evaluate.html">cellmap_segmentation_challenge.evaluate</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.models.model_load.html">cellmap_segmentation_challenge.models.model_load</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.models.resnet.html">cellmap_segmentation_challenge.models.resnet</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.models.unet_model_2D.html">cellmap_segmentation_challenge.models.unet_model_2D</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.models.unet_model_3D.html">cellmap_segmentation_challenge.models.unet_model_3D</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.models.vitnet.html">cellmap_segmentation_challenge.models.vitnet</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.postprocess.html">cellmap_segmentation_challenge.postprocess</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.crops.html">cellmap_segmentation_challenge.utils.crops</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.dataloader.html">cellmap_segmentation_challenge.utils.dataloader</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.datasplit.html">cellmap_segmentation_challenge.utils.datasplit</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.fetch_data.html">cellmap_segmentation_challenge.utils.fetch_data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.loss.html">cellmap_segmentation_challenge.utils.loss</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.visualize.html">cellmap_segmentation_challenge.utils.visualize</a></li>
-</ul>
-</details></li>
-</ul>
-</details></li>
 <li class="toctree-l1"><a class="reference internal" href="../../cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
 </ul>
@@ -301,7 +269,7 @@
 
 
 <div class="viewcode-block" id="train">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.train.html#cellmap_segmentation_challenge.train">[docs]</a>
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.train.html#cellmap_segmentation_challenge.train.train">[docs]</a>
 <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="n">config_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Train a model using the configuration file at the specified path. The model checkpoints and training logs, as well as the datasets used for training, will be saved to the paths specified in the configuration file.</span>
@@ -384,7 +352,12 @@
     <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">random_seed</span><span class="p">)</span>
 
     <span class="c1"># %% Check that the GPU is available</span>
-    <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span>
+    <span class="k">elif</span> <span class="n">torch</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">mps</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;mps&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cpu&quot;</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Training device: </span><span class="si">{</span><span class="n">device</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="c1"># %% Make the datasplit file if it doesn&#39;t exist</span>
