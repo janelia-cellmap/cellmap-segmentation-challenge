@@ -1,4 +1,3 @@
-from importlib.machinery import SourceFileLoader
 import os
 import random
 
@@ -7,14 +6,14 @@ import torch
 
 from tqdm import tqdm
 from upath import UPath
-from cellmap_segmentation_challenge import (
+from . import (
     get_dataloader,
     load_latest,
     load_best_val,
     make_datasplit_csv,
 )
-from cellmap_segmentation_challenge.utils import CellMapLossWrapper
-from cellmap_segmentation_challenge.models import ResNet, UNet_2D, UNet_3D, ViTVNet
+from .utils import CellMapLossWrapper, load_safe_config
+from .models import ResNet, UNet_2D, UNet_3D, ViTVNet
 from tensorboardX import SummaryWriter
 from cellmap_data.utils import get_image_dict
 
@@ -54,7 +53,7 @@ def train(config_path: str):
 
     # %% Load the configuration file
     config = UPath(config_path).stem
-    config = SourceFileLoader(config, str(config_path)).load_module()
+    config = load_safe_config(config_path)
     # %% Set hyperparameters and other configurations from the config file
     model_save_path = getattr(
         config, "model_save_path", UPath("checkpoints/{model_name}_{epoch}.pth").path

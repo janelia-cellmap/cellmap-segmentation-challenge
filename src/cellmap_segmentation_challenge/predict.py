@@ -1,5 +1,4 @@
 from glob import glob
-from importlib.machinery import SourceFileLoader
 import os
 import tempfile
 from typing import Any
@@ -9,7 +8,7 @@ import torchvision.transforms.v2 as T
 from tqdm import tqdm
 from upath import UPath
 from cellmap_segmentation_challenge.models import load_best_val, load_latest
-from cellmap_segmentation_challenge.utils.datasplit import (
+from .utils.datasplit import (
     CROP_NAME,
     REPO_ROOT,
     SEARCH_PATH,
@@ -19,6 +18,7 @@ from cellmap_data.transforms.augment import (
     Normalize,
     NaNtoNum,
 )
+from .utils import load_safe_config
 
 
 def predict_orthoplanes(
@@ -150,7 +150,7 @@ def predict(
     overwrite: bool, optional
         Whether to overwrite the output dataset if it already exists. Default is False.
     """
-    config = SourceFileLoader(UPath(config_path).stem, str(config_path)).load_module()
+    config = load_safe_config(config_path)
     classes = config.classes
     batch_size = getattr(config, "batch_size", 8)
     input_array_info = getattr(
