@@ -1,4 +1,5 @@
 import click
+from upath import UPath
 
 from cellmap_segmentation_challenge.utils.datasplit import REPO_ROOT
 from ..predict import predict
@@ -23,8 +24,8 @@ from ..predict import predict
     "-o",
     type=click.STRING,
     required=True,
-    default=str(REPO_ROOT / "data/predictions/predictions.zarr/{crop}"),
-    help=f"Path to save the predicted crops with {'{crop}'} placeholder for formatting. Default: {str(REPO_ROOT / 'data/predictions/predictions.zarr/{crop}')}.",
+    default=UPath(REPO_ROOT / "data/predictions/{dataset}.zarr/{crop}").path,
+    help=f"Path to save the predicted crops with {'{crop}'} placeholder for formatting. Default: {UPath(REPO_ROOT / 'data/predictions/{dataset}.zarr/{crop}').path}.",
 )
 @click.option(
     "--do-orthoplanes",

@@ -13,6 +13,7 @@ from .utils.datasplit import (
     REPO_ROOT,
     SEARCH_PATH,
     get_raw_path,
+    get_dataset_name,
 )
 from cellmap_data.transforms.augment import (
     Normalize,
@@ -128,9 +129,7 @@ def _predict(
 def predict(
     config_path: str,
     crops: str = "test",
-    output_path: str = UPath(
-        REPO_ROOT / "data/predictions/predictions.zarr/{crop}"
-    ).path,
+    output_path: str = UPath(REPO_ROOT / "data/predictions/{dataset}.zarr/{crop}").path,
     do_orthoplanes: bool = True,
     overwrite: bool = False,
 ):
@@ -144,7 +143,7 @@ def predict(
     crops: str, optional
         A comma-separated list of crop numbers to predict on, or "test" to predict on the entire test set. Default is "test".
     output_path: str, optional
-        The path to save the output predictions to, formatted as a string with a placeholders for the crop number, and label class. Default is "cellmap-segmentation-challenge/data/predictions/predictions.zarr/{crop}/{label}".
+        The path to save the output predictions to, formatted as a string with a placeholders for the crop number, and label class. Default is "cellmap-segmentation-challenge/data/predictions/{dataset}.zarr/{crop}/{label}".
     do_orthoplanes: bool, optional
         Whether to compute the average of predictions from x, y, and z orthogonal planes for the full 3D volume. This is sometimes called 2.5D predictions. It expects a model that yields 2D outputs. Similarly, it expects the input shape to the model to be 2D. Default is True for 2D models.
     overwrite: bool, optional
@@ -232,8 +231,11 @@ def predict(
                 )
             )
 
+    # Make crop list
+    crops_dict = {UPath(crop_path).parts[-2]: crop_path for crop_path in crops_paths}
+
     dataset_writers = []
-    for crop_path in crops_paths:
+    for crop, crop_path in crops_dict.items():  # type: ignore
         # Get path to raw dataset
         raw_path = get_raw_path(crop_path, label=raw_search_label)
 
@@ -258,7 +260,9 @@ def predict(
         dataset_writers.append(
             {
                 "raw_path": raw_path,
-                "target_path": output_path.format(crop=UPath(crop_path).stem),
+                "target_path": output_path.format(
+                    crop=crop, dataset=get_dataset_name(raw_path)
+                ),
                 "classes": classes,
                 "input_arrays": input_arrays,
                 "target_arrays": target_arrays,
