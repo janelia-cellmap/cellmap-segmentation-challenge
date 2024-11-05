@@ -1,378 +1,128 @@
 from glob import glob
 from importlib.machinery import SourceFileLoader
-import tempfile
-from time import time
-import torch
-
-# torch.multiprocessing.set_start_method("spawn", force=True)
-
-from typing import Optional, Sequence
 import os
-import daisy
-from funlib.persistence import open_ds, prepare_ds, Array
-import numpy as np
+import tempfile
+from typing import Any
+from cellmap_data import CellMapDatasetWriter, CellMapImage
+import torch
+import torchvision.transforms.v2 as T
+from tqdm import tqdm
 from upath import UPath
-import zarr
-
+from cellmap_segmentation_challenge.models import load_best_val, load_latest
 from cellmap_segmentation_challenge.utils.datasplit import (
     CROP_NAME,
     REPO_ROOT,
     SEARCH_PATH,
     get_raw_path,
 )
+from cellmap_data.transforms.augment import (
+    Normalize,
+    NaNtoNum,
+)
 
 
-def find_level(
-    group, target_scale: Sequence[float]
-) -> tuple[str, np.ndarray, np.ndarray]:
-    """
-    Finds the multiscale level that is closest to the target scale.
-
-    Parameters
-    ----------
-    group : zarr.Group
-        The group to search for the multiscale levels.
-    target_scale : Sequence[float]
-        The target scale to find the closest multiscale level to.
-
-    Returns
-    -------
-    tuple[str, np.ndarray, np.ndarray]
-        The name of the closest multiscale level, the offset of the level, and the scale of the level.
-    """
-    last_path: str | None = None
-    offset = None
-    scale = None
-    for level in group.attrs["multiscales"][0]["datasets"]:
-        for transform in level["coordinateTransformations"]:
-            if "translation" in transform:
-                offset = np.array(transform["translation"])
-            if "scale" in transform:
-                scale = np.array(transform["scale"])
-            if offset is not None and scale is not None:
-                break
-        for ts, s in zip(target_scale, scale):
-            if ts <= s:
-                if last_path is None:
-                    return level["path"], offset, scale
-                else:
-                    return last_path, offset, scale
-        last_path = level["path"]
-    return last_path, offset, scale  # type: ignore
-
-
-def get_crop_roi(crop_path: str, output_scale: Sequence[int]) -> str:
-    """
-    Get the ROI of a crop from the crop path, formatted as a string: [start1:end1,start2:end2,...].
-
-    Parameters
-    ----------
-    crop_path : str
-        The path to the crop.
-
-    Returns
-    -------
-    roi_str : str
-        The ROI of the crop formatted as a string.
-    """
-    crop_group = zarr.open(crop_path, mode="r")  # type: ignore
-    scale_level, offset, scale = find_level(crop_group, output_scale)
-    crop_dataset = zarr.open(UPath(crop_path) / scale_level, mode="r")  # type: ignore
-    shape = np.array(crop_dataset.shape) * scale
-    starts = np.array(offset).astype(int)
-    ends = (starts + shape).astype(int)
-    roi = f"[{','.join([f'{str(s)}:{str(e)}' for s, e in zip(starts, ends)])}]"
-    return roi
-
-
-def get_output_shape(
-    model: torch.nn.Module, input_shape: Sequence[int]
-) -> Sequence[int]:
-    """
-    Computes the output shape of a model given an input shape.
-
-    Parameters
-    ----------
-    model : torch.nn.Module
-        The model to compute the output shape for.
-    input_shape : Sequence[int]
-        The input shape of the model.
-
-    Returns
-    -------
-    Sequence[int]
-        The output shape of the model.
-    """
-    input_tensor = torch.zeros(input_shape).squeeze()[None, None, ...]
-    device = list(model.parameters())[0].device
-    output_tensor = model(input_tensor.to(device))
-    return output_tensor.shape[2:]
-
-
-def predict_ortho_planes(
-    model: torch.nn.Module,
-    in_dataset: str | os.PathLike,
-    out_dataset: str | os.PathLike,
-    input_block_shape: Sequence[int],
-    channels: Sequence[str] | dict[str | int, str],
-    roi: Optional[str] = None,
-    output_voxel_size: Optional[Sequence[int]] = None,
-    min_raw: float = 0,
-    max_raw: float = 255,
-) -> None:
-    """
-    Predicts the average 3D output of a 2D model on a large dataset by splitting it into blocks and predicting each block separately, then averaging the predictions from the x, y, and z orthogonal planes.
-
-    Parameters
-    ----------
-    model : torch.nn.Module
-        The model to use for prediction.
-    in_dataset: str | os.PathLike
-        The path to the input dataset.
-    out_dataset: str | os.PathLike
-        The path to the output dataset, not including the name of the channel.
-    input_block_shape : Sequence[int]
-        The shape of the input slices to use for prediction.
-    channels : Sequence[str] | dict[str | int, str]
-        The label classes to predict. The output will be saved in separate datasets for each label class. If multiple output channels belong to the same label class (such as for x,y,z affinities), they can be combined by indicating chanel:label matches with a dictionary and specifying the channels as a string of the form "0-2". Example: {"0-2":"nuc"}. For single channel per label class predictions, the channels can be specified as strings in a list or tuple.
-    roi : str, optional
-        The region of interest to predict. If None, the entire dataset will be predicted.
-        The format is a string of the form "[start1:end1,start2:end2,...]".
-    output_voxel_size : Sequence[int | float], optional
-        The voxel size of the output data. Default is the same as the input voxel size.
-    min_raw : float, optional
-        The minimum value of the raw data. Default is 0.
-    max_raw : float, optional
-        The maximum value of the raw data. Default is 255.
-    """
-
+def predict_orthoplanes(
+    model: torch.nn.Module, dataset_writer_kwargs: dict[str, Any], batch_size: int
+):
     print("Predicting orthogonal planes.")
 
     # Make a temporary prediction for each axis
     tmp_dir = tempfile.TemporaryDirectory()
     print(f"Temporary directory for predictions: {tmp_dir.name}")
     for axis in range(3):
+        temp_kwargs = dataset_writer_kwargs.copy()
+        temp_kwargs["target_path"] = os.path.join(
+            tmp_dir.name, "output.zarr", str(axis)
+        )
         _predict(
             model,
-            in_dataset,
-            os.path.join(tmp_dir.name, "output.zarr", str(axis)),
-            input_block_shape,
-            channels,
-            roi,
-            output_voxel_size,
-            min_raw,
-            max_raw,
+            temp_kwargs,
+            batch_size=batch_size,
         )
+
+    # Get dataset writer for the average of predictions from x, y, and z orthogonal planes
+    # TODO: Skip loading raw data
+    dataset_writer = CellMapDatasetWriter(**dataset_writer_kwargs)
+
+    # Load the images for the individual predictions
+    single_axis_images = {
+        array_name: {
+            label: [
+                CellMapImage(
+                    os.path.join(tmp_dir.name, "output.zarr", str(axis), label),
+                    target_class=label,
+                    target_scale=array_info["scale"],
+                    target_voxel_shape=array_info["shape"],
+                    pad=True,
+                    pad_value=0,
+                )
+                for axis in range(3)
+            ]
+            for label in dataset_writer_kwargs["classes"]
+        }
+        for array_name, array_info in dataset_writer_kwargs["target_arrays"].items()
+    }
 
     # Combine the predictions from the x, y, and z orthogonal planes
-    raw_dataset = open_ds(in_dataset)
-    if output_voxel_size is None:
-        output_voxel_size = raw_dataset.voxel_size
-    labels = channels if isinstance(channels, Sequence) else channels.values()
-    for label in labels:
-        # Load the predictions from the x, y, and z orthogonal planes
-        predictions = []
-        for axis in range(3):
-            predictions.append(
-                open_ds(os.path.join(tmp_dir.name, f"output.zarr", str(axis), label))[:]
-            )
+    for batch in tqdm(dataset_writer.loader(batch_size=batch_size)):
+        # For each class, get the predictions from the x, y, and z orthogonal planes
+        outputs = {}
+        for array_name, images in single_axis_images.items():
+            outputs[array_name] = {}
+            for label in dataset_writer_kwargs["classes"]:
+                outputs[array_name][label] = []
+                for idx in batch["idx"]:
+                    average_prediction = []
+                    for image in images[label]:
+                        average_prediction.append(image[dataset_writer.get_center(idx)])
+                    average_prediction = torch.stack(average_prediction).mean(dim=0)
+                    outputs[array_name][label].append(average_prediction)
+                outputs[array_name][label] = torch.stack(outputs[array_name][label])
 
-        # Combine the predictions
-        combined_predictions = np.mean(predictions, axis=0)
-
-        # Save the combined predictions
-        example_ds = open_ds(
-            os.path.join(tmp_dir.name, f"output.zarr", str(axis), label)
-        )
-        dataset = prepare_ds(
-            UPath(f"{out_dataset}/{label}").path,
-            shape=example_ds.roi.shape,
-            offset=example_ds.roi.offset,
-            voxel_size=example_ds.voxel_size,
-            chunk_shape=example_ds.chunk_shape,
-            dtype=example_ds.dtype,
-        )
-        dataset[:] = combined_predictions
+        # Save the outputs
+        dataset_writer[batch["idx"]] = outputs
 
     tmp_dir.cleanup()
 
 
 def _predict(
-    model: torch.nn.Module,
-    in_dataset: str | os.PathLike,
-    out_dataset: str | os.PathLike,
-    input_block_shape: Sequence[int],
-    channels: Sequence[str] | dict[str | int, str],
-    roi: Optional[str] = None,
-    output_voxel_size: Optional[Sequence[int]] = None,
-    min_raw: float = 0,
-    max_raw: float = 255,
-) -> None:
+    model: torch.nn.Module, dataset_writer_kwargs: dict[str, Any], batch_size: int
+):
     """
-    Predicts the output of a model on a large dataset by splitting it into blocks
-    and predicting each block separately.
+    Predicts the output of a model on a large dataset by splitting it into blocks and predicting each block separately.
 
     Parameters
     ----------
     model : torch.nn.Module
         The model to use for prediction.
-    in_dataset: str | os.PathLike
-        The path to the input dataset.
-    out_dataset: str | os.PathLike
-        The path to the output dataset, not including the name of the channel.
-    input_block_shape : Sequence[int]
-        The shape of the input blocks to use for prediction.
-    channels : Sequence[str] | dict[str | int, str]
-        The label classes to predict. The output will be saved in separate datasets for each label class. If multiple output channels belong to the same label class (such as for x,y,z affinities), they can be combined by indicating chanel:label matches with a dictionary and specifying the channels as a string of the form "0-2". Example: {"0-2":"nuc"}. For single channel per label class predictions, the channels can be specified as strings in a list or tuple.
-    roi : str, optional
-        The region of interest to predict. If None, the entire dataset will be predicted.
-        The format is a string of the form "[start1:end1,start2:end2,...]".
-    output_voxel_size : Sequence[int | float], optional
-        The voxel size of the output data. Default is the same as the input voxel size.
-    min_raw : float, optional
-        The minimum value of the raw data. Default is 0.
-    max_raw : float, optional
-        The maximum value of the raw data. Default is 255.
+    dataset_writer_kwargs : dict[str, Any]
+        A dictionary containing the arguments for the dataset writer.
+    batch_size : int
+        The batch size to use for prediction
     """
-    model.eval()
-    if torch.cuda.is_available():
-        model = model.cuda()
 
-    shift = min_raw
-    scale = max_raw - min_raw
-
-    raw_dataset = open_ds(in_dataset)
-    if output_voxel_size is None:
-        output_voxel_size = raw_dataset.voxel_size
-    output_voxel_size = daisy.Coordinate(output_voxel_size)
-
-    if len(input_block_shape) == 2:
-        input_block_shape = (1,) + tuple(input_block_shape)
-
-    output_block_shape = get_output_shape(model, input_block_shape)
-    if len(output_block_shape) == 2:
-        output_block_shape = (1,) + tuple(output_block_shape)
-
-    read_shape = daisy.Coordinate(input_block_shape) * raw_dataset.voxel_size
-    write_shape = daisy.Coordinate(output_block_shape) * output_voxel_size
-
-    context = (read_shape - write_shape) / 2
-    read_roi = daisy.Roi((0,) * read_shape.dims, read_shape)
-    write_roi = read_roi.grow(-context, -context)
-
-    if roi is not None:
-        print(f"Predicting on ROI: {roi}")
-        parsed_start, parsed_end = zip(
-            *[
-                tuple(int(coord) for coord in axis.split(":"))
-                for axis in roi.strip("[]").split(",")
-            ]
-        )
-        parsed_roi = daisy.Roi(
-            daisy.Coordinate(parsed_start),
-            daisy.Coordinate(parsed_end) - daisy.Coordinate(parsed_start),
-        )
-        total_write_roi = parsed_roi.snap_to_grid(output_voxel_size)
-        total_read_roi = total_write_roi.grow(context, context).snap_to_grid(
-            raw_dataset.voxel_size, mode="grow"
-        )
-    else:
-        total_read_roi = raw_dataset.roi
-        total_write_roi = total_read_roi.grow(-context, -context).snap_to_grid(
-            output_voxel_size
-        )
-
-    if isinstance(channels, Sequence):
-        channels = {str(i): c for i, c in enumerate(channels)}
-
-    out_datasets = {}
-    for channel, label in channels.items():
-        dataset = prepare_ds(
-            UPath(f"{out_dataset}/{label}").path,
-            shape=total_write_roi.shape / output_voxel_size,
-            offset=total_write_roi.offset,
-            voxel_size=output_voxel_size,
-            chunk_shape=output_block_shape,
-            dtype=np.float32,
-            units=[
-                "nm",
-            ]
-            * len(output_voxel_size),
-        )
-        out_datasets[channel] = dataset
-
-    device = list(model.parameters())[0].device
-    print(f"Predicting on {in_dataset} and saving to {out_dataset} using {device}.")
-
-    def predict_worker(block):
-        start_time = time()
-        raw_input = (
-            2.0
-            * (
-                raw_dataset.to_ndarray(
-                    roi=block.read_roi, fill_value=shift + scale
-                ).astype(np.float32)
-                - shift
-            )
-            / scale
-        ) - 1.0
-        print(f"Reading from {block.read_roi} in {time() - start_time:.2f} s.")
-        ndims = len(raw_input.squeeze().shape)
-        raw_input = raw_input.squeeze()[None, None, ...]
-        write_roi = block.write_roi  # .intersect(out_datasets[0].roi))
-
-        with torch.no_grad():
-            # Time the prediction
-            # start_time = time()
-            output = (
-                model(torch.Tensor(raw_input).to(device=device, dtype=torch.float32))[0]
-                .detach()
-                .cpu()
-                .numpy()
-            )
-            # print(f"Prediction time: {time() - start_time:.2f} s")
-            if ndims == 2:
-                output = output[:, None, ...]
-            predictions = Array(
-                output,
-                block.write_roi.offset,
-                dataset.voxel_size,
-            )
-
-            write_data = predictions.to_ndarray(write_roi)
-            # print(f"Writing to {write_roi}...")
-            for i, out_dataset in out_datasets.items():
-                # start_time = time()
-                if "-" in i:
-                    indexes = i.split("-")
-                    indexes = np.arange(int(indexes[0]), int(indexes[1]) + 1)
-                else:
-                    indexes = [int(i)]
-                if len(indexes) > 1:
-                    out_dataset[write_roi] = np.stack(
-                        [write_data[j] for j in indexes], axis=0
-                    )
-                else:
-                    out_dataset[write_roi] = write_data[indexes[0]]
-                # print(
-                #     f"Finished writing to output(s) {i} in {time() - start_time:.2f} s."
-                # )
-        # block.status = daisy.BlockStatus.SUCCESS
-
-    task = daisy.Task(
-        f"predict_{in_dataset}",
-        total_roi=total_read_roi,
-        read_roi=read_roi,
-        write_roi=write_roi,
-        process_function=predict_worker,
-        check_function=None,
-        read_write_conflict=False,
-        # fit="overhang",
-        num_workers=1,
-        max_retries=0,
-        timeout=None,
+    value_transforms = T.Compose(
+        [
+            Normalize(),
+            T.ToDtype(torch.float, scale=True),
+            NaNtoNum({"nan": 0, "posinf": None, "neginf": None}),
+        ],
     )
-    daisy.run_blockwise([task], multiprocessing=False)
+
+    dataset_writer = CellMapDatasetWriter(
+        **dataset_writer_kwargs, raw_value_transforms=value_transforms
+    )
+    dataloader = dataset_writer.loader(batch_size=batch_size)
+    model.eval()
+    with torch.no_grad():
+        for batch in tqdm(dataloader):
+            # Get the inputs and targets
+            inputs = batch["input"]
+            outputs = model(inputs)
+            outputs = {"output": model(inputs)}
+
+            # Save the outputs
+            dataset_writer[batch["idx"]] = outputs
 
 
 def predict(
@@ -382,10 +132,10 @@ def predict(
         REPO_ROOT / "data/predictions/predictions.zarr/{crop}"
     ).path,
     do_orthoplanes: bool = True,
+    overwrite: bool = False,
 ):
     """
-    Given a model configuration file and list of crop numbers, predicts the output of a model on a large dataset by splitting it into blocks
-    and predicting each block separately.
+    Given a model configuration file and list of crop numbers, predicts the output of a model on a large dataset by splitting it into blocks and predicting each block separately.
 
     Parameters
     ----------
@@ -397,20 +147,64 @@ def predict(
         The path to save the output predictions to, formatted as a string with a placeholders for the crop number, and label class. Default is "cellmap-segmentation-challenge/data/predictions/predictions.zarr/{crop}/{label}".
     do_orthoplanes: bool, optional
         Whether to compute the average of predictions from x, y, and z orthogonal planes for the full 3D volume. This is sometimes called 2.5D predictions. It expects a model that yields 2D outputs. Similarly, it expects the input shape to the model to be 2D. Default is True for 2D models.
+    overwrite: bool, optional
+        Whether to overwrite the output dataset if it already exists. Default is False.
     """
     config = SourceFileLoader(UPath(config_path).stem, str(config_path)).load_module()
-    model = config.model
-    input_block_shape = config.input_array_info["shape"]
-    input_scale = config.input_array_info["scale"]
-    output_scale = config.target_array_info["scale"]
     classes = config.classes
+    batch_size = getattr(config, "batch_size", 8)
+    input_array_info = getattr(
+        config, "input_array_info", {"shape": (1, 128, 128), "scale": (8, 8, 8)}
+    )
+    target_array_info = getattr(config, "target_array_info", input_array_info)
+    model_name = getattr(config, "model_name", "2d_unet")
+    model_to_load = getattr(config, "model_to_load", model_name)
+    model = config.model
+    load_model = getattr(config, "load_model", "latest")
+    model_save_path = getattr(
+        config, "model_save_path", UPath("checkpoints/{model_name}_{epoch}.pth").path
+    )
+    logs_save_path = getattr(
+        config, "logs_save_path", UPath("tensorboard/{model_name}").path
+    )
 
-    if do_orthoplanes and any([s == 1 for s in input_block_shape]):
+    # %% Check that the GPU is available
+    if torch.cuda.is_available():
+        device = "cuda"
+    elif torch.backends.mps.is_available():
+        device = "mps"
+    else:
+        device = "cpu"
+    print(f"Prediction device: {device}")
+
+    # %% Move model to device
+    model = model.to(device)
+
+    # Optionally, load a pre-trained model
+    if load_model.lower() == "latest":
+        # Check to see if there are any checkpoints and if so load the latest one
+        # Use the command below for loading the latest model, otherwise comment it out
+        load_latest(model_save_path.format(epoch="*", model_name=model_to_load), model)
+    elif load_model.lower() == "best":
+        # Load the checkpoint with the best validation score
+        # Use the command below for loading the epoch with the best validation score, otherwise comment it out
+        load_best_val(
+            logs_save_path.format(model_name=model_to_load),
+            model_save_path.format(epoch="{epoch}", model_name=model_to_load),
+            model,
+        )
+
+    if do_orthoplanes and any([s == 1 for s in input_array_info["shape"]]):
         # If the model is a 2D model, compute the average of predictions from x, y, and z orthogonal planes
-        predict_func = predict_ortho_planes
+        predict_func = predict_orthoplanes
     else:
         predict_func = _predict
 
+    input_arrays = {"input": input_array_info}
+    target_arrays = {"output": target_array_info}
+    assert (
+        input_arrays is not None and target_arrays is not None
+    ), "No array info provided"
     # Get the crops to predict on
     if crops == "test":
         # TODO: Could make this more general to work for any class label
@@ -438,148 +232,40 @@ def predict(
                 )
             )
 
-    crop_args = []
+    dataset_writers = []
     for crop_path in crops_paths:
-        # Find raw scale level
+        # Get path to raw dataset
         raw_path = get_raw_path(crop_path, label=raw_search_label)
-        raw_group = zarr.open(raw_path, mode="r")
-        scale_level, _, _ = find_level(raw_group, input_scale)
-        in_dataset = UPath(raw_path) / scale_level
-        assert in_dataset.exists(), f"Input dataset {in_dataset} does not exist."
 
-        roi = get_crop_roi(str(UPath(crop_path) / crop_search_label), output_scale)
+        # Get the boundaries of the crop
+        gt_images = {
+            array_name: CellMapImage(
+                str(UPath(crop_path) / crop_search_label),
+                target_class=classes[0],
+                target_scale=array_info["scale"],
+                target_voxel_shape=array_info["shape"],
+                pad=True,
+                pad_value=0,
+            )
+            for array_name, array_info in target_arrays.items()
+        }
 
-        crop = UPath(crop_path).stem
-        out_dataset = output_path.format(crop=crop, label="")
+        target_bounds = {
+            array_name: image.bounding_box for array_name, image in gt_images.items()
+        }
 
-        crop_args.append(
+        # Create the writer
+        dataset_writers.append(
             {
-                "in_dataset": str(in_dataset),
-                "roi": roi,
-                "out_dataset": out_dataset,
+                "raw_path": raw_path,
+                "target_path": output_path.format(crop=UPath(crop_path).stem),
+                "classes": classes,
+                "input_arrays": input_arrays,
+                "target_arrays": target_arrays,
+                "target_bounds": target_bounds,
+                "overwrite": overwrite,
             }
         )
 
-    for args in crop_args:
-        predict_func(
-            model,
-            input_block_shape=input_block_shape,
-            channels=classes,
-            output_voxel_size=output_scale,
-            **args,
-        )
-
-
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--model",
-        "-m",
-        type=str,
-        help="Path to a script that will load the model. Often this can be the path to the training script (such as with the examples).",
-    )
-    parser.add_argument(
-        "--in_dataset",
-        "-in",
-        type=str,
-        help="Full path to the input dataset. This dataset should contain the raw data to predict on. Example: `/path/to/test_raw.zarr/em/s0`",
-    )
-    parser.add_argument(
-        "--out_dataset",
-        "-out",
-        type=str,
-        help="Path to the output dataset, minus the class label name(s). For example, the output dataset should be `/path/to/outputs.zarr/dataset_1`.",
-    )
-    parser.add_argument(
-        "--input_block_shape",
-        "-in_shape",
-        type=Sequence[int],
-        help="Shape of the input blocks to use for prediction.",
-    )
-    parser.add_argument(
-        "--channels",
-        "-ch",
-        type=Sequence[str] | dict[str | int, str],
-        help="The label classes to predict and their corresponding channels. Specify multiple channels for a single label class as a string of the form '0-2'. Example: {'0-2':'nuc'}.",
-    )
-    parser.add_argument(
-        "-roi",
-        type=str,
-        default=None,
-        help="Region of interest to predict. Default is to use the entire ROI of the input dataset. Format is a string of the form '[start1:end1,start2:end2,...]'.",
-    )
-    parser.add_argument(
-        "--min_raw",
-        "-min",
-        type=float,
-        default=0,
-        help="Minimum value of the raw data. Default is 0.",
-    )
-    parser.add_argument(
-        "--max_raw",
-        "-max",
-        type=float,
-        default=255,
-        help="Maximum value of the raw data. Default is 255.",
-    )
-    parser.add_argument(
-        "--do_ortho_planes",
-        "-ortho",
-        action="store_true",
-        help="Whether to compute the average of predictions from x, y, and z orthogonal planes for the full 3D volume. This is sometimes called 2.5D predictions. It expects a model that yields 2D outputs. Similarly, it expects the `input_shape` to be 2D (i.e. a sequence of 2 integers).",
-    )
-    args = parser.parse_args()
-
-    model_path = args.model
-    model_script = UPath(model_path).stem
-    model_script = SourceFileLoader(model_script, str(model_path)).load_module()
-    model = model_script.model
-    in_dataset = args.in_dataset
-    out_dataset = args.out_dataset
-    input_block_shape = args.input_block_shape
-    channels = args.channels
-    roi = args.roi
-    min_raw = args.min_raw
-    max_raw = args.max_raw
-    do_ortho_planes = args.do_ortho
-
-    # if isinstance(channels, str):
-    #     channels = {
-    #         i: c for channel in channels.split(",") for i, c in channel.split(":")
-    #     }
-    # elif:
-    #     channels = {i: c for i, c in enumerate(channels)}
-
-    # parsed_channels = [channel.split(":") for channel in channels.split(",")]
-
-    print(f"Predicting on dataset {in_dataset} and saving to {out_dataset}.")
-
-    if do_ortho_planes:
-        # If the model is a 2D model, compute the average of predictions from x, y, and z orthogonal planes
-        if len(input_block_shape) > 2:
-            raise ValueError(
-                "The input shape must be 2D for computing orthogonal planes."
-            )
-        predict_ortho_planes(
-            model,
-            in_dataset,
-            out_dataset,
-            input_block_shape,
-            channels,
-            roi,
-            min_raw,
-            max_raw,
-        )
-    else:
-        _predict(
-            model,
-            in_dataset,
-            out_dataset,
-            input_block_shape,
-            channels,
-            roi,
-            min_raw,
-            max_raw,
-        )
+    for dataset_writer in dataset_writers:
+        predict_func(model, dataset_writer, batch_size)

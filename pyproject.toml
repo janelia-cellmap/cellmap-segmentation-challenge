@@ -46,8 +46,6 @@ dependencies = [
   "scikit-image",
   "matplotlib",
   "scikit-learn",
-  "daisy",
-  "funlib.persistence",
   ]
 
 [project.optional-dependencies]
