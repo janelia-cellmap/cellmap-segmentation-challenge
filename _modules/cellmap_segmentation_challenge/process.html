@@ -402,35 +402,39 @@
 
     <span class="n">dataset_writers</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">crop</span><span class="p">,</span> <span class="p">(</span><span class="n">input_path</span><span class="p">,</span> <span class="n">output_path</span><span class="p">)</span> <span class="ow">in</span> <span class="n">crop_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="c1"># Get the boundaries of the crop</span>
-        <span class="n">input_images</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">array_name</span><span class="p">:</span> <span class="n">CellMapImage</span><span class="p">(</span>
-                <span class="nb">str</span><span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">input_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">classes</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
-                <span class="n">target_class</span><span class="o">=</span><span class="n">classes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                <span class="n">target_scale</span><span class="o">=</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">],</span>
-                <span class="n">target_voxel_shape</span><span class="o">=</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">],</span>
-                <span class="n">pad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                <span class="n">pad_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="k">for</span> <span class="n">array_name</span><span class="p">,</span> <span class="n">array_info</span> <span class="ow">in</span> <span class="n">target_arrays</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">classes</span><span class="p">:</span>
+            <span class="n">class_input_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">input_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span>
 
-        <span class="n">target_bounds</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">array_name</span><span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">bounding_box</span> <span class="k">for</span> <span class="n">array_name</span><span class="p">,</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">input_images</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-        <span class="p">}</span>
-
-        <span class="c1"># Create the writer</span>
-        <span class="n">dataset_writers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="p">{</span>
-                <span class="s2">&quot;raw_path&quot;</span><span class="p">:</span> <span class="n">input_path</span><span class="p">,</span>
-                <span class="s2">&quot;target_path&quot;</span><span class="p">:</span> <span class="n">output_path</span><span class="p">,</span>
-                <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="n">classes</span><span class="p">,</span>
-                <span class="s2">&quot;input_arrays&quot;</span><span class="p">:</span> <span class="n">input_arrays</span><span class="p">,</span>
-                <span class="s2">&quot;target_arrays&quot;</span><span class="p">:</span> <span class="n">target_arrays</span><span class="p">,</span>
-                <span class="s2">&quot;target_bounds&quot;</span><span class="p">:</span> <span class="n">target_bounds</span><span class="p">,</span>
-                <span class="s2">&quot;overwrite&quot;</span><span class="p">:</span> <span class="n">overwrite</span><span class="p">,</span>
+            <span class="c1"># Get the boundaries of the crop</span>
+            <span class="n">input_images</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">array_name</span><span class="p">:</span> <span class="n">CellMapImage</span><span class="p">(</span>
+                    <span class="n">class_input_path</span><span class="p">,</span>
+                    <span class="n">target_class</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+                    <span class="n">target_scale</span><span class="o">=</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">],</span>
+                    <span class="n">target_voxel_shape</span><span class="o">=</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">],</span>
+                    <span class="n">pad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">pad_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">array_name</span><span class="p">,</span> <span class="n">array_info</span> <span class="ow">in</span> <span class="n">target_arrays</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
             <span class="p">}</span>
-        <span class="p">)</span>
+
+            <span class="n">target_bounds</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">array_name</span><span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">bounding_box</span>
+                <span class="k">for</span> <span class="n">array_name</span><span class="p">,</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">input_images</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">}</span>
+
+            <span class="c1"># Create the writer</span>
+            <span class="n">dataset_writers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;raw_path&quot;</span><span class="p">:</span> <span class="n">class_input_path</span><span class="p">,</span>
+                    <span class="s2">&quot;target_path&quot;</span><span class="p">:</span> <span class="n">output_path</span><span class="p">,</span>
+                    <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">label</span><span class="p">],</span>
+                    <span class="s2">&quot;input_arrays&quot;</span><span class="p">:</span> <span class="n">input_arrays</span><span class="p">,</span>
+                    <span class="s2">&quot;target_arrays&quot;</span><span class="p">:</span> <span class="n">target_arrays</span><span class="p">,</span>
+                    <span class="s2">&quot;target_bounds&quot;</span><span class="p">:</span> <span class="n">target_bounds</span><span class="p">,</span>
+                    <span class="s2">&quot;overwrite&quot;</span><span class="p">:</span> <span class="n">overwrite</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
 
     <span class="k">for</span> <span class="n">dataset_writer</span> <span class="ow">in</span> <span class="n">dataset_writers</span><span class="p">:</span>
         <span class="n">_process</span><span class="p">(</span><span class="n">dataset_writer</span><span class="p">,</span> <span class="n">process_func</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span></div>
