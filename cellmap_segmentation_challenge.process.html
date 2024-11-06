@@ -349,7 +349,7 @@
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>config_path</strong> (<em>str</em><em> | </em><em>UPath</em>) – The path to the python file containing the process function and other configurations. The script should specify the process function as <cite>process_func</cite>; <cite>input_array_info</cite> and <cite>target_array_info</cite> corresponding to the chunk sizes and scales for the input and output datasets, respectively; <cite>batch_size</cite>; <cite>classes</cite>; and any other required configurations.
-The process function should take a numpy array as input and return a numpy array as output.</p></li>
+The process function should take an array as input and return an array as output.</p></li>
 <li><p><strong>crops</strong> (<em>str</em><em>, </em><em>optional</em>) – A comma-separated list of crop numbers to process, or “test” to process the entire test set. Default is “test”.</p></li>
 <li><p><strong>input_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The path to the data to process, formatted as a string with a placeholders for the crop number and dataset. Default is “cellmap-segmentation-challenge/data/predictions/{dataset}.zarr/{crop}”.</p></li>
 <li><p><strong>output_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The path to save the processed output to, formatted as a string with a placeholders for the crop number and dataset. Default is “cellmap-segmentation-challenge/data/processed/{dataset}.zarr/{crop}”.</p></li>

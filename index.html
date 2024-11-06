@@ -471,10 +471,15 @@ python<span class="w"> </span>train_2D.py
 </section>
 <section id="post-process-model-predictions">
 <h2>Post-process model predictions<a class="headerlink" href="#post-process-model-predictions" title="Link to this heading">#</a></h2>
-<p>After making predictions on the test data, you may want to post-process the predictions to improve the results. An example script for post-processing is provided in the <code class="docutils literal notranslate"><span class="pre">examples</span></code> directory, named <code class="docutils literal notranslate"><span class="pre">postprocess.py</span></code> and is annotated for clarity.</p>
-<p>… #TODO: Add more information on post-processing
-TODO: Add post-processing to CLI
-================================</p>
+<p>After making predictions on the test data, you may want to post-process the predictions to improve the results. Example scripts for post-processing are provided in the <code class="docutils literal notranslate"><span class="pre">examples</span></code> directory, named <code class="docutils literal notranslate"><span class="pre">process_2D.py</span></code> and <code class="docutils literal notranslate"><span class="pre">process_3D.py</span></code>. They are annotated for clarity. You can run one such script by running the following on the command line:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>csc<span class="w"> </span>process<span class="w"> </span>process_2D.py
+</pre></div>
+</div>
+<p>This functionality allows you to define any <code class="docutils literal notranslate"><span class="pre">process_func</span></code> that takes in a batch of predictions and returns a batch of post-processed predictions. This can be used to apply any post-processing steps you like, such as thresholding, merging IDs for connected components, filtering based on object size, etc..</p>
+<p>For more information on the available options and how post-processing works, see the <code class="docutils literal notranslate"><span class="pre">README.md</span></code> in the <code class="docutils literal notranslate"><span class="pre">examples</span></code> folder, as well as the documentation in <code class="docutils literal notranslate"><span class="pre">examples/process_2D.py</span></code> and <code class="docutils literal notranslate"><span class="pre">examples/process_3D.py</span></code>, or run the following in the terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>csc<span class="w"> </span>process<span class="w"> </span>--help
+</pre></div>
+</div>
 </section>
 <section id="submit-your-final-predictions">
 <h2>Submit your final predictions<a class="headerlink" href="#submit-your-final-predictions" title="Link to this heading">#</a></h2>
