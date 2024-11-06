@@ -117,35 +117,39 @@ def process(
 
     dataset_writers = []
     for crop, (input_path, output_path) in crop_dict.items():
-        # Get the boundaries of the crop
-        input_images = {
-            array_name: CellMapImage(
-                str(UPath(input_path) / classes[0]),
-                target_class=classes[0],
-                target_scale=array_info["scale"],
-                target_voxel_shape=array_info["shape"],
-                pad=True,
-                pad_value=0,
-            )
-            for array_name, array_info in target_arrays.items()
-        }
+        for label in classes:
+            class_input_path = str(UPath(input_path) / label)
 
-        target_bounds = {
-            array_name: image.bounding_box for array_name, image in input_images.items()
-        }
-
-        # Create the writer
-        dataset_writers.append(
-            {
-                "raw_path": input_path,
-                "target_path": output_path,
-                "classes": classes,
-                "input_arrays": input_arrays,
-                "target_arrays": target_arrays,
-                "target_bounds": target_bounds,
-                "overwrite": overwrite,
+            # Get the boundaries of the crop
+            input_images = {
+                array_name: CellMapImage(
+                    class_input_path,
+                    target_class=label,
+                    target_scale=array_info["scale"],
+                    target_voxel_shape=array_info["shape"],
+                    pad=True,
+                    pad_value=0,
+                )
+                for array_name, array_info in target_arrays.items()
             }
-        )
+
+            target_bounds = {
+                array_name: image.bounding_box
+                for array_name, image in input_images.items()
+            }
+
+            # Create the writer
+            dataset_writers.append(
+                {
+                    "raw_path": class_input_path,
+                    "target_path": output_path,
+                    "classes": [label],
+                    "input_arrays": input_arrays,
+                    "target_arrays": target_arrays,
+                    "target_bounds": target_bounds,
+                    "overwrite": overwrite,
+                }
+            )
 
     for dataset_writer in dataset_writers:
         _process(dataset_writer, process_func, batch_size)

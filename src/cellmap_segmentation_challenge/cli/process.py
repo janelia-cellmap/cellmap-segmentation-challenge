@@ -44,7 +44,7 @@ from ..process import process
     default=False,
     help="Whether to overwrite the output path if it already exists. Default: False.",
 )
-def process_cli(config_path, crops, input_path, output_path, do_orthoplanes, overwrite):
+def process_cli(config_path, crops, input_path, output_path, overwrite):
     """
     Process data from a large dataset by splitting it into blocks and processing each block separately.
 
