@@ -24,7 +24,7 @@ def _process(
     dataset_writer_kwargs : dict
         A dictionary containing the specifications for data loading and writing.
     process_func : Callable
-        The function to apply to the input data. Should take a numpy array as input and return a numpy array as output.
+        The function to apply to the input data. Should take an array as input and return an array as output.
     batch_size : int, optional
         The batch size to use for processing the data. Default is 8.
     """
@@ -57,7 +57,7 @@ def process(
     ----------
     config_path : str | UPath
         The path to the python file containing the process function and other configurations. The script should specify the process function as `process_func`; `input_array_info` and `target_array_info` corresponding to the chunk sizes and scales for the input and output datasets, respectively; `batch_size`; `classes`; and any other required configurations.
-        The process function should take a numpy array as input and return a numpy array as output.
+        The process function should take an array as input and return an array as output.
     crops: str, optional
         A comma-separated list of crop numbers to process, or "test" to process the entire test set. Default is "test".
     input_path: str, optional

@@ -37,6 +37,22 @@ csc predict train_3D.py
 
 To see the other options available for the `predict` command, such as picking crops to predict on or setting an output path, you can run `csc predict --help`.
 
+## Post-processing predictions
+The `process_2D.py` and `process_3D.py` configuration scripts demonstrate how to post-process the predictions made by a model. Examples of post-processing steps include thresholding, merging IDs for connected components, filtering based on object size, etc.. The scripts define the post-processing parameters, including the `input_array_info` and `target_array_info` of the processing (same as in the training configuration), which `classes` to process, `batch_size` for dataloading, which `crops` to process (or "test" to process all test crops), and the post-processing function to apply. The scripts, when run with python, call the `process` function with the path to this configuration file as an argument. For example, to post-process the predictions made by the 3D model from `train_3D.py`, you can do so directly by running the following command:
+
+```bash
+python process_3D.py
+```
+
+Or, to run the post-processing script with the `csc` command-line interface, you can run the following command:
+
+```bash
+csc process process_3D.py
+```
+
+To see the other options available for the `process` command, you can run `csc process --help`.
+
+
 ## Submission requirements:
 1. The submission should be a single zip file containing a single Zarr-2 file with the following structure:
    - submission.zarr

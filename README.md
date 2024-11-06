@@ -139,10 +139,20 @@ Also see the `README.md` in the `examples` folder for more information on the av
 
 ## Post-process model predictions
 
-After making predictions on the test data, you may want to post-process the predictions to improve the results. An example script for post-processing is provided in the `examples` directory, named `postprocess.py` and is annotated for clarity. 
+After making predictions on the test data, you may want to post-process the predictions to improve the results. Example scripts for post-processing are provided in the `examples` directory, named `process_2D.py` and `process_3D.py`. They are annotated for clarity. You can run one such script by running the following on the command line:
 
-... #TODO: Add more information on post-processing
-# TODO: Add post-processing to CLI
+```bash
+csc process process_2D.py
+```
+
+This functionality allows you to define any `process_func` that takes in a batch of predictions and returns a batch of post-processed predictions. This can be used to apply any post-processing steps you like, such as thresholding, merging IDs for connected components, filtering based on object size, etc..
+
+For more information on the available options and how post-processing works, see the `README.md` in the `examples` folder, as well as the documentation in `examples/process_2D.py` and `examples/process_3D.py`, or run the following in the terminal:
+
+```bash
+csc process --help
+```
+
 
 ## Submit your final predictions
 

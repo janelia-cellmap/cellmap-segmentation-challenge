@@ -25,7 +25,7 @@ from ..predict import predict
     type=click.STRING,
     required=True,
     default=UPath(REPO_ROOT / "data/predictions/{dataset}.zarr/{crop}").path,
-    help=f"Path to save the predicted crops with {'{crop}'} placeholder for formatting. Default: {UPath(REPO_ROOT / 'data/predictions/{dataset}.zarr/{crop}').path}.",
+    help=f"Path to save the predicted crops with {'{crop}'} and {'{dataset}'} placeholders for formatting. Default: {UPath(REPO_ROOT / 'data/predictions/{dataset}.zarr/{crop}').path}.",
 )
 @click.option(
     "--do-orthoplanes",
