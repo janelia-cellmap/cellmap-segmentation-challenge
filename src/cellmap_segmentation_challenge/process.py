@@ -4,7 +4,7 @@ import os
 from typing import Any, Callable
 from upath import UPath
 from .utils import load_safe_config
-from .config import CROP_NAME, REPO_ROOT, SEARCH_PATH
+from .config import CROP_NAME, REPO_ROOT, SEARCH_PATH, PREDICTIONS_PATH, PROCESSED_PATH
 from .utils.datasplit import get_dataset_name
 from cellmap_data import CellMapImage, CellMapDatasetWriter
 
@@ -42,8 +42,8 @@ def _process(
 def process(
     config_path: str | UPath,
     crops: str = "test",
-    input_path: str = UPath(REPO_ROOT / "data/predictions/{dataset}.zarr/{crop}").path,
-    output_path: str = UPath(REPO_ROOT / "data/processed/{dataset}.zarr/{crop}").path,
+    input_path: str = PREDICTIONS_PATH,
+    output_path: str = PROCESSED_PATH,
     overwrite: bool = False,
 ) -> None:
     """
@@ -57,9 +57,9 @@ def process(
     crops: str, optional
         A comma-separated list of crop numbers to process, or "test" to process the entire test set. Default is "test".
     input_path: str, optional
-        The path to the data to process, formatted as a string with a placeholders for the crop number and dataset. Default is "cellmap-segmentation-challenge/data/predictions/{dataset}.zarr/{crop}".
+        The path to the data to process, formatted as a string with a placeholders for the crop number, dataset, and label. Default is PREDICTIONS_PATH set in `cellmap-segmentation/config.py`.
     output_path: str, optional
-        The path to save the processed output to, formatted as a string with a placeholders for the crop number and dataset. Default is "cellmap-segmentation-challenge/data/processed/{dataset}.zarr/{crop}".
+        The path to save the processed output to, formatted as a string with a placeholders for the crop number, dataset, and label. Default is PROCESSED_PATH set in `cellmap-segmentation/config.py`.
     overwrite: bool, optional
         Whether to overwrite the output dataset if it already exists. Default is False.
     """

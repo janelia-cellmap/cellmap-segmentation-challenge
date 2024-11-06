@@ -8,7 +8,7 @@ import torchvision.transforms.v2 as T
 from tqdm import tqdm
 from upath import UPath
 from .models import load_best_val, load_latest
-from .config import CROP_NAME, REPO_ROOT, SEARCH_PATH
+from .config import CROP_NAME, SEARCH_PATH, PREDICTIONS_PATH
 from .utils.datasplit import get_raw_path, get_dataset_name
 from cellmap_data.transforms.augment import (
     Normalize,
@@ -124,7 +124,7 @@ def _predict(
 def predict(
     config_path: str,
     crops: str = "test",
-    output_path: str = UPath(REPO_ROOT / "data/predictions/{dataset}.zarr/{crop}").path,
+    output_path: str = PREDICTIONS_PATH,
     do_orthoplanes: bool = True,
     overwrite: bool = False,
 ):
@@ -138,7 +138,7 @@ def predict(
     crops: str, optional
         A comma-separated list of crop numbers to predict on, or "test" to predict on the entire test set. Default is "test".
     output_path: str, optional
-        The path to save the output predictions to, formatted as a string with a placeholders for the dataset and crop number. Default is "cellmap-segmentation-challenge/data/predictions/{dataset}.zarr/{crop}".
+        The path to save the output predictions to, formatted as a string with a placeholders for the dataset, crop number, and label. Default is PREDICTIONS_PATH set in `cellmap-segmentation/config.py`.
     do_orthoplanes: bool, optional
         Whether to compute the average of predictions from x, y, and z orthogonal planes for the full 3D volume. This is sometimes called 2.5D predictions. It expects a model that yields 2D outputs. Similarly, it expects the input shape to the model to be 2D. Default is True for 2D models.
     overwrite: bool, optional

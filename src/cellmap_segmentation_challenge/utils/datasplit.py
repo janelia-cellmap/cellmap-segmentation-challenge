@@ -13,6 +13,7 @@ from upath import UPath
 from ..config import SEARCH_PATH, CROP_NAME, RAW_NAME
 
 
+# TODO: Consolidate with get_formatted_fields
 def get_dataset_name(
     raw_path: str, search_path: str = SEARCH_PATH, raw_name: str = RAW_NAME
 ) -> str:
@@ -31,6 +32,35 @@ def get_dataset_name(
     )
 
 
+def get_formatted_fields(
+    path: str, base_path: str, fields: list[str]
+) -> dict[str, str]:
+    """
+    Get the formatted fields from the path.
+
+    Parameters
+    ----------
+    path : str
+        The path to get the fields from.
+    base_path : str
+        The unformatted path to find the fields in.
+    fields : list[str]
+        The fields to get from the path.
+
+    Returns
+    -------
+    dict[str, str]
+        The formatted fields.
+    """
+    field_results = {}
+    for rp, sp in zip(path.split(os.path.sep), base_path.split(os.path.sep)):
+        for field in fields:
+            if sp == field:
+                field_results[field.strip("{}")] = rp
+    return field_results
+
+
+# TODO: Consolidate with get_formatted_fields
 def get_raw_path(crop_path: str, raw_name: str = RAW_NAME, label: str = "") -> str:
     """
     Get the path to the raw data for a given crop path.

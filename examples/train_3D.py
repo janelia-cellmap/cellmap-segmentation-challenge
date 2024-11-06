@@ -22,7 +22,7 @@ from cellmap_segmentation_challenge.models import UNet_3D, ResNet, ViTVNet
 
 # %% Set hyperparameters and other configurations
 learning_rate = 0.0001  # learning rate for the optimizer
-batch_size = 6  # batch size for the dataloader
+batch_size = 3  # batch size for the dataloader
 input_array_info = {
     "shape": (128, 128, 128),
     "scale": (8, 8, 8),
