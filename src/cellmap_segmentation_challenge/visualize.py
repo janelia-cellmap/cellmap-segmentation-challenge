@@ -1,14 +1,18 @@
-from typing import Optional, Sequence
+from typing import Sequence
 import neuroglancer
 from glob import glob
+import numpy as np
 from upath import UPath
+import xarray_tensorstore as xt
+import zarr
+import tensorstore
 from .config import CROP_NAME, REPO_ROOT, SEARCH_PATH, PREDICTIONS_PATH, PROCESSED_PATH
 from .utils.datasplit import get_raw_path, get_dataset_name, get_formatted_fields
 
 search_paths = {
     "gt": SEARCH_PATH.format(dataset="{dataset}", name=CROP_NAME),
-    "predictions": PREDICTIONS_PATH,
-    "processed": PROCESSED_PATH,
+    "predictions": (UPath(PREDICTIONS_PATH) / "{label}").path,
+    "processed": (UPath(PROCESSED_PATH) / "{label}").path,
 }
 
 
@@ -16,6 +20,7 @@ def visualize(
     datasets: str | Sequence[str] = "*",
     crops: int | Sequence = ["*"],
     classes: str | Sequence[str] = "*",
+    kinds: Sequence[str] = list(search_paths.keys()),
 ):
     """
     Visualize datasets and crops in Neuroglancer.
@@ -28,6 +33,8 @@ def visualize(
         The crop number(s) to visualize. Can be an integer or a list of integers, or None. Default is None. If None, all crops will be visualized.
     classes : str | Sequence[str], optional
         The class to visualize. Can be a string or a list of strings. Default is "*". If "*", all classes will be visualized.
+    kinds : Sequence[str], optional
+        The type of layers to visualize. Can be "gt" for groundtruth, "predictions" for predictions, or "processed" for processed data. Default is ["gt", "predictions", "processed"].
     """
 
     # Get all matching datasets that can be found
@@ -57,34 +64,17 @@ def visualize(
         # Add the raw dataset
         with viewer_dict[dataset_name].txn() as s:
             s.layers["fibsem"] = neuroglancer.ImageLayer(
-                source=get_raw_path(dataset_path),
+                source="zarr://" + UPath(get_raw_path(dataset_path)).as_uri(),
             )
 
-        # Add every groundtruth layer matching the crops and classes
-        crop_paths = []
-        for crop in crops:
-            for label in classes:
-                crop_paths.extend(
-                    glob(
-                        SEARCH_PATH.format(
-                            dataset=dataset_name,
-                            name=CROP_NAME.format(crop=crop, label=label),
-                        )
-                    )
-                )
-
-        for crop_path in crop_paths:
-            formatted_fields = get_formatted_fields(
-                crop_path,
-                SEARCH_PATH.format(dataset="{dataset}", name=CROP_NAME),
-                fields=["{dataset}", "{crop}", "{label}"],
+        for kind in kinds:
+            viewer_dict[dataset_name] = add_layers(
+                viewer_dict[dataset_name],
+                kind,
+                dataset_name,
+                crops,
+                classes,
             )
-
-            layer_name = f"{formatted_fields['crop']}/{formatted_fields['label']}"
-            with viewer_dict[dataset_name].txn() as s:
-                s.layers[layer_name] = neuroglancer.SegmentationLayer(
-                    source=crop_path,
-                )
 
     # Output the viewers URL to open in a browser
     for dataset, viewer in viewer_dict.items():
@@ -140,10 +130,77 @@ def add_layers(
         )
 
         layer_name = f"{formatted_fields['crop']}/{kind}/{formatted_fields['label']}"
-        layer_class = (
-            neuroglancer.ImageLayer
-            if kind == "predictions"
-            else neuroglancer.SegmentationLayer
-        )
+        layer_type = "image" if kind == "predictions" else "segmentation"
         with viewer.txn() as s:
-            s.layers[layer_name] = layer_class(source=crop_path)
+            s.layers[layer_name] = get_layer(crop_path, layer_type)
+
+    return viewer
+
+
+def get_layer(data_path: str, layer_type: str = "image") -> neuroglancer.Layer:
+    """
+    Get a Neuroglancer layer from a zarr data path for a LocalVolume.
+
+    Parameters
+    ----------
+    data_path : str
+        The path to the zarr data.
+    layer_type : str
+        The type of layer to get. Can be "image" or "segmentation". Default is "image".
+
+    Returns
+    -------
+    neuroglancer.Layer
+        The Neuroglancer layer.
+    """
+    # Construct an xarray with Tensorstore backend
+    # TODO: Make this work with multiscale properly
+    spec = xt._zarr_spec_from_path((UPath(data_path) / "s0").path)
+    array_future = tensorstore.open(spec, read=True, write=False)
+    try:
+        array = array_future.result()
+    except ValueError as e:
+        Warning(e)
+        UserWarning("Falling back to zarr3 driver")
+        spec["driver"] = "zarr3"
+        array_future = tensorstore.open(spec, read=True, write=False)
+        array = array_future.result()
+
+    # Get metadata
+    metadata = zarr.open(data_path).attrs.asdict()["multiscales"][0]
+    names = []
+    units = []
+    scales = []
+    offset = []
+    for axis in metadata["axes"]:
+        if axis["name"] == "c":
+            names.append("c^")
+            scales.append(1)
+            offset.append(0)
+            units.append("")
+        else:
+            names.append(axis["name"])
+            units.append("nm")
+
+    for ds in metadata["datasets"]:
+        if ds["path"] == "s0":
+            for transform in ds["coordinateTransformations"]:
+                if transform["type"] == "scale":
+                    scales.extend(transform["scale"])
+                elif transform["type"] == "translation":
+                    offset.extend(transform["translation"])
+            break
+
+    voxel_offset = np.array(offset) / np.array(scales)
+    volume = neuroglancer.LocalVolume(
+        data=array,
+        dimensions=neuroglancer.CoordinateSpace(
+            scales=scales,
+            units=units,
+            names=names,
+        ),
+        voxel_offset=voxel_offset,
+    )
+    if layer_type == "segmentation":
+        return neuroglancer.SegmentationLayer(source=volume)
+    return neuroglancer.ImageLayer(source=volume)
