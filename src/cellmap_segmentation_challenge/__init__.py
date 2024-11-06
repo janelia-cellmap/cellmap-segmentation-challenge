@@ -13,3 +13,4 @@ from .predict import _predict, predict_orthoplanes, predict
 from .utils.datasplit import make_datasplit_csv
 from .train import train
 from .process import process
+from .config import REPO_ROOT, SEARCH_PATH, CROP_NAME, RAW_NAME

@@ -152,7 +152,9 @@ For more information on the available options and how post-processing works, see
 ```bash
 csc process --help
 ```
+## Visualize data and predictions
 
+<!-- TODO neuroglancer -->
 
 ## Submit your final predictions
 

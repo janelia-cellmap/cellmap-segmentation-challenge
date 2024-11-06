@@ -4,12 +4,8 @@ import os
 from typing import Any, Callable
 from upath import UPath
 from .utils import load_safe_config
-from .utils.datasplit import (
-    REPO_ROOT,
-    SEARCH_PATH,
-    CROP_NAME,
-    get_dataset_name,
-)
+from .config import CROP_NAME, REPO_ROOT, SEARCH_PATH
+from .utils.datasplit import get_dataset_name
 from cellmap_data import CellMapImage, CellMapDatasetWriter
 
 

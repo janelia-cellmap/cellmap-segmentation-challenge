@@ -43,9 +43,7 @@ dependencies = [
   "tensorstore",
   "python-dotenv",
   "universal-pathlib",
-  "scikit-image",
-  "matplotlib",
-  "scikit-learn",
+  "neuroglancer",
   ]
 
 [project.optional-dependencies]
@@ -68,6 +66,7 @@ dev = [
     "python-semantic-release",
     "cellmap-segmentation-challenge[test,docs]",
     "gunpowder",
+    "matplotlib",
 ]
 
 [project.urls]

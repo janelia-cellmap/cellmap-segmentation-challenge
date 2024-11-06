@@ -7,14 +7,9 @@ import torch
 import torchvision.transforms.v2 as T
 from tqdm import tqdm
 from upath import UPath
-from cellmap_segmentation_challenge.models import load_best_val, load_latest
-from .utils.datasplit import (
-    CROP_NAME,
-    REPO_ROOT,
-    SEARCH_PATH,
-    get_raw_path,
-    get_dataset_name,
-)
+from .models import load_best_val, load_latest
+from .config import CROP_NAME, REPO_ROOT, SEARCH_PATH
+from .utils.datasplit import get_raw_path, get_dataset_name
 from cellmap_data.transforms.augment import (
     Normalize,
     NaNtoNum,

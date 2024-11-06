@@ -1,7 +1,7 @@
 import click
 from upath import UPath
 
-from cellmap_segmentation_challenge.utils.datasplit import REPO_ROOT
+from ..config import REPO_ROOT
 from ..process import process
 
 
