@@ -5,6 +5,7 @@ from .predict import predict_cli
 from .process import process_cli
 from .evaluate import evaluate_cli
 from .datasplit import make_datasplit_csv_cli, get_dataset_counts_cli
+from .visualize import visualize_cli
 
 
 @click.group
@@ -25,3 +26,4 @@ run.add_command(process_cli, name="process")
 run.add_command(evaluate_cli, name="evaluate")
 run.add_command(make_datasplit_csv_cli, name="make-datasplit")
 run.add_command(get_dataset_counts_cli, name="get-counts")
+run.add_command(visualize_cli, name="visualize")

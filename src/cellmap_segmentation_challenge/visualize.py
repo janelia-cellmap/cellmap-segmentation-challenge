@@ -6,7 +6,7 @@ from upath import UPath
 import xarray_tensorstore as xt
 import zarr
 import tensorstore
-from .config import CROP_NAME, REPO_ROOT, SEARCH_PATH, PREDICTIONS_PATH, PROCESSED_PATH
+from .config import CROP_NAME, SEARCH_PATH, PREDICTIONS_PATH, PROCESSED_PATH
 from .utils.datasplit import get_raw_path, get_dataset_name, get_formatted_fields
 
 search_paths = {
@@ -18,7 +18,7 @@ search_paths = {
 
 def visualize(
     datasets: str | Sequence[str] = "*",
-    crops: int | Sequence = ["*"],
+    crops: int | list = ["*"],  # TODO: Add "test" crops
     classes: str | Sequence[str] = "*",
     kinds: Sequence[str] = list(search_paths.keys()),
 ):
@@ -53,6 +53,9 @@ def visualize(
 
     if isinstance(crops, (int, str)):
         crops = [crops]
+    for i, crop in enumerate(crops):
+        if isinstance(crop, int):
+            crops[i] = f"crop{crop}"
 
     viewer_dict = {}
     for dataset_path in dataset_paths:
@@ -63,9 +66,7 @@ def visualize(
 
         # Add the raw dataset
         with viewer_dict[dataset_name].txn() as s:
-            s.layers["fibsem"] = neuroglancer.ImageLayer(
-                source="zarr://" + UPath(get_raw_path(dataset_path)).as_uri(),
-            )
+            s.layers["fibsem"] = get_layer(get_raw_path(dataset_path), "image")
 
         for kind in kinds:
             viewer_dict[dataset_name] = add_layers(
@@ -130,7 +131,7 @@ def add_layers(
         )
 
         layer_name = f"{formatted_fields['crop']}/{kind}/{formatted_fields['label']}"
-        layer_type = "image" if kind == "predictions" else "segmentation"
+        layer_type = "segmentation" if kind == "gt" else "image"
         with viewer.txn() as s:
             s.layers[layer_name] = get_layer(crop_path, layer_type)
 
