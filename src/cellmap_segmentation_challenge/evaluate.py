@@ -1,4 +1,5 @@
 import argparse
+from glob import glob
 import json
 import zipfile
 import numpy as np
@@ -16,7 +17,7 @@ import os
 from upath import UPath
 from tqdm import tqdm
 
-from .config import PROCESSED_PATH
+from .config import PROCESSED_PATH, SUBMISSION_PATH
 
 TEST_CROPS = [234]
 
@@ -492,14 +493,87 @@ def score_submission(
         return scores
 
 
-# def package_submission(...):
-#     """
-#     Package a submission for the CellMAP challenge.
+def package_submission(
+    input_search_path: str | UPath = PROCESSED_PATH,
+    output_path: str | UPath = SUBMISSION_PATH,
+    rescale: bool = False,
+):
+    """
+    Package a submission for the CellMap challenge. This will create a zarr file, combining all the processed volumes, and then zip it.
 
-#     Args:
-#         ...
-#     """
-#     ...
+    Args:
+        input_search_path (str): The base path to the processed volumes, with placeholders for dataset and crops.
+        output_path (str | UPath): The path to save the submission zarr to. (ending with `<filename>.zarr`; `.zarr` will be appended if not present, and replaced with `.zip` when zipped).
+        rescale (bool): Whether to rescale the processed volumes to match the expected submission resolution.
+    """
+    input_search_path = str(input_search_path)
+    output_path = UPath(output_path)
+    output_path = output_path.with_suffix(".zarr")
+
+    # Create a zarr file to store the submission
+    if not output_path.exists():
+        os.makedirs(output_path.parent, exist_ok=True)
+    store = zarr.DirectoryStore(output_path)
+    zarr_group = zarr.group(store, overwrite=True)
+
+    # Find all the processed test volumes
+    for crop in TEST_CROPS:
+        crop_path = input_search_path.format(dataset="*", crop=f"crop{crop}")
+        crop_path = glob(crop_path)
+        if len(crop_path) == 0:
+            print(f"Skipping {crop_path} as it does not exist.")
+            continue
+        crop_path = crop_path[0]
+
+        # Find all the processed labels for the test volume
+        test_volume = UPath(crop_path).name
+        labels = [d.name for d in UPath(crop_path).glob("*") if d.is_dir()]
+        print(f"Found labels for {test_volume}: {labels}")
+
+        # Rescale the processed volumes to match the expected submission resolution if required
+        if rescale:
+            print(f"Rescaling {crop_path}...")
+            raise NotImplementedError("Rescaling not implemented yet")
+
+        # Create symbolic link to the processed volume
+        UPath(output_path / test_volume).symlink_to(crop_path, target_is_directory=True)
+
+    print(f"Saved submission to {output_path}")
+
+    print("Zipping submission...")
+    zip_submission(output_path)
+
+    print("Done packaging submission")
+
+
+def zip_submission(zarr_path: str | UPath = SUBMISSION_PATH):
+    """
+    (Re-)Zip a submission zarr file.
+
+    Args:
+        zarr_path (str | UPath): The path to the submission zarr file (ending with `<filename>.zarr`). `.zarr` will be replaced with `.zip`.
+    """
+    zarr_path = UPath(zarr_path)
+    if not zarr_path.exists():
+        raise FileNotFoundError(f"Submission zarr file not found at {zarr_path}")
+
+    zip_path = zarr_path.with_suffix(".zip")
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for root, dirs, files in os.walk(zarr_path, followlinks=True):
+            for file in files:
+                file_path = os.path.join(root, file)
+                # Ensure symlink targets are added as files
+                if os.path.islink(file_path):
+                    file_path = os.readlink(file_path)
+
+                # Define the relative path in the zip archive
+                arcname = os.path.relpath(file_path, zarr_path)
+                zipf.write(file_path, arcname)
+
+    print(f"Zipped {zarr_path} to {zip_path}")
+
+    return zip_path
+
 
 if __name__ == "__main__":
     # When called on the commandline, evaluate the submission

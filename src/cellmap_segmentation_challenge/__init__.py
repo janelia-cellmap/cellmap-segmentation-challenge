@@ -8,6 +8,8 @@ from .evaluate import (
     score_label,
     score_submission,
     score_volume,
+    package_submission,
+    zip_submission,
 )
 from .predict import _predict, predict_orthoplanes, predict
 from .utils.datasplit import make_datasplit_csv
@@ -20,4 +22,5 @@ from .config import (
     RAW_NAME,
     PREDICTIONS_PATH,
     PROCESSED_PATH,
+    SUBMISSION_PATH,
 )

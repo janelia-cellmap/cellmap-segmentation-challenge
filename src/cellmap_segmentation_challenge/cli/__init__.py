@@ -3,7 +3,7 @@ from .fetch_data import fetch_data_cli
 from .train import train_cli
 from .predict import predict_cli
 from .process import process_cli
-from .evaluate import evaluate_cli
+from .evaluate import evaluate_cli, package_submission_cli
 from .datasplit import make_datasplit_csv_cli, get_dataset_counts_cli
 from .visualize import visualize_cli
 
@@ -27,3 +27,4 @@ run.add_command(evaluate_cli, name="evaluate")
 run.add_command(make_datasplit_csv_cli, name="make-datasplit")
 run.add_command(get_dataset_counts_cli, name="get-counts")
 run.add_command(visualize_cli, name="visualize")
+run.add_command(package_submission_cli, name="pack-results")

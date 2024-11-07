@@ -6,3 +6,4 @@ CROP_NAME = UPath("labels/groundtruth/{crop}/{label}").path
 RAW_NAME = UPath("em/fibsem-uint8").path
 PREDICTIONS_PATH = UPath(REPO_ROOT / "data/predictions/{dataset}.zarr/{crop}").path
 PROCESSED_PATH = UPath(REPO_ROOT / "data/processed/{dataset}.zarr/{crop}").path
+SUBMISSION_PATH = UPath(REPO_ROOT / "data/submission.zarr").path
