@@ -94,6 +94,7 @@ def process(
         crop_paths.extend(
             glob(input_path.format(dataset="*", crop=crop).rstrip(os.path.sep))
         )
+
     crop_dict = {}
     for crop, path in zip(crop_list, crop_paths):
         dataset = get_formatted_fields(path, input_path, ["{dataset}"])["dataset"]

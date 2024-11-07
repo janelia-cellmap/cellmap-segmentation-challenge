@@ -13,7 +13,7 @@ from cellmap_data.transforms.augment import (
 )
 from .models import load_best_val, load_latest
 from .config import CROP_NAME, SEARCH_PATH, PREDICTIONS_PATH
-from .utils.datasplit import get_raw_path, get_dataset_name
+from .utils.datasplit import get_raw_path, get_formatted_fields
 from .utils import load_safe_config
 from .evaluate import TEST_CROPS
 
@@ -208,9 +208,10 @@ def predict(
         crop_list = crops.split(",")
 
     crop_paths = []
-    for crop in crop_list:
+    for i, crop in enumerate(crop_list):
         if (isinstance(crop, str) and crop.isnumeric()) or isinstance(crop, int):
             crop = f"crop{crop}"
+            crop_list[i] = crop  # type: ignore
 
         crop_paths.extend(
             glob(
@@ -220,11 +221,8 @@ def predict(
             )
         )
 
-    # Make crop list
-    crops_dict = {UPath(crop_path).parts[-2]: crop_path for crop_path in crop_paths}
-
     dataset_writers = []
-    for crop, crop_path in crops_dict.items():  # type: ignore
+    for crop, crop_path in zip(crop_list, crop_paths):  # type: ignore
         # Get path to raw dataset
         raw_path = get_raw_path(crop_path, label="")
 
@@ -245,13 +243,13 @@ def predict(
             array_name: image.bounding_box for array_name, image in gt_images.items()
         }
 
+        dataset = get_formatted_fields(raw_path, SEARCH_PATH, ["{dataset}"])["dataset"]
+
         # Create the writer
         dataset_writers.append(
             {
                 "raw_path": raw_path,
-                "target_path": output_path.format(
-                    crop=crop, dataset=get_dataset_name(raw_path)
-                ),
+                "target_path": output_path.format(crop=crop, dataset=dataset),
                 "classes": classes,
                 "input_arrays": input_arrays,
                 "target_arrays": target_arrays,
