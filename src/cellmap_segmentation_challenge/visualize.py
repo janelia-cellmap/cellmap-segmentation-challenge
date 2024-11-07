@@ -6,6 +6,7 @@ from upath import UPath
 import xarray_tensorstore as xt
 import zarr
 import tensorstore
+import webbrowser
 from .config import CROP_NAME, SEARCH_PATH, PREDICTIONS_PATH, PROCESSED_PATH
 from .utils.datasplit import get_raw_path, get_dataset_name, get_formatted_fields
 from .evaluate import TEST_CROPS
@@ -82,6 +83,7 @@ def visualize(
 
     # Output the viewers URL to open in a browser
     for dataset, viewer in viewer_dict.items():
+        webbrowser.open(viewer.get_viewer_url())
         print(f"{dataset} viewer running at:\n\t{viewer}")
 
     input("Press Enter to close the viewers...")

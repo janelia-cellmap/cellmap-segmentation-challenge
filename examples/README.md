@@ -52,6 +52,13 @@ csc process process_3D.py
 
 To see the other options available for the `process` command, you can run `csc process --help`.
 
+## Visualizing data and predictions
+
+You can visualize the data and predictions using the `visualize.py` module. This module provides functions to visualize the data and predictions using neuroglancer. To see the available options, you can run the following command:
+
+```bash
+csc visualize --help
+```
 
 ## Submission requirements:
 1. The submission should be a single zip file containing a single Zarr-2 file with the following structure:

@@ -154,7 +154,16 @@ csc process --help
 ```
 ## Visualize data and predictions
 
-<!-- TODO neuroglancer -->
+To visualize the data and predictions, you can view them with neuroglancer. To do this, you can run the following command:
+
+```bash
+csc visualize
+```
+This will serve the data and predictions on a local server, and open a browser window with the neuroglancer viewer. You can then navigate through the data and predictions, and compare them side by side. The default call with no arguments will do this for all datasets and groundtruth, prediction, and processed crops for all label classes found at the search paths defined in the global configuration file (`config.py`). You can also specify particular datasets, crops, labels classes, and whether to show groundtruth, predictions, or processed data to visualize. Run the following command to see all the options:
+
+```bash
+csc visualize --help
+```
 
 ## Submit your final predictions
 
