@@ -2,19 +2,20 @@ from glob import glob
 import os
 import tempfile
 from typing import Any
-from cellmap_data import CellMapDatasetWriter, CellMapImage
 import torch
 import torchvision.transforms.v2 as T
 from tqdm import tqdm
 from upath import UPath
-from .models import load_best_val, load_latest
-from .config import CROP_NAME, SEARCH_PATH, PREDICTIONS_PATH
-from .utils.datasplit import get_raw_path, get_dataset_name
+from cellmap_data import CellMapDatasetWriter, CellMapImage
 from cellmap_data.transforms.augment import (
     Normalize,
     NaNtoNum,
 )
+from .models import load_best_val, load_latest
+from .config import CROP_NAME, SEARCH_PATH, PREDICTIONS_PATH
+from .utils.datasplit import get_raw_path, get_dataset_name
 from .utils import load_safe_config
+from .evaluate import TEST_CROPS
 
 
 def predict_orthoplanes(
@@ -199,45 +200,38 @@ def predict(
     assert (
         input_arrays is not None and target_arrays is not None
     ), "No array info provided"
+
     # Get the crops to predict on
     if crops == "test":
-        # TODO: Could make this more general to work for any class label
-        raw_search_label = "test"
-        crop_search_label = ""
-        crops_paths = glob(
-            SEARCH_PATH.format(
-                dataset="*", name=CROP_NAME.format(crop="*", label="test")
-            )
-        )
+        crop_list = TEST_CROPS
     else:
         crop_list = crops.split(",")
-        assert all(
-            [crop.isnumeric() for crop in crop_list]
-        ), "Crop numbers must be numeric or `test`."
-        crop_paths = []
-        raw_search_label = ""
-        crop_search_label = classes[0]
-        for crop in crop_list:
-            crop_paths.extend(
-                glob(
-                    SEARCH_PATH.format(
-                        dataset="*", name=CROP_NAME.format(crop=f"crop{crop}", label="")
-                    ).rstrip(os.path.sep)
-                )
+
+    crop_paths = []
+    for crop in crop_list:
+        if (isinstance(crop, str) and crop.isnumeric()) or isinstance(crop, int):
+            crop = f"crop{crop}"
+
+        crop_paths.extend(
+            glob(
+                SEARCH_PATH.format(
+                    dataset="*", name=CROP_NAME.format(crop=crop, label="")
+                ).rstrip(os.path.sep)
             )
+        )
 
     # Make crop list
-    crops_dict = {UPath(crop_path).parts[-2]: crop_path for crop_path in crops_paths}
+    crops_dict = {UPath(crop_path).parts[-2]: crop_path for crop_path in crop_paths}
 
     dataset_writers = []
     for crop, crop_path in crops_dict.items():  # type: ignore
         # Get path to raw dataset
-        raw_path = get_raw_path(crop_path, label=raw_search_label)
+        raw_path = get_raw_path(crop_path, label="")
 
         # Get the boundaries of the crop
         gt_images = {
             array_name: CellMapImage(
-                str(UPath(crop_path) / crop_search_label),
+                str(UPath(crop_path) / classes[0]),
                 target_class=classes[0],
                 target_scale=array_info["scale"],
                 target_voxel_shape=array_info["shape"],

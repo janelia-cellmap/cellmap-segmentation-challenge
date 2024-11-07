@@ -17,7 +17,7 @@ from ..predict import predict
     type=click.STRING,
     required=True,
     default="test",
-    help="Comma-separated list of crops to predict on (Example: '111,112,113') or 'test'. Default: 'test'.",
+    help="Comma-separated list of crops to predict on (Example: '111,112,113') or 'test' or '*' for all. Default: 'test'.",
 )
 @click.option(
     "--output-path",

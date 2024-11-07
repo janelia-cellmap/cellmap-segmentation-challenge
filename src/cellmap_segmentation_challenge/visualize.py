@@ -8,6 +8,7 @@ import zarr
 import tensorstore
 from .config import CROP_NAME, SEARCH_PATH, PREDICTIONS_PATH, PROCESSED_PATH
 from .utils.datasplit import get_raw_path, get_dataset_name, get_formatted_fields
+from .evaluate import TEST_CROPS
 
 search_paths = {
     "gt": SEARCH_PATH.format(dataset="{dataset}", name=CROP_NAME),
@@ -53,6 +54,8 @@ def visualize(
 
     if isinstance(crops, (int, str)):
         crops = [crops]
+    if len(crops) == 1 and crops[0] == "test":
+        crops = TEST_CROPS
     for i, crop in enumerate(crops):
         if isinstance(crop, int):
             crops[i] = f"crop{crop}"

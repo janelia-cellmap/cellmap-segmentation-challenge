@@ -55,8 +55,10 @@ def get_formatted_fields(
     field_results = {}
     for rp, sp in zip(path.split(os.path.sep), base_path.split(os.path.sep)):
         for field in fields:
-            if sp == field:
-                field_results[field.strip("{}")] = rp
+            if field in sp:
+                remainders = sp.split(field)
+                result = rp.removeprefix(remainders[0]).removesuffix(remainders[1])
+                field_results[field.strip("{}")] = result
     return field_results
 
 

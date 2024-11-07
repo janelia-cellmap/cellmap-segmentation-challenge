@@ -16,6 +16,9 @@ import os
 from upath import UPath
 from tqdm import tqdm
 
+from .config import PROCESSED_PATH
+
+TEST_CROPS = [234]
 
 INSTANCE_CLASSES = [
     "nuc",
@@ -488,6 +491,15 @@ def score_submission(
     else:
         return scores
 
+
+# def package_submission(...):
+#     """
+#     Package a submission for the CellMAP challenge.
+
+#     Args:
+#         ...
+#     """
+#     ...
 
 if __name__ == "__main__":
     # When called on the commandline, evaluate the submission

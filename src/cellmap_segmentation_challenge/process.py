@@ -3,10 +3,11 @@ from tqdm import tqdm
 import os
 from typing import Any, Callable
 from upath import UPath
-from .utils import load_safe_config
-from .config import CROP_NAME, REPO_ROOT, SEARCH_PATH, PREDICTIONS_PATH, PROCESSED_PATH
-from .utils.datasplit import get_dataset_name
 from cellmap_data import CellMapImage, CellMapDatasetWriter
+from .utils import load_safe_config
+from .config import PREDICTIONS_PATH, PROCESSED_PATH
+from .utils.datasplit import get_dataset_name, get_formatted_fields
+from .evaluate import TEST_CROPS
 
 
 def _process(
@@ -80,46 +81,42 @@ def process(
 
     # Get the crops to predict on
     if crops == "test":
-        # TODO: Could make this more general to work for any class label
-        crops_paths = glob(
-            SEARCH_PATH.format(
-                dataset="*", name=CROP_NAME.format(crop="*", label="test")
-            ).rstrip(os.path.sep)
-        )
-
-        # Make crop list
-        crops_list = [UPath(crop_path).parts[-2] for crop_path in crops_paths]
+        crop_list = TEST_CROPS
     else:
         crop_list = crops.split(",")
-        assert all(
-            [crop.isnumeric() for crop in crop_list]
-        ), "Crop numbers must be numeric or `test`."
-        crop_paths = []
-        for crop in crop_list:
-            crop_paths.extend(
-                glob(
-                    input_path.format(
-                        dataset="*", name=CROP_NAME.format(crop=f"crop{crop}")
-                    ).rstrip(os.path.sep)
-                )
-            )
-    crop_dict = {
-        crop: [
-            input_path.format(crop=crop, dataset=get_dataset_name(path)),
-            output_path.format(crop=crop, dataset=get_dataset_name(path)),
+
+    crop_paths = []
+    for i, crop in enumerate(crop_list):
+        if (isinstance(crop, str) and crop.isnumeric()) or isinstance(crop, int):
+            crop = f"crop{crop}"
+            crop_list[i] = crop  # type: ignore
+
+        crop_paths.extend(
+            glob(input_path.format(dataset="*", crop=crop).rstrip(os.path.sep))
+        )
+    crop_dict = {}
+    for crop, path in zip(crop_list, crop_paths):
+        dataset = get_formatted_fields(path, input_path, ["{dataset}"])["dataset"]
+        crop_dict[crop] = [
+            input_path.format(
+                crop=crop,
+                dataset=dataset,
+            ),
+            output_path.format(
+                crop=crop,
+                dataset=dataset,
+            ),
         ]
-        for crop, path in zip(crops_list, crops_paths)
-    }
 
     dataset_writers = []
-    for crop, (input_path, output_path) in crop_dict.items():
+    for crop, (in_path, out_path) in crop_dict.items():
         for label in classes:
-            class_input_path = str(UPath(input_path) / label)
+            class_in_path = str(UPath(in_path) / label)
 
             # Get the boundaries of the crop
             input_images = {
                 array_name: CellMapImage(
-                    class_input_path,
+                    class_in_path,
                     target_class=label,
                     target_scale=array_info["scale"],
                     target_voxel_shape=array_info["shape"],
@@ -137,8 +134,8 @@ def process(
             # Create the writer
             dataset_writers.append(
                 {
-                    "raw_path": class_input_path,
-                    "target_path": output_path,
+                    "raw_path": class_in_path,
+                    "target_path": out_path,
                     "classes": [label],
                     "input_arrays": input_arrays,
                     "target_arrays": target_arrays,

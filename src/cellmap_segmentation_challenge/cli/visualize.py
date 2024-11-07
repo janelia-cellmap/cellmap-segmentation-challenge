@@ -18,7 +18,7 @@ from ..visualize import visualize
     type=click.STRING,
     required=True,
     default="*",
-    help="Comma-separated list of crops to view (Example: '111,112,113') or '*' for all. Default: '*'.",
+    help="Comma-separated list of crops to view (Example: '111,112,113') or 'test' or 'all' for all. Default: '*'.",
 )
 @click.option(
     "--classes",
