@@ -1,7 +1,8 @@
-import gunpowder as gp
 import logging
-import numpy as np
 import random
+
+import gunpowder as gp
+import numpy as np
 from scipy.ndimage import distance_transform_edt
 from skimage.measure import label as relabel
 

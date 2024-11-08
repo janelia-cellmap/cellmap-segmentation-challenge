@@ -59,13 +59,26 @@ You can visualize the data and predictions using the `visualize.py` module. This
 ```bash
 csc visualize --help
 ```
+To submit your predictions, first make sure that they are in the correct format (see below), then submit them through [the online submission portal](https://staging.cellmapchallenge.2i2c.cloud/upload). You will need to sign in with your GitHub account to submit your predictions.
 
-## Submission requirements:
+For convenience, if you have followed the prediction and processing steps described above and in the example scripts, you can use the following command to zip your predictions in the correct format:
+
+```bash
+csc pack-results
+```
+Additionally, you can explicitly specify the path to the submission zarr, with placeholders {dataset} and {crop}, and the output directory for the zipped submission file using the following command. These default to the PROCESSED_PATH and SUBMISSION_PATH defined in the global configuration file (`config.py`).
+
+
+### Data format
+
+Submission file format requirements:
 1. The submission should be a single zip file containing a single Zarr-2 file with the following structure:
-   - submission.zarr
-     - /<test_volume_name>
-        - /<label_name>
-2. The names of the test volumes and labels should match the names of the test volumes and labels in the test data.
+```
+submission.zarr
+    - /<test_volume_name>
+    - /<label_name>
+```
+2. The names of the test volumes and labels should match the names of the test volumes and labels in the test data. See `examples/predict_2D.py` and `examples/predict_3D.py` for examples of how to generate predictions in the correct format.
 3. The scale for all volumes is 8x8x8 nm/voxel, except as otherwise specified.
 
 Assuming your data is already 8x8x8nm/voxel,and each label volume is either A) a 3D binary volume with the same shape and scale as the corresponding test volume, 
@@ -86,7 +99,7 @@ The arguments for both functions are the same:
 - `labels`: A list of 3D numpy arrays of binary labels or a single 3D numpy array of class labels.
 - `overwrite`: A boolean flag to overwrite the Zarr-2 file if it already exists.
 
-To zip the Zarr-2 file, you can use the following command:
-`zip -r submission.zip submission.zarr`
-
-To submit the zip file, upload it to the challenge platform.
+To zip the Zarr-2 file, you can use the following command:    
+```bash
+zip -r submission.zip submission.zarr
+```

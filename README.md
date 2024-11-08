@@ -169,6 +169,19 @@ csc visualize --help
 
 To submit your predictions, first make sure that they are in the correct format (see below), then submit them through [the online submission portal](https://staging.cellmapchallenge.2i2c.cloud/upload). You will need to sign in with your GitHub account to submit your predictions.
 
+For convenience, if you have followed the prediction and processing steps described above and in the example scripts, you can use the following command to zip your predictions in the correct format:
+
+```bash
+csc pack-results
+```
+To see all the options for the `pack-results` command, see the README in the `examples` folder, or run 
+
+```bash
+csc pack-results --help
+```
+
+### Data format
+
 Submission file format requirements:
 1. The submission should be a single zip file containing a single Zarr-2 file with the following structure:
 ```

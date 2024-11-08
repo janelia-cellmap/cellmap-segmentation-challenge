@@ -1,11 +1,12 @@
 import click
+
 from ..evaluate import (
-    score_submission,
-    package_submission,
-    TRUTH_PATH,
     INSTANCE_CLASSES,
-    SUBMISSION_PATH,
     PROCESSED_PATH,
+    SUBMISSION_PATH,
+    TRUTH_PATH,
+    package_submission,
+    score_submission,
 )
 
 
@@ -50,29 +51,24 @@ def evaluate_cli(submission_path, result_file, truth_path, instance_classes):
 
 
 @click.command
-@click.argument(
-    "input_search_path",
+@click.option(
+    "--input_search_path",
+    "-i",
     type=click.STRING,
     default=PROCESSED_PATH,
-    required=True,
-)
-@click.argument(
-    "output_path",
-    type=click.STRING,
-    default=SUBMISSION_PATH,
+    help=f"Path to the prepared zarr data files. Defaults to {PROCESSED_PATH}",
     required=True,
 )
 @click.option(
-    "--rescale",
-    "-r",
-    is_flag=True,
-    help="Rescale the submission data to the target test resolutions",
+    "--output_path",
+    "-o",
+    type=click.STRING,
+    default=SUBMISSION_PATH,
+    help=f"Directory to save the packaged submission. Defaults to {SUBMISSION_PATH}",
+    required=True,
 )
-def package_submission_cli(input_search_path, output_path, rescale):
+def package_submission_cli(input_search_path, output_path):
     """
-    Package a submission for submission.
-
-    SUBMISSION_PATH: Path to the prepared data files
-    OUTPUT_DIR: Directory to save the packaged submission
+    Package zarr datasets for submission.
     """
-    package_submission(input_search_path, output_path, rescale)
+    package_submission(input_search_path, output_path)

@@ -67,6 +67,7 @@ dev = [
     "cellmap-segmentation-challenge[test,docs]",
     "gunpowder",
     "matplotlib",
+    "isort",
 ]
 
 [project.urls]

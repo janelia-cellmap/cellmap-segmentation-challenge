@@ -3,20 +3,19 @@
 # By Emma Avetissian
 
 # coding=utf-8
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import copy
 import logging
 import math
+
+import ml_collections
 import torch
 import torch.nn as nn
 import torch.nn.functional as nnf
-from torch.nn import Dropout, Softmax, Linear, Conv3d, LayerNorm
-from torch.nn.modules.utils import _pair, _triple
 from torch.distributions.normal import Normal
-import ml_collections
+from torch.nn import Conv3d, Dropout, LayerNorm, Linear, Softmax
+from torch.nn.modules.utils import _pair, _triple
 
 
 def get_3DReg_config():

@@ -24,8 +24,8 @@ from ..predict import predict
     "-o",
     type=click.STRING,
     required=True,
-    default=UPath(REPO_ROOT / "data/predictions/{dataset}.zarr/{crop}").path,
-    help=f"Path to save the predicted crops with {'{crop}'} and {'{dataset}'} placeholders for formatting. Default: {UPath(REPO_ROOT / 'data/predictions/{dataset}.zarr/{crop}').path}.",
+    default=(REPO_ROOT / "data/predictions/{dataset}.zarr/{crop}").path,
+    help=f"Path to save the predicted crops with {'{crop}'} and {'{dataset}'} placeholders for formatting. Default: {(REPO_ROOT / 'data/predictions/{dataset}.zarr/{crop}').path}.",
 )
 @click.option(
     "--do-orthoplanes",

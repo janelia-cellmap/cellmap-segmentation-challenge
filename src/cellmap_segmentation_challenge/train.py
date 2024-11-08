@@ -3,19 +3,15 @@ import random
 
 import numpy as np
 import torch
-
+from cellmap_data.utils import get_image_dict
+from tensorboardX import SummaryWriter
 from tqdm import tqdm
 from upath import UPath
-from . import (
-    get_dataloader,
-    load_latest,
-    load_best_val,
-    make_datasplit_csv,
-)
-from .utils import CellMapLossWrapper, load_safe_config
-from .models import ResNet, UNet_2D, UNet_3D, ViTVNet
-from tensorboardX import SummaryWriter
-from cellmap_data.utils import get_image_dict
+
+from .models import (ResNet, UNet_2D, UNet_3D, ViTVNet, load_best_val,
+                     load_latest)
+from .utils import (CellMapLossWrapper, get_dataloader, load_safe_config,
+                    make_datasplit_csv)
 
 
 def train(config_path: str):

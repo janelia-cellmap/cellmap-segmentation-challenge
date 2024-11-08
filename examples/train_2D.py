@@ -18,7 +18,8 @@
 
 # %% Imports
 from upath import UPath
-from cellmap_segmentation_challenge.models import UNet_2D, ResNet
+
+from cellmap_segmentation_challenge.models import ResNet, UNet_2D
 
 # %% Set hyperparameters and other configurations
 learning_rate = 0.0001  # learning rate for the optimizer

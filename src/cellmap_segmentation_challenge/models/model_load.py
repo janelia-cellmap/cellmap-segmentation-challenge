@@ -1,8 +1,9 @@
 # Imports
-import os
-import torch
 import glob
+import os
+
 import numpy as np
+import torch
 from tensorboard.backend.event_processing import event_accumulator
 from upath import UPath
 

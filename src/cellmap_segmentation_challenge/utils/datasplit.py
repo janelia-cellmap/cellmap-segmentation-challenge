@@ -6,11 +6,9 @@ from glob import glob
 
 import numpy as np
 from tqdm import tqdm
-
-
 from upath import UPath
 
-from ..config import SEARCH_PATH, CROP_NAME, RAW_NAME
+from ..config import CROP_NAME, RAW_NAME, SEARCH_PATH
 
 
 # TODO: Consolidate with get_formatted_fields

@@ -1,10 +1,11 @@
 import click
+
+from .datasplit import get_dataset_counts_cli, make_datasplit_csv_cli
+from .evaluate import evaluate_cli, package_submission_cli
 from .fetch_data import fetch_data_cli
-from .train import train_cli
 from .predict import predict_cli
 from .process import process_cli
-from .evaluate import evaluate_cli, package_submission_cli
-from .datasplit import make_datasplit_csv_cli, get_dataset_counts_cli
+from .train import train_cli
 from .visualize import visualize_cli
 
 

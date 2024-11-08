@@ -1,15 +1,18 @@
-from typing import Sequence
-import neuroglancer
+import webbrowser
 from glob import glob
+from typing import Sequence
+
+import neuroglancer
 import numpy as np
-from upath import UPath
+import tensorstore
 import xarray_tensorstore as xt
 import zarr
-import tensorstore
-import webbrowser
-from .config import CROP_NAME, SEARCH_PATH, PREDICTIONS_PATH, PROCESSED_PATH
-from .utils.datasplit import get_raw_path, get_dataset_name, get_formatted_fields
+from upath import UPath
+
+from .config import CROP_NAME, PREDICTIONS_PATH, PROCESSED_PATH, SEARCH_PATH
 from .evaluate import TEST_CROPS
+from .utils.datasplit import (get_dataset_name, get_formatted_fields,
+                              get_raw_path)
 
 search_paths = {
     "gt": SEARCH_PATH.format(dataset="{dataset}", name=CROP_NAME),

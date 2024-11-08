@@ -1,13 +1,15 @@
-from glob import glob
-from tqdm import tqdm
 import os
+from glob import glob
 from typing import Any, Callable
+
+from cellmap_data import CellMapDatasetWriter, CellMapImage
+from tqdm import tqdm
 from upath import UPath
-from cellmap_data import CellMapImage, CellMapDatasetWriter
-from .utils import load_safe_config
+
 from .config import PREDICTIONS_PATH, PROCESSED_PATH
-from .utils.datasplit import get_dataset_name, get_formatted_fields
 from .evaluate import TEST_CROPS
+from .utils import load_safe_config
+from .utils.datasplit import get_dataset_name, get_formatted_fields
 
 
 def _process(

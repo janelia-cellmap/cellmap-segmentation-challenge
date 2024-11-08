@@ -18,7 +18,8 @@
 
 # %%
 from upath import UPath
-from cellmap_segmentation_challenge.models import UNet_3D, ResNet, ViTVNet
+
+from cellmap_segmentation_challenge.models import ResNet, UNet_3D, ViTVNet
 
 # %% Set hyperparameters and other configurations
 learning_rate = 0.0001  # learning rate for the optimizer

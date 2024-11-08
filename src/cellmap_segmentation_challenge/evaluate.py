@@ -1,21 +1,18 @@
 import argparse
-from glob import glob
 import json
+import os
 import zipfile
+from glob import glob
+
 import numpy as np
-from skimage.measure import label as relabel
+import zarr
 from scipy.optimize import linear_sum_assignment
 from scipy.spatial.distance import dice  # , jaccard
-from sklearn.metrics import (
-    jaccard_score,
-    accuracy_score,
-)
+from skimage.measure import label as relabel
 from skimage.metrics import hausdorff_distance
-
-import zarr
-import os
-from upath import UPath
+from sklearn.metrics import accuracy_score, jaccard_score
 from tqdm import tqdm
+from upath import UPath
 
 from .config import PROCESSED_PATH, SUBMISSION_PATH
 
@@ -496,7 +493,6 @@ def score_submission(
 def package_submission(
     input_search_path: str | UPath = PROCESSED_PATH,
     output_path: str | UPath = SUBMISSION_PATH,
-    rescale: bool = False,
 ):
     """
     Package a submission for the CellMap challenge. This will create a zarr file, combining all the processed volumes, and then zip it.
@@ -504,7 +500,6 @@ def package_submission(
     Args:
         input_search_path (str): The base path to the processed volumes, with placeholders for dataset and crops.
         output_path (str | UPath): The path to save the submission zarr to. (ending with `<filename>.zarr`; `.zarr` will be appended if not present, and replaced with `.zip` when zipped).
-        rescale (bool): Whether to rescale the processed volumes to match the expected submission resolution.
     """
     input_search_path = str(input_search_path)
     output_path = UPath(output_path)
@@ -531,9 +526,7 @@ def package_submission(
         print(f"Found labels for {test_volume}: {labels}")
 
         # Rescale the processed volumes to match the expected submission resolution if required
-        if rescale:
-            print(f"Rescaling {crop_path}...")
-            raise NotImplementedError("Rescaling not implemented yet")
+        # TODO: Implement automatic rescaling to match target resolutions
 
         # Create symbolic link to the processed volume
         UPath(output_path / test_volume).symlink_to(crop_path, target_is_directory=True)

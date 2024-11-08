@@ -1,7 +1,8 @@
 from dataclasses import dataclass
+
 import fsspec
-from yarl import URL
 from typing_extensions import Self
+from yarl import URL
 
 
 @dataclass

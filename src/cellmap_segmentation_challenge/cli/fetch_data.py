@@ -1,29 +1,29 @@
-from concurrent.futures import ThreadPoolExecutor
+import os
 import time
+from concurrent.futures import ThreadPoolExecutor
+
 import click
-from xarray import DataArray
+import numpy as np
+import structlog
+import zarr
+from dotenv import load_dotenv
+from pydantic_zarr.v2 import GroupSpec
+from upath import UPath as Path
+from xarray import DataArray  # TODO: Add lazy import
 from xarray_ome_ngff import read_multiscale_group
 from xarray_ome_ngff.v04.multiscale import transforms_from_coords
+from yarl import URL
+from zarr.storage import FSStore
+
+from cellmap_segmentation_challenge.utils.crops import CropRow, fetch_manifest
 from cellmap_segmentation_challenge.utils.fetch_data import (
     _resolve_em_dest_path,
     _resolve_gt_dest_path,
-    subset_to_slice,
+    get_chunk_keys,
     partition_copy_store,
     read_group,
-    get_chunk_keys,
+    subset_to_slice,
 )
-from cellmap_segmentation_challenge.utils.crops import CropRow, fetch_manifest
-import structlog
-from yarl import URL
-import zarr
-from upath import UPath as Path
-import numpy as np
-
-from zarr.storage import FSStore
-from pydantic_zarr.v2 import GroupSpec
-import os
-
-from dotenv import load_dotenv
 
 load_dotenv()
 

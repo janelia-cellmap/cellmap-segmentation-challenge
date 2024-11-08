@@ -1,21 +1,20 @@
-from glob import glob
 import os
 import tempfile
+from glob import glob
 from typing import Any
+
 import torch
 import torchvision.transforms.v2 as T
+from cellmap_data import CellMapDatasetWriter, CellMapImage
+from cellmap_data.transforms.augment import NaNtoNum, Normalize
 from tqdm import tqdm
 from upath import UPath
-from cellmap_data import CellMapDatasetWriter, CellMapImage
-from cellmap_data.transforms.augment import (
-    Normalize,
-    NaNtoNum,
-)
-from .models import load_best_val, load_latest
-from .config import CROP_NAME, SEARCH_PATH, PREDICTIONS_PATH
-from .utils.datasplit import get_raw_path, get_formatted_fields
-from .utils import load_safe_config
+
+from .config import CROP_NAME, PREDICTIONS_PATH, SEARCH_PATH
 from .evaluate import TEST_CROPS
+from .models import load_best_val, load_latest
+from .utils import load_safe_config
+from .utils.datasplit import get_formatted_fields, get_raw_path
 
 
 def predict_orthoplanes(

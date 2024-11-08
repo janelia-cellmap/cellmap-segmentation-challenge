@@ -1,18 +1,17 @@
-from typing import Generator, Sequence
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Generator, Iterable, Sequence
 
 import numpy as np
 import structlog
-
+import toolz
 import zarr
 import zarr.errors
 import zarr.indexing
 import zarr.storage
 from yarl import URL
-from .crops import CropRow
 from zarr._storage.store import Store
-from typing import Iterable
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import toolz
+
+from .crops import CropRow
 
 
 def copy_store(*, keys: Iterable[str], source_store: Store, dest_store: Store):

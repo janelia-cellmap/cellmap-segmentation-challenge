@@ -24,16 +24,16 @@ from ..process import process
     "-i",
     type=click.STRING,
     required=True,
-    default=UPath(REPO_ROOT / "data/predictions/{dataset}.zarr/{crop}").path,
-    help=f"Path to save the processed crops with {'{crop}'} and {'{dataset}'} placeholders for formatting. Default: {UPath(REPO_ROOT / 'data/predictions/{dataset}.zarr/{crop}').path}.",
+    default=(REPO_ROOT / "data/predictions/{dataset}.zarr/{crop}").path,
+    help=f"Path to save the processed crops with {'{crop}'} and {'{dataset}'} placeholders for formatting. Default: {(REPO_ROOT / 'data/predictions/{dataset}.zarr/{crop}').path}.",
 )
 @click.option(
     "--output-path",
     "-o",
     type=click.STRING,
     required=True,
-    default=UPath(REPO_ROOT / "data/processed/{dataset}.zarr/{crop}").path,
-    help=f"Path to save the processed crops with {'{crop}'} and {'{dataset}'} placeholders for formatting. Default: {UPath(REPO_ROOT / 'data/processed/{dataset}.zarr/{crop}').path}.",
+    default=(REPO_ROOT / "data/processed/{dataset}.zarr/{crop}").path,
+    help=f"Path to save the processed crops with {'{crop}'} and {'{dataset}'} placeholders for formatting. Default: {(REPO_ROOT / 'data/processed/{dataset}.zarr/{crop}').path}.",
 )
 @click.option(
     "--overwrite",

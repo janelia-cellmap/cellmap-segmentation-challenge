@@ -1,12 +1,10 @@
 import click
 
-from cellmap_segmentation_challenge.utils.datasplit import (
-    make_datasplit_csv,
-    get_dataset_counts,
-    SEARCH_PATH,
-    RAW_NAME,
-    CROP_NAME,
-)
+from cellmap_segmentation_challenge.utils.datasplit import (CROP_NAME,
+                                                            RAW_NAME,
+                                                            SEARCH_PATH,
+                                                            get_dataset_counts,
+                                                            make_datasplit_csv)
 
 
 @click.command()

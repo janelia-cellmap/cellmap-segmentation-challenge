@@ -1,12 +1,10 @@
+from typing import Any, Mapping, Optional, Sequence
+
 import torch
-from torch.utils.data import DataLoader
-from typing import Mapping, Optional, Sequence, Any
-from cellmap_data import CellMapDataSplit, CellMapDataLoader
-from cellmap_data.transforms.augment import (
-    Normalize,
-    NaNtoNum,
-)
 import torchvision.transforms.v2 as T
+from cellmap_data import CellMapDataLoader, CellMapDataSplit
+from cellmap_data.transforms.augment import NaNtoNum, Normalize
+from torch.utils.data import DataLoader
 
 
 def get_dataloader(
