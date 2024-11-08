@@ -152,6 +152,9 @@ For more information on the available options and how post-processing works, see
 ```bash
 csc process --help
 ```
+
+During evaluations of submissions, for instance segmentation evaluated classes, connected components are computed on the supplied masks and the resulting instance IDs are assigned to each connected component. This will not merge already uniquely IDed objects. Thus, you do not need to run connected components on before submission, but you may wish to execute more advanced post-processing for instance segmentation, such as watershed.
+
 ## Visualize data and predictions
 
 To visualize the data and predictions, you can view them with neuroglancer. To do this, you can run the following command:
@@ -181,6 +184,8 @@ csc pack-results --help
 ```
 
 ### Data format
+
+If you are packaging your predictions manually, the submission file format requirements are as follows:
 
 Submission file format requirements:
 1. The submission should be a single zip file containing a single Zarr-2 file with the following structure:

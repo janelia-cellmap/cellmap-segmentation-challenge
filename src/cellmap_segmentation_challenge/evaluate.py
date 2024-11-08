@@ -14,6 +14,8 @@ from sklearn.metrics import accuracy_score, jaccard_score
 from tqdm import tqdm
 from upath import UPath
 
+from cellmap_data import CellMapImage
+
 from .config import PROCESSED_PATH, SUBMISSION_PATH
 
 TEST_CROPS = [234]
@@ -32,6 +34,21 @@ INSTANCE_CLASSES = [
     "cell",
     "instance",
 ]
+
+CLASS_RESOLUTIONS = {
+    "nuc": 64,
+    "mito": 16,
+    "er": 8,
+}
+
+CROP_SHAPE = {
+    234: {
+        "nuc": (128, 128, 128),
+        "mito": (128, 128, 128),
+        "er": (128, 128, 128),
+    }
+}
+
 HAUSDORFF_DISTANCE_MAX = np.inf
 
 TRUTH_PATH = UPath("data/ground_truth.zarr").path
@@ -513,6 +530,7 @@ def package_submission(
 
     # Find all the processed test volumes
     for crop in TEST_CROPS:
+        crop_group = zarr_group.create_group(f"crop{crop}")
         crop_path = input_search_path.format(dataset="*", crop=f"crop{crop}")
         crop_path = glob(crop_path)
         if len(crop_path) == 0:
@@ -526,10 +544,26 @@ def package_submission(
         print(f"Found labels for {test_volume}: {labels}")
 
         # Rescale the processed volumes to match the expected submission resolution if required
-        # TODO: Implement automatic rescaling to match target resolutions
-
-        # Create symbolic link to the processed volume
-        UPath(output_path / test_volume).symlink_to(crop_path, target_is_directory=True)
+        for label in labels:
+            if label in CLASS_RESOLUTIONS:
+                label_array = crop_group.create_dataset(
+                    label,
+                    overwrite=True,
+                )
+                print(f"Rescaling {label} to {CLASS_RESOLUTIONS[label]}nm")
+                image = CellMapImage(
+                    path=(UPath(crop_path) / label).path,
+                    target_class=label,
+                    target_scale=[
+                        CLASS_RESOLUTIONS[label],
+                    ]
+                    * 3,
+                    target_voxel_shape=CROP_SHAPE[crop][label],
+                    pad=True,
+                    pad_value=0,
+                )
+                # Save the processed labels to the submission zarr
+                label_array[:] = image[image.center]
 
     print(f"Saved submission to {output_path}")
 

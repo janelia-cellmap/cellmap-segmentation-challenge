@@ -52,6 +52,8 @@ csc process process_3D.py
 
 To see the other options available for the `process` command, you can run `csc process --help`.
 
+During evaluations of submissions, for instance segmentation evaluated classes, connected components are computed on the supplied masks and the resulting instance IDs are assigned to each connected component. This will not merge already uniquely IDed objects. Thus, you do not need to run connected components on before submission, but you may wish to execute more advanced post-processing for instance segmentation, such as watershed.
+
 ## Visualizing data and predictions
 
 You can visualize the data and predictions using the `visualize.py` module. This module provides functions to visualize the data and predictions using neuroglancer. To see the available options, you can run the following command:
@@ -70,6 +72,8 @@ Additionally, you can explicitly specify the path to the submission zarr, with p
 
 
 ### Data format
+
+If you are packaging your predictions manually, the submission file format requirements are as follows:
 
 Submission file format requirements:
 1. The submission should be a single zip file containing a single Zarr-2 file with the following structure:

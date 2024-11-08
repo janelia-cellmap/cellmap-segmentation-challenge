@@ -1,5 +1,4 @@
 import click
-from upath import UPath
 
 from ..config import REPO_ROOT
 from ..predict import predict
