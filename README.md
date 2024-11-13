@@ -27,10 +27,10 @@ Once you have micromamba installed, you can create a new environment with the re
 
 ```bash
 # Create a new environment
-micromamba create -n cellmap-segmentation-challenge -y python=3.11
+micromamba create -n csc -y python=3.11
 
 # Activate the environment
-micromamba activate cellmap-segmentation-challenge
+micromamba activate csc
 ```
 
 ## Clone the repository

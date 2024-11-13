@@ -16,7 +16,7 @@ from upath import UPath
 
 from cellmap_data import CellMapImage
 
-from .config import PROCESSED_PATH, SUBMISSION_PATH
+from .config import PROCESSED_PATH, SUBMISSION_PATH, REPO_ROOT
 
 TEST_CROPS = [234]
 
@@ -36,7 +36,7 @@ INSTANCE_CLASSES = [
 ]
 
 CLASS_RESOLUTIONS = {
-    "nuc": 64,
+    "nuc": 32,
     "mito": 16,
     "er": 8,
 }
@@ -51,7 +51,7 @@ CROP_SHAPE = {
 
 HAUSDORFF_DISTANCE_MAX = np.inf
 
-TRUTH_PATH = UPath("data/ground_truth.zarr").path
+TRUTH_PATH = (REPO_ROOT / "data/ground_truth.zarr").path
 
 
 def unzip_file(zip_path):
@@ -64,17 +64,12 @@ def unzip_file(zip_path):
     Example usage:
         unzip_file('submission.zip')
     """
-    extract_path = UPath(zip_path).parent
+    saved_path = UPath(zip_path).with_suffix(".zarr").path
     with zipfile.ZipFile(zip_path, "r") as zip_ref:
-        zip_ref.extractall(extract_path)
-        saved_path = [
-            UPath(file).path
-            for file in zip_ref.namelist()
-            if UPath(file).suffix == ".zarr"
-        ][0]
-        print(f"Unzipped {zip_path} to {extract_path} / {saved_path}")
+        zip_ref.extractall(saved_path)
+        print(f"Unzipped {zip_path} to {saved_path}")
 
-    return extract_path / saved_path
+    return UPath(saved_path)
 
 
 def save_numpy_class_labels_to_zarr(
@@ -161,6 +156,53 @@ def save_numpy_class_arrays_to_zarr(
     print("Done saving")
 
 
+def resize_array(arr, target_shape, pad_value=0):
+    """
+    Resize an array to a target shape by padding or cropping as needed.
+
+    Parameters:
+        arr (np.ndarray): Input array to resize.
+        target_shape (tuple): Desired shape for the output array.
+        pad_value (int, float, etc.): Value to use for padding if the array is smaller than the target shape.
+
+    Returns:
+        np.ndarray: Resized array with the specified target shape.
+    """
+    arr_shape = arr.shape
+    resized_arr = arr
+
+    # Pad if the array is smaller than the target shape
+    pad_width = []
+    for i in range(len(target_shape)):
+        if arr_shape[i] < target_shape[i]:
+            # Padding needed: calculate amount for both sides
+            pad_before = (target_shape[i] - arr_shape[i]) // 2
+            pad_after = target_shape[i] - arr_shape[i] - pad_before
+            pad_width.append((pad_before, pad_after))
+        else:
+            # No padding needed for this dimension
+            pad_width.append((0, 0))
+
+    if any(pad > 0 for pads in pad_width for pad in pads):
+        resized_arr = np.pad(
+            resized_arr, pad_width, mode="constant", constant_values=pad_value
+        )
+
+    # Crop if the array is larger than the target shape
+    slices = []
+    for i in range(len(target_shape)):
+        if arr_shape[i] > target_shape[i]:
+            # Calculate cropping slices to center the crop
+            start = (arr_shape[i] - target_shape[i]) // 2
+            end = start + target_shape[i]
+            slices.append(slice(start, end))
+        else:
+            # No cropping needed for this dimension
+            slices.append(slice(None))
+
+    return resized_arr[tuple(slices)]
+
+
 def score_instance(
     pred_label, truth_label, hausdorff_distance_max=HAUSDORFF_DISTANCE_MAX
 ) -> dict[str, float]:
@@ -228,7 +270,7 @@ def score_instance(
 
     # Compute the scores
     accuracy = accuracy_score(truth_label.flatten(), matched_pred_label.flatten())
-    hausdorff_dist = np.mean(hausdorff_distances)
+    hausdorff_dist = np.mean(hausdorff_distances) if hausdorff_distances else 0
     normalized_hausdorff_dist = 32 ** (
         -hausdorff_dist
     )  # normalize Hausdorff distance to [0, 1]. 32 is abritrary chosen to have a reasonable range
@@ -295,19 +337,24 @@ def score_label(
     label_name = UPath(pred_label_path).name
     volume_name = UPath(pred_label_path).parent.name
     pred_label = zarr.open(pred_label_path)[:]
-    truth_label = zarr.open((UPath(truth_path) / volume_name / label_name).path)[:]
-    mask_path = (UPath(truth_path) / volume_name / f"{label_name}_mask").path
+    truth_label_path = (UPath(truth_path) / volume_name / label_name).path
+    truth_label = zarr.open(truth_label_path)[:]
+
+    # Check if the label volumes have the same shape
+    if not (pred_label.shape == truth_label.shape):
+        print(
+            f"Shapes of {pred_label_path} and {truth_label_path} do not match: {pred_label.shape} vs {truth_label.shape}"
+        )
+        # Make the submission match the truth shape
+        pred_label = resize_array(pred_label, truth_label.shape)
+
+    mask_path = UPath(truth_path) / volume_name / f"{label_name}_mask"
     if mask_path.exists():
         # Mask out uncertain regions resulting from low-res ground truth annotations
         print(f"Masking {label_name} with {mask_path}...")
-        mask = zarr.open(mask_path)[:]
+        mask = zarr.open(mask_path.path)[:]
         pred_label = pred_label * mask
         truth_label = truth_label * mask
-
-    # Check if the label volumes have the same shape
-    assert (
-        pred_label.shape == truth_label.shape
-    ), "The predicted and ground truth label volumes must have the same shape."
 
     # Compute the scores
     if label_name in instance_classes:
@@ -361,7 +408,7 @@ def score_volume(
 
 
 def score_submission(
-    submission_path,
+    submission_path=UPath(SUBMISSION_PATH).with_suffix(".zip").path,
     result_file=None,
     truth_path=TRUTH_PATH,
     instance_classes=INSTANCE_CLASSES,
@@ -549,6 +596,7 @@ def package_submission(
                 label_array = crop_group.create_dataset(
                     label,
                     overwrite=True,
+                    shape=CROP_SHAPE[crop][label],
                 )
                 print(f"Rescaling {label} to {CLASS_RESOLUTIONS[label]}nm")
                 image = CellMapImage(
@@ -563,7 +611,7 @@ def package_submission(
                     pad_value=0,
                 )
                 # Save the processed labels to the submission zarr
-                label_array[:] = image[image.center]
+                label_array[:] = image[image.center].cpu().numpy()
 
     print(f"Saved submission to {output_path}")
 

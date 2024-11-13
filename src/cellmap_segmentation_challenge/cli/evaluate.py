@@ -8,13 +8,16 @@ from ..evaluate import (
     package_submission,
     score_submission,
 )
+from upath import UPath
 
 
 @click.command
-@click.argument(
-    "submission_path",
+@click.option(
+    "--submission_path",
+    "-s",
     type=click.Path(exists=True),
-    required=True,
+    help="Path to the submission zip file",
+    default=UPath(SUBMISSION_PATH).with_suffix(".zip").path,
 )
 @click.option(
     "--result_file",

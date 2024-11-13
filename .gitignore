@@ -181,3 +181,6 @@ tensorboard/
 
 # visual studio code configuration
 .vscode
+
+# Challenge specific files
+data/*
