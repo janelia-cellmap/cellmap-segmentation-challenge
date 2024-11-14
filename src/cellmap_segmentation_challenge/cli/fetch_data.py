@@ -24,6 +24,7 @@ from cellmap_segmentation_challenge.utils.fetch_data import (
     read_group,
     subset_to_slice,
 )
+from cellmap_segmentation_challenge.config import REPO_ROOT
 
 load_dotenv()
 
@@ -54,7 +55,7 @@ num_workers = int(os.environ.get("CSC_FETCH_DATA_NUM_WORKERS", 32))
 @click.option(
     "--dest",
     type=click.STRING,
-    default="./data",
+    default=(REPO_ROOT / "data").path,
     help="Path to directory where data will be stored.",
 )
 @click.option(
