@@ -34,8 +34,16 @@ INSTANCE_CLASSES = [
 
 CLASS_RESOLUTIONS = {
     "nuc": 16,
+    "ves": 16,
+    "endo": 16,
+    "lyso": 16,
+    "ld": 16,
+    "perox": 16,
     "mito": 16,
+    "np": 16,
+    "mt": 16,
     "cell": 16,
+    "instance": 16,
     "default": 4,
     "eres": 2,
     "ld": 2,
