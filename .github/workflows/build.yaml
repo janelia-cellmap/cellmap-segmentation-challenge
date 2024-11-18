@@ -1,0 +1,24 @@
+name: build
+
+on:
+  push:
+    branches: main
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Build image with Dockerfile & repo2docker
+        uses: jupyterhub/repo2docker-action@master
+        with:
+          # Don't push the image during a PR build
+          NO_PUSH: "${{ github.event_name == 'pull_request' }}"
+          # Provide the username and password. These are empty when we are in a PR
+          DOCKER_USERNAME: ${{ secrets.QUAY_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
+          DOCKER_REGISTRY: "quay.io"
+          IMAGE_NAME: quay.io/2i2c/cellmap-segmentation-challenge-evaluator
