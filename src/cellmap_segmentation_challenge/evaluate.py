@@ -18,11 +18,8 @@ from cellmap_data import CellMapImage
 
 from .config import PROCESSED_PATH, SUBMISSION_PATH, REPO_ROOT
 
-TEST_CROPS = [234]
-
 INSTANCE_CLASSES = [
     "nuc",
-    "vim",
     "ves",
     "endo",
     "lyso",
@@ -36,16 +33,21 @@ INSTANCE_CLASSES = [
 ]
 
 CLASS_RESOLUTIONS = {
-    "nuc": 32,
+    "nuc": 16,
     "mito": 16,
-    "er": 8,
+    "cell": 16,
+    "default": 4,
+    "eres": 2,
+    "ld": 2,
 }
+
+TEST_CROPS = [234]
 
 CROP_SHAPE = {
     234: {
         "nuc": (25, 25, 25),
         "mito": (50, 50, 50),
-        "er": (100, 100, 100),
+        "er": (200, 200, 200),
     }
 }
 
@@ -593,25 +595,28 @@ def package_submission(
         # Rescale the processed volumes to match the expected submission resolution if required
         for label in labels:
             if label in CLASS_RESOLUTIONS:
-                label_array = crop_group.create_dataset(
-                    label,
-                    overwrite=True,
-                    shape=CROP_SHAPE[crop][label],
-                )
-                print(f"Rescaling {label} to {CLASS_RESOLUTIONS[label]}nm")
-                image = CellMapImage(
-                    path=(UPath(crop_path) / label).path,
-                    target_class=label,
-                    target_scale=[
-                        CLASS_RESOLUTIONS[label],
-                    ]
-                    * 3,
-                    target_voxel_shape=CROP_SHAPE[crop][label],
-                    pad=True,
-                    pad_value=0,
-                )
-                # Save the processed labels to the submission zarr
-                label_array[:] = image[image.center].cpu().numpy()
+                resolution = CLASS_RESOLUTIONS[label]
+            else:
+                resolution = CLASS_RESOLUTIONS["default"]
+            label_array = crop_group.create_dataset(
+                label,
+                overwrite=True,
+                shape=CROP_SHAPE[crop][label],
+            )
+            print(f"Scaling {label} to {resolution}nm")
+            image = CellMapImage(
+                path=(UPath(crop_path) / label).path,
+                target_class=label,
+                target_scale=[
+                    resolution,
+                ]
+                * 3,
+                target_voxel_shape=CROP_SHAPE[crop][label],
+                pad=True,
+                pad_value=0,
+            )
+            # Save the processed labels to the submission zarr
+            label_array[:] = image[image.center].cpu().numpy()
 
     print(f"Saved submission to {output_path}")
 
