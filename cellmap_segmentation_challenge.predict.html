@@ -159,8 +159,10 @@
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.predict.html">cellmap_segmentation_challenge.cli.predict</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.process.html">cellmap_segmentation_challenge.cli.process</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.train.html">cellmap_segmentation_challenge.cli.train</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.visualize.html">cellmap_segmentation_challenge.cli.visualize</a></li>
 </ul>
 </details></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.config.html">cellmap_segmentation_challenge.config</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.evaluate.html">cellmap_segmentation_challenge.evaluate</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.model_load.html">cellmap_segmentation_challenge.models.model_load</a></li>
@@ -180,9 +182,9 @@
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.fetch_data.html">cellmap_segmentation_challenge.utils.fetch_data</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.loss.html">cellmap_segmentation_challenge.utils.loss</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.security.html">cellmap_segmentation_challenge.utils.security</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.visualize.html">cellmap_segmentation_challenge.utils.visualize</a></li>
 </ul>
 </details></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.visualize.html">cellmap_segmentation_challenge.visualize</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
@@ -327,7 +329,8 @@
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.predict"><code class="docutils literal notranslate"><span class="pre">predict()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.predict.predict_orthoplanes"><code class="docutils literal notranslate"><span class="pre">predict_orthoplanes()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.predict.predict"><code class="docutils literal notranslate"><span class="pre">predict()</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -339,18 +342,44 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="cellmap-segmentation-challenge-predict">
-<h1>cellmap_segmentation_challenge.predict<a class="headerlink" href="#cellmap-segmentation-challenge-predict" title="Link to this heading">#</a></h1>
+  <section id="module-cellmap_segmentation_challenge.predict">
+<span id="cellmap-segmentation-challenge-predict"></span><h1>cellmap_segmentation_challenge.predict<a class="headerlink" href="#module-cellmap_segmentation_challenge.predict" title="Link to this heading">#</a></h1>
+<p class="rubric">Functions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.predict.predict" title="cellmap_segmentation_challenge.predict.predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict</span></code></a>(config_path[, crops, output_path, ...])</p></td>
+<td><p>Given a model configuration file and list of crop numbers, predicts the output of a model on a large dataset by splitting it into blocks and predicting each block separately.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.predict.predict_orthoplanes" title="cellmap_segmentation_challenge.predict.predict_orthoplanes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict_orthoplanes</span></code></a>(model, ...)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
 <dl class="py function">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.predict">
-<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.</span></span><span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crops</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'test'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.7/x64/lib/python3.12/data/predictions/{dataset}.zarr/{crop}'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_orthoplanes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/predict.html#predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.predict" title="Link to this definition">#</a></dt>
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.predict.predict_orthoplanes">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.predict.</span></span><span class="sig-name descname"><span class="pre">predict_orthoplanes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_writer_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/predict.html#predict_orthoplanes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.predict.predict_orthoplanes" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>Module</em>)</p></li>
+<li><p><strong>dataset_writer_kwargs</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>)</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.predict.predict">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.predict.</span></span><span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crops</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'test'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.7/x64/lib/python3.12/data/predictions/{dataset}.zarr/{crop}'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_orthoplanes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/predict.html#predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.predict.predict" title="Link to this definition">#</a></dt>
 <dd><p>Given a model configuration file and list of crop numbers, predicts the output of a model on a large dataset by splitting it into blocks and predicting each block separately.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>config_path</strong> (<em>str</em>) – The path to the model configuration file. This can be the same as the config file used for training.</p></li>
 <li><p><strong>crops</strong> (<em>str</em><em>, </em><em>optional</em>) – A comma-separated list of crop numbers to predict on, or “test” to predict on the entire test set. Default is “test”.</p></li>
-<li><p><strong>output_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The path to save the output predictions to, formatted as a string with a placeholders for the dataset and crop number. Default is “cellmap-segmentation-challenge/data/predictions/{dataset}.zarr/{crop}”.</p></li>
+<li><p><strong>output_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The path to save the output predictions to, formatted as a string with a placeholders for the dataset, crop number, and label. Default is PREDICTIONS_PATH set in <cite>cellmap-segmentation/config.py</cite>.</p></li>
 <li><p><strong>do_orthoplanes</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to compute the average of predictions from x, y, and z orthogonal planes for the full 3D volume. This is sometimes called 2.5D predictions. It expects a model that yields 2D outputs. Similarly, it expects the input shape to the model to be 2D. Default is True for 2D models.</p></li>
 <li><p><strong>overwrite</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to overwrite the output dataset if it already exists. Default is False.</p></li>
 </ul>
@@ -406,7 +435,8 @@
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.predict"><code class="docutils literal notranslate"><span class="pre">predict()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.predict.predict_orthoplanes"><code class="docutils literal notranslate"><span class="pre">predict_orthoplanes()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.predict.predict"><code class="docutils literal notranslate"><span class="pre">predict()</span></code></a></li>
 </ul>
   </nav></div>
 

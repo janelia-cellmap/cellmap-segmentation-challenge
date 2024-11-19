@@ -158,8 +158,10 @@
 <li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.predict.html">cellmap_segmentation_challenge.cli.predict</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.process.html">cellmap_segmentation_challenge.cli.process</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.train.html">cellmap_segmentation_challenge.cli.train</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.visualize.html">cellmap_segmentation_challenge.cli.visualize</a></li>
 </ul>
 </details></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.config.html">cellmap_segmentation_challenge.config</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.evaluate.html">cellmap_segmentation_challenge.evaluate</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.models.model_load.html">cellmap_segmentation_challenge.models.model_load</a></li>
@@ -179,9 +181,9 @@
 <li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.fetch_data.html">cellmap_segmentation_challenge.utils.fetch_data</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.loss.html">cellmap_segmentation_challenge.utils.loss</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.security.html">cellmap_segmentation_challenge.utils.security</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.visualize.html">cellmap_segmentation_challenge.utils.visualize</a></li>
 </ul>
 </details></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.visualize.html">cellmap_segmentation_challenge.visualize</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="../../cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
@@ -286,23 +288,19 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">torch</span>
-
+<span class="kn">from</span> <span class="nn">cellmap_data.utils</span> <span class="kn">import</span> <span class="n">get_image_dict</span>
+<span class="kn">from</span> <span class="nn">tensorboardX</span> <span class="kn">import</span> <span class="n">SummaryWriter</span>
 <span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
 <span class="kn">from</span> <span class="nn">upath</span> <span class="kn">import</span> <span class="n">UPath</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">get_dataloader</span><span class="p">,</span>
-    <span class="n">load_latest</span><span class="p">,</span>
-    <span class="n">load_best_val</span><span class="p">,</span>
-    <span class="n">make_datasplit_csv</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">CellMapLossWrapper</span><span class="p">,</span> <span class="n">load_safe_config</span>
-<span class="kn">from</span> <span class="nn">.models</span> <span class="kn">import</span> <span class="n">ResNet</span><span class="p">,</span> <span class="n">UNet_2D</span><span class="p">,</span> <span class="n">UNet_3D</span><span class="p">,</span> <span class="n">ViTVNet</span>
-<span class="kn">from</span> <span class="nn">tensorboardX</span> <span class="kn">import</span> <span class="n">SummaryWriter</span>
-<span class="kn">from</span> <span class="nn">cellmap_data.utils</span> <span class="kn">import</span> <span class="n">get_image_dict</span>
+
+<span class="kn">from</span> <span class="nn">.models</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ResNet</span><span class="p">,</span> <span class="n">UNet_2D</span><span class="p">,</span> <span class="n">UNet_3D</span><span class="p">,</span> <span class="n">ViTVNet</span><span class="p">,</span> <span class="n">load_best_val</span><span class="p">,</span>
+                     <span class="n">load_latest</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="p">(</span><span class="n">CellMapLossWrapper</span><span class="p">,</span> <span class="n">get_dataloader</span><span class="p">,</span> <span class="n">load_safe_config</span><span class="p">,</span>
+                    <span class="n">make_datasplit_csv</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="train">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.train.html#cellmap_segmentation_challenge.train">[docs]</a>
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.train.html#cellmap_segmentation_challenge.train.train">[docs]</a>
 <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="n">config_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Train a model using the configuration file at the specified path. The model checkpoints and training logs, as well as the datasets used for training, will be saved to the paths specified in the configuration file.</span>

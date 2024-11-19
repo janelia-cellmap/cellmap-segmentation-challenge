@@ -158,8 +158,10 @@
 <li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.predict.html">cellmap_segmentation_challenge.cli.predict</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.process.html">cellmap_segmentation_challenge.cli.process</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.train.html">cellmap_segmentation_challenge.cli.train</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.visualize.html">cellmap_segmentation_challenge.cli.visualize</a></li>
 </ul>
 </details></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.config.html">cellmap_segmentation_challenge.config</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.evaluate.html">cellmap_segmentation_challenge.evaluate</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.models.model_load.html">cellmap_segmentation_challenge.models.model_load</a></li>
@@ -179,9 +181,9 @@
 <li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.fetch_data.html">cellmap_segmentation_challenge.utils.fetch_data</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.loss.html">cellmap_segmentation_challenge.utils.loss</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.security.html">cellmap_segmentation_challenge.utils.security</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.visualize.html">cellmap_segmentation_challenge.utils.visualize</a></li>
 </ul>
 </details></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.visualize.html">cellmap_segmentation_challenge.visualize</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="../../cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
@@ -281,30 +283,27 @@
                 <article class="bd-article">
                   
   <h1>Source code for cellmap_segmentation_challenge.predict</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">glob</span> <span class="kn">import</span> <span class="n">glob</span>
-<span class="kn">import</span> <span class="nn">os</span>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">from</span> <span class="nn">glob</span> <span class="kn">import</span> <span class="n">glob</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
-<span class="kn">from</span> <span class="nn">cellmap_data</span> <span class="kn">import</span> <span class="n">CellMapDatasetWriter</span><span class="p">,</span> <span class="n">CellMapImage</span>
+
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">import</span> <span class="nn">torchvision.transforms.v2</span> <span class="k">as</span> <span class="nn">T</span>
+<span class="kn">from</span> <span class="nn">cellmap_data</span> <span class="kn">import</span> <span class="n">CellMapDatasetWriter</span><span class="p">,</span> <span class="n">CellMapImage</span>
+<span class="kn">from</span> <span class="nn">cellmap_data.transforms.augment</span> <span class="kn">import</span> <span class="n">NaNtoNum</span><span class="p">,</span> <span class="n">Normalize</span>
 <span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
 <span class="kn">from</span> <span class="nn">upath</span> <span class="kn">import</span> <span class="n">UPath</span>
-<span class="kn">from</span> <span class="nn">cellmap_segmentation_challenge.models</span> <span class="kn">import</span> <span class="n">load_best_val</span><span class="p">,</span> <span class="n">load_latest</span>
-<span class="kn">from</span> <span class="nn">.utils.datasplit</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">CROP_NAME</span><span class="p">,</span>
-    <span class="n">REPO_ROOT</span><span class="p">,</span>
-    <span class="n">SEARCH_PATH</span><span class="p">,</span>
-    <span class="n">get_raw_path</span><span class="p">,</span>
-    <span class="n">get_dataset_name</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="kn">from</span> <span class="nn">cellmap_data.transforms.augment</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">Normalize</span><span class="p">,</span>
-    <span class="n">NaNtoNum</span><span class="p">,</span>
-<span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">.config</span> <span class="kn">import</span> <span class="n">CROP_NAME</span><span class="p">,</span> <span class="n">PREDICTIONS_PATH</span><span class="p">,</span> <span class="n">SEARCH_PATH</span>
+<span class="kn">from</span> <span class="nn">.evaluate</span> <span class="kn">import</span> <span class="n">TEST_CROPS</span>
+<span class="kn">from</span> <span class="nn">.models</span> <span class="kn">import</span> <span class="n">load_best_val</span><span class="p">,</span> <span class="n">load_latest</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">load_safe_config</span>
+<span class="kn">from</span> <span class="nn">.utils.datasplit</span> <span class="kn">import</span> <span class="n">get_formatted_fields</span><span class="p">,</span> <span class="n">get_raw_path</span>
 
 
+<div class="viewcode-block" id="predict_orthoplanes">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.predict.html#cellmap_segmentation_challenge.predict.predict_orthoplanes">[docs]</a>
 <span class="k">def</span> <span class="nf">predict_orthoplanes</span><span class="p">(</span>
     <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">dataset_writer_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span>
 <span class="p">):</span>
@@ -366,7 +365,8 @@
         <span class="c1"># Save the outputs</span>
         <span class="n">dataset_writer</span><span class="p">[</span><span class="n">batch</span><span class="p">[</span><span class="s2">&quot;idx&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">outputs</span>
 
-    <span class="n">tmp_dir</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+    <span class="n">tmp_dir</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span></div>
+
 
 
 <span class="k">def</span> <span class="nf">_predict</span><span class="p">(</span>
@@ -410,11 +410,11 @@
 
 
 <div class="viewcode-block" id="predict">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.predict.html#cellmap_segmentation_challenge.predict">[docs]</a>
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.predict.html#cellmap_segmentation_challenge.predict.predict">[docs]</a>
 <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span>
     <span class="n">config_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">crops</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span>
-    <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">REPO_ROOT</span> <span class="o">/</span> <span class="s2">&quot;data/predictions/</span><span class="si">{dataset}</span><span class="s2">.zarr/</span><span class="si">{crop}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">PREDICTIONS_PATH</span><span class="p">,</span>
     <span class="n">do_orthoplanes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">):</span>
@@ -428,7 +428,7 @@
 <span class="sd">    crops: str, optional</span>
 <span class="sd">        A comma-separated list of crop numbers to predict on, or &quot;test&quot; to predict on the entire test set. Default is &quot;test&quot;.</span>
 <span class="sd">    output_path: str, optional</span>
-<span class="sd">        The path to save the output predictions to, formatted as a string with a placeholders for the dataset and crop number. Default is &quot;cellmap-segmentation-challenge/data/predictions/{dataset}.zarr/{crop}&quot;.</span>
+<span class="sd">        The path to save the output predictions to, formatted as a string with a placeholders for the dataset, crop number, and label. Default is PREDICTIONS_PATH set in `cellmap-segmentation/config.py`.</span>
 <span class="sd">    do_orthoplanes: bool, optional</span>
 <span class="sd">        Whether to compute the average of predictions from x, y, and z orthogonal planes for the full 3D volume. This is sometimes called 2.5D predictions. It expects a model that yields 2D outputs. Similarly, it expects the input shape to the model to be 2D. Default is True for 2D models.</span>
 <span class="sd">    overwrite: bool, optional</span>
@@ -489,45 +489,36 @@
     <span class="k">assert</span> <span class="p">(</span>
         <span class="n">input_arrays</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">target_arrays</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
     <span class="p">),</span> <span class="s2">&quot;No array info provided&quot;</span>
+
     <span class="c1"># Get the crops to predict on</span>
     <span class="k">if</span> <span class="n">crops</span> <span class="o">==</span> <span class="s2">&quot;test&quot;</span><span class="p">:</span>
-        <span class="c1"># TODO: Could make this more general to work for any class label</span>
-        <span class="n">raw_search_label</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span>
-        <span class="n">crop_search_label</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-        <span class="n">crops_paths</span> <span class="o">=</span> <span class="n">glob</span><span class="p">(</span>
-            <span class="n">SEARCH_PATH</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">CROP_NAME</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">crop</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
-            <span class="p">)</span>
-        <span class="p">)</span>
+        <span class="n">crop_list</span> <span class="o">=</span> <span class="n">TEST_CROPS</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">crop_list</span> <span class="o">=</span> <span class="n">crops</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span>
-            <span class="p">[</span><span class="n">crop</span><span class="o">.</span><span class="n">isnumeric</span><span class="p">()</span> <span class="k">for</span> <span class="n">crop</span> <span class="ow">in</span> <span class="n">crop_list</span><span class="p">]</span>
-        <span class="p">),</span> <span class="s2">&quot;Crop numbers must be numeric or `test`.&quot;</span>
-        <span class="n">crop_paths</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">raw_search_label</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-        <span class="n">crop_search_label</span> <span class="o">=</span> <span class="n">classes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">crop</span> <span class="ow">in</span> <span class="n">crop_list</span><span class="p">:</span>
-            <span class="n">crop_paths</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
-                <span class="n">glob</span><span class="p">(</span>
-                    <span class="n">SEARCH_PATH</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                        <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">CROP_NAME</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">crop</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-                    <span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
-                <span class="p">)</span>
-            <span class="p">)</span>
 
-    <span class="c1"># Make crop list</span>
-    <span class="n">crops_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">UPath</span><span class="p">(</span><span class="n">crop_path</span><span class="p">)</span><span class="o">.</span><span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]:</span> <span class="n">crop_path</span> <span class="k">for</span> <span class="n">crop_path</span> <span class="ow">in</span> <span class="n">crops_paths</span><span class="p">}</span>
+    <span class="n">crop_paths</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">crop</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">crop_list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">crop</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">crop</span><span class="o">.</span><span class="n">isnumeric</span><span class="p">())</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">crop</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">crop</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">crop_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span>  <span class="c1"># type: ignore</span>
+
+        <span class="n">crop_paths</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+            <span class="n">glob</span><span class="p">(</span>
+                <span class="n">SEARCH_PATH</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">CROP_NAME</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">crop</span><span class="o">=</span><span class="n">crop</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
 
     <span class="n">dataset_writers</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">crop</span><span class="p">,</span> <span class="n">crop_path</span> <span class="ow">in</span> <span class="n">crops_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>  <span class="c1"># type: ignore</span>
+    <span class="k">for</span> <span class="n">crop</span><span class="p">,</span> <span class="n">crop_path</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">crop_list</span><span class="p">,</span> <span class="n">crop_paths</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
         <span class="c1"># Get path to raw dataset</span>
-        <span class="n">raw_path</span> <span class="o">=</span> <span class="n">get_raw_path</span><span class="p">(</span><span class="n">crop_path</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">raw_search_label</span><span class="p">)</span>
+        <span class="n">raw_path</span> <span class="o">=</span> <span class="n">get_raw_path</span><span class="p">(</span><span class="n">crop_path</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
         <span class="c1"># Get the boundaries of the crop</span>
         <span class="n">gt_images</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">array_name</span><span class="p">:</span> <span class="n">CellMapImage</span><span class="p">(</span>
-                <span class="nb">str</span><span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">crop_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">crop_search_label</span><span class="p">),</span>
+                <span class="nb">str</span><span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">crop_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">classes</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
                 <span class="n">target_class</span><span class="o">=</span><span class="n">classes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
                 <span class="n">target_scale</span><span class="o">=</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">],</span>
                 <span class="n">target_voxel_shape</span><span class="o">=</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">],</span>
@@ -541,13 +532,13 @@
             <span class="n">array_name</span><span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">bounding_box</span> <span class="k">for</span> <span class="n">array_name</span><span class="p">,</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">gt_images</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
         <span class="p">}</span>
 
+        <span class="n">dataset</span> <span class="o">=</span> <span class="n">get_formatted_fields</span><span class="p">(</span><span class="n">raw_path</span><span class="p">,</span> <span class="n">SEARCH_PATH</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">{dataset}</span><span class="s2">&quot;</span><span class="p">])[</span><span class="s2">&quot;dataset&quot;</span><span class="p">]</span>
+
         <span class="c1"># Create the writer</span>
         <span class="n">dataset_writers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
             <span class="p">{</span>
                 <span class="s2">&quot;raw_path&quot;</span><span class="p">:</span> <span class="n">raw_path</span><span class="p">,</span>
-                <span class="s2">&quot;target_path&quot;</span><span class="p">:</span> <span class="n">output_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">crop</span><span class="o">=</span><span class="n">crop</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="n">get_dataset_name</span><span class="p">(</span><span class="n">raw_path</span><span class="p">)</span>
-                <span class="p">),</span>
+                <span class="s2">&quot;target_path&quot;</span><span class="p">:</span> <span class="n">output_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">crop</span><span class="o">=</span><span class="n">crop</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">),</span>
                 <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="n">classes</span><span class="p">,</span>
                 <span class="s2">&quot;input_arrays&quot;</span><span class="p">:</span> <span class="n">input_arrays</span><span class="p">,</span>
                 <span class="s2">&quot;target_arrays&quot;</span><span class="p">:</span> <span class="n">target_arrays</span><span class="p">,</span>

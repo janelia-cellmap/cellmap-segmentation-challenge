@@ -16,3 +16,4 @@ cellmap\_segmentation\_challenge.cli
    predict
    process
    train
+   visualize

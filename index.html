@@ -160,8 +160,10 @@
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.predict.html">cellmap_segmentation_challenge.cli.predict</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.process.html">cellmap_segmentation_challenge.cli.process</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.train.html">cellmap_segmentation_challenge.cli.train</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.visualize.html">cellmap_segmentation_challenge.cli.visualize</a></li>
 </ul>
 </details></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.config.html">cellmap_segmentation_challenge.config</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.evaluate.html">cellmap_segmentation_challenge.evaluate</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.model_load.html">cellmap_segmentation_challenge.models.model_load</a></li>
@@ -181,9 +183,9 @@
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.fetch_data.html">cellmap_segmentation_challenge.utils.fetch_data</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.loss.html">cellmap_segmentation_challenge.utils.loss</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.security.html">cellmap_segmentation_challenge.utils.security</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.visualize.html">cellmap_segmentation_challenge.utils.visualize</a></li>
 </ul>
 </details></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.visualize.html">cellmap_segmentation_challenge.visualize</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
@@ -337,7 +339,11 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#train-a-model">Train a model</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#predict-on-test-data">Predict on test data</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#post-process-model-predictions">Post-process model predictions</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submit-your-final-predictions">Submit your final predictions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#visualize-data-and-predictions">Visualize data and predictions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submit-your-final-predictions">Submit your final predictions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#data-format">Data format</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#api">API</a></li>
@@ -376,10 +382,10 @@
 </div>
 <p>Once you have micromamba installed, you can create a new environment with the required dependencies by running the following commands:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a new environment</span>
-micromamba<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>cellmap-segmentation-challenge<span class="w"> </span>-y<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.11
+micromamba<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>csc<span class="w"> </span>-y<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.11
 
 <span class="c1"># Activate the environment</span>
-micromamba<span class="w"> </span>activate<span class="w"> </span>cellmap-segmentation-challenge
+micromamba<span class="w"> </span>activate<span class="w"> </span>csc
 </pre></div>
 </div>
 </section>
@@ -480,10 +486,39 @@ python<span class="w"> </span>train_2D.py
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>csc<span class="w"> </span>process<span class="w"> </span>--help
 </pre></div>
 </div>
+<p>During evaluations of submissions, for instance segmentation evaluated classes, connected components are computed on the supplied masks and the resulting instance IDs are assigned to each connected component. This will not merge already uniquely IDed objects. Thus, you do not need to run connected components on before submission, but you may wish to execute more advanced post-processing for instance segmentation, such as watershed.</p>
+</section>
+<section id="visualize-data-and-predictions">
+<h2>Visualize data and predictions<a class="headerlink" href="#visualize-data-and-predictions" title="Link to this heading">#</a></h2>
+<p>To visualize all of the data and predictions, you can view them with neuroglancer. To do this, you can run the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>csc<span class="w"> </span>visualize
+</pre></div>
+</div>
+<p>This will serve the data and predictions on a local server, and open a browser window with the neuroglancer viewer. You can then navigate through the data and predictions, and compare them side by side. The default call with no arguments will do this for all datasets and groundtruth, prediction, and processed crops for all label classes found at the search paths defined in the global configuration file (<code class="docutils literal notranslate"><span class="pre">config.py</span></code>). You can also specify particular datasets, crops, labels classes, and whether to show groundtruth, predictions, or processed data to visualize.</p>
+<p>As an example, the following command will visualize the groundtruth and predictions for the jrc_cos7-1a dataset, crops 234 and 236, and label classes nuc, cell, mito, and er:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>csc<span class="w"> </span>visualize<span class="w"> </span>-d<span class="w"> </span>jrc_cos7-1a<span class="w"> </span>-c<span class="w"> </span><span class="m">234</span>,236<span class="w"> </span>-C<span class="w"> </span>nuc,cell,mito,er<span class="w"> </span>-k<span class="w"> </span>gt,predictions
+
+Run<span class="w"> </span>the<span class="w"> </span>following<span class="w"> </span><span class="nb">command</span><span class="w"> </span>to<span class="w"> </span>see<span class="w"> </span>all<span class="w"> </span>the<span class="w"> </span>options:
+
+<span class="sb">```</span>bash
+csc<span class="w"> </span>visualize<span class="w"> </span>--help
+</pre></div>
+</div>
 </section>
 <section id="submit-your-final-predictions">
 <h2>Submit your final predictions<a class="headerlink" href="#submit-your-final-predictions" title="Link to this heading">#</a></h2>
 <p>To submit your predictions, first make sure that they are in the correct format (see below), then submit them through <a class="reference external" href="https://staging.cellmapchallenge.2i2c.cloud/upload">the online submission portal</a>. You will need to sign in with your GitHub account to submit your predictions.</p>
+<p>For convenience, if you have followed the prediction and processing steps described above and in the example scripts, you can use the following command to zip your predictions in the correct format:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>csc<span class="w"> </span>pack-results
+</pre></div>
+</div>
+<p>To see all the options for the <code class="docutils literal notranslate"><span class="pre">pack-results</span></code> command, see the README in the <code class="docutils literal notranslate"><span class="pre">examples</span></code> folder, or run</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>csc<span class="w"> </span>pack-results<span class="w"> </span>--help
+</pre></div>
+</div>
+<section id="data-format">
+<h3>Data format<a class="headerlink" href="#data-format" title="Link to this heading">#</a></h3>
+<p>If you are packaging your predictions manually, the submission file format requirements are as follows:</p>
 <p>Submission file format requirements:</p>
 <ol class="arabic simple">
 <li><p>The submission should be a single zip file containing a single Zarr-2 file with the following structure:</p></li>
@@ -533,6 +568,7 @@ Note: The instance labels, if used, should be unique IDs per object, with 0 as b
 </div>
 </section>
 </section>
+</section>
 <section id="api">
 <h1>API<a class="headerlink" href="#api" title="Link to this heading">#</a></h1>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
@@ -540,11 +576,11 @@ Note: The instance labels, if used, should be unique IDs per object, with 0 as b
 <tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.html#module-cellmap_segmentation_challenge" title="cellmap_segmentation_challenge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cellmap_segmentation_challenge</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.train.html#cellmap_segmentation_challenge.train" title="cellmap_segmentation_challenge.train"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cellmap_segmentation_challenge.train</span></code></a>(config_path)</p></td>
-<td><p>Train a model using the configuration file at the specified path.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.train.html#module-cellmap_segmentation_challenge.train" title="cellmap_segmentation_challenge.train"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cellmap_segmentation_challenge.train</span></code></a></p></td>
+<td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.predict.html#cellmap_segmentation_challenge.predict" title="cellmap_segmentation_challenge.predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cellmap_segmentation_challenge.predict</span></code></a>(...)</p></td>
-<td><p>Given a model configuration file and list of crop numbers, predicts the output of a model on a large dataset by splitting it into blocks and predicting each block separately.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.predict.html#module-cellmap_segmentation_challenge.predict" title="cellmap_segmentation_challenge.predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cellmap_segmentation_challenge.predict</span></code></a></p></td>
+<td><p></p></td>
 </tr>
 </tbody>
 </table>
@@ -605,7 +641,11 @@ Note: The instance labels, if used, should be unique IDs per object, with 0 as b
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#train-a-model">Train a model</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#predict-on-test-data">Predict on test data</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#post-process-model-predictions">Post-process model predictions</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submit-your-final-predictions">Submit your final predictions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#visualize-data-and-predictions">Visualize data and predictions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submit-your-final-predictions">Submit your final predictions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#data-format">Data format</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#api">API</a></li>

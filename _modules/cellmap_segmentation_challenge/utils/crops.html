@@ -158,8 +158,10 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.cli.predict.html">cellmap_segmentation_challenge.cli.predict</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.cli.process.html">cellmap_segmentation_challenge.cli.process</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.cli.train.html">cellmap_segmentation_challenge.cli.train</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.cli.visualize.html">cellmap_segmentation_challenge.cli.visualize</a></li>
 </ul>
 </details></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cellmap_segmentation_challenge.config.html">cellmap_segmentation_challenge.config</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../cellmap_segmentation_challenge.evaluate.html">cellmap_segmentation_challenge.evaluate</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.models.model_load.html">cellmap_segmentation_challenge.models.model_load</a></li>
@@ -179,9 +181,9 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.utils.fetch_data.html">cellmap_segmentation_challenge.utils.fetch_data</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.utils.loss.html">cellmap_segmentation_challenge.utils.loss</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.utils.security.html">cellmap_segmentation_challenge.utils.security</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../cellmap_segmentation_challenge.utils.visualize.html">cellmap_segmentation_challenge.utils.visualize</a></li>
 </ul>
 </details></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cellmap_segmentation_challenge.visualize.html">cellmap_segmentation_challenge.visualize</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
@@ -282,9 +284,10 @@
                   
   <h1>Source code for cellmap_segmentation_challenge.utils.crops</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+
 <span class="kn">import</span> <span class="nn">fsspec</span>
-<span class="kn">from</span> <span class="nn">yarl</span> <span class="kn">import</span> <span class="n">URL</span>
 <span class="kn">from</span> <span class="nn">typing_extensions</span> <span class="kn">import</span> <span class="n">Self</span>
+<span class="kn">from</span> <span class="nn">yarl</span> <span class="kn">import</span> <span class="n">URL</span>
 
 
 <div class="viewcode-block" id="CropRow">

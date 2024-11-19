@@ -16,4 +16,3 @@ cellmap\_segmentation\_challenge.utils
    fetch_data
    loss
    security
-   visualize

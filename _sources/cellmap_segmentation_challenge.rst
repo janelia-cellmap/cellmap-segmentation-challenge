@@ -11,9 +11,11 @@
    :recursive:
 
    cli
+   config
    evaluate
    models
    predict
    process
    train
    utils
+   visualize

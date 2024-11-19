@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>cellmap_segmentation_challenge &#8212; CellMap Segmentation Challenge</title>
+    <title>cellmap_segmentation_challenge.visualize &#8212; CellMap Segmentation Challenge</title>
   
   
   
@@ -43,12 +43,11 @@
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'cellmap_segmentation_challenge';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'cellmap_segmentation_challenge.visualize';</script>
     <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="cellmap_segmentation_challenge.cli" href="cellmap_segmentation_challenge.cli.html" />
-    <link rel="prev" title="CellMap Schemas" href="cellmap-schemas.html" />
+    <link rel="prev" title="cellmap_segmentation_challenge.utils.security" href="cellmap_segmentation_challenge.utils.security.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -151,7 +150,7 @@
 
 </ul>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">cellmap_segmentation_challenge</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="cellmap_segmentation_challenge.html">cellmap_segmentation_challenge</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html">cellmap_segmentation_challenge.cli</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.datasplit.html">cellmap_segmentation_challenge.cli.datasplit</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.evaluate.html">cellmap_segmentation_challenge.cli.evaluate</a></li>
@@ -184,7 +183,7 @@
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.security.html">cellmap_segmentation_challenge.utils.security</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.visualize.html">cellmap_segmentation_challenge.visualize</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">cellmap_segmentation_challenge.visualize</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
@@ -243,7 +242,7 @@
       
       
       
-      <li><a href="_sources/cellmap_segmentation_challenge.rst" target="_blank"
+      <li><a href="_sources/cellmap_segmentation_challenge.visualize.rst" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -306,7 +305,9 @@
 <button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
 </button>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -317,11 +318,21 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>cellmap_segmentation_challenge</h1>
+    <h1>cellmap_segmentation_challenge.visualize</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.visualize.visualize"><code class="docutils literal notranslate"><span class="pre">visualize()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.visualize.add_layers"><code class="docutils literal notranslate"><span class="pre">add_layers()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.visualize.get_layer"><code class="docutils literal notranslate"><span class="pre">get_layer()</span></code></a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -331,41 +342,76 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="module-cellmap_segmentation_challenge">
-<span id="cellmap-segmentation-challenge"></span><h1>cellmap_segmentation_challenge<a class="headerlink" href="#module-cellmap_segmentation_challenge" title="Link to this heading">#</a></h1>
-<p class="rubric">Modules</p>
+  <section id="module-cellmap_segmentation_challenge.visualize">
+<span id="cellmap-segmentation-challenge-visualize"></span><h1>cellmap_segmentation_challenge.visualize<a class="headerlink" href="#module-cellmap_segmentation_challenge.visualize" title="Link to this heading">#</a></h1>
+<p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.cli.html#module-cellmap_segmentation_challenge.cli" title="cellmap_segmentation_challenge.cli"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cli</span></code></a></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.visualize.add_layers" title="cellmap_segmentation_challenge.visualize.add_layers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_layers</span></code></a>(viewer, kind, dataset_name, ...)</p></td>
+<td><p>Add layers to a Neuroglancer viewer.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.config.html#module-cellmap_segmentation_challenge.config" title="cellmap_segmentation_challenge.config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">config</span></code></a></p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.visualize.get_layer" title="cellmap_segmentation_challenge.visualize.get_layer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layer</span></code></a>(data_path[, layer_type])</p></td>
+<td><p>Get a Neuroglancer layer from a zarr data path for a LocalVolume.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.evaluate.html#module-cellmap_segmentation_challenge.evaluate" title="cellmap_segmentation_challenge.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.models.html#module-cellmap_segmentation_challenge.models" title="cellmap_segmentation_challenge.models"><code class="xref py py-obj docutils literal notranslate"><span class="pre">models</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.predict.html#module-cellmap_segmentation_challenge.predict" title="cellmap_segmentation_challenge.predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.process.html#module-cellmap_segmentation_challenge.process" title="cellmap_segmentation_challenge.process"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.train.html#module-cellmap_segmentation_challenge.train" title="cellmap_segmentation_challenge.train"><code class="xref py py-obj docutils literal notranslate"><span class="pre">train</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#module-cellmap_segmentation_challenge.utils" title="cellmap_segmentation_challenge.utils"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.visualize.html#module-cellmap_segmentation_challenge.visualize" title="cellmap_segmentation_challenge.visualize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">visualize</span></code></a></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.visualize.visualize" title="cellmap_segmentation_challenge.visualize.visualize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">visualize</span></code></a>([datasets, crops, classes, kinds])</p></td>
+<td><p>Visualize datasets and crops in Neuroglancer.</p></td>
 </tr>
 </tbody>
 </table>
 </div>
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.visualize.visualize">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.visualize.</span></span><span class="sig-name descname"><span class="pre">visualize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datasets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'*'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crops</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['*']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'*'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kinds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['gt',</span> <span class="pre">'predictions',</span> <span class="pre">'processed']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/visualize.html#visualize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.visualize.visualize" title="Link to this definition">#</a></dt>
+<dd><p>Visualize datasets and crops in Neuroglancer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datasets</strong> (<em>str</em><em> | </em><em>Sequence</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The name of the dataset to visualize. Can be a string or a list of strings. Default is “*”. If “*”, all datasets will be visualized.</p></li>
+<li><p><strong>crops</strong> (<em>int</em><em> | </em><em>Sequence</em><em>[</em><em>int</em><em>]</em><em>, </em><em>optional</em>) – The crop number(s) to visualize. Can be an integer or a list of integers, or None. Default is None. If None, all crops will be visualized.</p></li>
+<li><p><strong>classes</strong> (<em>str</em><em> | </em><em>Sequence</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The class to visualize. Can be a string or a list of strings. Default is “*”. If “*”, all classes will be visualized.</p></li>
+<li><p><strong>kinds</strong> (<em>Sequence</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The type of layers to visualize. Can be “gt” for groundtruth, “predictions” for predictions, or “processed” for processed data. Default is [“gt”, “predictions”, “processed”].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.visualize.add_layers">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.visualize.</span></span><span class="sig-name descname"><span class="pre">add_layers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Viewer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crops</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/visualize.html#add_layers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.visualize.add_layers" title="Link to this definition">#</a></dt>
+<dd><p>Add layers to a Neuroglancer viewer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>viewer</strong> (<em>neuroglancer.Viewer</em>) – The viewer to add layers to.</p></li>
+<li><p><strong>kind</strong> (<em>str</em>) – The type of layers to add. Can be “gt” for groundtruth, “predictions” for predictions, or “processed” for processed data.</p></li>
+<li><p><strong>dataset_name</strong> (<em>str</em>) – The name of the dataset to add layers for.</p></li>
+<li><p><strong>crops</strong> (<em>Sequence</em>) – The crops to add layers for.</p></li>
+<li><p><strong>classes</strong> (<em>Sequence</em><em>[</em><em>str</em><em>]</em>) – The class(es) to add layers for.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.visualize.get_layer">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.visualize.</span></span><span class="sig-name descname"><span class="pre">get_layer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layer_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'image'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Layer</span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/visualize.html#get_layer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.visualize.get_layer" title="Link to this definition">#</a></dt>
+<dd><p>Get a Neuroglancer layer from a zarr data path for a LocalVolume.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_path</strong> (<em>str</em>) – The path to the zarr data.</p></li>
+<li><p><strong>layer_type</strong> (<em>str</em>) – The type of layer to get. Can be “image” or “segmentation”. Default is “image”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The Neuroglancer layer.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>neuroglancer.Layer</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
@@ -380,22 +426,13 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="cellmap-schemas.html"
+       href="cellmap_segmentation_challenge.utils.security.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">CellMap Schemas</p>
+        <p class="prev-next-title">cellmap_segmentation_challenge.utils.security</p>
       </div>
-    </a>
-    <a class="right-next"
-       href="cellmap_segmentation_challenge.cli.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">cellmap_segmentation_challenge.cli</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
     </a>
 </div>
                 </footer>
@@ -403,6 +440,24 @@
             </div>
             
             
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.visualize.visualize"><code class="docutils literal notranslate"><span class="pre">visualize()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.visualize.add_layers"><code class="docutils literal notranslate"><span class="pre">add_layers()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.visualize.get_layer"><code class="docutils literal notranslate"><span class="pre">get_layer()</span></code></a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>

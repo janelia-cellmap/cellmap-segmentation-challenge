@@ -8,6 +8,8 @@ cellmap\_segmentation\_challenge.evaluate
 
    .. autosummary::
    
+      package_submission
+      resize_array
       save_numpy_class_arrays_to_zarr
       save_numpy_class_labels_to_zarr
       score_instance
@@ -16,4 +18,5 @@ cellmap\_segmentation\_challenge.evaluate
       score_submission
       score_volume
       unzip_file
+      zip_submission
    

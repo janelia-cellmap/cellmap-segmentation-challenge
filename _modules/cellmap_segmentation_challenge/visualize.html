@@ -1,0 +1,577 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cellmap_segmentation_challenge.visualize &#8212; CellMap Segmentation Challenge</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!-- 
+    this give us a css class that will be invisible only if js is disabled 
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=a3416100" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
+
+    <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/cellmap_segmentation_challenge/visualize';</script>
+    <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/CellMapLogo.png" class="logo__image only-light" alt="CellMap Segmentation Challenge - Home"/>
+    <img src="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/CellMapLogo.png" class="logo__image only-dark pst-js-only" alt="CellMap Segmentation Challenge - Home"/>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../cellmap-schemas.html">CellMap Schemas</a></li>
+
+
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../cellmap_segmentation_challenge.html">cellmap_segmentation_challenge</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.html">cellmap_segmentation_challenge.cli</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.datasplit.html">cellmap_segmentation_challenge.cli.datasplit</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.evaluate.html">cellmap_segmentation_challenge.cli.evaluate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.fetch_data.html">cellmap_segmentation_challenge.cli.fetch_data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.predict.html">cellmap_segmentation_challenge.cli.predict</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.process.html">cellmap_segmentation_challenge.cli.process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.train.html">cellmap_segmentation_challenge.cli.train</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.cli.visualize.html">cellmap_segmentation_challenge.cli.visualize</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.config.html">cellmap_segmentation_challenge.config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.evaluate.html">cellmap_segmentation_challenge.evaluate</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.models.model_load.html">cellmap_segmentation_challenge.models.model_load</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.models.resnet.html">cellmap_segmentation_challenge.models.resnet</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.models.unet_model_2D.html">cellmap_segmentation_challenge.models.unet_model_2D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.models.unet_model_3D.html">cellmap_segmentation_challenge.models.unet_model_3D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.models.vitnet.html">cellmap_segmentation_challenge.models.vitnet</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.process.html">cellmap_segmentation_challenge.process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.crops.html">cellmap_segmentation_challenge.utils.crops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.dataloader.html">cellmap_segmentation_challenge.utils.dataloader</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.datasplit.html">cellmap_segmentation_challenge.utils.datasplit</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.fetch_data.html">cellmap_segmentation_challenge.utils.fetch_data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.loss.html">cellmap_segmentation_challenge.utils.loss</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cellmap_segmentation_challenge.utils.security.html">cellmap_segmentation_challenge.utils.security</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cellmap_segmentation_challenge.visualize.html">cellmap_segmentation_challenge.visualize</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for cellmap_segmentation_challenge.visualize</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">webbrowser</span>
+<span class="kn">from</span> <span class="nn">glob</span> <span class="kn">import</span> <span class="n">glob</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Sequence</span>
+
+<span class="kn">import</span> <span class="nn">neuroglancer</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">tensorstore</span>
+<span class="kn">import</span> <span class="nn">xarray_tensorstore</span> <span class="k">as</span> <span class="nn">xt</span>
+<span class="kn">import</span> <span class="nn">zarr</span>
+<span class="kn">from</span> <span class="nn">upath</span> <span class="kn">import</span> <span class="n">UPath</span>
+
+<span class="kn">from</span> <span class="nn">.config</span> <span class="kn">import</span> <span class="n">CROP_NAME</span><span class="p">,</span> <span class="n">PREDICTIONS_PATH</span><span class="p">,</span> <span class="n">PROCESSED_PATH</span><span class="p">,</span> <span class="n">SEARCH_PATH</span>
+<span class="kn">from</span> <span class="nn">.evaluate</span> <span class="kn">import</span> <span class="n">TEST_CROPS</span>
+<span class="kn">from</span> <span class="nn">.utils.datasplit</span> <span class="kn">import</span> <span class="n">get_dataset_name</span><span class="p">,</span> <span class="n">get_formatted_fields</span><span class="p">,</span> <span class="n">get_raw_path</span>
+
+<span class="n">search_paths</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;gt&quot;</span><span class="p">:</span> <span class="n">SEARCH_PATH</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{dataset}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">CROP_NAME</span><span class="p">),</span>
+    <span class="s2">&quot;predictions&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">PREDICTIONS_PATH</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;</span><span class="si">{label}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+    <span class="s2">&quot;processed&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">PROCESSED_PATH</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;</span><span class="si">{label}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="visualize">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.visualize.html#cellmap_segmentation_challenge.visualize.visualize">[docs]</a>
+<span class="k">def</span> <span class="nf">visualize</span><span class="p">(</span>
+    <span class="n">datasets</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;*&quot;</span><span class="p">,</span>
+    <span class="n">crops</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;*&quot;</span><span class="p">],</span>  <span class="c1"># TODO: Add &quot;test&quot; crops</span>
+    <span class="n">classes</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;*&quot;</span><span class="p">,</span>
+    <span class="n">kinds</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">search_paths</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Visualize datasets and crops in Neuroglancer.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    datasets : str | Sequence[str], optional</span>
+<span class="sd">        The name of the dataset to visualize. Can be a string or a list of strings. Default is &quot;*&quot;. If &quot;*&quot;, all datasets will be visualized.</span>
+<span class="sd">    crops : int | Sequence[int], optional</span>
+<span class="sd">        The crop number(s) to visualize. Can be an integer or a list of integers, or None. Default is None. If None, all crops will be visualized.</span>
+<span class="sd">    classes : str | Sequence[str], optional</span>
+<span class="sd">        The class to visualize. Can be a string or a list of strings. Default is &quot;*&quot;. If &quot;*&quot;, all classes will be visualized.</span>
+<span class="sd">    kinds : Sequence[str], optional</span>
+<span class="sd">        The type of layers to visualize. Can be &quot;gt&quot; for groundtruth, &quot;predictions&quot; for predictions, or &quot;processed&quot; for processed data. Default is [&quot;gt&quot;, &quot;predictions&quot;, &quot;processed&quot;].</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Get all matching datasets that can be found</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">datasets</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">dataset_paths</span> <span class="o">=</span> <span class="n">glob</span><span class="p">(</span><span class="n">SEARCH_PATH</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="n">datasets</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">dataset_paths</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="n">datasets</span><span class="p">:</span>
+            <span class="n">found_paths</span> <span class="o">=</span> <span class="n">glob</span><span class="p">(</span><span class="n">SEARCH_PATH</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">found_paths</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No datasets found for dataset: </span><span class="si">{</span><span class="n">dataset</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">dataset_paths</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">found_paths</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">classes</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">classes</span> <span class="o">=</span> <span class="p">[</span><span class="n">classes</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">crops</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">)):</span>
+        <span class="n">crops</span> <span class="o">=</span> <span class="p">[</span><span class="n">crops</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">crops</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">crops</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;test&quot;</span><span class="p">:</span>
+        <span class="n">crops</span> <span class="o">=</span> <span class="n">TEST_CROPS</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">crop</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">crops</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">crop</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">crop</span><span class="o">.</span><span class="n">isnumeric</span><span class="p">():</span>
+            <span class="n">crops</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="n">viewer_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">dataset_path</span> <span class="ow">in</span> <span class="n">dataset_paths</span><span class="p">:</span>
+        <span class="n">dataset_name</span> <span class="o">=</span> <span class="n">get_dataset_name</span><span class="p">(</span><span class="n">dataset_path</span><span class="p">)</span>
+
+        <span class="c1"># Make the neuroglancer viewer for this dataset</span>
+        <span class="n">viewer_dict</span><span class="p">[</span><span class="n">dataset_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">neuroglancer</span><span class="o">.</span><span class="n">Viewer</span><span class="p">()</span>
+
+        <span class="c1"># Add the raw dataset</span>
+        <span class="k">with</span> <span class="n">viewer_dict</span><span class="p">[</span><span class="n">dataset_name</span><span class="p">]</span><span class="o">.</span><span class="n">txn</span><span class="p">()</span> <span class="k">as</span> <span class="n">s</span><span class="p">:</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="s2">&quot;fibsem&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_layer</span><span class="p">(</span><span class="n">get_raw_path</span><span class="p">(</span><span class="n">dataset_path</span><span class="p">),</span> <span class="s2">&quot;image&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">kind</span> <span class="ow">in</span> <span class="n">kinds</span><span class="p">:</span>
+            <span class="n">viewer_dict</span><span class="p">[</span><span class="n">dataset_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">add_layers</span><span class="p">(</span>
+                <span class="n">viewer_dict</span><span class="p">[</span><span class="n">dataset_name</span><span class="p">],</span>
+                <span class="n">kind</span><span class="p">,</span>
+                <span class="n">dataset_name</span><span class="p">,</span>
+                <span class="n">crops</span><span class="p">,</span>
+                <span class="n">classes</span><span class="p">,</span>
+            <span class="p">)</span>
+
+    <span class="c1"># Output the viewers URL to open in a browser</span>
+    <span class="k">for</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">viewer</span> <span class="ow">in</span> <span class="n">viewer_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">viewer</span><span class="o">.</span><span class="n">get_viewer_url</span><span class="p">())</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dataset</span><span class="si">}</span><span class="s2"> viewer running at:</span><span class="se">\n\t</span><span class="si">{</span><span class="n">viewer</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Press Enter to close the viewers...&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="add_layers">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.visualize.html#cellmap_segmentation_challenge.visualize.add_layers">[docs]</a>
+<span class="k">def</span> <span class="nf">add_layers</span><span class="p">(</span>
+    <span class="n">viewer</span><span class="p">:</span> <span class="n">neuroglancer</span><span class="o">.</span><span class="n">Viewer</span><span class="p">,</span>
+    <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">dataset_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">crops</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">,</span>
+    <span class="n">classes</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add layers to a Neuroglancer viewer.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    viewer : neuroglancer.Viewer</span>
+<span class="sd">        The viewer to add layers to.</span>
+<span class="sd">    kind : str</span>
+<span class="sd">        The type of layers to add. Can be &quot;gt&quot; for groundtruth, &quot;predictions&quot; for predictions, or &quot;processed&quot; for processed data.</span>
+<span class="sd">    dataset_name : str</span>
+<span class="sd">        The name of the dataset to add layers for.</span>
+<span class="sd">    crops : Sequence</span>
+<span class="sd">        The crops to add layers for.</span>
+<span class="sd">    classes : Sequence[str]</span>
+<span class="sd">        The class(es) to add layers for.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">search_paths</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Type must be one of </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">search_paths</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">crop_paths</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">crop</span> <span class="ow">in</span> <span class="n">crops</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">classes</span><span class="p">:</span>
+            <span class="n">crop_paths</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                <span class="n">glob</span><span class="p">(</span>
+                    <span class="n">search_paths</span><span class="p">[</span><span class="n">kind</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">dataset</span><span class="o">=</span><span class="n">dataset_name</span><span class="p">,</span>
+                        <span class="n">crop</span><span class="o">=</span><span class="n">crop</span><span class="p">,</span>
+                        <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">crop_path</span> <span class="ow">in</span> <span class="n">crop_paths</span><span class="p">:</span>
+        <span class="n">formatted_fields</span> <span class="o">=</span> <span class="n">get_formatted_fields</span><span class="p">(</span>
+            <span class="n">crop_path</span><span class="p">,</span>
+            <span class="n">search_paths</span><span class="p">[</span><span class="n">kind</span><span class="p">],</span>
+            <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;</span><span class="si">{dataset}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{crop}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{label}</span><span class="s2">&quot;</span><span class="p">],</span>
+        <span class="p">)</span>
+
+        <span class="n">layer_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">formatted_fields</span><span class="p">[</span><span class="s1">&#39;crop&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">formatted_fields</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">layer_type</span> <span class="o">=</span> <span class="s2">&quot;segmentation&quot;</span> <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;gt&quot;</span> <span class="k">else</span> <span class="s2">&quot;image&quot;</span>
+        <span class="k">with</span> <span class="n">viewer</span><span class="o">.</span><span class="n">txn</span><span class="p">()</span> <span class="k">as</span> <span class="n">s</span><span class="p">:</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">layer_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_layer</span><span class="p">(</span><span class="n">crop_path</span><span class="p">,</span> <span class="n">layer_type</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">viewer</span></div>
+
+
+
+<div class="viewcode-block" id="get_layer">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.visualize.html#cellmap_segmentation_challenge.visualize.get_layer">[docs]</a>
+<span class="k">def</span> <span class="nf">get_layer</span><span class="p">(</span><span class="n">data_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">layer_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;image&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">neuroglancer</span><span class="o">.</span><span class="n">Layer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get a Neuroglancer layer from a zarr data path for a LocalVolume.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data_path : str</span>
+<span class="sd">        The path to the zarr data.</span>
+<span class="sd">    layer_type : str</span>
+<span class="sd">        The type of layer to get. Can be &quot;image&quot; or &quot;segmentation&quot;. Default is &quot;image&quot;.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    neuroglancer.Layer</span>
+<span class="sd">        The Neuroglancer layer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Construct an xarray with Tensorstore backend</span>
+    <span class="c1"># TODO: Make this work with multiscale properly</span>
+    <span class="n">spec</span> <span class="o">=</span> <span class="n">xt</span><span class="o">.</span><span class="n">_zarr_spec_from_path</span><span class="p">((</span><span class="n">UPath</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;s0&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">array_future</span> <span class="o">=</span> <span class="n">tensorstore</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">read</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">write</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">array</span> <span class="o">=</span> <span class="n">array_future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="ne">Warning</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="ne">UserWarning</span><span class="p">(</span><span class="s2">&quot;Falling back to zarr3 driver&quot;</span><span class="p">)</span>
+        <span class="n">spec</span><span class="p">[</span><span class="s2">&quot;driver&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;zarr3&quot;</span>
+        <span class="n">array_future</span> <span class="o">=</span> <span class="n">tensorstore</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">read</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">write</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">array</span> <span class="o">=</span> <span class="n">array_future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+
+    <span class="c1"># Get metadata</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">asdict</span><span class="p">()[</span><span class="s2">&quot;multiscales&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">scales</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">offset</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;axes&quot;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">axis</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;c&quot;</span><span class="p">:</span>
+            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;c^&quot;</span><span class="p">)</span>
+            <span class="n">scales</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">offset</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">units</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">axis</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">])</span>
+            <span class="n">units</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;nm&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;datasets&quot;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">ds</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;s0&quot;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">transform</span> <span class="ow">in</span> <span class="n">ds</span><span class="p">[</span><span class="s2">&quot;coordinateTransformations&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">transform</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;scale&quot;</span><span class="p">:</span>
+                    <span class="n">scales</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">transform</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">])</span>
+                <span class="k">elif</span> <span class="n">transform</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;translation&quot;</span><span class="p">:</span>
+                    <span class="n">offset</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">transform</span><span class="p">[</span><span class="s2">&quot;translation&quot;</span><span class="p">])</span>
+            <span class="k">break</span>
+
+    <span class="n">voxel_offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">scales</span><span class="p">)</span>
+    <span class="n">volume</span> <span class="o">=</span> <span class="n">neuroglancer</span><span class="o">.</span><span class="n">LocalVolume</span><span class="p">(</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">array</span><span class="p">,</span>
+        <span class="n">dimensions</span><span class="o">=</span><span class="n">neuroglancer</span><span class="o">.</span><span class="n">CoordinateSpace</span><span class="p">(</span>
+            <span class="n">scales</span><span class="o">=</span><span class="n">scales</span><span class="p">,</span>
+            <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span>
+            <span class="n">names</span><span class="o">=</span><span class="n">names</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">voxel_offset</span><span class="o">=</span><span class="n">voxel_offset</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;segmentation&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">neuroglancer</span><span class="o">.</span><span class="n">SegmentationLayer</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">volume</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">neuroglancer</span><span class="o">.</span><span class="n">ImageLayer</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">volume</span><span class="p">)</span></div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Jeff Rhoades, Emma Avetissian, Davis Vann Bennett, Marwan Zouinkhi
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2024, Jeff Rhoades, Emma Avetissian, Davis Vann Bennett, Marwan Zouinkhi.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
