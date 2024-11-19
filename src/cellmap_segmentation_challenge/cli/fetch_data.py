@@ -1,6 +1,6 @@
 import os
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import click
 import numpy as np
@@ -124,9 +124,10 @@ def fetch_data_cli(
     log.info(f"Preparing to copy the following crops: {crop_ids}")
     log.info(f"Data will be saved to {dest_path_abs}")
 
+    futures = []
     for crop in crops_parsed:
         log = log.bind(crop_id=crop.id, dataset=crop.dataset)
-        gt_save_start = time.time()
+        # gt_save_start = time.time()
         # gt_source_url = _resolve_gt_source_url(crop_url, crop)
         gt_source_url = crop.gt_url
         em_source_url = crop.em_url
@@ -176,18 +177,20 @@ def fetch_data_cli(
             f"Preparing to fetch {len(crop_group_inventory)} files from {gt_source_url}."
         )
 
-        partition_copy_store(
-            keys=crop_group_inventory,
-            source_store=gt_source_group.store,
-            dest_store=dest_crop_group.store,
-            batch_size=256,
-            pool=pool,
-            log=log,
+        futures.extend(
+            partition_copy_store(
+                keys=crop_group_inventory,
+                source_store=gt_source_group.store,
+                dest_store=dest_crop_group.store,
+                batch_size=256,
+                pool=pool,
+                # log=log,
+            )
         )
 
-        log.info(
-            f"Finished saving crop to local directory after {time.time() - gt_save_start:0.3f}s"
-        )
+        # log.info(
+        #     f"Finished saving crop to local directory after {time.time() - gt_save_start:0.3f}s"
+        # )
         if em_source_group is None:
             log.info(
                 f"No EM data found at any of the possible URLs. No EM data will be fetched for this crop."
@@ -294,14 +297,25 @@ def fetch_data_cli(
                 log.info(
                     f"Preparing to fetch {len(em_group_inventory)} files from {em_source_url}."
                 )
-                partition_copy_store(
-                    keys=em_group_inventory,
-                    source_store=em_source_group.store,
-                    dest_store=dest_em_group.store,
-                    batch_size=256,
-                    pool=pool,
-                    log=log,
+                futures.extend(
+                    partition_copy_store(
+                        keys=em_group_inventory,
+                        source_store=em_source_group.store,
+                        dest_store=dest_em_group.store,
+                        batch_size=256,
+                        pool=pool,
+                        # log=log,
+                    )
                 )
 
     log = log.unbind("crop_id", "dataset")
+    num_iter = len(futures)
+    for idx, maybe_result in enumerate(as_completed(futures)):
+        try:
+            result = maybe_result.result()
+            log.debug(f"Completed fetching batch {idx + 1} / {num_iter}")
+        except Exception as e:
+            log.exception(e)
+
+    # log = log.unbind("crop_id", "dataset")
     log.info(f"Done after {time.time() - fetch_save_start:0.3f}s")
