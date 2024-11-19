@@ -85,7 +85,7 @@ path = "src/cellmap_segmentation_challenge/__about__.py"
 
 [tool.hatch.envs.default]
 installer = "pip"
-python = "3.10"
+python = "3.11"
 
 [tool.hatch.envs.test]
 dependencies = ["pytest"]

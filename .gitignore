@@ -185,3 +185,4 @@ tensorboard/
 # Challenge specific files
 data/*
 datasplit.csv
+result.csv

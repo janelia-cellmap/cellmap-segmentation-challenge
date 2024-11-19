@@ -502,10 +502,11 @@ def score_submission(
     # Combine label scores across volumes, normalizing by the number of voxels
     print("Combining label scores...")
     label_scores = {}
+    num_voxels = 0
     for volume in volumes:
-        for label in scores[volume]:
+        for label, this_score in scores[volume].items():
             if label == "num_voxels":
-                continue
+                num_voxels += this_score
             elif label in instance_classes:
                 if label not in label_scores:
                     label_scores[label] = {
@@ -515,29 +516,38 @@ def score_submission(
                         "combined_score": 0,
                     }
                 label_scores[label]["accuracy"] += (
-                    scores[volume][label]["accuracy"] / scores[volume]["num_voxels"]
+                    this_score["accuracy"] / scores[volume]["num_voxels"]
                 )
                 label_scores[label]["hausdorff_distance"] += (
-                    scores[volume][label]["hausdorff_distance"]
-                    / scores[volume]["num_voxels"]
+                    this_score["hausdorff_distance"] / scores[volume]["num_voxels"]
                 )
                 label_scores[label]["normalized_hausdorff_distance"] += (
-                    scores[volume][label]["normalized_hausdorff_distance"]
+                    this_score["normalized_hausdorff_distance"]
                     / scores[volume]["num_voxels"]
                 )
                 label_scores[label]["combined_score"] += (
-                    scores[volume][label]["combined_score"]
-                    / scores[volume]["num_voxels"]
+                    this_score["combined_score"] / scores[volume]["num_voxels"]
                 )
             else:
                 if label not in label_scores:
                     label_scores[label] = {"iou": 0, "dice_score": 0}
                 label_scores[label]["iou"] += (
-                    scores[volume][label]["iou"] / scores[volume]["num_voxels"]
+                    this_score["iou"] / scores[volume]["num_voxels"]
                 )
                 label_scores[label]["dice_score"] += (
-                    scores[volume][label]["dice_score"] / scores[volume]["num_voxels"]
+                    this_score["dice_score"] / scores[volume]["num_voxels"]
                 )
+
+    # Normalize back to the total number of voxels
+    for label in label_scores:
+        if label in instance_classes:
+            label_scores[label]["accuracy"] *= num_voxels
+            label_scores[label]["hausdorff_distance"] *= num_voxels
+            label_scores[label]["normalized_hausdorff_distance"] *= num_voxels
+            label_scores[label]["combined_score"] *= num_voxels
+        else:
+            label_scores[label]["iou"] *= num_voxels
+            label_scores[label]["dice_score"] *= num_voxels
     scores["label_scores"] = label_scores
 
     # Compute the overall score
@@ -554,6 +564,10 @@ def score_submission(
     scores["overall_score"] = (
         scores["overall_instance_score"] * scores["overall_semantic_score"]
     ) ** 0.5  # geometric mean
+
+    print(f"Overall Instance Score: {scores['overall_instance_score']:.4f}")
+    print(f"Overall Semantic Score: {scores['overall_semantic_score']:.4f}")
+    print(f"Overall Score: {scores['overall_score']:.4f}")
 
     # Save the scores
     if result_file:
