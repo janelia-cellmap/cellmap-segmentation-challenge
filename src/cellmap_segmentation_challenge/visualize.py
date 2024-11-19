@@ -11,8 +11,7 @@ from upath import UPath
 
 from .config import CROP_NAME, PREDICTIONS_PATH, PROCESSED_PATH, SEARCH_PATH
 from .evaluate import TEST_CROPS
-from .utils.datasplit import (get_dataset_name, get_formatted_fields,
-                              get_raw_path)
+from .utils.datasplit import get_dataset_name, get_formatted_fields, get_raw_path
 
 search_paths = {
     "gt": SEARCH_PATH.format(dataset="{dataset}", name=CROP_NAME),
@@ -61,7 +60,7 @@ def visualize(
     if len(crops) == 1 and crops[0] == "test":
         crops = TEST_CROPS
     for i, crop in enumerate(crops):
-        if isinstance(crop, int):
+        if isinstance(crop, int) or crop.isnumeric():
             crops[i] = f"crop{crop}"
 
     viewer_dict = {}
