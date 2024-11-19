@@ -29,25 +29,17 @@ def partition_copy_store(
     dest_store,
     batch_size,
     pool: ThreadPoolExecutor,
-    log: structlog.BoundLogger | None = None,
 ):
 
-    if log is None:
-        log = structlog.get_logger()
     keys_partitioned = toolz.partition_all(batch_size, keys)
+    keys_partitioned = list(keys_partitioned)
     futures = tuple(
         pool.submit(
             copy_store, keys=batch, source_store=source_store, dest_store=dest_store
         )
         for batch in keys_partitioned
     )
-    num_iter = len(futures)
-    for idx, maybe_result in enumerate(as_completed(futures)):
-        try:
-            result = maybe_result.result()
-            log.debug(f"Completed fetching batch {idx + 1} / {num_iter}")
-        except Exception as e:
-            log.exception(e)
+    return futures
 
 
 def _resolve_gt_dest_path(crop: CropRow) -> str:

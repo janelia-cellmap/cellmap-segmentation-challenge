@@ -4,6 +4,7 @@ from .config import (
     PROCESSED_PATH,
     RAW_NAME,
     REPO_ROOT,
+    BASE_DATA_PATH,
     SEARCH_PATH,
     SUBMISSION_PATH,
 )
