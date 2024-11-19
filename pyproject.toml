@@ -119,7 +119,7 @@ csc = "cellmap_segmentation_challenge.cli:run"
 
 [tool.pixi.project]
 channels = ["conda-forge", "pytorch"]
-platforms = ["win-64", "linux-64"]
+platforms = ["win-64", "linux-64", "osx-arm64", "osx-64"]
 
 [tool.pixi.pypi-dependencies]
 cellmap-segmentation-challenge = { path = ".", editable = true }
@@ -138,3 +138,6 @@ numba = ">=0.60.0,<0.61"
 torchvision = ">=0.20.1,<0.21"
 pytorch = ">=2.5.1,<3"
 numpy = ">=2.0.2,<3"
+
+[tool.pixi.feature.dev.dependencies]
+gunpowder = "*"
