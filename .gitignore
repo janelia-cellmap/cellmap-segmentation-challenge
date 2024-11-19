@@ -184,4 +184,6 @@ tensorboard/
 
 # Challenge specific files
 data/*
-datasplit.csv
+datasplit.csv# pixi environments
+.pixi
+*.egg-info

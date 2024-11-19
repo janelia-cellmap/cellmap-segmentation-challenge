@@ -25,7 +25,6 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-  "torch",
   "tensorboard",
   "tensorboardX",
   "cellmap-schemas==0.8.0",
@@ -40,7 +39,6 @@ dependencies = [
   "ml-collections",
   "scipy",
   "numpy",
-  "tensorstore",
   "python-dotenv",
   "universal-pathlib",
   "neuroglancer",
@@ -118,3 +116,25 @@ exclude_lines = [
 
 [project.scripts]
 csc = "cellmap_segmentation_challenge.cli:run"
+
+[tool.pixi.project]
+channels = ["conda-forge", "pytorch"]
+platforms = ["win-64", "linux-64"]
+
+[tool.pixi.pypi-dependencies]
+cellmap-segmentation-challenge = { path = ".", editable = true }
+
+[tool.pixi.environments]
+default = { solve-group = "default" }
+dev = { features = ["dev", "test", "docs"], solve-group = "default" }
+docs = { features = ["docs"], solve-group = "default" }
+test = { features = ["test"], solve-group = "default" }
+
+[tool.pixi.tasks]
+
+[tool.pixi.dependencies]
+python = ">=3.11"
+numba = ">=0.60.0,<0.61"
+torchvision = ">=0.20.1,<0.21"
+pytorch = ">=2.5.1,<3"
+numpy = ">=2.0.2,<3"
