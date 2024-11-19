@@ -1,6 +1,6 @@
 import os
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import click
 import numpy as np
@@ -24,7 +24,7 @@ from cellmap_segmentation_challenge.utils.fetch_data import (
     read_group,
     subset_to_slice,
 )
-from cellmap_segmentation_challenge.config import REPO_ROOT
+from cellmap_segmentation_challenge.config import BASE_DATA_PATH
 
 load_dotenv()
 
@@ -40,6 +40,7 @@ num_workers = int(os.environ.get("CSC_FETCH_DATA_NUM_WORKERS", 32))
 
 @click.command
 @click.option(
+    "-c",
     "--crops",
     type=click.STRING,
     required=True,
@@ -47,18 +48,21 @@ num_workers = int(os.environ.get("CSC_FETCH_DATA_NUM_WORKERS", 32))
     help='A comma-separated list of crops to download, e.g., "111,112,113", "test" to only download test crops, or "all" to download all crops. Default: "all".',
 )
 @click.option(
+    "-p",
     "--raw-padding",
     type=click.INT,
     default=0,
     help="Padding to apply to raw data, in voxels. Default: 0.",
 )
 @click.option(
+    "-d",
     "--dest",
     type=click.STRING,
-    default=(REPO_ROOT / "data").path,
-    help="Path to directory where data will be stored.",
+    default=BASE_DATA_PATH.path,
+    help=f"Path to directory where data will be stored. Defaults to {BASE_DATA_PATH.path}",
 )
 @click.option(
+    "-m",
     "--access-mode",
     type=click.STRING,
     default="append",
@@ -72,12 +76,20 @@ num_workers = int(os.environ.get("CSC_FETCH_DATA_NUM_WORKERS", 32))
     default=False,
     help='Fetch all resolutions for the EM data. Default: False. Note: setting this to "True" may result in downloading tens or hundreds of GB of data, depending on the crop.',
 )
+@click.option(
+    "-b",
+    "--batch-size",
+    type=click.INT,
+    default=256,
+    help="Number of files to fetch in each batch. Default: 256.",
+)
 def fetch_data_cli(
     crops: str,
     raw_padding: str,
     dest: str,
     access_mode: str,
     fetch_all_em_resolutions,
+    batch_size,
 ):
     """
     Download data for the CellMap segmentation challenge.
@@ -124,9 +136,10 @@ def fetch_data_cli(
     log.info(f"Preparing to copy the following crops: {crop_ids}")
     log.info(f"Data will be saved to {dest_path_abs}")
 
+    futures = []
     for crop in crops_parsed:
         log = log.bind(crop_id=crop.id, dataset=crop.dataset)
-        gt_save_start = time.time()
+        # gt_save_start = time.time()
         # gt_source_url = _resolve_gt_source_url(crop_url, crop)
         gt_source_url = crop.gt_url
         em_source_url = crop.em_url
@@ -176,18 +189,19 @@ def fetch_data_cli(
             f"Preparing to fetch {len(crop_group_inventory)} files from {gt_source_url}."
         )
 
-        partition_copy_store(
-            keys=crop_group_inventory,
-            source_store=gt_source_group.store,
-            dest_store=dest_crop_group.store,
-            batch_size=256,
-            pool=pool,
-            log=log,
+        futures.extend(
+            partition_copy_store(
+                keys=crop_group_inventory,
+                source_store=gt_source_group.store,
+                dest_store=dest_crop_group.store,
+                batch_size=batch_size,
+                pool=pool,
+            )
         )
 
-        log.info(
-            f"Finished saving crop to local directory after {time.time() - gt_save_start:0.3f}s"
-        )
+        # log.info(
+        #     f"Finished saving crop to local directory after {time.time() - gt_save_start:0.3f}s"
+        # )
         if em_source_group is None:
             log.info(
                 f"No EM data found at any of the possible URLs. No EM data will be fetched for this crop."
@@ -294,14 +308,26 @@ def fetch_data_cli(
                 log.info(
                     f"Preparing to fetch {len(em_group_inventory)} files from {em_source_url}."
                 )
-                partition_copy_store(
-                    keys=em_group_inventory,
-                    source_store=em_source_group.store,
-                    dest_store=dest_em_group.store,
-                    batch_size=256,
-                    pool=pool,
-                    log=log,
+                futures.extend(
+                    partition_copy_store(
+                        keys=em_group_inventory,
+                        source_store=em_source_group.store,
+                        dest_store=dest_em_group.store,
+                        batch_size=batch_size,
+                        pool=pool,
+                    )
                 )
 
     log = log.unbind("crop_id", "dataset")
+    log = log.bind(save_location=dest_path_abs.path)
+    num_iter = len(futures)
+    for idx, maybe_result in enumerate(as_completed(futures)):
+        try:
+            result = maybe_result.result()
+            log.debug(f"Completed fetching batch {idx + 1} / {num_iter}")
+        except Exception as e:
+            log.exception(e)
+
+    log.unbind("save_location")
     log.info(f"Done after {time.time() - fetch_save_start:0.3f}s")
+    log.info(f"Data saved to {dest_path_abs}")
