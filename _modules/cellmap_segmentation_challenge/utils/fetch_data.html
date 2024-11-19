@@ -319,11 +319,8 @@
     <span class="n">dest_store</span><span class="p">,</span>
     <span class="n">batch_size</span><span class="p">,</span>
     <span class="n">pool</span><span class="p">:</span> <span class="n">ThreadPoolExecutor</span><span class="p">,</span>
-    <span class="c1"># log: structlog.BoundLogger | None = None,</span>
 <span class="p">):</span>
 
-    <span class="c1"># if log is None:</span>
-    <span class="c1">#     log = structlog.get_logger()</span>
     <span class="n">keys_partitioned</span> <span class="o">=</span> <span class="n">toolz</span><span class="o">.</span><span class="n">partition_all</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">keys</span><span class="p">)</span>
     <span class="n">keys_partitioned</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">keys_partitioned</span><span class="p">)</span>
     <span class="n">futures</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
