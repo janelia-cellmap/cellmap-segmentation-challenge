@@ -16,7 +16,7 @@ from upath import UPath
 
 from cellmap_data import CellMapImage
 
-from .config import PROCESSED_PATH, SUBMISSION_PATH, REPO_ROOT
+from .config import PROCESSED_PATH, SUBMISSION_PATH, BASE_DATA_PATH
 
 INSTANCE_CLASSES = [
     "nuc",
@@ -61,7 +61,7 @@ CROP_SHAPE = {
 
 HAUSDORFF_DISTANCE_MAX = np.inf
 
-TRUTH_PATH = (REPO_ROOT / "data/ground_truth.zarr").path
+TRUTH_PATH = (BASE_DATA_PATH / "ground_truth.zarr").path
 
 
 def unzip_file(zip_path):

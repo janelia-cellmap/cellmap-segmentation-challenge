@@ -29,11 +29,8 @@ def partition_copy_store(
     dest_store,
     batch_size,
     pool: ThreadPoolExecutor,
-    # log: structlog.BoundLogger | None = None,
 ):
 
-    # if log is None:
-    #     log = structlog.get_logger()
     keys_partitioned = toolz.partition_all(batch_size, keys)
     keys_partitioned = list(keys_partitioned)
     futures = tuple(

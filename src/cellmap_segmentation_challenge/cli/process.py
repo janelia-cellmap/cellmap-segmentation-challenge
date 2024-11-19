@@ -1,7 +1,7 @@
 import click
 from upath import UPath
 
-from ..config import REPO_ROOT
+from ..config import PREDICTIONS_PATH, PROCESSED_PATH
 from ..process import process
 
 
@@ -24,16 +24,16 @@ from ..process import process
     "-i",
     type=click.STRING,
     required=True,
-    default=(REPO_ROOT / "data/predictions/{dataset}.zarr/{crop}").path,
-    help=f"Path to save the processed crops with {'{crop}'} and {'{dataset}'} placeholders for formatting. Default: {(REPO_ROOT / 'data/predictions/{dataset}.zarr/{crop}').path}.",
+    default=PREDICTIONS_PATH,
+    help=f"Path to save the processed crops with {'{crop}'} and {'{dataset}'} placeholders for formatting. Default: {PREDICTIONS_PATH}.",
 )
 @click.option(
     "--output-path",
     "-o",
     type=click.STRING,
     required=True,
-    default=(REPO_ROOT / "data/processed/{dataset}.zarr/{crop}").path,
-    help=f"Path to save the processed crops with {'{crop}'} and {'{dataset}'} placeholders for formatting. Default: {(REPO_ROOT / 'data/processed/{dataset}.zarr/{crop}').path}.",
+    default=PROCESSED_PATH,
+    help=f"Path to save the processed crops with {'{crop}'} and {'{dataset}'} placeholders for formatting. Default: {PROCESSED_PATH}.",
 )
 @click.option(
     "--overwrite",
