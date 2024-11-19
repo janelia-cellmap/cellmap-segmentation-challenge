@@ -5370,7 +5370,7 @@ packages:
   name: cellmap-segmentation-challenge
   version: 0.0.1
   path: .
-  sha256: 796fc4ce1218491a90636171bfc12dbd349557f2155bad22d2fece09a8460277
+  sha256: ae008265799a871c0d1b77bd6d81918cdb7c2ce713212dd7382d2d4a7c2e6984
   requires_dist:
   - cellmap-data @ git+https://github.com/janelia-cellmap/cellmap-data
   - cellmap-schemas==0.8.0
