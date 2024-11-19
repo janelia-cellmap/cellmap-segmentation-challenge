@@ -237,7 +237,6 @@ crop_name, dataset, alignment, crop_url, em_url
 387,jrc_mus-liver-zon-2,recon-1,s3://janelia-cellmap-fg5f2y1pl8/jrc_mus-liver-zon-2/jrc_mus-liver-zon-2.zarr/recon-1/groundtruth/crop387,s3://janelia-cosem-datasets/jrc_mus-liver-zon-2/jrc_mus-liver-zon-2.zarr/recon-1/em/fibsem-uint8
 408,jrc_mus-liver-zon-2,recon-1,s3://janelia-cellmap-fg5f2y1pl8/jrc_mus-liver-zon-2/jrc_mus-liver-zon-2.zarr/recon-1/groundtruth/crop408,s3://janelia-cosem-datasets/jrc_mus-liver-zon-2/jrc_mus-liver-zon-2.zarr/recon-1/em/fibsem-uint8
 115,jrc_mus-nacc-1,recon-1,s3://janelia-cellmap-fg5f2y1pl8/jrc_mus-nacc-1/jrc_mus-nacc-1.zarr/recon-1/groundtruth/crop115,s3://janelia-cosem-datasets/jrc_mus-nacc-1/jrc_mus-nacc-1.zarr/recon-1/em/fibsem-uint8
-106,jrc_mus-pancreas-1,,,
 20,jrc_sum159-1,recon-1,s3://janelia-cellmap-fg5f2y1pl8/jrc_sum159-1/jrc_sum159-1.zarr/recon-1/groundtruth/crop20,s3://janelia-cosem-datasets/jrc_sum159-1/jrc_sum159-1.zarr/recon-1/em/fibsem-uint8
 22,jrc_sum159-1,recon-1,s3://janelia-cellmap-fg5f2y1pl8/jrc_sum159-1/jrc_sum159-1.zarr/recon-1/groundtruth/crop22,s3://janelia-cosem-datasets/jrc_sum159-1/jrc_sum159-1.zarr/recon-1/em/fibsem-uint8
 25,jrc_sum159-1,recon-1,s3://janelia-cellmap-fg5f2y1pl8/jrc_sum159-1/jrc_sum159-1.zarr/recon-1/groundtruth/crop25,s3://janelia-cosem-datasets/jrc_sum159-1/jrc_sum159-1.zarr/recon-1/em/fibsem-uint8

@@ -44,6 +44,8 @@ dependencies = [
   "python-dotenv",
   "universal-pathlib",
   "neuroglancer",
+  "scikit-learn",
+  "scikit-image",
   ]
 
 [project.optional-dependencies]
