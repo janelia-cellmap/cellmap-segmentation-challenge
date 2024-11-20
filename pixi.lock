@@ -5370,7 +5370,7 @@ packages:
   name: cellmap-segmentation-challenge
   version: 0.0.1
   path: .
-  sha256: 73cfe30003120849c65023c4a6e8014080bf9dc3d3693837872d8c6593982084
+  sha256: 99901b550cf91cce02ae6ea7d46a142e7ef9512fdad9e126b665c3c7281fb905
   requires_dist:
   - cellmap-data @ git+https://github.com/janelia-cellmap/cellmap-data
   - cellmap-schemas==0.8.0
@@ -5387,6 +5387,7 @@ packages:
   - tensorboardx
   - tensorstore>=0.1.68,<0.2
   - toolz
+  - torch
   - tqdm
   - universal-pathlib
   - xarray-ome-ngff>=3.1.1,<=4.0.0

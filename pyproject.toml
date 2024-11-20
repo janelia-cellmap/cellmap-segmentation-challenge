@@ -47,6 +47,7 @@ dependencies = [
   "scikit-image",
   "xarray-tensorstore>=0.1.5,<0.2",
   "tensorstore>=0.1.68,<0.2",
+  "torch",
   ]
 
 [project.optional-dependencies]
