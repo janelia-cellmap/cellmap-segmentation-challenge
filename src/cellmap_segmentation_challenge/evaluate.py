@@ -399,19 +399,78 @@ def score_volume(
         a for a in zarr.open((UPath(truth_path) / volume_name).path).array_keys()
     ]
 
-    labels = list(set(pred_labels) & set(truth_labels))
+    found_labels = list(set(pred_labels) & set(truth_labels))
+    missing_labels = list(set(truth_labels) - set(pred_labels))
 
     # Score each label
     scores = {
         label: score_label(
-            os.path.join(pred_volume_path, label),
+            pred_volume_path / label,
             truth_path=truth_path,
             instance_classes=instance_classes,
         )
-        for label in labels
+        for label in found_labels
     }
-    scores["num_voxels"] = int(
-        np.prod(zarr.open((pred_volume_path / labels[0]).path).shape)
+    scores.update(
+        {
+            label: (
+                {
+                    "accuracy": 0,
+                    "hausdorff_distance": 0,
+                    "normalized_hausdorff_distance": 0,
+                    "combined_score": 0,
+                }
+                if label in instance_classes
+                else {"iou": 0, "dice_score": 0}
+            )
+            for label in missing_labels
+        }
+    )
+    print(f"Missing labels: {missing_labels}")
+    scores["num_voxels"] = int(  # TODO: Need to have num_voxels for each label
+        np.prod(zarr.open((pred_volume_path / found_labels[0]).path).shape)
+    )
+
+    return scores
+
+
+def missing_volume_score(
+    truth_volume_path, instance_classes=INSTANCE_CLASSES
+) -> dict[str, dict[str, float]]:
+    """
+    Score a missing volume as 0's, congruent with the score_volume function.
+
+    Args:
+        truth_volume_path (str): The path to the ground truth volume.
+
+    Returns:
+        dict: A dictionary of scores for the volume.
+
+    Example usage:
+        scores = missing_volume_score('truth.zarr/test_volume')
+    """
+    print(f"Scoring missing volume {truth_volume_path}...")
+    truth_volume_path = UPath(truth_volume_path)
+
+    # Find labels to score
+    truth_labels = [a for a in zarr.open(truth_volume_path.path).array_keys()]
+
+    # Score each label
+    scores = {
+        label: (
+            {
+                "accuracy": 0,
+                "hausdorff_distance": 0,
+                "normalized_hausdorff_distance": 0,
+                "combined_score": 0,
+            }
+            if label in instance_classes
+            else {"iou": 0, "dice_score": 0}
+        )
+        for label in truth_labels
+    }
+    scores["num_voxels"] = int(  # TODO: Need to have num_voxels for each label
+        np.prod(zarr.open((truth_volume_path / truth_labels[0]).path).shape)
     )
 
     return scores
@@ -482,12 +541,18 @@ def score_submission(
     truth_volumes = [d.name for d in UPath(truth_path).glob("*") if d.is_dir()]
     print(f"Truth volumes: {truth_volumes}")
 
-    volumes = list(set(pred_volumes) & set(truth_volumes))
-    if len(volumes) == 0:
+    found_volumes = list(
+        set(pred_volumes) & set(truth_volumes)
+    )  # TODO: Score all volumes, and just return 0 scores for missing volumes
+    missing_volumes = list(set(truth_volumes) - set(pred_volumes))
+    if len(found_volumes) == 0:
         raise ValueError(
             "No volumes found to score. Make sure the submission is formatted correctly."
         )
-    print(f"Scoring volumes: {volumes}")
+    print(f"Scoring volumes: {found_volumes}")
+    if len(missing_volumes) > 0:
+        print(f"Missing volumes: {missing_volumes}")
+        print("Scoring missing volumes as 0's")
 
     # Score each volume
     scores = {
@@ -496,14 +561,22 @@ def score_submission(
             truth_path=truth_path,
             instance_classes=instance_classes,
         )
-        for volume in volumes
+        for volume in found_volumes
     }
+    scores.update(
+        {
+            volume: missing_volume_score(
+                truth_path / volume, instance_classes=instance_classes
+            )
+            for volume in missing_volumes
+        }
+    )
 
     # Combine label scores across volumes, normalizing by the number of voxels
     print("Combining label scores...")
     label_scores = {}
     num_voxels = 0
-    for volume in volumes:
+    for volume in truth_volumes:
         for label, this_score in scores[volume].items():
             if label == "num_voxels":
                 num_voxels += this_score
