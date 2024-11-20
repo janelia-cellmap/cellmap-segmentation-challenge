@@ -707,19 +707,81 @@
         <span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">((</span><span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">volume_name</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">array_keys</span><span class="p">()</span>
     <span class="p">]</span>
 
-    <span class="n">labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">pred_labels</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">truth_labels</span><span class="p">))</span>
+    <span class="n">found_labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">pred_labels</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">truth_labels</span><span class="p">))</span>
+    <span class="n">missing_labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">truth_labels</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">pred_labels</span><span class="p">))</span>
 
     <span class="c1"># Score each label</span>
     <span class="n">scores</span> <span class="o">=</span> <span class="p">{</span>
         <span class="n">label</span><span class="p">:</span> <span class="n">score_label</span><span class="p">(</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pred_volume_path</span><span class="p">,</span> <span class="n">label</span><span class="p">),</span>
+            <span class="n">pred_volume_path</span> <span class="o">/</span> <span class="n">label</span><span class="p">,</span>
             <span class="n">truth_path</span><span class="o">=</span><span class="n">truth_path</span><span class="p">,</span>
             <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">labels</span>
+        <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">found_labels</span>
     <span class="p">}</span>
-    <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">((</span><span class="n">pred_volume_path</span> <span class="o">/</span> <span class="n">labels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">scores</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="n">label</span><span class="p">:</span> <span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="s2">&quot;combined_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="p">}</span>
+                <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">instance_classes</span>
+                <span class="k">else</span> <span class="p">{</span><span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;dice_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">missing_labels</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing labels: </span><span class="si">{</span><span class="n">missing_labels</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>  <span class="c1"># TODO: Need to have num_voxels for each label</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">((</span><span class="n">pred_volume_path</span> <span class="o">/</span> <span class="n">found_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">scores</span></div>
+
+
+
+<div class="viewcode-block" id="missing_volume_score">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.evaluate.missing_volume_score">[docs]</a>
+<span class="k">def</span> <span class="nf">missing_volume_score</span><span class="p">(</span>
+    <span class="n">truth_volume_path</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">INSTANCE_CLASSES</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Score a missing volume as 0&#39;s, congruent with the score_volume function.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        truth_volume_path (str): The path to the ground truth volume.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: A dictionary of scores for the volume.</span>
+
+<span class="sd">    Example usage:</span>
+<span class="sd">        scores = missing_volume_score(&#39;truth.zarr/test_volume&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scoring missing volume </span><span class="si">{</span><span class="n">truth_volume_path</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+    <span class="n">truth_volume_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">truth_volume_path</span><span class="p">)</span>
+
+    <span class="c1"># Find labels to score</span>
+    <span class="n">truth_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">truth_volume_path</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">array_keys</span><span class="p">()]</span>
+
+    <span class="c1"># Score each label</span>
+    <span class="n">scores</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">label</span><span class="p">:</span> <span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;combined_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="p">}</span>
+            <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">instance_classes</span>
+            <span class="k">else</span> <span class="p">{</span><span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;dice_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">truth_labels</span>
+    <span class="p">}</span>
+    <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>  <span class="c1"># TODO: Need to have num_voxels for each label</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">((</span><span class="n">truth_volume_path</span> <span class="o">/</span> <span class="n">truth_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">scores</span></div>
@@ -793,12 +855,18 @@
     <span class="n">truth_volumes</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()]</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Truth volumes: </span><span class="si">{</span><span class="n">truth_volumes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-    <span class="n">volumes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">pred_volumes</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">truth_volumes</span><span class="p">))</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">volumes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">found_volumes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="nb">set</span><span class="p">(</span><span class="n">pred_volumes</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">truth_volumes</span><span class="p">)</span>
+    <span class="p">)</span>  <span class="c1"># TODO: Score all volumes, and just return 0 scores for missing volumes</span>
+    <span class="n">missing_volumes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">truth_volumes</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">pred_volumes</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">found_volumes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
             <span class="s2">&quot;No volumes found to score. Make sure the submission is formatted correctly.&quot;</span>
         <span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scoring volumes: </span><span class="si">{</span><span class="n">volumes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scoring volumes: </span><span class="si">{</span><span class="n">found_volumes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_volumes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing volumes: </span><span class="si">{</span><span class="n">missing_volumes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Scoring missing volumes as 0&#39;s&quot;</span><span class="p">)</span>
 
     <span class="c1"># Score each volume</span>
     <span class="n">scores</span> <span class="o">=</span> <span class="p">{</span>
@@ -807,14 +875,22 @@
             <span class="n">truth_path</span><span class="o">=</span><span class="n">truth_path</span><span class="p">,</span>
             <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="n">volumes</span>
+        <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="n">found_volumes</span>
     <span class="p">}</span>
+    <span class="n">scores</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="n">volume</span><span class="p">:</span> <span class="n">missing_volume_score</span><span class="p">(</span>
+                <span class="n">truth_path</span> <span class="o">/</span> <span class="n">volume</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="n">missing_volumes</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
 
     <span class="c1"># Combine label scores across volumes, normalizing by the number of voxels</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Combining label scores...&quot;</span><span class="p">)</span>
     <span class="n">label_scores</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">num_voxels</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="n">volumes</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="n">truth_volumes</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">this_score</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="s2">&quot;num_voxels&quot;</span><span class="p">:</span>
                 <span class="n">num_voxels</span> <span class="o">+=</span> <span class="n">this_score</span>

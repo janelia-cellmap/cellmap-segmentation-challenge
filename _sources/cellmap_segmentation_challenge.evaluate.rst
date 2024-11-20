@@ -8,6 +8,7 @@ cellmap\_segmentation\_challenge.evaluate
 
    .. autosummary::
    
+      missing_volume_score
       package_submission
       resize_array
       save_numpy_class_arrays_to_zarr
