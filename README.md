@@ -15,6 +15,12 @@ The package is built on top of the [`cellmap-data`](https://github.com/janelia-c
 
 # Getting started
 
+We provide two options for installation of the CellMap Segmentation Challenge software.
+1. Using `micromamba` and `pip`
+2. Using `pixi`
+
+# Getting started with micromamba and pip
+
 ## Set up your environment
 
 We recommend using micromamba to create a new environment with the required dependencies. You can install micromamba by following the instructions [here](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html#automatic-install). The fastest way to do this install is to run the following in your terminal:
@@ -45,6 +51,47 @@ git clone https://github.com/janelia-cellmap/cellmap-segmentation-challenge
 cd cellmap-segmentation-challenge
 pip install -e .
 ```
+
+# Getting Started with Pixi
+
+First, install `pixi` by visiting [pixi.sh](https://pixi.sh/latest/#installation)
+
+## Linux & macOS
+
+```bash
+curl -fsSL https://pixi.sh/install.sh | bash
+```
+
+## Windows
+
+### Powershell
+```
+iwr -useb https://pixi.sh/install.ps1 | iex
+```
+
+### winget
+
+```
+winget install prefix-dev.pixi
+```
+
+## Clone the repository
+
+You can clone and install the repository by running the following command:
+
+```bash
+# Clone the repository
+git clone https://github.com/janelia-cellmap/cellmap-segmentation-challenge
+
+# Install the repo in editable mode
+cd cellmap-segmentation-challenge
+pixi install
+```
+
+## Using the pixi environment
+
+To use the pixi environment, you can either prefix the commands below with `pixi run` (e.g. `pixi run csc --fetch-data`),
+or use `pixi shell` which is similar to activating an environment with `conda` or `mamba`.
 
 ## Repository structure
 
