@@ -673,9 +673,11 @@
 
     <span class="c1"># Compute the scores</span>
     <span class="k">if</span> <span class="n">label_name</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">score_instance</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">truth_label</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">score_instance</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">truth_label</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">score_semantic</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">truth_label</span><span class="p">)</span></div>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">score_semantic</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">truth_label</span><span class="p">)</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">truth_label</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">results</span></div>
 
 
 
@@ -727,17 +729,31 @@
                     <span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
                     <span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
                     <span class="s2">&quot;combined_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="s2">&quot;num_voxels&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span>
+                            <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
+                                <span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">volume_name</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span>
+                            <span class="p">)</span><span class="o">.</span><span class="n">shape</span>
+                        <span class="p">)</span>
+                    <span class="p">),</span>
                 <span class="p">}</span>
                 <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">instance_classes</span>
-                <span class="k">else</span> <span class="p">{</span><span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;dice_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+                <span class="k">else</span> <span class="p">{</span>
+                    <span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="s2">&quot;dice_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="s2">&quot;num_voxels&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span>
+                            <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
+                                <span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">volume_name</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span>
+                            <span class="p">)</span><span class="o">.</span><span class="n">shape</span>
+                        <span class="p">)</span>
+                    <span class="p">),</span>
+                <span class="p">}</span>
             <span class="p">)</span>
             <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">missing_labels</span>
         <span class="p">}</span>
     <span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing labels: </span><span class="si">{</span><span class="n">missing_labels</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>  <span class="c1"># TODO: Need to have num_voxels for each label</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">((</span><span class="n">pred_volume_path</span> <span class="o">/</span> <span class="n">found_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-    <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">scores</span></div>
 
@@ -774,15 +790,21 @@
                 <span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
                 <span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
                 <span class="s2">&quot;combined_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;num_voxels&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">((</span><span class="n">truth_volume_path</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                <span class="p">),</span>
             <span class="p">}</span>
             <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">instance_classes</span>
-            <span class="k">else</span> <span class="p">{</span><span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;dice_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+            <span class="k">else</span> <span class="p">{</span>
+                <span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;dice_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;num_voxels&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">((</span><span class="n">truth_volume_path</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                <span class="p">),</span>
+            <span class="p">}</span>
         <span class="p">)</span>
         <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">truth_labels</span>
     <span class="p">}</span>
-    <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>  <span class="c1"># TODO: Need to have num_voxels for each label</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">((</span><span class="n">truth_volume_path</span> <span class="o">/</span> <span class="n">truth_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-    <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">scores</span></div>
 
@@ -889,12 +911,10 @@
     <span class="c1"># Combine label scores across volumes, normalizing by the number of voxels</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Combining label scores...&quot;</span><span class="p">)</span>
     <span class="n">label_scores</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">num_voxels</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">num_voxels</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="n">truth_volumes</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">this_score</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="s2">&quot;num_voxels&quot;</span><span class="p">:</span>
-                <span class="n">num_voxels</span> <span class="o">+=</span> <span class="n">this_score</span>
-            <span class="k">elif</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label_scores</span><span class="p">:</span>
                     <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
                         <span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
@@ -902,39 +922,43 @@
                         <span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
                         <span class="s2">&quot;combined_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
                     <span class="p">}</span>
+                    <span class="n">num_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
                 <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;accuracy&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span>
-                    <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;accuracy&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">][</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span>
+                    <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;accuracy&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span>
                 <span class="p">)</span>
                 <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span>
-                    <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">][</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span>
+                    <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span>
                 <span class="p">)</span>
                 <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span>
                     <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">]</span>
-                    <span class="o">/</span> <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">][</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span>
+                    <span class="o">/</span> <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span>
                 <span class="p">)</span>
                 <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;combined_score&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span>
-                    <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;combined_score&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">][</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span>
+                    <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;combined_score&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span>
                 <span class="p">)</span>
+                <span class="n">num_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">+=</span> <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label_scores</span><span class="p">:</span>
                     <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;dice_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+                    <span class="n">num_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
                 <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;iou&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span>
-                    <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;iou&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">][</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span>
+                    <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;iou&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span>
                 <span class="p">)</span>
                 <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;dice_score&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span>
-                    <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;dice_score&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">][</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span>
+                    <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;dice_score&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span>
                 <span class="p">)</span>
+                <span class="n">num_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">+=</span> <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span>
 
     <span class="c1"># Normalize back to the total number of voxels</span>
     <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">label_scores</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
-            <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;accuracy&quot;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">num_voxels</span>
-            <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">num_voxels</span>
-            <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">num_voxels</span>
-            <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;combined_score&quot;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">num_voxels</span>
+            <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;accuracy&quot;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">num_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
+            <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">num_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
+            <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">num_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
+            <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;combined_score&quot;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">num_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;iou&quot;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">num_voxels</span>
-            <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;dice_score&quot;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">num_voxels</span>
+            <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;iou&quot;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">num_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
+            <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;dice_score&quot;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">num_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
     <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;label_scores&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">label_scores</span>
 
     <span class="c1"># Compute the overall score</span>
