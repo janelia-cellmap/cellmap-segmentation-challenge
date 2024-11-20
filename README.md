@@ -16,41 +16,13 @@ The package is built on top of the [`cellmap-data`](https://github.com/janelia-c
 # Getting started
 
 We provide two options for installation of the CellMap Segmentation Challenge software.
-1. Using `micromamba` and `pip`
-2. Using `pixi`
+1. Using `pixi`
+2. Using `micromamba` and `pip`
 
-## Getting started with micromamba and pip
+`pixi` is a new package management tool that can handle both conda and PyPI packages. This is particularly useful installation on Windows or advanced setups.
 
-### Set up your environment
-
-We recommend using micromamba to create a new environment with the required dependencies. You can install micromamba by following the instructions [here](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html#automatic-install). The fastest way to do this install is to run the following in your terminal:
-
-```bash
-"${SHELL}" <(curl -L micro.mamba.pm/install.sh)
-```
-
-Once you have micromamba installed, you can create a new environment with the required dependencies by running the following commands:
-
-```bash
-# Create a new environment
-micromamba create -n csc -y python=3.11
-
-# Activate the environment
-micromamba activate csc
-```
-
-### Clone the repository
-
-You can clone and install the repository by running the following command:
-
-```bash
-# Clone the repository
-git clone https://github.com/janelia-cellmap/cellmap-segmentation-challenge
-
-# Install the repo in editable mode
-cd cellmap-segmentation-challenge
-pip install -e .
-```
+For basic usage, we also provide a `pip` based installation method using micromamba to create a virtual environment.
+You can also [use pyvenv to create a virtual environment](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/#create-a-new-virtual-environment).
 
 ## Getting Started with Pixi
 
@@ -92,6 +64,39 @@ pixi install
 
 To use the pixi environment, you can either prefix the commands below with `pixi run` (e.g. `pixi run csc --fetch-data`),
 or use `pixi shell` which is similar to activating an environment with `conda` or `mamba`.
+
+## Getting started with micromamba and pip
+
+### Set up your environment
+
+We recommend using micromamba to create a new environment with the required dependencies. You can install micromamba by following the instructions [here](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html#automatic-install). The fastest way to do this install is to run the following in your terminal:
+
+```bash
+"${SHELL}" <(curl -L micro.mamba.pm/install.sh)
+```
+
+Once you have micromamba installed, you can create a new environment with the required dependencies by running the following commands:
+
+```bash
+# Create a new environment
+micromamba create -n csc -y python=3.11
+
+# Activate the environment
+micromamba activate csc
+```
+
+### Clone the repository
+
+You can clone and install the repository by running the following command:
+
+```bash
+# Clone the repository
+git clone https://github.com/janelia-cellmap/cellmap-segmentation-challenge
+
+# Install the repo in editable mode
+cd cellmap-segmentation-challenge
+pip install -e .
+```
 
 ## Repository structure
 
