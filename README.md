@@ -54,7 +54,7 @@ pip install -e .
 
 # Getting Started with Pixi
 
-First, install `pixi` by visiting [pixi.sh](https://pixi.sh/latest/#installation)
+First, install `pixi` by visiting [pixi.sh](https://pixi.sh/latest/#installation) or using the instructions below.
 
 ## Linux & macOS
 
