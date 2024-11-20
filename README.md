@@ -19,9 +19,9 @@ We provide two options for installation of the CellMap Segmentation Challenge so
 1. Using `micromamba` and `pip`
 2. Using `pixi`
 
-# Getting started with micromamba and pip
+## Getting started with micromamba and pip
 
-## Set up your environment
+### Set up your environment
 
 We recommend using micromamba to create a new environment with the required dependencies. You can install micromamba by following the instructions [here](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html#automatic-install). The fastest way to do this install is to run the following in your terminal:
 
@@ -39,7 +39,7 @@ micromamba create -n csc -y python=3.11
 micromamba activate csc
 ```
 
-## Clone the repository
+### Clone the repository
 
 You can clone and install the repository by running the following command:
 
@@ -52,30 +52,30 @@ cd cellmap-segmentation-challenge
 pip install -e .
 ```
 
-# Getting Started with Pixi
+## Getting Started with Pixi
 
 First, install `pixi` by visiting [pixi.sh](https://pixi.sh/latest/#installation) or using the instructions below.
 
-## Linux & macOS
+### Linux & macOS
 
 ```bash
 curl -fsSL https://pixi.sh/install.sh | bash
 ```
 
-## Windows
+### Windows
 
-### Powershell
+#### Powershell
 ```
 iwr -useb https://pixi.sh/install.ps1 | iex
 ```
 
-### winget
+#### winget
 
 ```
 winget install prefix-dev.pixi
 ```
 
-## Clone the repository
+### Clone the repository
 
 You can clone and install the repository by running the following command:
 
@@ -88,7 +88,7 @@ cd cellmap-segmentation-challenge
 pixi install
 ```
 
-## Using the pixi environment
+### Using the pixi environment
 
 To use the pixi environment, you can either prefix the commands below with `pixi run` (e.g. `pixi run csc --fetch-data`),
 or use `pixi shell` which is similar to activating an environment with `conda` or `mamba`.
