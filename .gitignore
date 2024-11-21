@@ -187,3 +187,6 @@ data/*
 datasplit.csv
 result.json
 result_submitted_only.json
+
+# Bash tasks
+nohup.out
