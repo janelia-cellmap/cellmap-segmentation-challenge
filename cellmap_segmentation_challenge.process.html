@@ -329,7 +329,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.process.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -341,20 +341,11 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="module-cellmap_segmentation_challenge.process">
-<span id="cellmap-segmentation-challenge-process"></span><h1>cellmap_segmentation_challenge.process<a class="headerlink" href="#module-cellmap_segmentation_challenge.process" title="Link to this heading">#</a></h1>
-<p class="rubric">Functions</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.process.process" title="cellmap_segmentation_challenge.process.process"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process</span></code></a>(config_path[, crops, input_path, ...])</p></td>
-<td><p>Process and save arrays using an arbitrary process function defined in a config python file.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
+  <section id="cellmap-segmentation-challenge-process">
+<h1>cellmap_segmentation_challenge.process<a class="headerlink" href="#cellmap-segmentation-challenge-process" title="Link to this heading">#</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.process.process">
-<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.process.</span></span><span class="sig-name descname"><span class="pre">process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">UPath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crops</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'test'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.7/x64/lib/python3.12/data/predictions/{dataset}.zarr/{crop}'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.7/x64/lib/python3.12/data/processed/{dataset}.zarr/{crop}'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/process.html#process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.process.process" title="Link to this definition">#</a></dt>
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.process">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.</span></span><span class="sig-name descname"><span class="pre">process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">UPath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crops</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'test'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.7/x64/lib/python3.12/data/predictions/{dataset}.zarr/{crop}'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.7/x64/lib/python3.12/data/processed/{dataset}.zarr/{crop}'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/process.html#process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.process" title="Link to this definition">#</a></dt>
 <dd><p>Process and save arrays using an arbitrary process function defined in a config python file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -421,7 +412,7 @@ The process function should take an array as input and return an array as output
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.process.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
 </ul>
   </nav></div>
 
