@@ -8,6 +8,7 @@ cellmap\_segmentation\_challenge.evaluate
 
    .. autosummary::
    
+      combine_scores
       missing_volume_score
       package_submission
       resize_array

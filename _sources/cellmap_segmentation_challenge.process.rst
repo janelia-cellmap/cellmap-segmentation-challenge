@@ -1,6 +1,12 @@
 cellmap\_segmentation\_challenge.process
 ========================================
 
-.. currentmodule:: cellmap_segmentation_challenge
+.. automodule:: cellmap_segmentation_challenge.process
 
-.. autofunction:: process
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      process
+   
