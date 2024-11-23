@@ -1,10 +1,13 @@
 import click
 
-from cellmap_segmentation_challenge.utils.datasplit import (CROP_NAME,
-                                                            RAW_NAME,
-                                                            SEARCH_PATH,
-                                                            get_dataset_counts,
-                                                            make_datasplit_csv)
+from cellmap_segmentation_challenge.utils.datasplit import (
+    CROP_NAME,
+    RAW_NAME,
+    SEARCH_PATH,
+    get_dataset_counts,
+    make_datasplit_csv,
+    make_s3_datasplit_csv,
+)
 
 
 @click.command()
@@ -68,6 +71,12 @@ from cellmap_segmentation_challenge.utils.datasplit import (CROP_NAME,
     default="datasplit.csv",
     help="The path to write the csv to. Default is datasplit.csv.",
 )
+@click.option(
+    "--use_s3",
+    "-s3",
+    is_flag=True,
+    help="Use s3 (remote) data stores instead of locally downloaded stores.",
+)
 def make_datasplit_csv_cli(
     classes,
     force_all_classes,
@@ -78,9 +87,10 @@ def make_datasplit_csv_cli(
     raw_name,
     crop_name,
     csv_path,
+    use_s3,
 ):
     """
-    Make a datasplit csv file for the given classes and datasets.
+    Make a datasplit csv file for the given classes with a given validate:train split ratio.
     """
     classes = classes.split(",")
     if force_all_classes_train:
@@ -90,15 +100,23 @@ def make_datasplit_csv_cli(
     elif force_all_classes_validate:
         force_all_classes = "validate"
 
-    make_datasplit_csv(
-        classes=classes,
-        force_all_classes=force_all_classes,
-        validation_prob=validate_ratio,
-        search_path=search_path,
-        raw_name=raw_name,
-        crop_name=crop_name,
-        csv_path=csv_path,
-    )
+    if use_s3:
+        make_s3_datasplit_csv(
+            classes=classes,
+            force_all_classes=force_all_classes,
+            validation_prob=validate_ratio,
+            csv_path=csv_path,
+        )
+    else:
+        make_datasplit_csv(
+            classes=classes,
+            force_all_classes=force_all_classes,
+            validation_prob=validate_ratio,
+            search_path=search_path,
+            raw_name=raw_name,
+            crop_name=crop_name,
+            csv_path=csv_path,
+        )
 
 
 @click.command()

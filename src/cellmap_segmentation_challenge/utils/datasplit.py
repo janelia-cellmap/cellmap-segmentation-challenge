@@ -8,7 +8,16 @@ import numpy as np
 from tqdm import tqdm
 from upath import UPath
 
-from ..config import CROP_NAME, RAW_NAME, SEARCH_PATH
+from ..config import (
+    CROP_NAME,
+    RAW_NAME,
+    SEARCH_PATH,
+    S3_CROP_NAME,
+    S3_RAW_NAME,
+    S3_SEARCH_PATH,
+    GT_S3_BUCKET,
+    RAW_S3_BUCKET,
+)
 
 
 # TODO: Consolidate with get_formatted_fields
@@ -28,36 +37,6 @@ def get_dataset_name(
     raise ValueError(
         f"Could not find dataset name in {raw_path} with {search_path} as template"
     )
-
-
-def get_formatted_fields(
-    path: str, base_path: str, fields: list[str]
-) -> dict[str, str]:
-    """
-    Get the formatted fields from the path.
-
-    Parameters
-    ----------
-    path : str
-        The path to get the fields from.
-    base_path : str
-        The unformatted path to find the fields in.
-    fields : list[str]
-        The fields to get from the path.
-
-    Returns
-    -------
-    dict[str, str]
-        The formatted fields.
-    """
-    field_results = {}
-    for rp, sp in zip(path.split(os.path.sep), base_path.split(os.path.sep)):
-        for field in fields:
-            if field in sp:
-                remainders = sp.split(field)
-                result = rp.removeprefix(remainders[0]).removesuffix(remainders[1])
-                field_results[field.strip("{}")] = result
-    return field_results
 
 
 # TODO: Consolidate with get_formatted_fields
@@ -84,6 +63,76 @@ def get_raw_path(crop_path: str, raw_name: str = RAW_NAME, label: str = "") -> s
         os.path.sep
     )
     return (UPath(crop_path.removesuffix(crop_name)) / raw_name).path
+
+
+def get_formatted_fields(
+    path: str, base_path: str, fields: list[str]
+) -> dict[str, str]:
+    """
+    Get the formatted fields from the path.
+
+    Parameters
+    ----------
+    path : str
+        The path to get the fields from.
+    base_path : str
+        The unformatted path to find the fields in.
+    fields : list[str]
+        The fields to get from the path.
+
+    Returns
+    -------
+    dict[str, str]
+        The formatted fields.
+    """
+    field_results = {}
+    for rp, sp in zip(path.split(os.path.sep), base_path.split(os.path.sep)):
+        for field in fields:
+            if (
+                field in sp and field.strip("{}") not in field_results
+            ):  # Will only keep first result
+                remainders = sp.split(field)
+                result = rp.removeprefix(remainders[0]).removesuffix(remainders[1])
+                field_results[field.strip("{}")] = result
+    return field_results
+
+
+def get_s3_csv_string(path: str, classes: list[str], usage: str):
+    """
+    Get the csv string for a given dataset path, to be written to the datasplit csv file.
+
+    Parameters
+    ----------
+    path : str
+        The path to the dataset.
+    classes : list[str]
+        The classes present in the dataset.
+    usage : str
+        The usage of the dataset (train or validate).
+
+    Returns
+    -------
+    str
+        The csv string for the dataset.
+    """
+    dataset_name = get_formatted_fields(path, S3_SEARCH_PATH, ["dataset", "name"])[
+        "dataset"
+    ]
+    raw_path = UPath("s3://" + RAW_S3_BUCKET, anon=True) / S3_SEARCH_PATH.format(
+        dataset=dataset_name, name=S3_RAW_NAME
+    )
+
+    raw_zarr_path = raw_path.path.split(".zarr")[0] + ".zarr"
+    gt_zarr_path = (UPath("s3://" + GT_S3_BUCKET, anon=True) / path).path.split(
+        ".zarr"
+    )[0] + ".zarr"
+    raw_ds_name = raw_path.path.removeprefix(raw_zarr_path + os.path.sep)
+    gt_ds_name = path.split(".zarr")[-1].removeprefix(os.path.sep)
+    bar_string = f"Found raw data for {dataset_name} at {raw_path}"
+    return (
+        f'"{usage}","{"s3://" + raw_zarr_path}","{raw_ds_name}","{"s3://" + gt_zarr_path}","{gt_ds_name+os.path.sep}[{",".join([c for c in classes])}]"\n',
+        bar_string,
+    )
 
 
 def get_csv_string(
@@ -132,6 +181,114 @@ def get_csv_string(
         f'"{usage}","{zarr_path}","{raw_ds_name}","{zarr_path}","{gt_ds_name+os.path.sep}[{",".join([c for c in classes])}]"\n',
         bar_string,
     )
+
+
+def make_s3_datasplit_csv(
+    classes: list[str] = ["nuc", "mito"],
+    force_all_classes: bool | str = False,
+    validation_prob: float = 0.1,
+    datasets: list[str] = ["*"],
+    crops: list[str] = ["*"],
+    csv_path: str = "datasplit.csv",
+    dry_run: bool = False,
+    **kwargs,
+):
+    """
+    Make a datasplit csv file for the given classes and datasets.
+
+    Parameters
+    ----------
+    classes : list[str], optional
+        The classes to include in the csv, by default ["nuc", "mito"]
+    force_all_classes : bool | str, optional
+        If True, force all classes to be present in the training/validation datasets. If False, as long as at least one requested class is present, a crop will be included. If "train" or "validate", force all classes to be present in the training or validation datasets, respectively. By default False.
+    validation_prob : float, optional
+        The probability of a dataset being in the validation set, by default 0.1
+    datasets : list[str], optional
+        The datasets to include in the csv, by default ["*"], which includes all datasets
+    crops : list[str], optional
+        The crops to include in the csv, by default all crops are included. Otherwise, only the crops in the list are included.
+    csv_path : str, optional
+        The path to write the csv file to, by default "datasplit.csv"
+    dry_run : bool, optional
+        If True, do not write the csv file - just return the found datapaths. By default False
+    **kwargs : dict
+        Additional keyword arguments will be unused. Kept for compatibility with make_datasplit_csv.
+    """
+    # Define the paths to the raw and groundtruth data and the label classes by crawling the directories and writing the paths to a csv file
+    if not dry_run:
+        shutil.rmtree(csv_path, ignore_errors=True)
+        assert not os.path.exists(
+            csv_path
+        ), f"CSV file {csv_path} already exists and could not be overwritten"
+
+    datapaths = {}
+    for dataset in datasets:
+        for crop in crops:
+            for label in classes:
+                these_datapaths = list(
+                    UPath("s3://" + GT_S3_BUCKET, anon=True).glob(
+                        S3_SEARCH_PATH.format(
+                            dataset=dataset,
+                            name=S3_CROP_NAME.format(crop=crop, label=label),
+                        )
+                    )
+                )
+                if len(these_datapaths) == 0:
+                    continue
+                these_datapaths = [
+                    path.path.removesuffix(os.path.sep + label).removeprefix(
+                        GT_S3_BUCKET + os.path.sep
+                    )
+                    for path in these_datapaths
+                ]
+                for path in these_datapaths:
+                    if path not in datapaths:
+                        datapaths[path] = []
+                    datapaths[path].append(label)
+
+    if dry_run:
+        print("Dry run, not writing csv")
+        return datapaths
+
+    usage_dict = {
+        k: "train" if np.random.rand() > validation_prob else "validate"
+        for k in datapaths.keys()
+    }
+    num_train = num_validate = 0
+    bar = tqdm(datapaths.keys())
+    for path in bar:
+        print(f"Processing {path}")
+        usage = usage_dict[path]
+        if force_all_classes == usage:
+            if len(datapaths[path]) != len(classes):
+                usage = "train" if usage == "validate" else "validate"
+        elif force_all_classes is True:
+            if len(datapaths[path]) != len(classes):
+                usage_dict[path] = "none"
+                continue
+        usage_dict[path] = usage
+
+        csv_string, bar_string = get_s3_csv_string(path, datapaths[path], usage)
+        bar.set_postfix_str(bar_string)
+        if csv_string is not None:
+            with open(csv_path, "a") as f:
+                if csv_string is not None:
+                    f.write(csv_string)
+            if usage == "train":
+                num_train += 1
+            else:
+                num_validate += 1
+
+    assert num_train + num_validate > 0, "No datasets found"
+    print(f"Number of datasets: {num_train + num_validate}")
+    print(
+        f"Number of training datasets: {num_train} ({num_train/(num_train+num_validate)*100:.2f}%)"
+    )
+    print(
+        f"Number of validation datasets: {num_validate} ({num_validate/(num_train+num_validate)*100:.2f}%)"
+    )
+    print(f"CSV written to {csv_path}")
 
 
 def make_datasplit_csv(
