@@ -295,7 +295,7 @@
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">linear_sum_assignment</span>
 <span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">dice</span>  <span class="c1"># , jaccard</span>
 <span class="kn">from</span> <span class="nn">skimage.measure</span> <span class="kn">import</span> <span class="n">label</span> <span class="k">as</span> <span class="n">relabel</span>
-<span class="kn">from</span> <span class="nn">skimage.metrics</span> <span class="kn">import</span> <span class="n">hausdorff_distance</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">cKDTree</span>
 <span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">accuracy_score</span><span class="p">,</span> <span class="n">jaccard_score</span>
 <span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
 <span class="kn">from</span> <span class="nn">upath</span> <span class="kn">import</span> <span class="n">UPath</span>
@@ -511,10 +511,88 @@
 
 
 
+<div class="viewcode-block" id="hausdorff_distance">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.evaluate.hausdorff_distance">[docs]</a>
+<span class="k">def</span> <span class="nf">hausdorff_distance</span><span class="p">(</span>
+    <span class="n">image0</span><span class="p">,</span> <span class="n">image1</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span> <span class="n">max_distance</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;standard&quot;</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the Hausdorff distance between nonzero elements of given images.</span>
+
+<span class="sd">    Modified from the `scipy.spatial.distance.hausdorff` function by Jeff Rhoades (2024) to handle non-isotropic resolutions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image0, image1 : ndarray</span>
+<span class="sd">        Arrays where ``True`` represents a point that is included in a</span>
+<span class="sd">        set of points. Both arrays must have the same shape.</span>
+<span class="sd">    voxel_size : tuple</span>
+<span class="sd">        The size of a voxel in each dimension. Assumes the same resolution for both images.</span>
+<span class="sd">    max_distance : float, optional</span>
+<span class="sd">        The maximum distance to consider. Default is infinity.</span>
+<span class="sd">    method : {&#39;standard&#39;, &#39;modified&#39;}, optional, default = &#39;standard&#39;</span>
+<span class="sd">        The method to use for calculating the Hausdorff distance.</span>
+<span class="sd">        ``standard`` is the standard Hausdorff distance, while ``modified``</span>
+<span class="sd">        is the modified Hausdorff distance.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    distance : float</span>
+<span class="sd">        The Hausdorff distance between coordinates of nonzero pixels in</span>
+<span class="sd">        ``image0`` and ``image1``, using the Euclidean distance.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The Hausdorff distance [1]_ is the maximum distance between any point on</span>
+<span class="sd">    ``image0`` and its nearest point on ``image1``, and vice-versa.</span>
+<span class="sd">    The Modified Hausdorff Distance (MHD) has been shown to perform better</span>
+<span class="sd">    than the directed Hausdorff Distance (HD) in the following work by</span>
+<span class="sd">    Dubuisson et al. [2]_. The function calculates forward and backward</span>
+<span class="sd">    mean distances and returns the largest of the two.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] http://en.wikipedia.org/wiki/Hausdorff_distance</span>
+<span class="sd">    .. [2] M. P. Dubuisson and A. K. Jain. A Modified Hausdorff distance for object</span>
+<span class="sd">       matching. In ICPR94, pages A:566-568, Jerusalem, Israel, 1994.</span>
+<span class="sd">       :DOI:`10.1109/ICPR.1994.576361`</span>
+<span class="sd">       http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.1.8155</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;standard&quot;</span><span class="p">,</span> <span class="s2">&quot;modified&quot;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unrecognized method </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">a_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">image0</span><span class="p">)</span>
+    <span class="n">b_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">image1</span><span class="p">)</span>
+
+    <span class="c1"># Handle empty sets properly:</span>
+    <span class="c1"># - if both sets are empty, return zero</span>
+    <span class="c1"># - if only one set is empty, return infinity</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">a_points</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">b_points</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">b_points</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+
+    <span class="c1"># Scale the points by the voxel size</span>
+    <span class="n">a_points</span> <span class="o">=</span> <span class="n">a_points</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">)</span>
+    <span class="n">b_points</span> <span class="o">=</span> <span class="n">b_points</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">)</span>
+
+    <span class="n">fwd</span><span class="p">,</span> <span class="n">bwd</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">cKDTree</span><span class="p">(</span><span class="n">a_points</span><span class="p">)</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">b_points</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">distance_upper_bound</span><span class="o">=</span><span class="n">max_distance</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="n">cKDTree</span><span class="p">(</span><span class="n">b_points</span><span class="p">)</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">a_points</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">distance_upper_bound</span><span class="o">=</span><span class="n">max_distance</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;standard&quot;</span><span class="p">:</span>  <span class="c1"># standard Hausdorff distance</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">fwd</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">bwd</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;modified&quot;</span><span class="p">:</span>  <span class="c1"># modified Hausdorff distance</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">fwd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">bwd</span><span class="p">))</span></div>
+
+
+
 <div class="viewcode-block" id="score_instance">
 <a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.evaluate.score_instance">[docs]</a>
 <span class="k">def</span> <span class="nf">score_instance</span><span class="p">(</span>
-    <span class="n">pred_label</span><span class="p">,</span> <span class="n">truth_label</span><span class="p">,</span> <span class="n">hausdorff_distance_max</span><span class="o">=</span><span class="n">HAUSDORFF_DISTANCE_MAX</span>
+    <span class="n">pred_label</span><span class="p">,</span> <span class="n">truth_label</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span> <span class="n">hausdorff_distance_max</span><span class="o">=</span><span class="n">HAUSDORFF_DISTANCE_MAX</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Score a single instance label volume against the ground truth instance label volume.</span>
@@ -522,6 +600,8 @@
 <span class="sd">    Args:</span>
 <span class="sd">        pred_label (np.ndarray): The predicted instance label volume.</span>
 <span class="sd">        truth_label (np.ndarray): The ground truth instance label volume.</span>
+<span class="sd">        voxel_size (tuple): The size of a voxel in each dimension.</span>
+<span class="sd">        hausdorff_distance_max (float): The maximum distance to consider for the Hausdorff distance.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        dict: A dictionary of scores for the instance label volume.</span>
@@ -573,7 +653,9 @@
             <span class="c1"># Don&#39;t score the background</span>
             <span class="k">continue</span>
         <span class="n">h_dist</span> <span class="o">=</span> <span class="n">hausdorff_distance</span><span class="p">(</span>
-            <span class="n">truth_label</span> <span class="o">==</span> <span class="n">truth_id</span><span class="p">,</span> <span class="n">matched_pred_label</span> <span class="o">==</span> <span class="n">truth_id</span>
+            <span class="n">truth_label</span> <span class="o">==</span> <span class="n">truth_id</span><span class="p">,</span>
+            <span class="n">matched_pred_label</span> <span class="o">==</span> <span class="n">truth_id</span><span class="p">,</span>
+            <span class="n">voxel_size</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">h_dist</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">h_dist</span><span class="p">,</span> <span class="n">hausdorff_distance_max</span><span class="p">)</span>
         <span class="n">hausdorff_distances</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h_dist</span><span class="p">)</span>
@@ -581,6 +663,7 @@
     <span class="c1"># Compute the scores</span>
     <span class="n">accuracy</span> <span class="o">=</span> <span class="n">accuracy_score</span><span class="p">(</span><span class="n">truth_label</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">matched_pred_label</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
     <span class="n">hausdorff_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">hausdorff_distances</span><span class="p">)</span> <span class="k">if</span> <span class="n">hausdorff_distances</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="c1"># TODO: Normalize Hausdorff distance based on the resolution</span>
     <span class="n">normalized_hausdorff_dist</span> <span class="o">=</span> <span class="mi">32</span> <span class="o">**</span> <span class="p">(</span>
         <span class="o">-</span><span class="n">hausdorff_dist</span>
     <span class="p">)</span>  <span class="c1"># normalize Hausdorff distance to [0, 1]. 32 is abritrary chosen to have a reasonable range</span>
@@ -653,9 +736,18 @@
     <span class="c1"># Load the predicted and ground truth label volumes</span>
     <span class="n">label_name</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">pred_label_path</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
     <span class="n">volume_name</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">pred_label_path</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span>
-    <span class="n">pred_label</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">pred_label_path</span><span class="p">)[:]</span>
     <span class="n">truth_label_path</span> <span class="o">=</span> <span class="p">(</span><span class="n">truth_path</span> <span class="o">/</span> <span class="n">volume_name</span> <span class="o">/</span> <span class="n">label_name</span><span class="p">)</span><span class="o">.</span><span class="n">path</span>
-    <span class="n">truth_label</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">truth_label_path</span><span class="p">)[:]</span>
+    <span class="n">truth_label_ds</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">truth_label_path</span><span class="p">)</span>
+    <span class="n">truth_label</span> <span class="o">=</span> <span class="n">truth_label_ds</span><span class="p">[:]</span>
+    <span class="n">voxel_size</span> <span class="o">=</span> <span class="n">truth_label_ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">]</span>
+    <span class="c1"># translation = truth_label_ds.attrs[&quot;translation&quot;]</span>
+    <span class="c1"># pred_label = get_scaled_label(</span>
+    <span class="c1">#     pred_label_path,</span>
+    <span class="c1">#     voxel_size=voxel_size,</span>
+    <span class="c1">#     shape=truth_label_ds.shape,</span>
+    <span class="c1">#     translation=translation,</span>
+    <span class="c1"># )</span>
+    <span class="n">pred_label</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">pred_label_path</span><span class="p">)[:]</span>
 
     <span class="c1"># Check if the label volumes have the same shape</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">pred_label</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">truth_label</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
@@ -675,10 +767,11 @@
 
     <span class="c1"># Compute the scores</span>
     <span class="k">if</span> <span class="n">label_name</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="n">score_instance</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">truth_label</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">score_instance</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">truth_label</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">results</span> <span class="o">=</span> <span class="n">score_semantic</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">truth_label</span><span class="p">)</span>
     <span class="n">results</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">truth_label</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">voxel_size</span>
     <span class="n">results</span><span class="p">[</span><span class="s2">&quot;is_missing&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">return</span> <span class="n">results</span></div>
 

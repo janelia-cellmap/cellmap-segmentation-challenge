@@ -9,6 +9,7 @@ cellmap\_segmentation\_challenge.evaluate
    .. autosummary::
    
       combine_scores
+      hausdorff_distance
       missing_volume_score
       package_submission
       resize_array

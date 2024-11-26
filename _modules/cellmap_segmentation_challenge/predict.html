@@ -303,8 +303,6 @@
 <span class="kn">from</span> <span class="nn">.utils.datasplit</span> <span class="kn">import</span> <span class="n">get_formatted_fields</span><span class="p">,</span> <span class="n">get_raw_path</span>
 
 
-<div class="viewcode-block" id="predict_orthoplanes">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.predict.html#cellmap_segmentation_challenge.predict.predict_orthoplanes">[docs]</a>
 <span class="k">def</span> <span class="nf">predict_orthoplanes</span><span class="p">(</span>
     <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">dataset_writer_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span>
 <span class="p">):</span>
@@ -366,8 +364,7 @@
         <span class="c1"># Save the outputs</span>
         <span class="n">dataset_writer</span><span class="p">[</span><span class="n">batch</span><span class="p">[</span><span class="s2">&quot;idx&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">outputs</span>
 
-    <span class="n">tmp_dir</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span></div>
-
+    <span class="n">tmp_dir</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
 
 
 <span class="k">def</span> <span class="nf">_predict</span><span class="p">(</span>
@@ -411,7 +408,7 @@
 
 
 <div class="viewcode-block" id="predict">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.predict.html#cellmap_segmentation_challenge.predict.predict">[docs]</a>
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.predict.html#cellmap_segmentation_challenge.predict">[docs]</a>
 <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span>
     <span class="n">config_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">crops</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span>

@@ -334,6 +334,7 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.save_numpy_class_labels_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_labels_to_zarr()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.save_numpy_class_arrays_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_arrays_to_zarr()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.resize_array"><code class="docutils literal notranslate"><span class="pre">resize_array()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.hausdorff_distance"><code class="docutils literal notranslate"><span class="pre">hausdorff_distance()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.score_instance"><code class="docutils literal notranslate"><span class="pre">score_instance()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.score_semantic"><code class="docutils literal notranslate"><span class="pre">score_semantic()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.score_label"><code class="docutils literal notranslate"><span class="pre">score_label()</span></code></a></li>
@@ -362,40 +363,43 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.combine_scores" title="cellmap_segmentation_challenge.evaluate.combine_scores"><code class="xref py py-obj docutils literal notranslate"><span class="pre">combine_scores</span></code></a>(scores[, include_missing, ...])</p></td>
 <td><p>Combine scores across volumes, normalizing by the number of voxels.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.missing_volume_score" title="cellmap_segmentation_challenge.evaluate.missing_volume_score"><code class="xref py py-obj docutils literal notranslate"><span class="pre">missing_volume_score</span></code></a>(truth_volume_path[, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.hausdorff_distance" title="cellmap_segmentation_challenge.evaluate.hausdorff_distance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hausdorff_distance</span></code></a>(image0, image1, voxel_size)</p></td>
+<td><p>Calculate the Hausdorff distance between nonzero elements of given images.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.missing_volume_score" title="cellmap_segmentation_challenge.evaluate.missing_volume_score"><code class="xref py py-obj docutils literal notranslate"><span class="pre">missing_volume_score</span></code></a>(truth_volume_path[, ...])</p></td>
 <td><p>Score a missing volume as 0's, congruent with the score_volume function.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.package_submission" title="cellmap_segmentation_challenge.evaluate.package_submission"><code class="xref py py-obj docutils literal notranslate"><span class="pre">package_submission</span></code></a>([input_search_path, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.package_submission" title="cellmap_segmentation_challenge.evaluate.package_submission"><code class="xref py py-obj docutils literal notranslate"><span class="pre">package_submission</span></code></a>([input_search_path, ...])</p></td>
 <td><p>Package a submission for the CellMap challenge.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.resize_array" title="cellmap_segmentation_challenge.evaluate.resize_array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resize_array</span></code></a>(arr, target_shape[, pad_value])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.resize_array" title="cellmap_segmentation_challenge.evaluate.resize_array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resize_array</span></code></a>(arr, target_shape[, pad_value])</p></td>
 <td><p>Resize an array to a target shape by padding or cropping as needed.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.save_numpy_class_arrays_to_zarr" title="cellmap_segmentation_challenge.evaluate.save_numpy_class_arrays_to_zarr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_numpy_class_arrays_to_zarr</span></code></a>(save_path, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.save_numpy_class_arrays_to_zarr" title="cellmap_segmentation_challenge.evaluate.save_numpy_class_arrays_to_zarr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_numpy_class_arrays_to_zarr</span></code></a>(save_path, ...)</p></td>
 <td><p>Save a list of 3D numpy arrays of binary or instance labels to a Zarr-2 file with the required structure.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.save_numpy_class_labels_to_zarr" title="cellmap_segmentation_challenge.evaluate.save_numpy_class_labels_to_zarr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_numpy_class_labels_to_zarr</span></code></a>(save_path, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.save_numpy_class_labels_to_zarr" title="cellmap_segmentation_challenge.evaluate.save_numpy_class_labels_to_zarr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_numpy_class_labels_to_zarr</span></code></a>(save_path, ...)</p></td>
 <td><p>Save a single 3D numpy array of class labels to a Zarr-2 file with the required structure.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.score_instance" title="cellmap_segmentation_challenge.evaluate.score_instance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">score_instance</span></code></a>(pred_label, truth_label[, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.score_instance" title="cellmap_segmentation_challenge.evaluate.score_instance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">score_instance</span></code></a>(pred_label, truth_label, ...)</p></td>
 <td><p>Score a single instance label volume against the ground truth instance label volume.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.score_label" title="cellmap_segmentation_challenge.evaluate.score_label"><code class="xref py py-obj docutils literal notranslate"><span class="pre">score_label</span></code></a>(pred_label_path[, truth_path, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.score_label" title="cellmap_segmentation_challenge.evaluate.score_label"><code class="xref py py-obj docutils literal notranslate"><span class="pre">score_label</span></code></a>(pred_label_path[, truth_path, ...])</p></td>
 <td><p>Score a single label volume against the ground truth label volume.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.score_semantic" title="cellmap_segmentation_challenge.evaluate.score_semantic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">score_semantic</span></code></a>(pred_label, truth_label)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.score_semantic" title="cellmap_segmentation_challenge.evaluate.score_semantic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">score_semantic</span></code></a>(pred_label, truth_label)</p></td>
 <td><p>Score a single semantic label volume against the ground truth semantic label volume.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.score_submission" title="cellmap_segmentation_challenge.evaluate.score_submission"><code class="xref py py-obj docutils literal notranslate"><span class="pre">score_submission</span></code></a>([submission_path, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.score_submission" title="cellmap_segmentation_challenge.evaluate.score_submission"><code class="xref py py-obj docutils literal notranslate"><span class="pre">score_submission</span></code></a>([submission_path, ...])</p></td>
 <td><p>Score a submission against the ground truth data.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.score_volume" title="cellmap_segmentation_challenge.evaluate.score_volume"><code class="xref py py-obj docutils literal notranslate"><span class="pre">score_volume</span></code></a>(pred_volume_path[, truth_path, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.score_volume" title="cellmap_segmentation_challenge.evaluate.score_volume"><code class="xref py py-obj docutils literal notranslate"><span class="pre">score_volume</span></code></a>(pred_volume_path[, truth_path, ...])</p></td>
 <td><p>Score a single volume against the ground truth volume.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.unzip_file" title="cellmap_segmentation_challenge.evaluate.unzip_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unzip_file</span></code></a>(zip_path)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.unzip_file" title="cellmap_segmentation_challenge.evaluate.unzip_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unzip_file</span></code></a>(zip_path)</p></td>
 <td><p>Unzip a zip file to a specified directory.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.zip_submission" title="cellmap_segmentation_challenge.evaluate.zip_submission"><code class="xref py py-obj docutils literal notranslate"><span class="pre">zip_submission</span></code></a>([zarr_path])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.zip_submission" title="cellmap_segmentation_challenge.evaluate.zip_submission"><code class="xref py py-obj docutils literal notranslate"><span class="pre">zip_submission</span></code></a>([zarr_path])</p></td>
 <td><p>(Re-)Zip a submission zarr file.</p></td>
 </tr>
 </tbody>
@@ -485,14 +489,66 @@ save_numpy_binary_to_zarr(‘submission.zarr’, ‘test_volume’, label_names,
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.hausdorff_distance">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">hausdorff_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">inf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'standard'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#hausdorff_distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.hausdorff_distance" title="Link to this definition">#</a></dt>
+<dd><p>Calculate the Hausdorff distance between nonzero elements of given images.</p>
+<p>Modified from the <cite>scipy.spatial.distance.hausdorff</cite> function by Jeff Rhoades (2024) to handle non-isotropic resolutions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image0</strong> (<em>ndarray</em>) – Arrays where <code class="docutils literal notranslate"><span class="pre">True</span></code> represents a point that is included in a
+set of points. Both arrays must have the same shape.</p></li>
+<li><p><strong>image1</strong> (<em>ndarray</em>) – Arrays where <code class="docutils literal notranslate"><span class="pre">True</span></code> represents a point that is included in a
+set of points. Both arrays must have the same shape.</p></li>
+<li><p><strong>voxel_size</strong> (<em>tuple</em>) – The size of a voxel in each dimension. Assumes the same resolution for both images.</p></li>
+<li><p><strong>max_distance</strong> (<em>float</em><em>, </em><em>optional</em>) – The maximum distance to consider. Default is infinity.</p></li>
+<li><p><strong>method</strong> (<em>{'standard'</em><em>, </em><em>'modified'}</em><em>, </em><em>optional</em><em>, </em><em>default = 'standard'</em>) – The method to use for calculating the Hausdorff distance.
+<code class="docutils literal notranslate"><span class="pre">standard</span></code> is the standard Hausdorff distance, while <code class="docutils literal notranslate"><span class="pre">modified</span></code>
+is the modified Hausdorff distance.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>distance</strong> – The Hausdorff distance between coordinates of nonzero pixels in
+<code class="docutils literal notranslate"><span class="pre">image0</span></code> and <code class="docutils literal notranslate"><span class="pre">image1</span></code>, using the Euclidean distance.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The Hausdorff distance <a class="footnote-reference brackets" href="#id3" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> is the maximum distance between any point on
+<code class="docutils literal notranslate"><span class="pre">image0</span></code> and its nearest point on <code class="docutils literal notranslate"><span class="pre">image1</span></code>, and vice-versa.
+The Modified Hausdorff Distance (MHD) has been shown to perform better
+than the directed Hausdorff Distance (HD) in the following work by
+Dubuisson et al. <a class="footnote-reference brackets" href="#id4" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>. The function calculates forward and backward
+mean distances and returns the largest of the two.</p>
+<p class="rubric">References</p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id3" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p><a class="reference external" href="http://en.wikipedia.org/wiki/Hausdorff_distance">http://en.wikipedia.org/wiki/Hausdorff_distance</a></p>
+</aside>
+<aside class="footnote brackets" id="id4" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
+<p>M. P. Dubuisson and A. K. Jain. A Modified Hausdorff distance for object
+matching. In ICPR94, pages A:566-568, Jerusalem, Israel, 1994.
+<a href="#id5"><span class="problematic" id="id6">:DOI:`10.1109/ICPR.1994.576361`</span></a>
+<a class="reference external" href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.1.8155">http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.1.8155</a></p>
+</aside>
+</aside>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.score_instance">
-<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">score_instance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pred_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">truth_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hausdorff_distance_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">inf</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#score_instance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.score_instance" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">score_instance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pred_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">truth_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hausdorff_distance_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">inf</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#score_instance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.score_instance" title="Link to this definition">#</a></dt>
 <dd><p>Score a single instance label volume against the ground truth instance label volume.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>pred_label</strong> (<em>np.ndarray</em>) – The predicted instance label volume.</p></li>
 <li><p><strong>truth_label</strong> (<em>np.ndarray</em>) – The ground truth instance label volume.</p></li>
+<li><p><strong>voxel_size</strong> (<em>tuple</em>) – The size of a voxel in each dimension.</p></li>
+<li><p><strong>hausdorff_distance_max</strong> (<em>float</em>) – The maximum distance to consider for the Hausdorff distance.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -768,6 +824,7 @@ save_numpy_binary_to_zarr(‘submission.zarr’, ‘test_volume’, label_names,
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.save_numpy_class_labels_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_labels_to_zarr()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.save_numpy_class_arrays_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_arrays_to_zarr()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.resize_array"><code class="docutils literal notranslate"><span class="pre">resize_array()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.hausdorff_distance"><code class="docutils literal notranslate"><span class="pre">hausdorff_distance()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.score_instance"><code class="docutils literal notranslate"><span class="pre">score_instance()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.score_semantic"><code class="docutils literal notranslate"><span class="pre">score_semantic()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.score_label"><code class="docutils literal notranslate"><span class="pre">score_label()</span></code></a></li>
