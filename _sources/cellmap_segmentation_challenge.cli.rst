@@ -15,5 +15,6 @@ cellmap\_segmentation\_challenge.cli
    fetch_data
    predict
    process
+   speedtest
    train
    visualize

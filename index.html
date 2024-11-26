@@ -159,6 +159,7 @@
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.fetch_data.html">cellmap_segmentation_challenge.cli.fetch_data</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.predict.html">cellmap_segmentation_challenge.cli.predict</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.process.html">cellmap_segmentation_challenge.cli.process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.speedtest.html">cellmap_segmentation_challenge.cli.speedtest</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.train.html">cellmap_segmentation_challenge.cli.train</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.visualize.html">cellmap_segmentation_challenge.cli.visualize</a></li>
 </ul>
@@ -437,11 +438,12 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>csc<span class="w"> </span>fetch-data
 </pre></div>
 </div>
-<p>This will retrieve all of the groundtruth data and corresponding EM data for each crop and save it to <code class="docutils literal notranslate"><span class="pre">./data</span></code> on your local filesystem.</p>
+<p>This will retrieve all of the groundtruth data and corresponding EM data for each crop and save it to <code class="docutils literal notranslate"><span class="pre">./data</span></code> relative to this <code class="docutils literal notranslate"><span class="pre">README.md</span></code> on your local filesystem. This is the default <code class="docutils literal notranslate"><span class="pre">BASE_DATA_PATH</span></code> defined in the global configuration file (<code class="docutils literal notranslate"><span class="pre">config.py</span></code>). You can change the configured paths with this file as you like.</p>
 <p>Additionally, you can request raw data in all resolutions (not just those matching the annotations), extra raw data beyond the borders of the annotation crops (i.e. padding), custom download location, and more. To see all the options for the <code class="docutils literal notranslate"><span class="pre">fetch-data</span></code> command, run</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>csc<span class="w"> </span>fetch-data<span class="w"> </span>--help
 </pre></div>
 </div>
+<p>Downloading the data may take some time, depending on your internet connection and the size of the data based on your download preferences. For reference, downloading full-resolution data for all crops with 128 voxels of padding took 6.6 hours on an internet connection with 820Mbps download speed, and required approximately 1.18TB of storage.</p>
 </section>
 </section>
 <section id="train-a-model">
