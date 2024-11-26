@@ -91,13 +91,15 @@ Once you have installed this package, you can download the challenge data by run
 csc fetch-data
 ```
 
-This will retrieve all of the groundtruth data and corresponding EM data for each crop and save it to `./data` on your local filesystem.
+This will retrieve all of the groundtruth data and corresponding EM data for each crop and save it to `./data` relative to this `README.md` on your local filesystem. This is the default `BASE_DATA_PATH` defined in the global configuration file (`config.py`). You can change the configured paths with this file as you like.
 
 Additionally, you can request raw data in all resolutions (not just those matching the annotations), extra raw data beyond the borders of the annotation crops (i.e. padding), custom download location, and more. To see all the options for the `fetch-data` command, run 
 
 ```bash
 csc fetch-data --help
 ```
+
+Downloading the data may take some time, depending on your internet connection and the size of the data based on your download preferences. For reference, downloading full-resolution data for all crops with 128 voxels of padding took 6.6 hours on an internet connection with 820Mbps download speed, and required approximately 1.18TB of storage.
 
 # Train a model
 
