@@ -9,7 +9,7 @@ import zarr
 from scipy.optimize import linear_sum_assignment
 from scipy.spatial.distance import dice  # , jaccard
 from skimage.measure import label as relabel
-from skimage.metrics import hausdorff_distance
+from scipy.spatial import cKDTree
 from sklearn.metrics import accuracy_score, jaccard_score
 from tqdm import tqdm
 from upath import UPath
@@ -213,8 +213,83 @@ def resize_array(arr, target_shape, pad_value=0):
     return resized_arr[tuple(slices)]
 
 
+def hausdorff_distance(
+    image0, image1, voxel_size, max_distance=np.inf, method="standard"
+):
+    """Calculate the Hausdorff distance between nonzero elements of given images.
+
+    Modified from the `scipy.spatial.distance.hausdorff` function by Jeff Rhoades (2024) to handle non-isotropic resolutions.
+
+    Parameters
+    ----------
+    image0, image1 : ndarray
+        Arrays where ``True`` represents a point that is included in a
+        set of points. Both arrays must have the same shape.
+    voxel_size : tuple
+        The size of a voxel in each dimension. Assumes the same resolution for both images.
+    max_distance : float, optional
+        The maximum distance to consider. Default is infinity.
+    method : {'standard', 'modified'}, optional, default = 'standard'
+        The method to use for calculating the Hausdorff distance.
+        ``standard`` is the standard Hausdorff distance, while ``modified``
+        is the modified Hausdorff distance.
+
+    Returns
+    -------
+    distance : float
+        The Hausdorff distance between coordinates of nonzero pixels in
+        ``image0`` and ``image1``, using the Euclidean distance.
+
+    Notes
+    -----
+    The Hausdorff distance [1]_ is the maximum distance between any point on
+    ``image0`` and its nearest point on ``image1``, and vice-versa.
+    The Modified Hausdorff Distance (MHD) has been shown to perform better
+    than the directed Hausdorff Distance (HD) in the following work by
+    Dubuisson et al. [2]_. The function calculates forward and backward
+    mean distances and returns the largest of the two.
+
+    References
+    ----------
+    .. [1] http://en.wikipedia.org/wiki/Hausdorff_distance
+    .. [2] M. P. Dubuisson and A. K. Jain. A Modified Hausdorff distance for object
+       matching. In ICPR94, pages A:566-568, Jerusalem, Israel, 1994.
+       :DOI:`10.1109/ICPR.1994.576361`
+       http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.1.8155
+
+    """
+
+    if method not in ("standard", "modified"):
+        raise ValueError(f"unrecognized method {method}")
+
+    a_points = np.argwhere(image0)
+    b_points = np.argwhere(image1)
+
+    # Handle empty sets properly:
+    # - if both sets are empty, return zero
+    # - if only one set is empty, return infinity
+    if len(a_points) == 0:
+        return 0 if len(b_points) == 0 else np.inf
+    elif len(b_points) == 0:
+        return np.inf
+
+    # Scale the points by the voxel size
+    a_points = a_points * np.array(voxel_size)
+    b_points = b_points * np.array(voxel_size)
+
+    fwd, bwd = (
+        cKDTree(a_points).query(b_points, k=1, distance_upper_bound=max_distance)[0],
+        cKDTree(b_points).query(a_points, k=1, distance_upper_bound=max_distance)[0],
+    )
+
+    if method == "standard":  # standard Hausdorff distance
+        return max(max(fwd), max(bwd))
+    elif method == "modified":  # modified Hausdorff distance
+        return max(np.mean(fwd), np.mean(bwd))
+
+
 def score_instance(
-    pred_label, truth_label, hausdorff_distance_max=HAUSDORFF_DISTANCE_MAX
+    pred_label, truth_label, voxel_size, hausdorff_distance_max=HAUSDORFF_DISTANCE_MAX
 ) -> dict[str, float]:
     """
     Score a single instance label volume against the ground truth instance label volume.
@@ -222,6 +297,8 @@ def score_instance(
     Args:
         pred_label (np.ndarray): The predicted instance label volume.
         truth_label (np.ndarray): The ground truth instance label volume.
+        voxel_size (tuple): The size of a voxel in each dimension.
+        hausdorff_distance_max (float): The maximum distance to consider for the Hausdorff distance.
 
     Returns:
         dict: A dictionary of scores for the instance label volume.
@@ -273,7 +350,9 @@ def score_instance(
             # Don't score the background
             continue
         h_dist = hausdorff_distance(
-            truth_label == truth_id, matched_pred_label == truth_id
+            truth_label == truth_id,
+            matched_pred_label == truth_id,
+            voxel_size,
         )
         h_dist = min(h_dist, hausdorff_distance_max)
         hausdorff_distances.append(h_dist)
@@ -281,6 +360,7 @@ def score_instance(
     # Compute the scores
     accuracy = accuracy_score(truth_label.flatten(), matched_pred_label.flatten())
     hausdorff_dist = np.mean(hausdorff_distances) if hausdorff_distances else 0
+    # TODO: Normalize Hausdorff distance based on the resolution
     normalized_hausdorff_dist = 32 ** (
         -hausdorff_dist
     )  # normalize Hausdorff distance to [0, 1]. 32 is abritrary chosen to have a reasonable range
@@ -347,9 +427,18 @@ def score_label(
     # Load the predicted and ground truth label volumes
     label_name = UPath(pred_label_path).name
     volume_name = UPath(pred_label_path).parent.name
-    pred_label = zarr.open(pred_label_path)[:]
     truth_label_path = (truth_path / volume_name / label_name).path
-    truth_label = zarr.open(truth_label_path)[:]
+    truth_label_ds = zarr.open(truth_label_path)
+    truth_label = truth_label_ds[:]
+    voxel_size = truth_label_ds.attrs["voxel_size"]
+    # translation = truth_label_ds.attrs["translation"]
+    # pred_label = get_scaled_label(
+    #     pred_label_path,
+    #     voxel_size=voxel_size,
+    #     shape=truth_label_ds.shape,
+    #     translation=translation,
+    # )
+    pred_label = zarr.open(pred_label_path)[:]
 
     # Check if the label volumes have the same shape
     if not (pred_label.shape == truth_label.shape):
@@ -369,10 +458,11 @@ def score_label(
 
     # Compute the scores
     if label_name in instance_classes:
-        results = score_instance(pred_label, truth_label)
+        results = score_instance(pred_label, truth_label, voxel_size)
     else:
         results = score_semantic(pred_label, truth_label)
     results["num_voxels"] = int(np.prod(truth_label.shape))
+    results["voxel_size"] = voxel_size
     results["is_missing"] = False
     return results
 

@@ -278,8 +278,9 @@ def fetch_data_cli(
                     )
                     if all(tuple(x > ratio_threshold for x in scale_ratios)):
 
-                        relative_scale = base_em_scale.scale[0] / current_scale.scale[0]
-                        current_pad = int(padding * relative_scale)
+                        # relative_scale = base_em_scale.scale[0] / current_scale.scale[0]
+                        # current_pad = int(padding * relative_scale) # Padding relative to the current scale
+                        current_pad = padding  # Uniform voxel padding for all scales
                         slices = subset_to_slice(array, crop_multiscale_group["s0"])
                         slices_padded = tuple(
                             slice(
