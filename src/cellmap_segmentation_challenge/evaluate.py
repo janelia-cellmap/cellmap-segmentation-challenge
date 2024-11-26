@@ -684,7 +684,7 @@ def score_submission(
     scores.update(
         {
             volume: missing_volume_score(
-                truth_path / volume, instance_classes=instance_classes
+                os.path.join(truth_path, volume), instance_classes=instance_classes
             )
             for volume in missing_volumes
         }
