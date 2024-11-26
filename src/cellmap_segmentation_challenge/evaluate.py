@@ -362,7 +362,7 @@ def score_instance(
     hausdorff_dist = np.mean(hausdorff_distances) if hausdorff_distances else 0
     # TODO: Normalize Hausdorff distance based on the resolution
     normalized_hausdorff_dist = 32 ** (
-        -hausdorff_dist
+        -hausdorff_dist / np.linalg.norm(np.array(voxel_size))
     )  # normalize Hausdorff distance to [0, 1]. 32 is abritrary chosen to have a reasonable range
     combined_score = (accuracy * normalized_hausdorff_dist) ** 0.5
     print(f"Accuracy: {accuracy:.4f}")
@@ -517,6 +517,9 @@ def score_volume(
                             zarr.open((truth_path / volume_name / label).path).shape
                         )
                     ),
+                    "voxel_size": zarr.open(
+                        (truth_path / volume_name / label).path
+                    ).attrs["voxel_size"],
                     "is_missing": True,
                 }
                 if label in instance_classes
@@ -528,6 +531,9 @@ def score_volume(
                             zarr.open((truth_path / volume_name / label).path).shape
                         )
                     ),
+                    "voxel_size": zarr.open(
+                        (truth_path / volume_name / label).path
+                    ).attrs["voxel_size"],
                     "is_missing": True,
                 }
             )
@@ -571,6 +577,9 @@ def missing_volume_score(
                 "num_voxels": int(
                     np.prod(zarr.open((truth_volume_path / label).path).shape)
                 ),
+                "voxel_size": zarr.open((truth_volume_path / label).path).attrs[
+                    "voxel_size"
+                ],
                 "is_missing": True,
             }
             if label in instance_classes
@@ -580,6 +589,9 @@ def missing_volume_score(
                 "num_voxels": int(
                     np.prod(zarr.open((truth_volume_path / label).path).shape)
                 ),
+                "voxel_size": zarr.open((truth_volume_path / label).path).attrs[
+                    "voxel_size"
+                ],
                 "is_missing": True,
             }
         )
@@ -609,12 +621,13 @@ def combine_scores(scores, include_missing=True, instance_classes=INSTANCE_CLASS
     print(f"Combining label scores...")
     scores = scores.copy()
     label_scores = {}
-    num_voxels = {}
-    for volume, these_scores in scores.items():
+    total_volumes = {}
+    for these_scores in scores.values():
         for label, this_score in these_scores.items():
             print(this_score)
             if this_score["is_missing"] and not include_missing:
                 continue
+            total_volume = np.prod(this_score["voxel_size"]) * this_score["num_voxels"]
             if label in instance_classes:
                 if label not in label_scores:
                     label_scores[label] = {
@@ -623,43 +636,38 @@ def combine_scores(scores, include_missing=True, instance_classes=INSTANCE_CLASS
                         "normalized_hausdorff_distance": 0,
                         "combined_score": 0,
                     }
-                    num_voxels[label] = 0
-                label_scores[label]["accuracy"] += (
-                    this_score["accuracy"] / this_score["num_voxels"]
-                )
+                    total_volumes[label] = 0
+                label_scores[label]["accuracy"] += this_score["accuracy"] / total_volume
                 label_scores[label]["hausdorff_distance"] += (
-                    this_score["hausdorff_distance"] / this_score["num_voxels"]
+                    this_score["hausdorff_distance"] / total_volume
                 )
                 label_scores[label]["normalized_hausdorff_distance"] += (
-                    this_score["normalized_hausdorff_distance"]
-                    / this_score["num_voxels"]
+                    this_score["normalized_hausdorff_distance"] / total_volume
                 )
                 label_scores[label]["combined_score"] += (
-                    this_score["combined_score"] / this_score["num_voxels"]
+                    this_score["combined_score"] / total_volume
                 )
-                num_voxels[label] += this_score["num_voxels"]
+                total_volumes[label] += total_volume
             else:
                 if label not in label_scores:
                     label_scores[label] = {"iou": 0, "dice_score": 0}
-                    num_voxels[label] = 0
-                label_scores[label]["iou"] += (
-                    this_score["iou"] / this_score["num_voxels"]
-                )
+                    total_volumes[label] = 0
+                label_scores[label]["iou"] += this_score["iou"] / total_volume
                 label_scores[label]["dice_score"] += (
-                    this_score["dice_score"] / this_score["num_voxels"]
+                    this_score["dice_score"] / total_volume
                 )
-                num_voxels[label] += this_score["num_voxels"]
+                total_volumes[label] += total_volume
 
     # Normalize back to the total number of voxels
     for label in label_scores:
         if label in instance_classes:
-            label_scores[label]["accuracy"] *= num_voxels[label]
-            label_scores[label]["hausdorff_distance"] *= num_voxels[label]
-            label_scores[label]["normalized_hausdorff_distance"] *= num_voxels[label]
-            label_scores[label]["combined_score"] *= num_voxels[label]
+            label_scores[label]["accuracy"] *= total_volumes[label]
+            label_scores[label]["hausdorff_distance"] *= total_volumes[label]
+            label_scores[label]["normalized_hausdorff_distance"] *= total_volumes[label]
+            label_scores[label]["combined_score"] *= total_volumes[label]
         else:
-            label_scores[label]["iou"] *= num_voxels[label]
-            label_scores[label]["dice_score"] *= num_voxels[label]
+            label_scores[label]["iou"] *= total_volumes[label]
+            label_scores[label]["dice_score"] *= total_volumes[label]
     scores["label_scores"] = label_scores
 
     # Compute the overall score
@@ -835,13 +843,13 @@ def package_submission(
 
     # Find all the processed test volumes
     for crop in TEST_CROPS:
-        crop_group = zarr_group.create_group(f"crop{crop}")
         crop_path = input_search_path.format(dataset="*", crop=f"crop{crop}")
         crop_path = glob(crop_path)
         if len(crop_path) == 0:
             print(f"Skipping {crop_path} as it does not exist.")
             continue
         crop_path = crop_path[0]
+        crop_group = zarr_group.create_group(f"crop{crop}")
 
         # Find all the processed labels for the test volume
         test_volume = UPath(crop_path).name
