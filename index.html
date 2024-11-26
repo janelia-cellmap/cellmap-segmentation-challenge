@@ -336,16 +336,13 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#clone-the-repository">Clone the repository</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#repository-structure">Repository structure</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#download-the-data">Download the data</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#train-a-model">Train a model</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#predict-on-test-data">Predict on test data</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#post-process-model-predictions">Post-process model predictions</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#visualize-data-and-predictions">Visualize data and predictions</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submit-your-final-predictions">Submit your final predictions</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#data-format">Data format</a></li>
 </ul>
 </li>
-</ul>
-</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#train-a-model">Train a model</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#predict-on-test-data">Predict on test data</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#post-process-model-predictions">Post-process model predictions</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#visualize-data-and-predictions">Visualize data and predictions</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#submit-your-final-predictions">Submit your final predictions</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#api">API</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#links">Links</a></li>
 </ul>
@@ -446,8 +443,9 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </pre></div>
 </div>
 </section>
+</section>
 <section id="train-a-model">
-<h2>Train a model<a class="headerlink" href="#train-a-model" title="Link to this heading">#</a></h2>
+<h1>Train a model<a class="headerlink" href="#train-a-model" title="Link to this heading">#</a></h1>
 <p>Example scripts for training 2D and 3D models are provided in the <code class="docutils literal notranslate"><span class="pre">examples</span></code> directory. The scripts are named <code class="docutils literal notranslate"><span class="pre">train_2D.py</span></code> and <code class="docutils literal notranslate"><span class="pre">train_3D.py</span></code>, respectively, and are thoroughly annotated for clarity. You can run one such script by running the following on the command line:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>examples
 python<span class="w"> </span>train_2D.py
@@ -464,7 +462,7 @@ python<span class="w"> </span>train_2D.py
 <p>For more information on the available options and how training works, see the <code class="docutils literal notranslate"><span class="pre">README.md</span></code> in the <code class="docutils literal notranslate"><span class="pre">examples</span></code> folder, as well as the documentation in <code class="docutils literal notranslate"><span class="pre">examples/train_2D.py</span></code> and <code class="docutils literal notranslate"><span class="pre">examples/train_3D.py</span></code>.</p>
 </section>
 <section id="predict-on-test-data">
-<h2>Predict on test data<a class="headerlink" href="#predict-on-test-data" title="Link to this heading">#</a></h2>
+<h1>Predict on test data<a class="headerlink" href="#predict-on-test-data" title="Link to this heading">#</a></h1>
 <p>Example scripts for predicting on test data are also provided in the <code class="docutils literal notranslate"><span class="pre">examples</span></code> directory. The scripts are named <code class="docutils literal notranslate"><span class="pre">predict_2D.py</span></code> and <code class="docutils literal notranslate"><span class="pre">predict_3D.py</span></code>, respectively. You can use one such script by simply running the following on the command line:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>predict_2D.py
 </pre></div>
@@ -476,7 +474,7 @@ python<span class="w"> </span>train_2D.py
 <p>Also see the <code class="docutils literal notranslate"><span class="pre">README.md</span></code> in the <code class="docutils literal notranslate"><span class="pre">examples</span></code> folder for more information on the available options, as well as the documentation in <code class="docutils literal notranslate"><span class="pre">examples/predict_2D.py</span></code> and <code class="docutils literal notranslate"><span class="pre">examples/predict_3D.py</span></code>.</p>
 </section>
 <section id="post-process-model-predictions">
-<h2>Post-process model predictions<a class="headerlink" href="#post-process-model-predictions" title="Link to this heading">#</a></h2>
+<h1>Post-process model predictions<a class="headerlink" href="#post-process-model-predictions" title="Link to this heading">#</a></h1>
 <p>After making predictions on the test data, you may want to post-process the predictions to improve the results. Example scripts for post-processing are provided in the <code class="docutils literal notranslate"><span class="pre">examples</span></code> directory, named <code class="docutils literal notranslate"><span class="pre">process_2D.py</span></code> and <code class="docutils literal notranslate"><span class="pre">process_3D.py</span></code>. They are annotated for clarity. You can run one such script by running the following on the command line:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>csc<span class="w"> </span>process<span class="w"> </span>process_2D.py
 </pre></div>
@@ -489,7 +487,7 @@ python<span class="w"> </span>train_2D.py
 <p>During evaluations of submissions, for instance segmentation evaluated classes, connected components are computed on the supplied masks and the resulting instance IDs are assigned to each connected component. This will not merge already uniquely IDed objects. Thus, you do not need to run connected components on before submission, but you may wish to execute more advanced post-processing for instance segmentation, such as watershed.</p>
 </section>
 <section id="visualize-data-and-predictions">
-<h2>Visualize data and predictions<a class="headerlink" href="#visualize-data-and-predictions" title="Link to this heading">#</a></h2>
+<h1>Visualize data and predictions<a class="headerlink" href="#visualize-data-and-predictions" title="Link to this heading">#</a></h1>
 <p>To visualize all of the data and predictions, you can view them with neuroglancer. To do this, you can run the following command:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>csc<span class="w"> </span>visualize
 </pre></div>
@@ -506,7 +504,7 @@ csc<span class="w"> </span>visualize<span class="w"> </span>--help
 </div>
 </section>
 <section id="submit-your-final-predictions">
-<h2>Submit your final predictions<a class="headerlink" href="#submit-your-final-predictions" title="Link to this heading">#</a></h2>
+<h1>Submit your final predictions<a class="headerlink" href="#submit-your-final-predictions" title="Link to this heading">#</a></h1>
 <p>To submit your predictions, first make sure that they are in the correct format (see below), then submit them through <a class="reference external" href="https://staging.cellmapchallenge.2i2c.cloud/upload">the online submission portal</a>. You will need to sign in with your GitHub account to submit your predictions.</p>
 <p>For convenience, if you have followed the prediction and processing steps described above and in the example scripts, you can use the following command to zip your predictions in the correct format:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>csc<span class="w"> </span>pack-results
@@ -516,8 +514,6 @@ csc<span class="w"> </span>visualize<span class="w"> </span>--help
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>csc<span class="w"> </span>pack-results<span class="w"> </span>--help
 </pre></div>
 </div>
-<section id="data-format">
-<h3>Data format<a class="headerlink" href="#data-format" title="Link to this heading">#</a></h3>
 <p>If you are packaging your predictions manually, the submission file format requirements are as follows:</p>
 <p>Submission file format requirements:</p>
 <ol class="arabic simple">
@@ -566,8 +562,6 @@ Note: The instance labels, if used, should be unique IDs per object, with 0 as b
 <li class="toctree-l1"><a class="reference internal" href="cellmap-schemas.html#contributing">Contributing</a></li>
 </ul>
 </div>
-</section>
-</section>
 </section>
 <section id="api">
 <h1>API<a class="headerlink" href="#api" title="Link to this heading">#</a></h1>
@@ -638,16 +632,13 @@ Note: The instance labels, if used, should be unique IDs per object, with 0 as b
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#clone-the-repository">Clone the repository</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#repository-structure">Repository structure</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#download-the-data">Download the data</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#train-a-model">Train a model</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#predict-on-test-data">Predict on test data</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#post-process-model-predictions">Post-process model predictions</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#visualize-data-and-predictions">Visualize data and predictions</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submit-your-final-predictions">Submit your final predictions</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#data-format">Data format</a></li>
 </ul>
 </li>
-</ul>
-</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#train-a-model">Train a model</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#predict-on-test-data">Predict on test data</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#post-process-model-predictions">Post-process model predictions</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#visualize-data-and-predictions">Visualize data and predictions</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#submit-your-final-predictions">Submit your final predictions</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#api">API</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#links">Links</a></li>
 </ul>
