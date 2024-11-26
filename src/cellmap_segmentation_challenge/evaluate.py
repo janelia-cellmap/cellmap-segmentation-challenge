@@ -360,9 +360,8 @@ def score_instance(
     # Compute the scores
     accuracy = accuracy_score(truth_label.flatten(), matched_pred_label.flatten())
     hausdorff_dist = np.mean(hausdorff_distances) if hausdorff_distances else 0
-    # TODO: Normalize Hausdorff distance based on the resolution
     normalized_hausdorff_dist = 32 ** (
-        -hausdorff_dist / np.linalg.norm(np.array(voxel_size))
+        -hausdorff_dist
     )  # normalize Hausdorff distance to [0, 1]. 32 is abritrary chosen to have a reasonable range
     combined_score = (accuracy * normalized_hausdorff_dist) ** 0.5
     print(f"Accuracy: {accuracy:.4f}")
@@ -637,37 +636,37 @@ def combine_scores(scores, include_missing=True, instance_classes=INSTANCE_CLASS
                         "combined_score": 0,
                     }
                     total_volumes[label] = 0
-                label_scores[label]["accuracy"] += this_score["accuracy"] / total_volume
+                label_scores[label]["accuracy"] += this_score["accuracy"] * total_volume
                 label_scores[label]["hausdorff_distance"] += (
-                    this_score["hausdorff_distance"] / total_volume
+                    this_score["hausdorff_distance"] * total_volume
                 )
                 label_scores[label]["normalized_hausdorff_distance"] += (
-                    this_score["normalized_hausdorff_distance"] / total_volume
+                    this_score["normalized_hausdorff_distance"] * total_volume
                 )
                 label_scores[label]["combined_score"] += (
-                    this_score["combined_score"] / total_volume
+                    this_score["combined_score"] * total_volume
                 )
                 total_volumes[label] += total_volume
             else:
                 if label not in label_scores:
                     label_scores[label] = {"iou": 0, "dice_score": 0}
                     total_volumes[label] = 0
-                label_scores[label]["iou"] += this_score["iou"] / total_volume
+                label_scores[label]["iou"] += this_score["iou"] * total_volume
                 label_scores[label]["dice_score"] += (
-                    this_score["dice_score"] / total_volume
+                    this_score["dice_score"] * total_volume
                 )
                 total_volumes[label] += total_volume
 
     # Normalize back to the total number of voxels
     for label in label_scores:
         if label in instance_classes:
-            label_scores[label]["accuracy"] *= total_volumes[label]
-            label_scores[label]["hausdorff_distance"] *= total_volumes[label]
-            label_scores[label]["normalized_hausdorff_distance"] *= total_volumes[label]
-            label_scores[label]["combined_score"] *= total_volumes[label]
+            label_scores[label]["accuracy"] /= total_volumes[label]
+            label_scores[label]["hausdorff_distance"] /= total_volumes[label]
+            label_scores[label]["normalized_hausdorff_distance"] /= total_volumes[label]
+            label_scores[label]["combined_score"] /= total_volumes[label]
         else:
-            label_scores[label]["iou"] *= total_volumes[label]
-            label_scores[label]["dice_score"] *= total_volumes[label]
+            label_scores[label]["iou"] /= total_volumes[label]
+            label_scores[label]["dice_score"] /= total_volumes[label]
     scores["label_scores"] = label_scores
 
     # Compute the overall score
