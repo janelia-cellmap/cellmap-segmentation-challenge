@@ -99,7 +99,7 @@ Additionally, you can request raw data in all resolutions (not just those matchi
 csc fetch-data --help
 ```
 
-## Train a model
+# Train a model
 
 Example scripts for training 2D and 3D models are provided in the `examples` directory. The scripts are named `train_2D.py` and `train_3D.py`, respectively, and are thoroughly annotated for clarity. You can run one such script by running the following on the command line:
 
@@ -121,7 +121,7 @@ python train_3D.py
 
 For more information on the available options and how training works, see the `README.md` in the `examples` folder, as well as the documentation in `examples/train_2D.py` and `examples/train_3D.py`.
 
-## Predict on test data
+# Predict on test data
 
 Example scripts for predicting on test data are also provided in the `examples` directory. The scripts are named `predict_2D.py` and `predict_3D.py`, respectively. You can use one such script by simply running the following on the command line:
 
@@ -137,7 +137,7 @@ csc predict --help
 
 Also see the `README.md` in the `examples` folder for more information on the available options, as well as the documentation in `examples/predict_2D.py` and `examples/predict_3D.py`.
 
-## Post-process model predictions
+# Post-process model predictions
 
 After making predictions on the test data, you may want to post-process the predictions to improve the results. Example scripts for post-processing are provided in the `examples` directory, named `process_2D.py` and `process_3D.py`. They are annotated for clarity. You can run one such script by running the following on the command line:
 
@@ -155,7 +155,7 @@ csc process --help
 
 During evaluations of submissions, for instance segmentation evaluated classes, connected components are computed on the supplied masks and the resulting instance IDs are assigned to each connected component. This will not merge already uniquely IDed objects. Thus, you do not need to run connected components on before submission, but you may wish to execute more advanced post-processing for instance segmentation, such as watershed.
 
-## Visualize data and predictions
+# Visualize data and predictions
 
 To visualize all of the data and predictions, you can view them with neuroglancer. To do this, you can run the following command:
 
@@ -175,7 +175,7 @@ Run the following command to see all the options:
 csc visualize --help
 ```
 
-## Submit your final predictions
+# Submit your final predictions
 
 To submit your predictions, first make sure that they are in the correct format (see below), then submit them through [the online submission portal](https://staging.cellmapchallenge.2i2c.cloud/upload). You will need to sign in with your GitHub account to submit your predictions.
 

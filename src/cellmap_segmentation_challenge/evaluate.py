@@ -343,11 +343,12 @@ def score_label(
         scores = score_label('pred.zarr/test_volume/label1')
     """
     print(f"Scoring {pred_label_path}...")
+    truth_path = UPath(truth_path)
     # Load the predicted and ground truth label volumes
     label_name = UPath(pred_label_path).name
     volume_name = UPath(pred_label_path).parent.name
     pred_label = zarr.open(pred_label_path)[:]
-    truth_label_path = (UPath(truth_path) / volume_name / label_name).path
+    truth_label_path = (truth_path / volume_name / label_name).path
     truth_label = zarr.open(truth_label_path)[:]
 
     # Check if the label volumes have the same shape
@@ -358,7 +359,7 @@ def score_label(
         # Make the submission match the truth shape
         pred_label = resize_array(pred_label, truth_label.shape)
 
-    mask_path = UPath(truth_path) / volume_name / f"{label_name}_mask"
+    mask_path = truth_path / volume_name / f"{label_name}_mask"
     if mask_path.exists():
         # Mask out uncertain regions resulting from low-res ground truth annotations
         print(f"Masking {label_name} with {mask_path}...")
@@ -393,14 +394,13 @@ def score_volume(
     """
     print(f"Scoring {pred_volume_path}...")
     pred_volume_path = UPath(pred_volume_path)
+    truth_path = UPath(truth_path)
 
     # Find labels to score
     pred_labels = [a for a in zarr.open(pred_volume_path.path).array_keys()]
 
     volume_name = pred_volume_path.name
-    truth_labels = [
-        a for a in zarr.open((UPath(truth_path) / volume_name).path).array_keys()
-    ]
+    truth_labels = [a for a in zarr.open((truth_path / volume_name).path).array_keys()]
 
     found_labels = list(set(pred_labels) & set(truth_labels))
     missing_labels = list(set(truth_labels) - set(pred_labels))
@@ -424,9 +424,7 @@ def score_volume(
                     "combined_score": 0,
                     "num_voxels": int(
                         np.prod(
-                            zarr.open(
-                                (UPath(truth_path) / volume_name / label).path
-                            ).shape
+                            zarr.open((truth_path / volume_name / label).path).shape
                         )
                     ),
                     "is_missing": True,
@@ -437,9 +435,7 @@ def score_volume(
                     "dice_score": 0,
                     "num_voxels": int(
                         np.prod(
-                            zarr.open(
-                                (UPath(truth_path) / volume_name / label).path
-                            ).shape
+                            zarr.open((truth_path / volume_name / label).path).shape
                         )
                     ),
                     "is_missing": True,
@@ -654,9 +650,10 @@ def score_submission(
     # Find volumes to score
     print(f"Scoring volumes in {submission_path}...")
     pred_volumes = [d.name for d in UPath(submission_path).glob("*") if d.is_dir()]
+    truth_path = UPath(truth_path)
     print(f"Volumes: {pred_volumes}")
     print(f"Truth path: {truth_path}")
-    truth_volumes = [d.name for d in UPath(truth_path).glob("*") if d.is_dir()]
+    truth_volumes = [d.name for d in truth_path.glob("*") if d.is_dir()]
     print(f"Truth volumes: {truth_volumes}")
 
     found_volumes = list(
