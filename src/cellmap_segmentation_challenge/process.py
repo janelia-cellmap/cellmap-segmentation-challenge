@@ -7,9 +7,8 @@ from tqdm import tqdm
 from upath import UPath
 
 from .config import PREDICTIONS_PATH, PROCESSED_PATH
-from .evaluate import TEST_CROPS
-from .utils import load_safe_config
-from .utils.datasplit import get_dataset_name, get_formatted_fields
+from .utils import load_safe_config, fetch_test_crop_manifest
+from .utils.datasplit import get_formatted_fields
 
 
 def _process(
@@ -83,7 +82,8 @@ def process(
 
     # Get the crops to predict on
     if crops == "test":
-        crop_list = TEST_CROPS
+        test_crops = fetch_test_crop_manifest()
+        crop_list = tuple(c.id for c in test_crops)
     else:
         crop_list = crops.split(",")
 

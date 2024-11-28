@@ -10,7 +10,7 @@ import zarr
 from upath import UPath
 
 from .config import CROP_NAME, PREDICTIONS_PATH, PROCESSED_PATH, SEARCH_PATH
-from .evaluate import TEST_CROPS
+from .utils import TEST_CROPS
 from .utils.datasplit import get_dataset_name, get_formatted_fields, get_raw_path
 
 search_paths = {
@@ -58,7 +58,7 @@ def visualize(
     if isinstance(crops, (int, str)):
         crops = [crops]
     if len(crops) == 1 and crops[0] == "test":
-        crops = TEST_CROPS
+        crops = [crop.id for crop in TEST_CROPS]
     for i, crop in enumerate(crops):
         if isinstance(crop, int) or crop.isnumeric():
             crops[i] = f"crop{crop}"
@@ -67,21 +67,24 @@ def visualize(
     for dataset_path in dataset_paths:
         dataset_name = get_dataset_name(dataset_path)
 
-        # Make the neuroglancer viewer for this dataset
-        viewer_dict[dataset_name] = neuroglancer.Viewer()
+        # Create a new viewer
+        viewer = neuroglancer.Viewer()
 
         # Add the raw dataset
-        with viewer_dict[dataset_name].txn() as s:
+        with viewer.txn() as s:
             s.layers["fibsem"] = get_layer(get_raw_path(dataset_path), "image")
 
         for kind in kinds:
-            viewer_dict[dataset_name] = add_layers(
-                viewer_dict[dataset_name],
+            viewer = add_layers(
+                viewer,
                 kind,
                 dataset_name,
                 crops,
                 classes,
             )
+
+            if viewer is not None:
+                viewer_dict[dataset_name] = viewer
 
     # Output the viewers URL to open in a browser
     for dataset, viewer in viewer_dict.items():
@@ -97,7 +100,7 @@ def add_layers(
     dataset_name: str,
     crops: Sequence,
     classes: Sequence[str],
-):
+) -> neuroglancer.Viewer | None:
     """
     Add layers to a Neuroglancer viewer.
 
@@ -142,6 +145,8 @@ def add_layers(
         with viewer.txn() as s:
             s.layers[layer_name] = get_layer(crop_path, layer_type)
 
+    if len(crop_paths) == 0:
+        return None
     return viewer
 
 

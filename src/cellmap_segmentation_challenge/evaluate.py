@@ -9,6 +9,7 @@ import zarr
 from scipy.optimize import linear_sum_assignment
 from scipy.spatial.distance import dice  # , jaccard
 from skimage.measure import label as relabel
+from skimage.transform import rescale
 from scipy.spatial import cKDTree
 from sklearn.metrics import accuracy_score, jaccard_score
 from tqdm import tqdm
@@ -17,6 +18,8 @@ from upath import UPath
 from cellmap_data import CellMapImage
 
 from .config import PROCESSED_PATH, SUBMISSION_PATH, BASE_DATA_PATH
+from .utils import TEST_CROPS, TEST_CROPS_DICT
+
 
 INSTANCE_CLASSES = [
     "nuc",
@@ -31,33 +34,6 @@ INSTANCE_CLASSES = [
     "cell",
     "instance",
 ]
-
-CLASS_RESOLUTIONS = {
-    "nuc": 16,
-    "ves": 16,
-    "endo": 16,
-    "lyso": 16,
-    "ld": 16,
-    "perox": 16,
-    "mito": 16,
-    "np": 16,
-    "mt": 16,
-    "cell": 16,
-    "instance": 16,
-    "default": 4,
-    "eres": 2,
-    "ld": 2,
-}
-
-TEST_CROPS = [234]
-
-CROP_SHAPE = {
-    234: {
-        "nuc": (25, 25, 25),
-        "mito": (50, 50, 50),
-        "er": (200, 200, 200),
-    }
-}
 
 HAUSDORFF_DISTANCE_MAX = np.inf
 
@@ -425,29 +401,20 @@ def score_label(
     truth_path = UPath(truth_path)
     # Load the predicted and ground truth label volumes
     label_name = UPath(pred_label_path).name
-    volume_name = UPath(pred_label_path).parent.name
-    truth_label_path = (truth_path / volume_name / label_name).path
+    crop_name = UPath(pred_label_path).parent.name
+    truth_label_path = (truth_path / crop_name / label_name).path
     truth_label_ds = zarr.open(truth_label_path)
     truth_label = truth_label_ds[:]
-    voxel_size = truth_label_ds.attrs["voxel_size"]
-    # translation = truth_label_ds.attrs["translation"]
-    # pred_label = get_scaled_label(
-    #     pred_label_path,
-    #     voxel_size=voxel_size,
-    #     shape=truth_label_ds.shape,
-    #     translation=translation,
-    # )
-    pred_label = zarr.open(pred_label_path)[:]
+    crop = TEST_CROPS_DICT[int(crop_name.removeprefix("crop")), label_name]
+    pred_label = match_crop_space(
+        pred_label_path,
+        label_name,
+        crop.voxel_size,
+        crop.shape,
+        crop.translation,
+    )
 
-    # Check if the label volumes have the same shape
-    if not (pred_label.shape == truth_label.shape):
-        print(
-            f"Shapes of {pred_label_path} and {truth_label_path} do not match: {pred_label.shape} vs {truth_label.shape}"
-        )
-        # Make the submission match the truth shape
-        pred_label = resize_array(pred_label, truth_label.shape)
-
-    mask_path = truth_path / volume_name / f"{label_name}_mask"
+    mask_path = truth_path / crop_name / f"{label_name}_mask"
     if mask_path.exists():
         # Mask out uncertain regions resulting from low-res ground truth annotations
         print(f"Masking {label_name} with {mask_path}...")
@@ -457,11 +424,11 @@ def score_label(
 
     # Compute the scores
     if label_name in instance_classes:
-        results = score_instance(pred_label, truth_label, voxel_size)
+        results = score_instance(pred_label, truth_label, crop.voxel_size)
     else:
         results = score_semantic(pred_label, truth_label)
     results["num_voxels"] = int(np.prod(truth_label.shape))
-    results["voxel_size"] = voxel_size
+    results["voxel_size"] = crop.voxel_size
     results["is_missing"] = False
     return results
 
@@ -822,6 +789,7 @@ def score_submission(
 def package_submission(
     input_search_path: str | UPath = PROCESSED_PATH,
     output_path: str | UPath = SUBMISSION_PATH,
+    overwrite: bool = False,
 ):
     """
     Package a submission for the CellMap challenge. This will create a zarr file, combining all the processed volumes, and then zip it.
@@ -829,6 +797,7 @@ def package_submission(
     Args:
         input_search_path (str): The base path to the processed volumes, with placeholders for dataset and crops.
         output_path (str | UPath): The path to save the submission zarr to. (ending with `<filename>.zarr`; `.zarr` will be appended if not present, and replaced with `.zip` when zipped).
+        overwrite (bool): Whether to overwrite the submission zarr if it already exists.
     """
     input_search_path = str(input_search_path)
     output_path = UPath(output_path)
@@ -842,44 +811,38 @@ def package_submission(
 
     # Find all the processed test volumes
     for crop in TEST_CROPS:
-        crop_path = input_search_path.format(dataset="*", crop=f"crop{crop}")
-        crop_path = glob(crop_path)
-        if len(crop_path) == 0:
+        crop_path = (
+            UPath(input_search_path.format(dataset=crop.dataset, crop=f"crop{crop.id}"))
+            / crop.class_label
+        )
+        if not crop_path.exists():
             print(f"Skipping {crop_path} as it does not exist.")
             continue
-        crop_path = crop_path[0]
-        crop_group = zarr_group.create_group(f"crop{crop}")
-
-        # Find all the processed labels for the test volume
-        test_volume = UPath(crop_path).name
-        labels = [d.name for d in UPath(crop_path).glob("*") if d.is_dir()]
-        print(f"Found labels for {test_volume}: {labels}")
+        if f"crop{crop.id}" not in zarr_group:
+            crop_group = zarr_group.create_group(f"crop{crop.id}")
+        else:
+            crop_group = zarr_group[f"crop{crop.id}"]
 
         # Rescale the processed volumes to match the expected submission resolution if required
-        for label in labels:
-            if label in CLASS_RESOLUTIONS:
-                resolution = CLASS_RESOLUTIONS[label]
-            else:
-                resolution = CLASS_RESOLUTIONS["default"]
-            label_array = crop_group.create_dataset(
-                label,
-                overwrite=True,
-                shape=CROP_SHAPE[crop][label],
-            )
-            print(f"Scaling {label} to {resolution}nm")
-            image = CellMapImage(
-                path=(UPath(crop_path) / label).path,
-                target_class=label,
-                target_scale=[
-                    resolution,
-                ]
-                * 3,
-                target_voxel_shape=CROP_SHAPE[crop][label],
-                pad=True,
-                pad_value=0,
-            )
-            # Save the processed labels to the submission zarr
-            label_array[:] = image[image.center].cpu().numpy()
+        label_array = crop_group.create_dataset(
+            crop.class_label,
+            overwrite=overwrite,
+            shape=crop.shape,
+        )
+        print(f"Scaling {crop_path} to {crop.voxel_size} nm")
+        # Match the resolution of the processed volume to the test volume
+        image = match_crop_space(
+            crop_path.path,
+            crop.class_label,
+            crop.voxel_size,
+            crop.shape,
+            crop.translation,
+        )
+        # Save the processed labels to the submission zarr
+        label_array[:] = image
+        # Add the metadata
+        label_array.attrs["voxel_size"] = crop.voxel_size
+        label_array.attrs["translation"] = crop.translation
 
     print(f"Saved submission to {output_path}")
 
@@ -887,6 +850,132 @@ def package_submission(
     zip_submission(output_path)
 
     print("Done packaging submission")
+
+
+def match_crop_space(path, class_label, voxel_size, shape, translation) -> np.ndarray:
+    """
+    Match the resolution of a zarr array to a target resolution and shape, resampling as necessary with interpolation dependent on the class label. Instance segmentations will be resampled with nearest neighbor interpolation, while semantic segmentations will be resampled with linear interpolation and then thresholded.
+
+    Args:
+        path (str | UPath): The path to the zarr array to match.
+        class_label (str): The class label of the array.
+        voxel_size (tuple): The target voxel size.
+        shape (tuple): The target shape.
+        translation (tuple): The translation (i.e. offset) of the array in world units.
+
+    Returns:
+        np.ndarray: The rescaled array.
+    """
+    ds = zarr.open(str(path), mode="r")
+    if "multiscales" in ds.attrs:
+        # Handle multiscale zarr files
+        image = CellMapImage(
+            path=path,
+            target_class=class_label,
+            target_scale=voxel_size,
+            target_voxel_shape=shape,
+            pad=True,
+            pad_value=0,
+        )
+        path = UPath(path) / image.scale_level
+        for attr in ds.attrs["multiscales"][0]["datasets"]:
+            if attr["path"] == image.scale_level:
+                for transform in attr["coordinateTransformations"]:
+                    if transform["type"] == "translation":
+                        input_translation = transform["translation"]
+                    elif transform["type"] == "scale":
+                        input_voxel_size = transform["scale"]
+                break
+        ds = zarr.open(path.path, mode="r")
+    elif (
+        ("voxel_size" in ds.attrs)
+        or ("resolution" in ds.attrs)
+        or ("scale" in ds.attrs)
+    ) and (("translation" in ds.attrs) or ("offset" in ds.attrs)):
+        # Handle single scale zarr files
+        if "voxel_size" in ds.attrs:
+            input_voxel_size = ds.attrs["voxel_size"]
+        elif "resolution" in ds.attrs:
+            input_voxel_size = ds.attrs["resolution"]
+        elif "scale" in ds.attrs:
+            input_voxel_size = ds.attrs["scale"]
+
+        if "translation" in ds.attrs:
+            input_translation = ds.attrs["translation"]
+        elif "offset" in ds.attrs:
+            input_translation = ds.attrs["offset"]
+    else:
+        print(f"Could not find voxel size and translation for {path}")
+        print(
+            "Assuming voxel size matches target voxel size and will crop to target shape centering the volume."
+        )
+        image = ds[:]
+        # Crop the array if necessary
+        if any(s1 != s2 for s1, s2 in zip(image.shape, shape)):
+            return resize_array(image, shape)  # type: ignore
+        return image  # type: ignore
+
+    # Load the array
+    image = ds[:]
+
+    # Rescale the array if necessary
+    if any(r1 != r2 for r1, r2 in zip(input_voxel_size, voxel_size)):
+        if class_label in INSTANCE_CLASSES:
+            image = rescale(
+                image, np.divide(voxel_size, input_voxel_size), order=0, mode="constant"
+            )
+        else:
+            image = rescale(
+                image,
+                np.divide(voxel_size, input_voxel_size),
+                order=1,
+                mode="constant",
+                anti_aliasing=True,
+            )
+            image = image > 0.5
+
+    # Calculate the relative offset
+    adjusted_input_translation = (
+        np.array(input_translation) // np.array(voxel_size)
+    ) * np.array(voxel_size)
+
+    # Positive relative offset is the amount to crop from the start, negative is the amount to pad at the start
+    relative_offset = np.subtract(adjusted_input_translation, translation) // np.array(
+        voxel_size
+    )
+
+    # Translate and crop the array if necessary
+    if any(offset != 0 for offset in relative_offset) or any(
+        s1 != s2 for s1, s2 in zip(image.shape, shape)
+    ):
+        # Make destination array
+        result = np.zeros(shape, dtype=image.dtype)
+
+        # Calculate the slices for the source and destination arrays
+        input_slices = []
+        output_slices = []
+        for i in range(len(shape)):
+            if relative_offset[i] < 0:
+                # Crop from the start
+                input_start = abs(relative_offset[i])
+                output_start = 0
+            else:
+                # Pad at the start
+                input_start = 0
+                output_start = relative_offset[i]
+
+            input_end = min(input_start + shape[i], image.shape[i])
+            input_length = input_end - input_start
+            output_end = output_start + input_length
+
+            input_slices.append(slice(int(input_start), int(input_end)))
+            output_slices.append(slice(int(output_start), int(output_end)))
+
+        # Copy the data
+        result[*output_slices] = image[*input_slices]
+        return result
+    else:
+        return image
 
 
 def zip_submission(zarr_path: str | UPath = SUBMISSION_PATH):

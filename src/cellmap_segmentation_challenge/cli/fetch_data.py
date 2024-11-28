@@ -15,7 +15,11 @@ from xarray_ome_ngff.v04.multiscale import transforms_from_coords
 from yarl import URL
 from zarr.storage import FSStore
 
-from cellmap_segmentation_challenge.utils.crops import CropRow, fetch_manifest
+from cellmap_segmentation_challenge.utils.crops import (
+    CropRow,
+    fetch_manifest,
+    fetch_test_crop_manifest,
+)
 from cellmap_segmentation_challenge.utils.fetch_data import (
     _resolve_em_dest_path,
     _resolve_gt_dest_path,
@@ -27,15 +31,6 @@ from cellmap_segmentation_challenge.utils.fetch_data import (
 from cellmap_segmentation_challenge.config import BASE_DATA_PATH
 
 load_dotenv()
-
-# get constants from environment, falling back to defaults as needed
-manifest_url = os.environ.get(
-    "CSC_FETCH_DATA_MANIFEST_URL",
-    "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/manifest.csv",
-)
-if manifest_url is None:
-    raise ValueError("No manifest url provided. Quitting.")
-num_workers = int(os.environ.get("CSC_FETCH_DATA_NUM_WORKERS", 32))
 
 
 @click.command
@@ -83,6 +78,13 @@ num_workers = int(os.environ.get("CSC_FETCH_DATA_NUM_WORKERS", 32))
     default=256,
     help="Number of files to fetch in each batch. Default: 256.",
 )
+@click.option(
+    "-w",
+    "--num-workers",
+    type=click.INT,
+    default=int(os.environ.get("CSC_FETCH_DATA_NUM_WORKERS", 32)),
+    help=f"Number of workers to use for parallel downloads. Default: {int(os.environ.get('CSC_FETCH_DATA_NUM_WORKERS', 32))}.",
+)
 def fetch_data_cli(
     crops: str,
     raw_padding: str,
@@ -90,6 +92,7 @@ def fetch_data_cli(
     access_mode: str,
     fetch_all_em_resolutions,
     batch_size,
+    num_workers,
 ):
     """
     Download data for the CellMap segmentation challenge.
@@ -109,20 +112,14 @@ def fetch_data_cli(
     log = structlog.get_logger()
     crops_parsed: tuple[CropRow, ...]
 
-    crops_from_manifest = fetch_manifest(manifest_url)
+    crops_from_manifest = fetch_manifest()
 
     if crops == "all":
         crops_parsed = crops_from_manifest
     elif crops == "test":
-        crops_parsed = tuple(
-            filter(
-                lambda v: "test"
-                in read_group(
-                    str(v.gt_url), storage_options={"anon": True}
-                ).group_keys(),
-                crops_from_manifest,
-            )
-        )
+        test_crops = fetch_test_crop_manifest()
+        crop_ids = tuple(c.id for c in test_crops)
+        crops_parsed = tuple(filter(lambda v: v.id in crop_ids, crops_from_manifest))
     else:
         crops_split = tuple(int(x) for x in crops.split(","))
         crops_parsed = tuple(filter(lambda v: v.id in crops_split, crops_from_manifest))
