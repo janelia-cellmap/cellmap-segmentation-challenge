@@ -121,6 +121,12 @@ You can also train a 3D model by running the same command with `train_3D.py`:
 python train_3D.py
 ```
 
+Alternatively, you can use the built-in command to train a model, given the path to a model configuration file. To learn more, you can run the following in the terminal:
+
+```bash
+csc train --help
+```
+
 For more information on the available options and how training works, see the `README.md` in the `examples` folder, as well as the documentation in `examples/train_2D.py` and `examples/train_3D.py`.
 
 # Predict on test data
