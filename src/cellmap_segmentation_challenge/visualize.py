@@ -52,13 +52,18 @@ def visualize(
                 print(f"No datasets found for dataset: {dataset}")
             dataset_paths.extend(found_paths)
 
+    # print(f"Found datasets: {dataset_paths}")
+
     if isinstance(classes, str):
         classes = [classes]
 
     if isinstance(crops, (int, str)):
         crops = [crops]
     if len(crops) == 1 and crops[0] == "test":
+        force_em = True
         crops = [crop.id for crop in TEST_CROPS]
+    else:
+        force_em = False
     for i, crop in enumerate(crops):
         if isinstance(crop, int) or crop.isnumeric():
             crops[i] = f"crop{crop}"
@@ -73,6 +78,9 @@ def visualize(
         # Add the raw dataset
         with viewer.txn() as s:
             s.layers["fibsem"] = get_layer(get_raw_path(dataset_path), "image")
+
+        if force_em:
+            viewer_dict[dataset_name] = viewer
 
         for kind in kinds:
             viewer = add_layers(
@@ -168,7 +176,14 @@ def get_layer(data_path: str, layer_type: str = "image") -> neuroglancer.Layer:
     """
     # Construct an xarray with Tensorstore backend
     # TODO: Make this work with multiscale properly
-    spec = xt._zarr_spec_from_path((UPath(data_path) / "s0").path)
+    # Find highest resolution that has data
+    i = 0
+    while True:
+        # Does level s{i} have directories in it?
+        if len(glob(f"{data_path}/s{i}/*")) > 0:
+            break
+        i += 1
+    spec = xt._zarr_spec_from_path((UPath(data_path) / f"s{i}").path)
     array_future = tensorstore.open(spec, read=True, write=False)
     try:
         array = array_future.result()
