@@ -47,7 +47,7 @@ dependencies = [
   "scikit-image",
   "xarray-tensorstore>=0.1.5,<0.2",
   "tensorstore>=0.1.65,<0.2",
-  "torch",
+  "torch", "cellpose>=3.1.0,<4",
   ]
 
 [project.optional-dependencies]
@@ -178,7 +178,7 @@ roifile = ">=2024.5.24,<2025"
 rsa = ">=4.9,<5"
 structlog = ">=24.4.0,<25"
 matplotlib = ">=3.9.2,<4"
-fastremap = ">=1.14.0,<2"
+fastremap = "1.13.*"
 
 [tool.pixi.target.linux-64.dependencies]
 tensorstore = "=0.1.65,<0.2"
