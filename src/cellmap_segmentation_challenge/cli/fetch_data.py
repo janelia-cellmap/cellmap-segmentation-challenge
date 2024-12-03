@@ -387,11 +387,11 @@ def fetch_data_cli(
                     )
                     log.debug(f"Gathering {len(new_chunks)} chunks from level {key}.")
                     em_group_inventory += new_chunks
-                    em_group_inventory += (f"{key}/.zarray",)
                 else:
                     log.info(
                         f"Skipping scale level {key} because it is sampled more densely than the groundtruth data"
                     )
+                em_group_inventory += (f"{key}/.zarray",)
             # em_group_inventory += (".zattrs",)
             log.info(
                 f"Preparing to fetch {len(em_group_inventory)} files from {em_source_url}."
