@@ -69,9 +69,7 @@ def process(
     process_func = config.process_func
     classes = config.classes
     batch_size = getattr(config, "batch_size", 8)
-    input_array_info = getattr(
-        config, "input_array_info", {"shape": (1, 128, 128), "scale": (8, 8, 8)}
-    )
+    input_array_info = config.input_array_info
     target_array_info = getattr(config, "target_array_info", input_array_info)
 
     input_arrays = {"input": input_array_info}
@@ -83,7 +81,7 @@ def process(
     # Get the crops to predict on
     if crops == "test":
         test_crops = fetch_test_crop_manifest()
-        crop_list = tuple(c.id for c in test_crops)
+        crop_list = [c.id for c in test_crops]
     else:
         crop_list = crops.split(",")
 

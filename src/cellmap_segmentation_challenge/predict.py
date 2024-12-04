@@ -209,7 +209,7 @@ def predict(
 
             # Get the boundaries of the crop
             target_bounds = {
-                "input": {
+                "output": {
                     axis: [
                         crop.translation[i],
                         crop.translation[i] + crop.voxel_size[i] * crop.shape[i],

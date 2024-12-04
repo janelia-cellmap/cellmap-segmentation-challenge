@@ -832,11 +832,11 @@ def package_submission(
         print(f"Scaling {crop_path} to {crop.voxel_size} nm")
         # Match the resolution of the processed volume to the test volume
         image = match_crop_space(
-            crop_path.path,
-            crop.class_label,
-            crop.voxel_size,
-            crop.shape,
-            crop.translation,
+            path=crop_path.path,
+            class_label=crop.class_label,
+            voxel_size=crop.voxel_size,
+            shape=crop.shape,
+            translation=crop.translation,
         )
         # Save the processed labels to the submission zarr
         label_array[:] = image
@@ -857,7 +857,7 @@ def match_crop_space(path, class_label, voxel_size, shape, translation) -> np.nd
     Match the resolution of a zarr array to a target resolution and shape, resampling as necessary with interpolation dependent on the class label. Instance segmentations will be resampled with nearest neighbor interpolation, while semantic segmentations will be resampled with linear interpolation and then thresholded.
 
     Args:
-        path (str | UPath): The path to the zarr array to match.
+        path (str | UPath): The path to the zarr array to match. The zarr can be an OME-NGFF multiscale zarr file, or a traditional single scale formatted zarr.
         class_label (str): The class label of the array.
         voxel_size (tuple): The target voxel size.
         shape (tuple): The target shape.
@@ -869,7 +869,7 @@ def match_crop_space(path, class_label, voxel_size, shape, translation) -> np.nd
     ds = zarr.open(str(path), mode="r")
     if "multiscales" in ds.attrs:
         # Handle multiscale zarr files
-        image = CellMapImage(
+        _image = CellMapImage(
             path=path,
             target_class=class_label,
             target_scale=voxel_size,
@@ -877,9 +877,9 @@ def match_crop_space(path, class_label, voxel_size, shape, translation) -> np.nd
             pad=True,
             pad_value=0,
         )
-        path = UPath(path) / image.scale_level
+        path = UPath(path) / _image.scale_level
         for attr in ds.attrs["multiscales"][0]["datasets"]:
-            if attr["path"] == image.scale_level:
+            if attr["path"] == _image.scale_level:
                 for transform in attr["coordinateTransformations"]:
                     if transform["type"] == "translation":
                         input_translation = transform["translation"]
@@ -891,7 +891,7 @@ def match_crop_space(path, class_label, voxel_size, shape, translation) -> np.nd
         ("voxel_size" in ds.attrs)
         or ("resolution" in ds.attrs)
         or ("scale" in ds.attrs)
-    ) and (("translation" in ds.attrs) or ("offset" in ds.attrs)):
+    ) or (("translation" in ds.attrs) or ("offset" in ds.attrs)):
         # Handle single scale zarr files
         if "voxel_size" in ds.attrs:
             input_voxel_size = ds.attrs["voxel_size"]
@@ -899,11 +899,15 @@ def match_crop_space(path, class_label, voxel_size, shape, translation) -> np.nd
             input_voxel_size = ds.attrs["resolution"]
         elif "scale" in ds.attrs:
             input_voxel_size = ds.attrs["scale"]
+        else:
+            input_voxel_size = None
 
         if "translation" in ds.attrs:
             input_translation = ds.attrs["translation"]
         elif "offset" in ds.attrs:
             input_translation = ds.attrs["offset"]
+        else:
+            input_translation = None
     else:
         print(f"Could not find voxel size and translation for {path}")
         print(
@@ -919,35 +923,46 @@ def match_crop_space(path, class_label, voxel_size, shape, translation) -> np.nd
     image = ds[:]
 
     # Rescale the array if necessary
-    if any(r1 != r2 for r1, r2 in zip(input_voxel_size, voxel_size)):
+    if input_voxel_size is not None and any(
+        r1 != r2 for r1, r2 in zip(input_voxel_size, voxel_size)
+    ):
         if class_label in INSTANCE_CLASSES:
             image = rescale(
-                image, np.divide(voxel_size, input_voxel_size), order=0, mode="constant"
+                image, np.divide(input_voxel_size, voxel_size), order=0, mode="constant"
             )
         else:
             image = rescale(
                 image,
-                np.divide(voxel_size, input_voxel_size),
+                np.divide(input_voxel_size, voxel_size),
                 order=1,
                 mode="constant",
                 anti_aliasing=True,
             )
             image = image > 0.5
 
-    # Calculate the relative offset
-    adjusted_input_translation = (
-        np.array(input_translation) // np.array(voxel_size)
-    ) * np.array(voxel_size)
+    if input_translation is not None:
+        # Calculate the relative offset
+        adjusted_input_translation = (
+            np.array(input_translation) // np.array(voxel_size)
+        ) * np.array(voxel_size)
 
-    # Positive relative offset is the amount to crop from the start, negative is the amount to pad at the start
-    relative_offset = np.subtract(adjusted_input_translation, translation) // np.array(
-        voxel_size
-    )
+        # Positive relative offset is the amount to crop from the start, negative is the amount to pad at the start
+        relative_offset = (
+            abs(np.subtract(adjusted_input_translation, translation))
+            // np.array(voxel_size)
+            * np.sign(np.subtract(adjusted_input_translation, translation))
+        )
+    else:
+        # TODO: Handle the case where the translation is not provided
+        relative_offset = np.zeros(len(shape))
 
     # Translate and crop the array if necessary
     if any(offset != 0 for offset in relative_offset) or any(
         s1 != s2 for s1, s2 in zip(image.shape, shape)
     ):
+        print(
+            f"Translating and cropping {path} to {shape} with offset {relative_offset}"
+        )
         # Make destination array
         result = np.zeros(shape, dtype=image.dtype)
 
@@ -959,14 +974,22 @@ def match_crop_space(path, class_label, voxel_size, shape, translation) -> np.nd
                 # Crop from the start
                 input_start = abs(relative_offset[i])
                 output_start = 0
+                input_end = min(input_start + shape[i], image.shape[i])
+                input_length = input_end - input_start
+                output_end = output_start + input_length
             else:
                 # Pad at the start
                 input_start = 0
                 output_start = relative_offset[i]
+                output_end = min(shape[i], image.shape[i])
+                input_length = output_end - output_start
+                input_end = input_length
 
-            input_end = min(input_start + shape[i], image.shape[i])
-            input_length = input_end - input_start
-            output_end = output_start + input_length
+            if input_length <= 0:
+                print("WARNING: Cropping to proper offset resulted in empty volume.")
+                print(f"\tInput shape: {image.shape}, Output shape: {shape}")
+                print(f"\tInput offset: {input_start}, Output offset: {output_start}")
+                return result
 
             input_slices.append(slice(int(input_start), int(input_end)))
             output_slices.append(slice(int(output_start), int(output_end)))

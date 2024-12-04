@@ -72,7 +72,7 @@ def evaluate_cli(submission_path, result_file, truth_path, instance_classes):
 )
 @click.option(
     "--overwrite",
-    "-ow",
+    "-O",
     is_flag=True,
     help="Whether to overwrite the output submission file if it already exists",
 )
