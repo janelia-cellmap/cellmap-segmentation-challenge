@@ -33,7 +33,7 @@ from ..visualize import visualize
     "-k",
     type=click.STRING,
     required=True,
-    default="gt,predictions,processed",
+    default="gt,predictions,processed,submission",
     help="Comma-separated list of kinds of data to view (Example: 'gt,processed'). Defaults to all: 'gt,predictions,processed'. Raw (fibsem) data is always shown.",
 )
 def visualize_cli(datasets, crops, classes, kinds):
