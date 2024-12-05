@@ -9,7 +9,7 @@ from yarl import URL
 # get constants from environment, falling back to defaults as needed
 TEST_CROP_MANIFEST_URL = os.environ.get(
     "CSC_TEST_CROP_MANIFEST_URL",
-    "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/test_crop_refactor/src/cellmap_segmentation_challenge/utils/test_crop_manifest.csv",
+    "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/test_crop_manifest.csv",
 )
 
 
