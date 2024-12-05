@@ -30,7 +30,7 @@ def _process(
     dataset_writer = CellMapDatasetWriter(**dataset_writer_kwargs)
 
     # Process the data
-    for batch in tqdm(dataset_writer.loader(batch_size=batch_size)):
+    for batch in tqdm(dataset_writer.loader(batch_size=batch_size), dynamic_ncols=True):
         # Get the input data
         inputs = batch["input"]
 

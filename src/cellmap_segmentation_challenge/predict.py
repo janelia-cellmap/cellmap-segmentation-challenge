@@ -59,7 +59,7 @@ def predict_orthoplanes(
     }
 
     # Combine the predictions from the x, y, and z orthogonal planes
-    for batch in tqdm(dataset_writer.loader(batch_size=batch_size)):
+    for batch in tqdm(dataset_writer.loader(batch_size=batch_size), dynamic_ncols=True):
         # For each class, get the predictions from the x, y, and z orthogonal planes
         outputs = {}
         for array_name, images in single_axis_images.items():
@@ -110,7 +110,7 @@ def _predict(
     dataloader = dataset_writer.loader(batch_size=batch_size)
     model.eval()
     with torch.no_grad():
-        for batch in tqdm(dataloader):
+        for batch in tqdm(dataloader, dynamic_ncols=True):
             # Get the inputs and outputs
             inputs = batch["input"]
             outputs = model(inputs)
