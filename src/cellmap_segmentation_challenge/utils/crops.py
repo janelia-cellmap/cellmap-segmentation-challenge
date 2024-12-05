@@ -9,7 +9,7 @@ from yarl import URL
 # get constants from environment, falling back to defaults as needed
 TEST_CROP_MANIFEST_URL = os.environ.get(
     "CSC_TEST_CROP_MANIFEST_URL",
-    "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/test_crop_manifest.csv",
+    "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/test_crop_refactor/src/cellmap_segmentation_challenge/utils/test_crop_manifest.csv",
 )
 
 
@@ -104,3 +104,58 @@ def fetch_manifest(url: str | URL = MANIFEST_URL) -> tuple[CropRow, ...]:
 
 TEST_CROPS = fetch_test_crop_manifest()
 TEST_CROPS_DICT = {(crop.id, crop.class_label): crop for crop in TEST_CROPS}
+
+
+def get_test_crops() -> tuple[CropRow, ...]:
+    _test_crops = fetch_test_crop_manifest()
+    dataset_em_meta = {
+        crop.dataset: {"em_url": crop.em_url, "alignment": crop.alignment}
+        for crop in fetch_manifest()
+    }
+    test_crops = []
+    test_crop_meta_by_id = {}
+    for test_crop in _test_crops:
+        crop = CropRow(
+            test_crop.id,
+            test_crop.dataset,
+            dataset_em_meta[test_crop.dataset]["alignment"],
+            test_crop,
+            dataset_em_meta[test_crop.dataset]["em_url"],
+        )
+        if test_crop.id in test_crop_meta_by_id:
+            # Make sure metadata for highest resolution, smallest offset, and largest shape is kept
+            listed = test_crop_meta_by_id[test_crop.id]
+            new_voxel_size = (
+                min(l_vs, t_vs)
+                for l_vs, t_vs in zip(test_crop.voxel_size, listed.voxel_size)
+            )
+            new_translation = (
+                min(l_trans, t_trans)
+                for l_trans, t_trans in zip(test_crop.translation, listed.translation)
+            )
+            new_shape = (
+                max(l_shape, t_shape)
+                for l_shape, t_shape in zip(test_crop.shape, listed.shape)
+            )
+            new_test_crop = TestCropRow(
+                crop.id,
+                crop.dataset,
+                "test",
+                tuple(new_voxel_size),
+                tuple(new_translation),
+                tuple(new_shape),
+            )
+            test_crop_meta_by_id[test_crop.id] = new_test_crop
+        else:
+            test_crop_meta_by_id[test_crop.id] = test_crop
+
+    for id, test_crop in test_crop_meta_by_id.items():
+        new_crop = CropRow(
+            id,
+            test_crop.dataset,
+            dataset_em_meta[test_crop.dataset]["alignment"],
+            test_crop,
+            dataset_em_meta[test_crop.dataset]["em_url"],
+        )
+        test_crops.append(new_crop)
+    return tuple(test_crops)

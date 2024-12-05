@@ -12,7 +12,7 @@ from upath import UPath
 
 from .config import CROP_NAME, PREDICTIONS_PATH, RAW_NAME, SEARCH_PATH
 from .models import load_best_val, load_latest
-from .utils import load_safe_config, fetch_test_crop_manifest
+from .utils import load_safe_config, get_test_crops
 from .utils.datasplit import get_formatted_fields, get_raw_path
 
 
@@ -59,6 +59,7 @@ def predict_orthoplanes(
     }
 
     # Combine the predictions from the x, y, and z orthogonal planes
+    print("Combining predictions.")
     for batch in tqdm(dataset_writer.loader(batch_size=batch_size), dynamic_ncols=True):
         # For each class, get the predictions from the x, y, and z orthogonal planes
         outputs = {}
@@ -201,7 +202,7 @@ def predict(
 
     # Get the crops to predict on
     if crops == "test":
-        test_crops = fetch_test_crop_manifest()
+        test_crops = get_test_crops()
         dataset_writers = []
         for crop in test_crops:
             # Get path to raw dataset
@@ -211,8 +212,9 @@ def predict(
             target_bounds = {
                 "output": {
                     axis: [
-                        crop.translation[i],
-                        crop.translation[i] + crop.voxel_size[i] * crop.shape[i],
+                        crop.gt_source.translation[i],
+                        crop.gt_source.translation[i]
+                        + crop.gt_source.voxel_size[i] * crop.gt_source.shape[i],
                     ]
                     for i, axis in enumerate("zyx")
                 },

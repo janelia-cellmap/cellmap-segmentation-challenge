@@ -81,7 +81,7 @@ def process(
     # Get the crops to predict on
     if crops == "test":
         test_crops = fetch_test_crop_manifest()
-        crop_list = [c.id for c in test_crops]
+        crop_list = list(set([c.id for c in test_crops]))
     else:
         crop_list = crops.split(",")
 

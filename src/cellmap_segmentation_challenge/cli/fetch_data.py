@@ -19,7 +19,7 @@ from cellmap_segmentation_challenge.utils.crops import (
     CropRow,
     TestCropRow,
     fetch_manifest,
-    fetch_test_crop_manifest,
+    get_test_crops,
 )
 from cellmap_segmentation_challenge.utils.fetch_data import (
     _resolve_em_dest_path,
@@ -116,61 +116,8 @@ def fetch_data_cli(
     crops_from_manifest = fetch_manifest()
 
     if crops == "all" or crops == "test":
-        _test_crops = fetch_test_crop_manifest()
-        dataset_em_meta = {
-            crop.dataset: {"em_url": crop.em_url, "alignment": crop.alignment}
-            for crop in crops_from_manifest
-        }
-        test_crops = []
-        test_crop_meta_by_id = {}
-        for test_crop in _test_crops:
-            crop = CropRow(
-                test_crop.id,
-                test_crop.dataset,
-                dataset_em_meta[test_crop.dataset]["alignment"],
-                test_crop,
-                dataset_em_meta[test_crop.dataset]["em_url"],
-            )
-            if test_crop.id in test_crop_meta_by_id:
-                # Make sure metadata for highest resolution, smallest offset, and largest shape is kept
-                listed = test_crop_meta_by_id[test_crop.id]
-                new_voxel_size = (
-                    min(l_vs, t_vs)
-                    for l_vs, t_vs in zip(test_crop.voxel_size, listed.voxel_size)
-                )
-                new_translation = (
-                    min(l_trans, t_trans)
-                    for l_trans, t_trans in zip(
-                        test_crop.translation, listed.translation
-                    )
-                )
-                new_shape = (
-                    max(l_shape, t_shape)
-                    for l_shape, t_shape in zip(test_crop.shape, listed.shape)
-                )
-                new_test_crop = TestCropRow(
-                    crop.id,
-                    crop.dataset,
-                    "test",
-                    tuple(new_voxel_size),
-                    tuple(new_translation),
-                    tuple(new_shape),
-                )
-                test_crop_meta_by_id[test_crop.id] = new_test_crop
-            else:
-                test_crop_meta_by_id[test_crop.id] = test_crop
-
-        for id, test_crop in test_crop_meta_by_id.items():
-            new_crop = CropRow(
-                id,
-                test_crop.dataset,
-                dataset_em_meta[test_crop.dataset]["alignment"],
-                test_crop,
-                dataset_em_meta[test_crop.dataset]["em_url"],
-            )
-            test_crops.append(new_crop)
+        test_crops = get_test_crops()
         log.info(f"Found {len(test_crops)} test crops.")
-        test_crops = tuple(test_crops)
 
     if crops == "all":
         crops_parsed = crops_from_manifest + test_crops
