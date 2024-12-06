@@ -343,6 +343,7 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.combine_scores"><code class="docutils literal notranslate"><span class="pre">combine_scores()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.score_submission"><code class="docutils literal notranslate"><span class="pre">score_submission()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.package_submission"><code class="docutils literal notranslate"><span class="pre">package_submission()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.match_crop_space"><code class="docutils literal notranslate"><span class="pre">match_crop_space()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.zip_submission"><code class="docutils literal notranslate"><span class="pre">zip_submission()</span></code></a></li>
 </ul>
             </nav>
@@ -366,40 +367,43 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.hausdorff_distance" title="cellmap_segmentation_challenge.evaluate.hausdorff_distance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hausdorff_distance</span></code></a>(image0, image1, voxel_size)</p></td>
 <td><p>Calculate the Hausdorff distance between nonzero elements of given images.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.missing_volume_score" title="cellmap_segmentation_challenge.evaluate.missing_volume_score"><code class="xref py py-obj docutils literal notranslate"><span class="pre">missing_volume_score</span></code></a>(truth_volume_path[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.match_crop_space" title="cellmap_segmentation_challenge.evaluate.match_crop_space"><code class="xref py py-obj docutils literal notranslate"><span class="pre">match_crop_space</span></code></a>(path, class_label, ...)</p></td>
+<td><p>Match the resolution of a zarr array to a target resolution and shape, resampling as necessary with interpolation dependent on the class label.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.missing_volume_score" title="cellmap_segmentation_challenge.evaluate.missing_volume_score"><code class="xref py py-obj docutils literal notranslate"><span class="pre">missing_volume_score</span></code></a>(truth_volume_path[, ...])</p></td>
 <td><p>Score a missing volume as 0's, congruent with the score_volume function.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.package_submission" title="cellmap_segmentation_challenge.evaluate.package_submission"><code class="xref py py-obj docutils literal notranslate"><span class="pre">package_submission</span></code></a>([input_search_path, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.package_submission" title="cellmap_segmentation_challenge.evaluate.package_submission"><code class="xref py py-obj docutils literal notranslate"><span class="pre">package_submission</span></code></a>([input_search_path, ...])</p></td>
 <td><p>Package a submission for the CellMap challenge.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.resize_array" title="cellmap_segmentation_challenge.evaluate.resize_array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resize_array</span></code></a>(arr, target_shape[, pad_value])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.resize_array" title="cellmap_segmentation_challenge.evaluate.resize_array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resize_array</span></code></a>(arr, target_shape[, pad_value])</p></td>
 <td><p>Resize an array to a target shape by padding or cropping as needed.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.save_numpy_class_arrays_to_zarr" title="cellmap_segmentation_challenge.evaluate.save_numpy_class_arrays_to_zarr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_numpy_class_arrays_to_zarr</span></code></a>(save_path, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.save_numpy_class_arrays_to_zarr" title="cellmap_segmentation_challenge.evaluate.save_numpy_class_arrays_to_zarr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_numpy_class_arrays_to_zarr</span></code></a>(save_path, ...)</p></td>
 <td><p>Save a list of 3D numpy arrays of binary or instance labels to a Zarr-2 file with the required structure.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.save_numpy_class_labels_to_zarr" title="cellmap_segmentation_challenge.evaluate.save_numpy_class_labels_to_zarr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_numpy_class_labels_to_zarr</span></code></a>(save_path, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.save_numpy_class_labels_to_zarr" title="cellmap_segmentation_challenge.evaluate.save_numpy_class_labels_to_zarr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_numpy_class_labels_to_zarr</span></code></a>(save_path, ...)</p></td>
 <td><p>Save a single 3D numpy array of class labels to a Zarr-2 file with the required structure.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.score_instance" title="cellmap_segmentation_challenge.evaluate.score_instance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">score_instance</span></code></a>(pred_label, truth_label, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.score_instance" title="cellmap_segmentation_challenge.evaluate.score_instance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">score_instance</span></code></a>(pred_label, truth_label, ...)</p></td>
 <td><p>Score a single instance label volume against the ground truth instance label volume.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.score_label" title="cellmap_segmentation_challenge.evaluate.score_label"><code class="xref py py-obj docutils literal notranslate"><span class="pre">score_label</span></code></a>(pred_label_path[, truth_path, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.score_label" title="cellmap_segmentation_challenge.evaluate.score_label"><code class="xref py py-obj docutils literal notranslate"><span class="pre">score_label</span></code></a>(pred_label_path[, truth_path, ...])</p></td>
 <td><p>Score a single label volume against the ground truth label volume.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.score_semantic" title="cellmap_segmentation_challenge.evaluate.score_semantic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">score_semantic</span></code></a>(pred_label, truth_label)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.score_semantic" title="cellmap_segmentation_challenge.evaluate.score_semantic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">score_semantic</span></code></a>(pred_label, truth_label)</p></td>
 <td><p>Score a single semantic label volume against the ground truth semantic label volume.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.score_submission" title="cellmap_segmentation_challenge.evaluate.score_submission"><code class="xref py py-obj docutils literal notranslate"><span class="pre">score_submission</span></code></a>([submission_path, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.score_submission" title="cellmap_segmentation_challenge.evaluate.score_submission"><code class="xref py py-obj docutils literal notranslate"><span class="pre">score_submission</span></code></a>([submission_path, ...])</p></td>
 <td><p>Score a submission against the ground truth data.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.score_volume" title="cellmap_segmentation_challenge.evaluate.score_volume"><code class="xref py py-obj docutils literal notranslate"><span class="pre">score_volume</span></code></a>(pred_volume_path[, truth_path, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.score_volume" title="cellmap_segmentation_challenge.evaluate.score_volume"><code class="xref py py-obj docutils literal notranslate"><span class="pre">score_volume</span></code></a>(pred_volume_path[, truth_path, ...])</p></td>
 <td><p>Score a single volume against the ground truth volume.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.unzip_file" title="cellmap_segmentation_challenge.evaluate.unzip_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unzip_file</span></code></a>(zip_path)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.unzip_file" title="cellmap_segmentation_challenge.evaluate.unzip_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unzip_file</span></code></a>(zip_path)</p></td>
 <td><p>Unzip a zip file to a specified directory.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.zip_submission" title="cellmap_segmentation_challenge.evaluate.zip_submission"><code class="xref py py-obj docutils literal notranslate"><span class="pre">zip_submission</span></code></a>([zarr_path])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.zip_submission" title="cellmap_segmentation_challenge.evaluate.zip_submission"><code class="xref py py-obj docutils literal notranslate"><span class="pre">zip_submission</span></code></a>([zarr_path])</p></td>
 <td><p>(Re-)Zip a submission zarr file.</p></td>
 </tr>
 </tbody>
@@ -749,14 +753,38 @@ matching. In ICPR94, pages A:566-568, Jerusalem, Israel, 1994.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.package_submission">
-<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">package_submission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_search_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">UPath</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.7/x64/lib/python3.12/data/processed/{dataset}.zarr/{crop}'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">UPath</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.7/x64/lib/python3.12/data/submission.zarr'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#package_submission"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.package_submission" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">package_submission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_search_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">UPath</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.7/x64/lib/python3.12/data/processed/{dataset}.zarr/{crop}'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">UPath</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.7/x64/lib/python3.12/data/submission.zarr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#package_submission"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.package_submission" title="Link to this definition">#</a></dt>
 <dd><p>Package a submission for the CellMap challenge. This will create a zarr file, combining all the processed volumes, and then zip it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>input_search_path</strong> (<em>str</em>) – The base path to the processed volumes, with placeholders for dataset and crops.</p></li>
 <li><p><strong>output_path</strong> (<em>str</em><em> | </em><em>UPath</em>) – The path to save the submission zarr to. (ending with <cite>&lt;filename&gt;.zarr</cite>; <cite>.zarr</cite> will be appended if not present, and replaced with <cite>.zip</cite> when zipped).</p></li>
+<li><p><strong>overwrite</strong> (<em>bool</em>) – Whether to overwrite the submission zarr if it already exists.</p></li>
 </ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.match_crop_space">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">match_crop_space</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">class_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">translation</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#match_crop_space"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.match_crop_space" title="Link to this definition">#</a></dt>
+<dd><p>Match the resolution of a zarr array to a target resolution and shape, resampling as necessary with interpolation dependent on the class label. Instance segmentations will be resampled with nearest neighbor interpolation, while semantic segmentations will be resampled with linear interpolation and then thresholded.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em><em> | </em><em>UPath</em>) – The path to the zarr array to match. The zarr can be an OME-NGFF multiscale zarr file, or a traditional single scale formatted zarr.</p></li>
+<li><p><strong>class_label</strong> (<em>str</em>) – The class label of the array.</p></li>
+<li><p><strong>voxel_size</strong> (<em>tuple</em>) – The target voxel size.</p></li>
+<li><p><strong>shape</strong> (<em>tuple</em>) – The target shape.</p></li>
+<li><p><strong>translation</strong> (<em>tuple</em>) – The translation (i.e. offset) of the array in world units.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The rescaled array.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
 </dd></dl>
@@ -833,6 +861,7 @@ matching. In ICPR94, pages A:566-568, Jerusalem, Israel, 1994.
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.combine_scores"><code class="docutils literal notranslate"><span class="pre">combine_scores()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.score_submission"><code class="docutils literal notranslate"><span class="pre">score_submission()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.package_submission"><code class="docutils literal notranslate"><span class="pre">package_submission()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.match_crop_space"><code class="docutils literal notranslate"><span class="pre">match_crop_space()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.zip_submission"><code class="docutils literal notranslate"><span class="pre">zip_submission()</span></code></a></li>
 </ul>
   </nav></div>

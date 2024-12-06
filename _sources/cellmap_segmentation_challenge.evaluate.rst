@@ -10,6 +10,7 @@ cellmap\_segmentation\_challenge.evaluate
    
       combine_scores
       hausdorff_distance
+      match_crop_space
       missing_volume_score
       package_submission
       resize_array

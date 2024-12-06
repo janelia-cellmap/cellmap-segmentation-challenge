@@ -329,7 +329,9 @@
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.visualize"><code class="docutils literal notranslate"><span class="pre">visualize()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.visualize.visualize"><code class="docutils literal notranslate"><span class="pre">visualize()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.visualize.add_layers"><code class="docutils literal notranslate"><span class="pre">add_layers()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.visualize.get_layer"><code class="docutils literal notranslate"><span class="pre">get_layer()</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -341,11 +343,26 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="cellmap-segmentation-challenge-visualize">
-<h1>cellmap_segmentation_challenge.visualize<a class="headerlink" href="#cellmap-segmentation-challenge-visualize" title="Link to this heading">#</a></h1>
+  <section id="module-cellmap_segmentation_challenge.visualize">
+<span id="cellmap-segmentation-challenge-visualize"></span><h1>cellmap_segmentation_challenge.visualize<a class="headerlink" href="#module-cellmap_segmentation_challenge.visualize" title="Link to this heading">#</a></h1>
+<p class="rubric">Functions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.visualize.add_layers" title="cellmap_segmentation_challenge.visualize.add_layers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_layers</span></code></a>(viewer, kind, dataset_name, ...)</p></td>
+<td><p>Add layers to a Neuroglancer viewer.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.visualize.get_layer" title="cellmap_segmentation_challenge.visualize.get_layer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layer</span></code></a>(data_path[, layer_type, multiscale])</p></td>
+<td><p>Get a Neuroglancer layer from a zarr data path for a LocalVolume.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cellmap_segmentation_challenge.visualize.visualize" title="cellmap_segmentation_challenge.visualize.visualize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">visualize</span></code></a>([datasets, crops, classes, kinds])</p></td>
+<td><p>Visualize datasets and crops in Neuroglancer.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 <dl class="py function">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.visualize">
-<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.</span></span><span class="sig-name descname"><span class="pre">visualize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datasets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'*'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crops</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['*']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'*'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kinds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['gt',</span> <span class="pre">'predictions',</span> <span class="pre">'processed']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/visualize.html#visualize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.visualize" title="Link to this definition">#</a></dt>
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.visualize.visualize">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.visualize.</span></span><span class="sig-name descname"><span class="pre">visualize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datasets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'*'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crops</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['*']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'*'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kinds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['gt',</span> <span class="pre">'predictions',</span> <span class="pre">'processed',</span> <span class="pre">'submission']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/visualize.html#visualize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.visualize.visualize" title="Link to this definition">#</a></dt>
 <dd><p>Visualize datasets and crops in Neuroglancer.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -353,8 +370,49 @@
 <li><p><strong>datasets</strong> (<em>str</em><em> | </em><em>Sequence</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The name of the dataset to visualize. Can be a string or a list of strings. Default is “*”. If “*”, all datasets will be visualized.</p></li>
 <li><p><strong>crops</strong> (<em>int</em><em> | </em><em>Sequence</em><em>[</em><em>int</em><em>]</em><em>, </em><em>optional</em>) – The crop number(s) to visualize. Can be an integer or a list of integers, or None. Default is None. If None, all crops will be visualized.</p></li>
 <li><p><strong>classes</strong> (<em>str</em><em> | </em><em>Sequence</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The class to visualize. Can be a string or a list of strings. Default is “*”. If “*”, all classes will be visualized.</p></li>
-<li><p><strong>kinds</strong> (<em>Sequence</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The type of layers to visualize. Can be “gt” for groundtruth, “predictions” for predictions, or “processed” for processed data. Default is [“gt”, “predictions”, “processed”].</p></li>
+<li><p><strong>kinds</strong> (<em>Sequence</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The type of layers to visualize. Can be “gt” for groundtruth, “predictions” for predictions, or “processed” for processed data. Default is [“gt”, “predictions”, “processed”, “submission”].</p></li>
 </ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.visualize.add_layers">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.visualize.</span></span><span class="sig-name descname"><span class="pre">add_layers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Viewer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crops</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Viewer</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/visualize.html#add_layers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.visualize.add_layers" title="Link to this definition">#</a></dt>
+<dd><p>Add layers to a Neuroglancer viewer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>viewer</strong> (<em>neuroglancer.Viewer</em>) – The viewer to add layers to.</p></li>
+<li><p><strong>kind</strong> (<em>str</em>) – The type of layers to add. Can be “gt” for groundtruth, “predictions” for predictions, or “processed” for processed data.</p></li>
+<li><p><strong>dataset_name</strong> (<em>str</em>) – The name of the dataset to add layers for.</p></li>
+<li><p><strong>crops</strong> (<em>Sequence</em>) – The crops to add layers for.</p></li>
+<li><p><strong>classes</strong> (<em>Sequence</em><em>[</em><em>str</em><em>]</em>) – The class(es) to add layers for.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Viewer</em> | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.visualize.get_layer">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.visualize.</span></span><span class="sig-name descname"><span class="pre">get_layer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layer_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'image'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multiscale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Layer</span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/visualize.html#get_layer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.visualize.get_layer" title="Link to this definition">#</a></dt>
+<dd><p>Get a Neuroglancer layer from a zarr data path for a LocalVolume.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_path</strong> (<em>str</em>) – The path to the zarr data.</p></li>
+<li><p><strong>layer_type</strong> (<em>str</em>) – The type of layer to get. Can be “image” or “segmentation”. Default is “image”.</p></li>
+<li><p><strong>multiscale</strong> (<em>bool</em>) – Whether the metadata is OME-NGFF multiscale. Default is True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The Neuroglancer layer.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>neuroglancer.Layer</p>
 </dd>
 </dl>
 </dd></dl>
@@ -398,7 +456,9 @@
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.visualize"><code class="docutils literal notranslate"><span class="pre">visualize()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.visualize.visualize"><code class="docutils literal notranslate"><span class="pre">visualize()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.visualize.add_layers"><code class="docutils literal notranslate"><span class="pre">add_layers()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.visualize.get_layer"><code class="docutils literal notranslate"><span class="pre">get_layer()</span></code></a></li>
 </ul>
   </nav></div>
 

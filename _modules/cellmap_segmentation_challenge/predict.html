@@ -296,13 +296,14 @@
 <span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
 <span class="kn">from</span> <span class="nn">upath</span> <span class="kn">import</span> <span class="n">UPath</span>
 
-<span class="kn">from</span> <span class="nn">.config</span> <span class="kn">import</span> <span class="n">CROP_NAME</span><span class="p">,</span> <span class="n">PREDICTIONS_PATH</span><span class="p">,</span> <span class="n">SEARCH_PATH</span>
-<span class="kn">from</span> <span class="nn">.evaluate</span> <span class="kn">import</span> <span class="n">TEST_CROPS</span>
+<span class="kn">from</span> <span class="nn">.config</span> <span class="kn">import</span> <span class="n">CROP_NAME</span><span class="p">,</span> <span class="n">PREDICTIONS_PATH</span><span class="p">,</span> <span class="n">RAW_NAME</span><span class="p">,</span> <span class="n">SEARCH_PATH</span>
 <span class="kn">from</span> <span class="nn">.models</span> <span class="kn">import</span> <span class="n">load_best_val</span><span class="p">,</span> <span class="n">load_latest</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">load_safe_config</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">load_safe_config</span><span class="p">,</span> <span class="n">get_test_crops</span>
 <span class="kn">from</span> <span class="nn">.utils.datasplit</span> <span class="kn">import</span> <span class="n">get_formatted_fields</span><span class="p">,</span> <span class="n">get_raw_path</span>
 
 
+<div class="viewcode-block" id="predict_orthoplanes">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.predict.html#cellmap_segmentation_challenge.predict.predict_orthoplanes">[docs]</a>
 <span class="k">def</span> <span class="nf">predict_orthoplanes</span><span class="p">(</span>
     <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">dataset_writer_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span>
 <span class="p">):</span>
@@ -346,7 +347,8 @@
     <span class="p">}</span>
 
     <span class="c1"># Combine the predictions from the x, y, and z orthogonal planes</span>
-    <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">dataset_writer</span><span class="o">.</span><span class="n">loader</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">)):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Combining predictions.&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">dataset_writer</span><span class="o">.</span><span class="n">loader</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">),</span> <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="c1"># For each class, get the predictions from the x, y, and z orthogonal planes</span>
         <span class="n">outputs</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">array_name</span><span class="p">,</span> <span class="n">images</span> <span class="ow">in</span> <span class="n">single_axis_images</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -364,7 +366,8 @@
         <span class="c1"># Save the outputs</span>
         <span class="n">dataset_writer</span><span class="p">[</span><span class="n">batch</span><span class="p">[</span><span class="s2">&quot;idx&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">outputs</span>
 
-    <span class="n">tmp_dir</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+    <span class="n">tmp_dir</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span></div>
+
 
 
 <span class="k">def</span> <span class="nf">_predict</span><span class="p">(</span>
@@ -397,7 +400,7 @@
     <span class="n">dataloader</span> <span class="o">=</span> <span class="n">dataset_writer</span><span class="o">.</span><span class="n">loader</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">)</span>
     <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
     <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-        <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">dataloader</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">dataloader</span><span class="p">,</span> <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
             <span class="c1"># Get the inputs and outputs</span>
             <span class="n">inputs</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;input&quot;</span><span class="p">]</span>
             <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
@@ -408,7 +411,7 @@
 
 
 <div class="viewcode-block" id="predict">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.predict.html#cellmap_segmentation_challenge.predict">[docs]</a>
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.predict.html#cellmap_segmentation_challenge.predict.predict">[docs]</a>
 <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span>
     <span class="n">config_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">crops</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span>
@@ -490,60 +493,94 @@
 
     <span class="c1"># Get the crops to predict on</span>
     <span class="k">if</span> <span class="n">crops</span> <span class="o">==</span> <span class="s2">&quot;test&quot;</span><span class="p">:</span>
-        <span class="n">crop_list</span> <span class="o">=</span> <span class="n">TEST_CROPS</span>
+        <span class="n">test_crops</span> <span class="o">=</span> <span class="n">get_test_crops</span><span class="p">()</span>
+        <span class="n">dataset_writers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">crop</span> <span class="ow">in</span> <span class="n">test_crops</span><span class="p">:</span>
+            <span class="c1"># Get path to raw dataset</span>
+            <span class="n">raw_path</span> <span class="o">=</span> <span class="n">SEARCH_PATH</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">RAW_NAME</span><span class="p">)</span>
+
+            <span class="c1"># Get the boundaries of the crop</span>
+            <span class="n">target_bounds</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="n">axis</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="n">crop</span><span class="o">.</span><span class="n">gt_source</span><span class="o">.</span><span class="n">translation</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">crop</span><span class="o">.</span><span class="n">gt_source</span><span class="o">.</span><span class="n">translation</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                        <span class="o">+</span> <span class="n">crop</span><span class="o">.</span><span class="n">gt_source</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">crop</span><span class="o">.</span><span class="n">gt_source</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                    <span class="p">]</span>
+                    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">axis</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="s2">&quot;zyx&quot;</span><span class="p">)</span>
+                <span class="p">},</span>
+            <span class="p">}</span>
+
+            <span class="c1"># Create the writer</span>
+            <span class="n">dataset_writers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;raw_path&quot;</span><span class="p">:</span> <span class="n">raw_path</span><span class="p">,</span>
+                    <span class="s2">&quot;target_path&quot;</span><span class="p">:</span> <span class="n">output_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">crop</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="n">dataset</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span>
+                    <span class="p">),</span>
+                    <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="n">classes</span><span class="p">,</span>
+                    <span class="s2">&quot;input_arrays&quot;</span><span class="p">:</span> <span class="n">input_arrays</span><span class="p">,</span>
+                    <span class="s2">&quot;target_arrays&quot;</span><span class="p">:</span> <span class="n">target_arrays</span><span class="p">,</span>
+                    <span class="s2">&quot;target_bounds&quot;</span><span class="p">:</span> <span class="n">target_bounds</span><span class="p">,</span>
+                    <span class="s2">&quot;overwrite&quot;</span><span class="p">:</span> <span class="n">overwrite</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">crop_list</span> <span class="o">=</span> <span class="n">crops</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+        <span class="n">crop_paths</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">crop</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">crop_list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">crop</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">crop</span><span class="o">.</span><span class="n">isnumeric</span><span class="p">())</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">crop</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="n">crop</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">crop_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span>  <span class="c1"># type: ignore</span>
 
-    <span class="n">crop_paths</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">crop</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">crop_list</span><span class="p">):</span>
-        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">crop</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">crop</span><span class="o">.</span><span class="n">isnumeric</span><span class="p">())</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">crop</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-            <span class="n">crop</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="n">crop_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span>  <span class="c1"># type: ignore</span>
-
-        <span class="n">crop_paths</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
-            <span class="n">glob</span><span class="p">(</span>
-                <span class="n">SEARCH_PATH</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">CROP_NAME</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">crop</span><span class="o">=</span><span class="n">crop</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-                <span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
+            <span class="n">crop_paths</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                <span class="n">glob</span><span class="p">(</span>
+                    <span class="n">SEARCH_PATH</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">CROP_NAME</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">crop</span><span class="o">=</span><span class="n">crop</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+                    <span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
+                <span class="p">)</span>
             <span class="p">)</span>
-        <span class="p">)</span>
 
-    <span class="n">dataset_writers</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">crop</span><span class="p">,</span> <span class="n">crop_path</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">crop_list</span><span class="p">,</span> <span class="n">crop_paths</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
-        <span class="c1"># Get path to raw dataset</span>
-        <span class="n">raw_path</span> <span class="o">=</span> <span class="n">get_raw_path</span><span class="p">(</span><span class="n">crop_path</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">dataset_writers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">crop</span><span class="p">,</span> <span class="n">crop_path</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">crop_list</span><span class="p">,</span> <span class="n">crop_paths</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
+            <span class="c1"># Get path to raw dataset</span>
+            <span class="n">raw_path</span> <span class="o">=</span> <span class="n">get_raw_path</span><span class="p">(</span><span class="n">crop_path</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
-        <span class="c1"># Get the boundaries of the crop</span>
-        <span class="n">gt_images</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">array_name</span><span class="p">:</span> <span class="n">CellMapImage</span><span class="p">(</span>
-                <span class="nb">str</span><span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">crop_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">classes</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
-                <span class="n">target_class</span><span class="o">=</span><span class="n">classes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                <span class="n">target_scale</span><span class="o">=</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">],</span>
-                <span class="n">target_voxel_shape</span><span class="o">=</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">],</span>
-                <span class="n">pad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                <span class="n">pad_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="k">for</span> <span class="n">array_name</span><span class="p">,</span> <span class="n">array_info</span> <span class="ow">in</span> <span class="n">target_arrays</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-        <span class="p">}</span>
-
-        <span class="n">target_bounds</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">array_name</span><span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">bounding_box</span> <span class="k">for</span> <span class="n">array_name</span><span class="p">,</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">gt_images</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-        <span class="p">}</span>
-
-        <span class="n">dataset</span> <span class="o">=</span> <span class="n">get_formatted_fields</span><span class="p">(</span><span class="n">raw_path</span><span class="p">,</span> <span class="n">SEARCH_PATH</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">{dataset}</span><span class="s2">&quot;</span><span class="p">])[</span><span class="s2">&quot;dataset&quot;</span><span class="p">]</span>
-
-        <span class="c1"># Create the writer</span>
-        <span class="n">dataset_writers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="p">{</span>
-                <span class="s2">&quot;raw_path&quot;</span><span class="p">:</span> <span class="n">raw_path</span><span class="p">,</span>
-                <span class="s2">&quot;target_path&quot;</span><span class="p">:</span> <span class="n">output_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">crop</span><span class="o">=</span><span class="n">crop</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">),</span>
-                <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="n">classes</span><span class="p">,</span>
-                <span class="s2">&quot;input_arrays&quot;</span><span class="p">:</span> <span class="n">input_arrays</span><span class="p">,</span>
-                <span class="s2">&quot;target_arrays&quot;</span><span class="p">:</span> <span class="n">target_arrays</span><span class="p">,</span>
-                <span class="s2">&quot;target_bounds&quot;</span><span class="p">:</span> <span class="n">target_bounds</span><span class="p">,</span>
-                <span class="s2">&quot;overwrite&quot;</span><span class="p">:</span> <span class="n">overwrite</span><span class="p">,</span>
+            <span class="c1"># Get the boundaries of the crop</span>
+            <span class="n">gt_images</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">array_name</span><span class="p">:</span> <span class="n">CellMapImage</span><span class="p">(</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">crop_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">classes</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                    <span class="n">target_class</span><span class="o">=</span><span class="n">classes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="n">target_scale</span><span class="o">=</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">],</span>
+                    <span class="n">target_voxel_shape</span><span class="o">=</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">],</span>
+                    <span class="n">pad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">pad_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">array_name</span><span class="p">,</span> <span class="n">array_info</span> <span class="ow">in</span> <span class="n">target_arrays</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
             <span class="p">}</span>
-        <span class="p">)</span>
+
+            <span class="n">target_bounds</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">array_name</span><span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">bounding_box</span>
+                <span class="k">for</span> <span class="n">array_name</span><span class="p">,</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">gt_images</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">}</span>
+
+            <span class="n">dataset</span> <span class="o">=</span> <span class="n">get_formatted_fields</span><span class="p">(</span><span class="n">raw_path</span><span class="p">,</span> <span class="n">SEARCH_PATH</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">{dataset}</span><span class="s2">&quot;</span><span class="p">])[</span>
+                <span class="s2">&quot;dataset&quot;</span>
+            <span class="p">]</span>
+
+            <span class="c1"># Create the writer</span>
+            <span class="n">dataset_writers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;raw_path&quot;</span><span class="p">:</span> <span class="n">raw_path</span><span class="p">,</span>
+                    <span class="s2">&quot;target_path&quot;</span><span class="p">:</span> <span class="n">output_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">crop</span><span class="o">=</span><span class="n">crop</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">),</span>
+                    <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="n">classes</span><span class="p">,</span>
+                    <span class="s2">&quot;input_arrays&quot;</span><span class="p">:</span> <span class="n">input_arrays</span><span class="p">,</span>
+                    <span class="s2">&quot;target_arrays&quot;</span><span class="p">:</span> <span class="n">target_arrays</span><span class="p">,</span>
+                    <span class="s2">&quot;target_bounds&quot;</span><span class="p">:</span> <span class="n">target_bounds</span><span class="p">,</span>
+                    <span class="s2">&quot;overwrite&quot;</span><span class="p">:</span> <span class="n">overwrite</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
 
     <span class="k">for</span> <span class="n">dataset_writer</span> <span class="ow">in</span> <span class="n">dataset_writers</span><span class="p">:</span>
         <span class="n">predict_func</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">dataset_writer</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span></div>

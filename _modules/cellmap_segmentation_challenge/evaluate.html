@@ -295,6 +295,7 @@
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">linear_sum_assignment</span>
 <span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">dice</span>  <span class="c1"># , jaccard</span>
 <span class="kn">from</span> <span class="nn">skimage.measure</span> <span class="kn">import</span> <span class="n">label</span> <span class="k">as</span> <span class="n">relabel</span>
+<span class="kn">from</span> <span class="nn">skimage.transform</span> <span class="kn">import</span> <span class="n">rescale</span>
 <span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">cKDTree</span>
 <span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">accuracy_score</span><span class="p">,</span> <span class="n">jaccard_score</span>
 <span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
@@ -303,6 +304,8 @@
 <span class="kn">from</span> <span class="nn">cellmap_data</span> <span class="kn">import</span> <span class="n">CellMapImage</span>
 
 <span class="kn">from</span> <span class="nn">.config</span> <span class="kn">import</span> <span class="n">PROCESSED_PATH</span><span class="p">,</span> <span class="n">SUBMISSION_PATH</span><span class="p">,</span> <span class="n">BASE_DATA_PATH</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">TEST_CROPS</span><span class="p">,</span> <span class="n">TEST_CROPS_DICT</span>
+
 
 <span class="n">INSTANCE_CLASSES</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;nuc&quot;</span><span class="p">,</span>
@@ -317,33 +320,6 @@
     <span class="s2">&quot;cell&quot;</span><span class="p">,</span>
     <span class="s2">&quot;instance&quot;</span><span class="p">,</span>
 <span class="p">]</span>
-
-<span class="n">CLASS_RESOLUTIONS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;nuc&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
-    <span class="s2">&quot;ves&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
-    <span class="s2">&quot;endo&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
-    <span class="s2">&quot;lyso&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
-    <span class="s2">&quot;ld&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
-    <span class="s2">&quot;perox&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
-    <span class="s2">&quot;mito&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
-    <span class="s2">&quot;np&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
-    <span class="s2">&quot;mt&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
-    <span class="s2">&quot;cell&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
-    <span class="s2">&quot;instance&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
-    <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-    <span class="s2">&quot;eres&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-    <span class="s2">&quot;ld&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-<span class="p">}</span>
-
-<span class="n">TEST_CROPS</span> <span class="o">=</span> <span class="p">[</span><span class="mi">234</span><span class="p">]</span>
-
-<span class="n">CROP_SHAPE</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="mi">234</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;nuc&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">),</span>
-        <span class="s2">&quot;mito&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">),</span>
-        <span class="s2">&quot;er&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span>
-    <span class="p">}</span>
-<span class="p">}</span>
 
 <span class="n">HAUSDORFF_DISTANCE_MAX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
 
@@ -618,7 +594,7 @@
     <span class="n">pred_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">pred_label</span><span class="p">)</span>
     <span class="n">truth_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">truth_label</span><span class="p">)</span>
     <span class="n">cost_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">)))</span>
-    <span class="n">bar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Computing cost matrix&quot;</span><span class="p">,</span> <span class="n">leave</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">bar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Computing cost matrix&quot;</span><span class="p">,</span> <span class="n">leave</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">pred_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">bar</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">pred_id</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># Don&#39;t score the background</span>
@@ -640,7 +616,9 @@
 
     <span class="c1"># Contruct the volume for the matched instances</span>
     <span class="n">matched_pred_label</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">pred_label</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">col_inds</span><span class="p">,</span> <span class="n">row_inds</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Relabeled matched instances&quot;</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
+        <span class="nb">zip</span><span class="p">(</span><span class="n">col_inds</span><span class="p">,</span> <span class="n">row_inds</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Relabeled matched instances&quot;</span><span class="p">,</span> <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">):</span>
         <span class="k">if</span> <span class="n">pred_ids</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">truth_ids</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># Don&#39;t score the background</span>
             <span class="k">continue</span>
@@ -648,7 +626,9 @@
         <span class="n">matched_pred_label</span><span class="p">[</span><span class="n">pred_mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">truth_ids</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
 
     <span class="n">hausdorff_distances</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">truth_id</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Computing Hausdorff distances&quot;</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">truth_id</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
+        <span class="n">truth_ids</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Computing Hausdorff distances&quot;</span><span class="p">,</span> <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">):</span>
         <span class="k">if</span> <span class="n">truth_id</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># Don&#39;t score the background</span>
             <span class="k">continue</span>
@@ -734,29 +714,20 @@
     <span class="n">truth_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span>
     <span class="c1"># Load the predicted and ground truth label volumes</span>
     <span class="n">label_name</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">pred_label_path</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
-    <span class="n">volume_name</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">pred_label_path</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span>
-    <span class="n">truth_label_path</span> <span class="o">=</span> <span class="p">(</span><span class="n">truth_path</span> <span class="o">/</span> <span class="n">volume_name</span> <span class="o">/</span> <span class="n">label_name</span><span class="p">)</span><span class="o">.</span><span class="n">path</span>
+    <span class="n">crop_name</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">pred_label_path</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span>
+    <span class="n">truth_label_path</span> <span class="o">=</span> <span class="p">(</span><span class="n">truth_path</span> <span class="o">/</span> <span class="n">crop_name</span> <span class="o">/</span> <span class="n">label_name</span><span class="p">)</span><span class="o">.</span><span class="n">path</span>
     <span class="n">truth_label_ds</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">truth_label_path</span><span class="p">)</span>
     <span class="n">truth_label</span> <span class="o">=</span> <span class="n">truth_label_ds</span><span class="p">[:]</span>
-    <span class="n">voxel_size</span> <span class="o">=</span> <span class="n">truth_label_ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">]</span>
-    <span class="c1"># translation = truth_label_ds.attrs[&quot;translation&quot;]</span>
-    <span class="c1"># pred_label = get_scaled_label(</span>
-    <span class="c1">#     pred_label_path,</span>
-    <span class="c1">#     voxel_size=voxel_size,</span>
-    <span class="c1">#     shape=truth_label_ds.shape,</span>
-    <span class="c1">#     translation=translation,</span>
-    <span class="c1"># )</span>
-    <span class="n">pred_label</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">pred_label_path</span><span class="p">)[:]</span>
+    <span class="n">crop</span> <span class="o">=</span> <span class="n">TEST_CROPS_DICT</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">crop_name</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="s2">&quot;crop&quot;</span><span class="p">)),</span> <span class="n">label_name</span><span class="p">]</span>
+    <span class="n">pred_label</span> <span class="o">=</span> <span class="n">match_crop_space</span><span class="p">(</span>
+        <span class="n">pred_label_path</span><span class="p">,</span>
+        <span class="n">label_name</span><span class="p">,</span>
+        <span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">,</span>
+        <span class="n">crop</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+        <span class="n">crop</span><span class="o">.</span><span class="n">translation</span><span class="p">,</span>
+    <span class="p">)</span>
 
-    <span class="c1"># Check if the label volumes have the same shape</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">pred_label</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">truth_label</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Shapes of </span><span class="si">{</span><span class="n">pred_label_path</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">truth_label_path</span><span class="si">}</span><span class="s2"> do not match: </span><span class="si">{</span><span class="n">pred_label</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> vs </span><span class="si">{</span><span class="n">truth_label</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="p">)</span>
-        <span class="c1"># Make the submission match the truth shape</span>
-        <span class="n">pred_label</span> <span class="o">=</span> <span class="n">resize_array</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">truth_label</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-
-    <span class="n">mask_path</span> <span class="o">=</span> <span class="n">truth_path</span> <span class="o">/</span> <span class="n">volume_name</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2">_mask&quot;</span>
+    <span class="n">mask_path</span> <span class="o">=</span> <span class="n">truth_path</span> <span class="o">/</span> <span class="n">crop_name</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2">_mask&quot;</span>
     <span class="k">if</span> <span class="n">mask_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="c1"># Mask out uncertain regions resulting from low-res ground truth annotations</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Masking </span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2"> with </span><span class="si">{</span><span class="n">mask_path</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
@@ -766,11 +737,11 @@
 
     <span class="c1"># Compute the scores</span>
     <span class="k">if</span> <span class="n">label_name</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="n">score_instance</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">truth_label</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">score_instance</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">truth_label</span><span class="p">,</span> <span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">results</span> <span class="o">=</span> <span class="n">score_semantic</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">truth_label</span><span class="p">)</span>
     <span class="n">results</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">truth_label</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
-    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">voxel_size</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span>
     <span class="n">results</span><span class="p">[</span><span class="s2">&quot;is_missing&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">return</span> <span class="n">results</span></div>
 
@@ -1146,6 +1117,7 @@
 <span class="k">def</span> <span class="nf">package_submission</span><span class="p">(</span>
     <span class="n">input_search_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">UPath</span> <span class="o">=</span> <span class="n">PROCESSED_PATH</span><span class="p">,</span>
     <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">UPath</span> <span class="o">=</span> <span class="n">SUBMISSION_PATH</span><span class="p">,</span>
+    <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Package a submission for the CellMap challenge. This will create a zarr file, combining all the processed volumes, and then zip it.</span>
@@ -1153,6 +1125,7 @@
 <span class="sd">    Args:</span>
 <span class="sd">        input_search_path (str): The base path to the processed volumes, with placeholders for dataset and crops.</span>
 <span class="sd">        output_path (str | UPath): The path to save the submission zarr to. (ending with `&lt;filename&gt;.zarr`; `.zarr` will be appended if not present, and replaced with `.zip` when zipped).</span>
+<span class="sd">        overwrite (bool): Whether to overwrite the submission zarr if it already exists.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">input_search_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">input_search_path</span><span class="p">)</span>
     <span class="n">output_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
@@ -1166,44 +1139,38 @@
 
     <span class="c1"># Find all the processed test volumes</span>
     <span class="k">for</span> <span class="n">crop</span> <span class="ow">in</span> <span class="n">TEST_CROPS</span><span class="p">:</span>
-        <span class="n">crop_path</span> <span class="o">=</span> <span class="n">input_search_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">crop</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">crop_path</span> <span class="o">=</span> <span class="n">glob</span><span class="p">(</span><span class="n">crop_path</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">crop_path</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">crop_path</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">UPath</span><span class="p">(</span><span class="n">input_search_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="n">crop</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
+            <span class="o">/</span> <span class="n">crop</span><span class="o">.</span><span class="n">class_label</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">crop_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Skipping </span><span class="si">{</span><span class="n">crop_path</span><span class="si">}</span><span class="s2"> as it does not exist.&quot;</span><span class="p">)</span>
             <span class="k">continue</span>
-        <span class="n">crop_path</span> <span class="o">=</span> <span class="n">crop_path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">crop_group</span> <span class="o">=</span> <span class="n">zarr_group</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-        <span class="c1"># Find all the processed labels for the test volume</span>
-        <span class="n">test_volume</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">crop_path</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
-        <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">UPath</span><span class="p">(</span><span class="n">crop_path</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()]</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found labels for </span><span class="si">{</span><span class="n">test_volume</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">labels</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">zarr_group</span><span class="p">:</span>
+            <span class="n">crop_group</span> <span class="o">=</span> <span class="n">zarr_group</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">crop_group</span> <span class="o">=</span> <span class="n">zarr_group</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
 
         <span class="c1"># Rescale the processed volumes to match the expected submission resolution if required</span>
-        <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">CLASS_RESOLUTIONS</span><span class="p">:</span>
-                <span class="n">resolution</span> <span class="o">=</span> <span class="n">CLASS_RESOLUTIONS</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">resolution</span> <span class="o">=</span> <span class="n">CLASS_RESOLUTIONS</span><span class="p">[</span><span class="s2">&quot;default&quot;</span><span class="p">]</span>
-            <span class="n">label_array</span> <span class="o">=</span> <span class="n">crop_group</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
-                <span class="n">label</span><span class="p">,</span>
-                <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                <span class="n">shape</span><span class="o">=</span><span class="n">CROP_SHAPE</span><span class="p">[</span><span class="n">crop</span><span class="p">][</span><span class="n">label</span><span class="p">],</span>
-            <span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scaling </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">resolution</span><span class="si">}</span><span class="s2">nm&quot;</span><span class="p">)</span>
-            <span class="n">image</span> <span class="o">=</span> <span class="n">CellMapImage</span><span class="p">(</span>
-                <span class="n">path</span><span class="o">=</span><span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">crop_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
-                <span class="n">target_class</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
-                <span class="n">target_scale</span><span class="o">=</span><span class="p">[</span>
-                    <span class="n">resolution</span><span class="p">,</span>
-                <span class="p">]</span>
-                <span class="o">*</span> <span class="mi">3</span><span class="p">,</span>
-                <span class="n">target_voxel_shape</span><span class="o">=</span><span class="n">CROP_SHAPE</span><span class="p">[</span><span class="n">crop</span><span class="p">][</span><span class="n">label</span><span class="p">],</span>
-                <span class="n">pad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                <span class="n">pad_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="c1"># Save the processed labels to the submission zarr</span>
-            <span class="n">label_array</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">image</span><span class="p">[</span><span class="n">image</span><span class="o">.</span><span class="n">center</span><span class="p">]</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        <span class="n">label_array</span> <span class="o">=</span> <span class="n">crop_group</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
+            <span class="n">crop</span><span class="o">.</span><span class="n">class_label</span><span class="p">,</span>
+            <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scaling </span><span class="si">{</span><span class="n">crop_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span><span class="si">}</span><span class="s2"> nm&quot;</span><span class="p">)</span>
+        <span class="c1"># Match the resolution of the processed volume to the test volume</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">match_crop_space</span><span class="p">(</span>
+            <span class="n">path</span><span class="o">=</span><span class="n">crop_path</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+            <span class="n">class_label</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">class_label</span><span class="p">,</span>
+            <span class="n">voxel_size</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+            <span class="n">translation</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">translation</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># Save the processed labels to the submission zarr</span>
+        <span class="n">label_array</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">image</span>
+        <span class="c1"># Add the metadata</span>
+        <span class="n">label_array</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span>
+        <span class="n">label_array</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;translation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span><span class="o">.</span><span class="n">translation</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved submission to </span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
@@ -1211,6 +1178,158 @@
     <span class="n">zip_submission</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Done packaging submission&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="match_crop_space">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.evaluate.match_crop_space">[docs]</a>
+<span class="k">def</span> <span class="nf">match_crop_space</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">class_label</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">translation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Match the resolution of a zarr array to a target resolution and shape, resampling as necessary with interpolation dependent on the class label. Instance segmentations will be resampled with nearest neighbor interpolation, while semantic segmentations will be resampled with linear interpolation and then thresholded.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        path (str | UPath): The path to the zarr array to match. The zarr can be an OME-NGFF multiscale zarr file, or a traditional single scale formatted zarr.</span>
+<span class="sd">        class_label (str): The class label of the array.</span>
+<span class="sd">        voxel_size (tuple): The target voxel size.</span>
+<span class="sd">        shape (tuple): The target shape.</span>
+<span class="sd">        translation (tuple): The translation (i.e. offset) of the array in world units.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        np.ndarray: The rescaled array.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ds</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;multiscales&quot;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
+        <span class="c1"># Handle multiscale zarr files</span>
+        <span class="n">_image</span> <span class="o">=</span> <span class="n">CellMapImage</span><span class="p">(</span>
+            <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span>
+            <span class="n">target_class</span><span class="o">=</span><span class="n">class_label</span><span class="p">,</span>
+            <span class="n">target_scale</span><span class="o">=</span><span class="n">voxel_size</span><span class="p">,</span>
+            <span class="n">target_voxel_shape</span><span class="o">=</span><span class="n">shape</span><span class="p">,</span>
+            <span class="n">pad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">pad_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">/</span> <span class="n">_image</span><span class="o">.</span><span class="n">scale_level</span>
+        <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;multiscales&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;datasets&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">attr</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">_image</span><span class="o">.</span><span class="n">scale_level</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">transform</span> <span class="ow">in</span> <span class="n">attr</span><span class="p">[</span><span class="s2">&quot;coordinateTransformations&quot;</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">transform</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;translation&quot;</span><span class="p">:</span>
+                        <span class="n">input_translation</span> <span class="o">=</span> <span class="n">transform</span><span class="p">[</span><span class="s2">&quot;translation&quot;</span><span class="p">]</span>
+                    <span class="k">elif</span> <span class="n">transform</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;scale&quot;</span><span class="p">:</span>
+                        <span class="n">input_voxel_size</span> <span class="o">=</span> <span class="n">transform</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">]</span>
+                <span class="k">break</span>
+        <span class="n">ds</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s2">&quot;voxel_size&quot;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;resolution&quot;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;scale&quot;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span>
+    <span class="p">)</span> <span class="ow">or</span> <span class="p">((</span><span class="s2">&quot;translation&quot;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;offset&quot;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">)):</span>
+        <span class="c1"># Handle single scale zarr files</span>
+        <span class="k">if</span> <span class="s2">&quot;voxel_size&quot;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
+            <span class="n">input_voxel_size</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="s2">&quot;resolution&quot;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
+            <span class="n">input_voxel_size</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;resolution&quot;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="s2">&quot;scale&quot;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
+            <span class="n">input_voxel_size</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">input_voxel_size</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="s2">&quot;translation&quot;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
+            <span class="n">input_translation</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;translation&quot;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="s2">&quot;offset&quot;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
+            <span class="n">input_translation</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;offset&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">input_translation</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not find voxel size and translation for </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">&quot;Assuming voxel size matches target voxel size and will crop to target shape centering the volume.&quot;</span>
+        <span class="p">)</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[:]</span>
+        <span class="c1"># Crop the array if necessary</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">s1</span> <span class="o">!=</span> <span class="n">s2</span> <span class="k">for</span> <span class="n">s1</span><span class="p">,</span> <span class="n">s2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">shape</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="n">resize_array</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="k">return</span> <span class="n">image</span>  <span class="c1"># type: ignore</span>
+
+    <span class="c1"># Load the array</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[:]</span>
+
+    <span class="c1"># Rescale the array if necessary</span>
+    <span class="k">if</span> <span class="n">input_voxel_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span>
+        <span class="n">r1</span> <span class="o">!=</span> <span class="n">r2</span> <span class="k">for</span> <span class="n">r1</span><span class="p">,</span> <span class="n">r2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">input_voxel_size</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">)</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="n">class_label</span> <span class="ow">in</span> <span class="n">INSTANCE_CLASSES</span><span class="p">:</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">rescale</span><span class="p">(</span>
+                <span class="n">image</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">input_voxel_size</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;constant&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">rescale</span><span class="p">(</span>
+                <span class="n">image</span><span class="p">,</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">input_voxel_size</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">),</span>
+                <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span>
+                <span class="n">anti_aliasing</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">image</span> <span class="o">&gt;</span> <span class="mf">0.5</span>
+
+    <span class="k">if</span> <span class="n">input_translation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Calculate the relative offset</span>
+        <span class="n">adjusted_input_translation</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">input_translation</span><span class="p">)</span> <span class="o">//</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">)</span>
+        <span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">)</span>
+
+        <span class="c1"># Positive relative offset is the amount to crop from the start, negative is the amount to pad at the start</span>
+        <span class="n">relative_offset</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">adjusted_input_translation</span><span class="p">,</span> <span class="n">translation</span><span class="p">))</span>
+            <span class="o">//</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">)</span>
+            <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">adjusted_input_translation</span><span class="p">,</span> <span class="n">translation</span><span class="p">))</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># TODO: Handle the case where the translation is not provided</span>
+        <span class="n">relative_offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">))</span>
+
+    <span class="c1"># Translate and crop the array if necessary</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">offset</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">offset</span> <span class="ow">in</span> <span class="n">relative_offset</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span>
+        <span class="n">s1</span> <span class="o">!=</span> <span class="n">s2</span> <span class="k">for</span> <span class="n">s1</span><span class="p">,</span> <span class="n">s2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
+    <span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Translating and cropping </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">shape</span><span class="si">}</span><span class="s2"> with offset </span><span class="si">{</span><span class="n">relative_offset</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="c1"># Make destination array</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">image</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="c1"># Calculate the slices for the source and destination arrays</span>
+        <span class="n">input_slices</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">output_slices</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">relative_offset</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># Crop from the start</span>
+                <span class="n">input_start</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">relative_offset</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                <span class="n">output_start</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">input_end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">input_start</span> <span class="o">+</span> <span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                <span class="n">input_length</span> <span class="o">=</span> <span class="n">input_end</span> <span class="o">-</span> <span class="n">input_start</span>
+                <span class="n">output_end</span> <span class="o">=</span> <span class="n">output_start</span> <span class="o">+</span> <span class="n">input_length</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Pad at the start</span>
+                <span class="n">input_start</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">output_start</span> <span class="o">=</span> <span class="n">relative_offset</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">output_end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                <span class="n">input_length</span> <span class="o">=</span> <span class="n">output_end</span> <span class="o">-</span> <span class="n">output_start</span>
+                <span class="n">input_end</span> <span class="o">=</span> <span class="n">input_length</span>
+
+            <span class="k">if</span> <span class="n">input_length</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING: Cropping to proper offset resulted in empty volume.&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Input shape: </span><span class="si">{</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, Output shape: </span><span class="si">{</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Input offset: </span><span class="si">{</span><span class="n">input_start</span><span class="si">}</span><span class="s2">, Output offset: </span><span class="si">{</span><span class="n">output_start</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">result</span>
+
+            <span class="n">input_slices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">input_start</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">input_end</span><span class="p">)))</span>
+            <span class="n">output_slices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">output_start</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">output_end</span><span class="p">)))</span>
+
+        <span class="c1"># Copy the data</span>
+        <span class="n">result</span><span class="p">[</span><span class="o">*</span><span class="n">output_slices</span><span class="p">]</span> <span class="o">=</span> <span class="n">image</span><span class="p">[</span><span class="o">*</span><span class="n">input_slices</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">result</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">image</span></div>
 
 
 
