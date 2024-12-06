@@ -1,14 +1,6 @@
 cellmap\_segmentation\_challenge.visualize
 ==========================================
 
-.. automodule:: cellmap_segmentation_challenge.visualize
+.. currentmodule:: cellmap_segmentation_challenge
 
-   
-   .. rubric:: Functions
-
-   .. autosummary::
-   
-      add_layers
-      get_layer
-      visualize
-   
+.. autofunction:: visualize
