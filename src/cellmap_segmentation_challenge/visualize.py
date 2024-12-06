@@ -210,7 +210,7 @@ def get_layer(
             else:
                 i -= 1
         spec = xt._zarr_spec_from_path((UPath(data_path) / f"s{i}").path)
-        metadata = zarr.open(data_path).attrs.asdict()["multiscales"][0]
+        metadata = zarr.open(data_path, mode="r").attrs.asdict()["multiscales"][0]
         names = []
         units = []
         voxel_size = []
@@ -238,7 +238,7 @@ def get_layer(
         spec = xt._zarr_spec_from_path(data_path)
         names = ["z", "y", "x"]
         units = ["nm", "nm", "nm"]
-        attrs = zarr.open(data_path).attrs.asdict()
+        attrs = zarr.open(data_path, mode="r").attrs.asdict()
         if "voxel_size" in attrs:
             voxel_size = attrs["voxel_size"]
         elif "resolution" in attrs:

@@ -407,7 +407,7 @@ def score_label(
     label_name = UPath(pred_label_path).name
     crop_name = UPath(pred_label_path).parent.name
     truth_label_path = (truth_path / crop_name / label_name).path
-    truth_label_ds = zarr.open(truth_label_path)
+    truth_label_ds = zarr.open(truth_label_path, mode="r")
     truth_label = truth_label_ds[:]
     crop = TEST_CROPS_DICT[int(crop_name.removeprefix("crop")), label_name]
     pred_label = match_crop_space(
@@ -422,7 +422,7 @@ def score_label(
     if mask_path.exists():
         # Mask out uncertain regions resulting from low-res ground truth annotations
         print(f"Masking {label_name} with {mask_path}...")
-        mask = zarr.open(mask_path.path)[:]
+        mask = zarr.open(mask_path.path, mode="r")[:]
         pred_label = pred_label * mask
         truth_label = truth_label * mask
 
@@ -457,10 +457,12 @@ def score_volume(
     truth_path = UPath(truth_path)
 
     # Find labels to score
-    pred_labels = [a for a in zarr.open(pred_volume_path.path).array_keys()]
+    pred_labels = [a for a in zarr.open(pred_volume_path.path, mode="r").array_keys()]
 
     volume_name = pred_volume_path.name
-    truth_labels = [a for a in zarr.open((truth_path / volume_name).path).array_keys()]
+    truth_labels = [
+        a for a in zarr.open((truth_path / volume_name).path, mode="r").array_keys()
+    ]
 
     found_labels = list(set(pred_labels) & set(truth_labels))
     missing_labels = list(set(truth_labels) - set(pred_labels))
@@ -484,11 +486,13 @@ def score_volume(
                     "combined_score": 0,
                     "num_voxels": int(
                         np.prod(
-                            zarr.open((truth_path / volume_name / label).path).shape
+                            zarr.open(
+                                (truth_path / volume_name / label).path, mode="r"
+                            ).shape
                         )
                     ),
                     "voxel_size": zarr.open(
-                        (truth_path / volume_name / label).path
+                        (truth_path / volume_name / label).path, mode="r"
                     ).attrs["voxel_size"],
                     "is_missing": True,
                 }
@@ -498,11 +502,13 @@ def score_volume(
                     "dice_score": 0,
                     "num_voxels": int(
                         np.prod(
-                            zarr.open((truth_path / volume_name / label).path).shape
+                            zarr.open(
+                                (truth_path / volume_name / label).path, mode="r"
+                            ).shape
                         )
                     ),
                     "voxel_size": zarr.open(
-                        (truth_path / volume_name / label).path
+                        (truth_path / volume_name / label).path, mode="r"
                     ).attrs["voxel_size"],
                     "is_missing": True,
                 }
@@ -534,7 +540,7 @@ def missing_volume_score(
     truth_volume_path = UPath(truth_volume_path)
 
     # Find labels to score
-    truth_labels = [a for a in zarr.open(truth_volume_path.path).array_keys()]
+    truth_labels = [a for a in zarr.open(truth_volume_path.path, mode="r").array_keys()]
 
     # Score each label
     scores = {
@@ -545,11 +551,11 @@ def missing_volume_score(
                 "normalized_hausdorff_distance": 0.0,
                 "combined_score": 0.0,
                 "num_voxels": int(
-                    np.prod(zarr.open((truth_volume_path / label).path).shape)
+                    np.prod(zarr.open((truth_volume_path / label).path, mode="r").shape)
                 ),
-                "voxel_size": zarr.open((truth_volume_path / label).path).attrs[
-                    "voxel_size"
-                ],
+                "voxel_size": zarr.open(
+                    (truth_volume_path / label).path, mode="r"
+                ).attrs["voxel_size"],
                 "is_missing": True,
             }
             if label in instance_classes
@@ -557,11 +563,11 @@ def missing_volume_score(
                 "iou": 0.0,
                 "dice_score": 0.0,
                 "num_voxels": int(
-                    np.prod(zarr.open((truth_volume_path / label).path).shape)
+                    np.prod(zarr.open((truth_volume_path / label).path, mode="r").shape)
                 ),
-                "voxel_size": zarr.open((truth_volume_path / label).path).attrs[
-                    "voxel_size"
-                ],
+                "voxel_size": zarr.open(
+                    (truth_volume_path / label).path, mode="r"
+                ).attrs["voxel_size"],
                 "is_missing": True,
             }
         )
