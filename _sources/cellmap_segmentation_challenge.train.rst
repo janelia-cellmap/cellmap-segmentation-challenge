@@ -1,6 +1,12 @@
 cellmap\_segmentation\_challenge.train
 ======================================
 
-.. currentmodule:: cellmap_segmentation_challenge
+.. automodule:: cellmap_segmentation_challenge.train
 
-.. autofunction:: train
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      train
+   
