@@ -23,6 +23,7 @@ from .utils import TEST_CROPS, TEST_CROPS_DICT
 
 INSTANCE_CLASSES = [
     "nuc",
+    "vim",
     "ves",
     "endo",
     "lyso",
@@ -34,6 +35,7 @@ INSTANCE_CLASSES = [
     "cell",
     "instance",
 ]
+
 
 HAUSDORFF_DISTANCE_MAX = np.inf
 

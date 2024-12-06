@@ -88,12 +88,12 @@ load_dotenv()
 )
 def fetch_data_cli(
     crops: str,
-    raw_padding: str,
+    raw_padding: int,
     dest: str,
     access_mode: str,
-    fetch_all_em_resolutions,
-    batch_size,
-    num_workers,
+    fetch_all_em_resolutions: bool,
+    batch_size: int,
+    num_workers: int,
 ):
     """
     Download data for the CellMap segmentation challenge.
