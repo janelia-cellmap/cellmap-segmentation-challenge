@@ -75,6 +75,9 @@ spatial_transforms = {  # dictionary of spatial transformations to apply to the 
     "rotate": {"axes": {"x": [-180, 180], "y": [-180, 180], "z": [-180, 180]}},
 }
 
+# Set a limit to how long the validation can take
+validation_time_limit = 60  # time limit in seconds for the validation step
+
 if __name__ == "__main__":
     from cellmap_segmentation_challenge import train
 
