@@ -2,7 +2,6 @@ import argparse
 import json
 import os
 import zipfile
-from glob import glob
 
 import numpy as np
 import zarr
@@ -378,7 +377,7 @@ def score_semantic(pred_label, truth_label) -> dict[str, float]:
     truth_label = (truth_label > 0.0).flatten()
     # Compute the scores
     scores = {
-        "iou": jaccard_score(truth_label, pred_label),
+        "iou": jaccard_score(truth_label, pred_label, zero_division=1),
         "dice_score": 1 - dice(truth_label, pred_label),
     }
 
@@ -656,7 +655,7 @@ def combine_scores(scores, include_missing=True, instance_classes=INSTANCE_CLASS
         if label in instance_classes:
             overall_instance_scores += [label_scores[label]["combined_score"]]
         else:
-            overall_semantic_scores += [label_scores[label]["dice_score"]]
+            overall_semantic_scores += [label_scores[label]["iou"]]
     scores["overall_instance_score"] = np.mean(overall_instance_scores)
     scores["overall_semantic_score"] = np.mean(overall_semantic_scores)
     scores["overall_score"] = (

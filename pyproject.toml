@@ -49,7 +49,7 @@ dependencies = [
   ]
 
 [project.optional-dependencies]
-test = ["pytest>=6.0", "pytest-cov", "mypy", "black"]
+test = ["pytest>=6.0", "pytest-cov", "mypy", "black", "pytest-dependency"]
 docs = [
     "sphinx",
     "sphinx-book-theme",
@@ -118,3 +118,9 @@ exclude_lines = [
 
 [project.scripts]
 csc = "cellmap_segmentation_challenge.cli:run"
+
+[tool.pytest.ini_options]
+"testpaths" = "tests"
+markers = [
+    "dependency: mark tests as dependent on other tests"
+]
