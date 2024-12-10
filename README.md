@@ -99,7 +99,7 @@ Additionally, you can request raw data in all resolutions (not just those matchi
 csc fetch-data --help
 ```
 
-Downloading the data may take some time, depending on your internet connection and the size of the data based on your download preferences. For reference, downloading full-resolution data for all crops with 128 voxels of padding took 6.6 hours on an internet connection with 820Mbps download speed, and required approximately 1.18TB of storage.
+Downloading the data may take some time, depending on your internet connection and the size of the data based on your download preferences. For reference, the download time for the default options on a MacBook Pro Apple M3 Max with 128 GB of memory through WiFi was 1.6 hours, and required approximately 36.7 GB of storage. Downloading full-resolution data for all crops with 128 voxels of padding took 6.6 hours on an internet connection with 820Mbps download speed, and required approximately 1.18TB of storage.
 
 # Train a model
 
@@ -114,6 +114,7 @@ This will train a 2D model on the training data and save the model weights to a 
 ```bash
 tensorboard --logdir=tensorboard
 ```
+This will start the TensorBoard server, which you can view in your browser at the link indicated in the terminal, often this is `http://localhost:6006`.
 
 You can also train a 3D model by running the same command with `train_3D.py`:
 
@@ -128,6 +129,8 @@ csc train --help
 ```
 
 For more information on the available options and how training works, see the `README.md` in the `examples` folder, as well as the documentation in `examples/train_2D.py` and `examples/train_3D.py`.
+
+Once you are satisfied with your model, you can use it to make predictions, as discussed in the next section.
 
 # Predict on test data
 
