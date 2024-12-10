@@ -443,7 +443,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>csc<span class="w"> </span>fetch-data<span class="w"> </span>--help
 </pre></div>
 </div>
-<p>Downloading the data may take some time, depending on your internet connection and the size of the data based on your download preferences. For reference, downloading full-resolution data for all crops with 128 voxels of padding took 6.6 hours on an internet connection with 820Mbps download speed, and required approximately 1.18TB of storage.</p>
+<p>Downloading the data may take some time, depending on your internet connection and the size of the data based on your download preferences. For reference, the download time for the default options on a MacBook Pro Apple M3 Max with 128 GB of memory through WiFi was 1.6 hours, and required approximately 36.7 GB of storage. Downloading full-resolution data for all crops with 128 voxels of padding took 6.6 hours on an internet connection with 820Mbps download speed, and required approximately 1.18TB of storage.</p>
 </section>
 </section>
 <section id="train-a-model">
@@ -457,6 +457,7 @@ python<span class="w"> </span>train_2D.py
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tensorboard<span class="w"> </span>--logdir<span class="o">=</span>tensorboard
 </pre></div>
 </div>
+<p>This will start the TensorBoard server, which you can view in your browser at the link indicated in the terminal, often this is <code class="docutils literal notranslate"><span class="pre">http://localhost:6006</span></code>.</p>
 <p>You can also train a 3D model by running the same command with <code class="docutils literal notranslate"><span class="pre">train_3D.py</span></code>:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>train_3D.py
 </pre></div>
@@ -466,6 +467,7 @@ python<span class="w"> </span>train_2D.py
 </pre></div>
 </div>
 <p>For more information on the available options and how training works, see the <code class="docutils literal notranslate"><span class="pre">README.md</span></code> in the <code class="docutils literal notranslate"><span class="pre">examples</span></code> folder, as well as the documentation in <code class="docutils literal notranslate"><span class="pre">examples/train_2D.py</span></code> and <code class="docutils literal notranslate"><span class="pre">examples/train_3D.py</span></code>.</p>
+<p>Once you are satisfied with your model, you can use it to make predictions, as discussed in the next section.</p>
 </section>
 <section id="predict-on-test-data">
 <h1>Predict on test data<a class="headerlink" href="#predict-on-test-data" title="Link to this heading">#</a></h1>
@@ -576,11 +578,11 @@ Note: The instance labels, if used, should be unique IDs per object, with 0 as b
 <tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.html#module-cellmap_segmentation_challenge" title="cellmap_segmentation_challenge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cellmap_segmentation_challenge</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.train.html#module-cellmap_segmentation_challenge.train" title="cellmap_segmentation_challenge.train"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cellmap_segmentation_challenge.train</span></code></a></p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.train.html#cellmap_segmentation_challenge.train" title="cellmap_segmentation_challenge.train"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cellmap_segmentation_challenge.train</span></code></a>(config_path)</p></td>
+<td><p>Train a model using the configuration file at the specified path.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.predict.html#module-cellmap_segmentation_challenge.predict" title="cellmap_segmentation_challenge.predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cellmap_segmentation_challenge.predict</span></code></a></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.predict.html#cellmap_segmentation_challenge.predict" title="cellmap_segmentation_challenge.predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cellmap_segmentation_challenge.predict</span></code></a>(...)</p></td>
+<td><p>Given a model configuration file and list of crop numbers, predicts the output of a model on a large dataset by splitting it into blocks and predicting each block separately.</p></td>
 </tr>
 </tbody>
 </table>
