@@ -11,3 +11,9 @@ cellmap\_segmentation\_challenge.utils.security
       analyze_script
       load_safe_config
    
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Config
+   

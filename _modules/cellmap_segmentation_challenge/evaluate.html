@@ -288,7 +288,6 @@
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">zipfile</span>
-<span class="kn">from</span> <span class="nn">glob</span> <span class="kn">import</span> <span class="n">glob</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">zarr</span>
@@ -684,7 +683,7 @@
     <span class="n">truth_label</span> <span class="o">=</span> <span class="p">(</span><span class="n">truth_label</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
     <span class="c1"># Compute the scores</span>
     <span class="n">scores</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="n">jaccard_score</span><span class="p">(</span><span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">),</span>
+        <span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="n">jaccard_score</span><span class="p">(</span><span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">,</span> <span class="n">zero_division</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
         <span class="s2">&quot;dice_score&quot;</span><span class="p">:</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">dice</span><span class="p">(</span><span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">),</span>
     <span class="p">}</span>
 
@@ -974,7 +973,7 @@
         <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
             <span class="n">overall_instance_scores</span> <span class="o">+=</span> <span class="p">[</span><span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;combined_score&quot;</span><span class="p">]]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">overall_semantic_scores</span> <span class="o">+=</span> <span class="p">[</span><span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;dice_score&quot;</span><span class="p">]]</span>
+            <span class="n">overall_semantic_scores</span> <span class="o">+=</span> <span class="p">[</span><span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;iou&quot;</span><span class="p">]]</span>
     <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;overall_instance_score&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">overall_instance_scores</span><span class="p">)</span>
     <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;overall_semantic_score&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">overall_semantic_scores</span><span class="p">)</span>
     <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;overall_score&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
