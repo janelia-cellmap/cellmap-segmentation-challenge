@@ -10,6 +10,8 @@ import zarr.indexing
 import zarr.storage
 from yarl import URL
 from zarr._storage.store import Store
+import boto3
+from tqdm import tqdm
 
 from .crops import CropRow
 
@@ -166,3 +168,21 @@ def resolve_em_url(em_source_root: URL, em_source_paths: list[str]):
         except zarr.errors.GroupNotFoundError:
             log.info(f"No EM data found at {maybe_em_source_url}")
     raise zarr.errors.GroupNotFoundError(f"No EM data found in {em_source_root}")
+
+
+def download_file_with_progress(bucket_name, object_key, local_filename):
+    s3 = boto3.client("s3")
+    response = s3.head_object(Bucket=bucket_name, Key=object_key)
+    total_size = response["ContentLength"]
+
+    progress_bar = tqdm(
+        total=total_size, unit="B", unit_scale=True, desc=local_filename, ascii=True
+    )
+
+    def progress_callback(bytes_transferred):
+        progress_bar.update(bytes_transferred)
+
+    s3.download_file(
+        bucket_name, object_key, local_filename, Callback=progress_callback
+    )
+    progress_bar.close()
