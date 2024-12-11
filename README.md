@@ -168,17 +168,19 @@ During evaluations of submissions, for instance segmentation evaluated classes, 
 
 # Visualize data and predictions
 
-To visualize all of the data and predictions, you can view them with neuroglancer. To do this, you can run the following command:
+To visualize data and predictions, you can view them with neuroglancer. As an example, the following command will visualize the groundtruth and predictions for the jrc_cos7-1a dataset, crops 234 and 236, and label classes nuc, cell, mito, and er:
+
+```bash
+csc visualize -d jrc_cos7-1a -c 234,236 -C nuc,cell,mito,er -k gt,predictions
+```
+
+This will serve the data and predictions on a local server, and open a browser window with the neuroglancer viewer. You can then navigate through the data and predictions, and compare them side by side. The default call with no arguments will do this for all datasets and groundtruth, prediction, and processed crops for all label classes found at the search paths defined in the global configuration file (`config.py`). You can also specify particular datasets, crops, labels classes, and whether to show groundtruth, predictions, or processed data to visualize. 
+
+To visualize all of the data and predictions, you can run the following command:
 
 ```bash
 csc visualize
 ```
-This will serve the data and predictions on a local server, and open a browser window with the neuroglancer viewer. You can then navigate through the data and predictions, and compare them side by side. The default call with no arguments will do this for all datasets and groundtruth, prediction, and processed crops for all label classes found at the search paths defined in the global configuration file (`config.py`). You can also specify particular datasets, crops, labels classes, and whether to show groundtruth, predictions, or processed data to visualize. 
-
-As an example, the following command will visualize the groundtruth and predictions for the jrc_cos7-1a dataset, crops 234 and 236, and label classes nuc, cell, mito, and er:
-
-```bash
-csc visualize -d jrc_cos7-1a -c 234,236 -C nuc,cell,mito,er -k gt,predictions
 
 Run the following command to see all the options:
 

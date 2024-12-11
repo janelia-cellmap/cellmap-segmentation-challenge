@@ -60,7 +60,7 @@ def unzip_file(zip_path):
 
 
 def save_numpy_class_labels_to_zarr(
-    save_path, test_volume_name, label_name, labels, overwrite=False
+    save_path, test_volume_name, label_name, labels, overwrite=False, attrs=None
 ):
     """
     Save a single 3D numpy array of class labels to a
@@ -71,6 +71,8 @@ def save_numpy_class_labels_to_zarr(
         test_volume_name (str): The name of the test volume.
         label_names (str): The names of the labels.
         labels (np.ndarray): A 3D numpy array of class labels.
+        overwrite (bool): Whether to overwrite the Zarr-2 file if it already exists.
+        attrs (dict): A dictionary of attributes to save with the Zarr-2 file.
 
     Example usage:
         # Generate random class labels, with 0 as background
@@ -90,18 +92,20 @@ def save_numpy_class_labels_to_zarr(
     # Save the labels
     for i, label_name in enumerate(label_name):
         print(f"Saving {label_name}")
-        zarr_group[test_volume_name].create_dataset(
+        ds = zarr_group[test_volume_name].create_dataset(
             label_name,
             data=(labels == i + 1),
-            chunks=(64, 64, 64),
+            chunks=64,
             # compressor=zarr.Blosc(cname='zstd', clevel=3, shuffle=2),
         )
+        for k, v in (attrs or {}).items():
+            ds.attrs[k] = v
 
     print("Done saving")
 
 
 def save_numpy_class_arrays_to_zarr(
-    save_path, test_volume_name, label_names, labels, overwrite=False
+    save_path, test_volume_name, label_names, labels, overwrite=False, attrs=None
 ):
     """
     Save a list of 3D numpy arrays of binary or instance labels to a
@@ -112,6 +116,8 @@ def save_numpy_class_arrays_to_zarr(
         test_volume_name (str): The name of the test volume.
         label_names (list): A list of label names corresponding to the list of 3D numpy arrays.
         labels (list): A list of 3D numpy arrays of binary labels.
+        overwrite (bool): Whether to overwrite the Zarr-2 file if it already exists.
+        attrs (dict): A dictionary of attributes to save with the Zarr-2 file.
 
     Example usage:
         label_names = ['label1', 'label2', 'label3']
@@ -133,12 +139,14 @@ def save_numpy_class_arrays_to_zarr(
     # Save the labels
     for i, label_name in enumerate(label_names):
         print(f"Saving {label_name}")
-        zarr_group[test_volume_name].create_dataset(
+        ds = zarr_group[test_volume_name].create_dataset(
             label_name,
             data=labels[i],
-            chunks=(64, 64, 64),
+            chunks=64,
             # compressor=zarr.Blosc(cname='zstd', clevel=3, shuffle=2),
         )
+        for k, v in (attrs or {}).items():
+            ds.attrs[k] = v
 
     print("Done saving")
 

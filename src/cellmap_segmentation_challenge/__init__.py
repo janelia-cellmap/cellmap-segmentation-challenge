@@ -8,12 +8,6 @@ from .config import (
     SEARCH_PATH,
     SUBMISSION_PATH,
 )
-from .evaluate import (
-    package_submission,
-    save_numpy_class_arrays_to_zarr,
-    save_numpy_class_labels_to_zarr,
-    score_submission,
-)
 
 import lazy_loader as lazy
 
@@ -25,5 +19,11 @@ __getattr__, __dir__, __all__ = lazy.attach(
         "process": ["process"],
         "train": ["train"],
         "visualize": ["visualize"],
+        "evaluate": [
+            "package_submission",
+            "save_numpy_class_arrays_to_zarr",
+            "save_numpy_class_labels_to_zarr",
+            "score_submission",
+        ],
     },
 )

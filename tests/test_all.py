@@ -6,27 +6,41 @@ import os
 
 import numpy as np
 from skimage.measure import label as relabel
+from skimage.transform import rescale
+from upath import UPath
+
+# Set the manifest URL for the test crops
+os.environ["CSC_TEST_CROP_MANIFEST_URL"] = (
+    "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/test_crop_manifest.csv"
+)
+
 from cellmap_segmentation_challenge import REPO_ROOT
+from cellmap_segmentation_challenge.evaluate import (
+    zip_submission,
+    save_numpy_class_arrays_to_zarr,
+)
+
+ERROR_TOLERANCE = 1e-4
 
 
 # %%
 @pytest.fixture(scope="session")
 def setup_temp_path(tmp_path_factory):
     temp_dir = tmp_path_factory.mktemp("shared_test_dir")
+    # temp_dir = (REPO_ROOT / "tests" / "tmp").absolute()
     os.environ["TEST_TMP_DIR"] = str(temp_dir)
     yield temp_dir
     # Cleanup: Unset the environment variable after tests are done
     del os.environ["TEST_TMP_DIR"]
 
 
-# %%
 @pytest.mark.dependency()
-def test_fetch_data(setup_temp_path):
+def test_fetch_test_crops(setup_temp_path):
     from cellmap_segmentation_challenge.cli import fetch_data_cli
 
     os.makedirs(setup_temp_path / "data", exist_ok=True)
     fetch_data_cli.callback(
-        crops="116,118",
+        crops="test",
         raw_padding=0,
         dest=setup_temp_path / "data",
         access_mode="append",
@@ -36,20 +50,16 @@ def test_fetch_data(setup_temp_path):
     )
 
 
+# %%
 @pytest.mark.dependency()
-def test_fetch_test_crops(setup_temp_path):
+def test_fetch_data(setup_temp_path):
     from cellmap_segmentation_challenge.cli import fetch_data_cli
 
-    os.environ["CSC_TEST_CROP_MANIFEST_URL"] = (
-        "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/test_crop_manifest.csv"
-    )
-    workdir = setup_temp_path
-
-    os.makedirs(workdir / "data", exist_ok=True)
+    os.makedirs(setup_temp_path / "data", exist_ok=True)
     fetch_data_cli.callback(
-        crops="test",
+        crops="116,234",
         raw_padding=0,
-        dest=workdir / "data",
+        dest=setup_temp_path / "data",
         access_mode="append",
         fetch_all_em_resolutions=False,
         batch_size=256,
@@ -59,37 +69,41 @@ def test_fetch_test_crops(setup_temp_path):
 
 # %%
 @pytest.mark.dependency(depends=["test_fetch_data"])
-def test_train():
-    workdir = os.environ["TEST_TMP_DIR"]
-    shutil.copy(REPO_ROOT / "tests" / "train_config.py", workdir)
-    shutil.copy(REPO_ROOT / "tests" / "process_config.py", workdir)
-    os.chdir(workdir)
+def test_train(setup_temp_path):
+    shutil.copy(
+        REPO_ROOT / "tests" / "train_config.py", setup_temp_path / "train_config.py"
+    )
+    # os.chdir(setup_temp_path)
 
     from cellmap_segmentation_challenge.cli import train_cli
     from cellmap_segmentation_challenge.utils import make_datasplit_csv
 
+    if (setup_temp_path / "datasplit.csv").exists():
+        (setup_temp_path / "datasplit.csv").unlink()
+
     make_datasplit_csv(
         classes=["mito", "er"],
-        search_path="data/{dataset}/{dataset}.zarr/recon-1/{name}",
+        search_path=os.path.join(
+            setup_temp_path, *"data/{dataset}/{dataset}.zarr/recon-1/{name}".split("/")
+        ),
+        csv_path=setup_temp_path / "datasplit.csv",
         validation_prob=0.5,
     )
 
-    train_cli.callback("train_config.py")
+    train_cli.callback(setup_temp_path / "train_config.py")
 
 
 # %%
 @pytest.mark.dependency(depends=["test_fetch_data"])
-def test_predict():
-    workdir = os.environ["TEST_TMP_DIR"]
-    os.chdir(workdir)
+def test_predict(setup_temp_path):
     from cellmap_segmentation_challenge.cli import predict_cli
 
     PREDICTION_PATH = os.path.join(
-        workdir, *"data/predictions/{dataset}.zarr/{crop}".split("/")
+        setup_temp_path, *"data/predictions/{dataset}.zarr/{crop}".split("/")
     )
 
     predict_cli.callback(
-        "train_config.py",
+        setup_temp_path / "train_config.py",
         crops="116",
         output_path=PREDICTION_PATH,
         do_orthoplanes=False,
@@ -99,16 +113,15 @@ def test_predict():
 
 # %%
 @pytest.mark.dependency(depends=["test_fetch_test_crops"])
-def test_predict_test_crops():
+def test_predict_test_crops(setup_temp_path):
     from cellmap_segmentation_challenge.cli import predict_cli
 
-    workdir = os.environ["TEST_TMP_DIR"]
     PREDICTION_PATH = os.path.join(
-        workdir, *"data/predictions/{dataset}.zarr/{crop}".split("/")
+        setup_temp_path, *"data/predictions/{dataset}.zarr/{crop}".split("/")
     )
 
     predict_cli.callback(
-        "train_config.py",
+        setup_temp_path / "train_config.py",
         crops="test",
         output_path=PREDICTION_PATH,
         do_orthoplanes=False,
@@ -118,22 +131,22 @@ def test_predict_test_crops():
 
 # %%
 @pytest.mark.dependency(depends=["test_predict"])
-def test_process():
+def test_process(setup_temp_path):
     from cellmap_segmentation_challenge.cli import process_cli
 
-    os.environ["CSC_TEST_CROP_MANIFEST_URL"] = (
-        "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/test_crop_manifest.csv"
+    shutil.copy(
+        REPO_ROOT / "tests" / "process_config.py", setup_temp_path / "process_config.py"
     )
-    workdir = os.environ["TEST_TMP_DIR"]
+
     PREDICTION_PATH = os.path.join(
-        workdir, *"data/predictions/{dataset}.zarr/{crop}".split("/")
+        setup_temp_path, *"data/predictions/{dataset}.zarr/{crop}".split("/")
     )
     PROCESSED_PATH = os.path.join(
-        workdir, *"data/processed/{dataset}.zarr/{crop}".split("/")
+        setup_temp_path, *"data/processed/{dataset}.zarr/{crop}".split("/")
     )
 
     process_cli.callback(
-        "process_config.py",
+        setup_temp_path / "process_config.py",
         crops="test",
         overwrite=True,
         input_path=PREDICTION_PATH,
@@ -146,18 +159,13 @@ def test_process():
 def test_pack_results(setup_temp_path):
     from cellmap_segmentation_challenge.cli import package_submission_cli
 
-    os.environ["CSC_TEST_CROP_MANIFEST_URL"] = (
-        "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/test_crop_manifest.csv"
-    )
-    workdir = setup_temp_path
     PROCESSED_PATH = os.path.join(
-        workdir,
+        setup_temp_path,
         *"data/{dataset}/{dataset}.zarr/recon-1/labels/groundtruth/{crop}".split("/"),
     )
-    TRUTH_PATH = os.path.join(workdir, "truth.zarr")
-    os.environ["CSC_TRUTH_PATH"] = TRUTH_PATH
+    TRUTH_PATH = setup_temp_path / "data" / "truth.zarr"
 
-    package_submission_cli.callback(PROCESSED_PATH, TRUTH_PATH, overwrite=True)
+    package_submission_cli.callback(PROCESSED_PATH, str(TRUTH_PATH), overwrite=True)
 
 
 # %%
@@ -165,57 +173,87 @@ def test_pack_results(setup_temp_path):
     "scale, iou, accuracy",
     [
         (None, None, None),
-        # (2, None, None),
-        # (0.5, None, None),
-        # (None, 0.8, 0.8),
-        # (2, 0.8, 0.8),
-        # (0.5, 0.8, 0.8),
+        (2, None, None),
+        (0.5, None, None),
+        (None, 0.8, 0.8),
+        (2, 0.8, 0.8),
+        (0.5, 0.8, 0.8),
     ],
 )
 @pytest.mark.dependency(depends=["test_pack_results"])
-def test_evaluate(scale, iou, accuracy):
+def test_evaluate(setup_temp_path, scale, iou, accuracy):
     from cellmap_segmentation_challenge.cli import evaluate_cli
     from cellmap_segmentation_challenge.evaluate import INSTANCE_CLASSES
+    import zarr
 
-    os.environ["CSC_TEST_CROP_MANIFEST_URL"] = (
-        "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/test_crop_manifest.csv"
-    )
-
-    workdir = os.environ["TEST_TMP_DIR"]
-    TRUTH_PATH = os.environ["CSC_TRUTH_PATH"]
+    TRUTH_PATH = setup_temp_path / "data" / "truth.zarr"
 
     if any([scale, iou, accuracy]):
-        SUBMISSION_PATH = os.path.join(workdir, "submission.zarr")
-        if scale:
-            resample_arrays(TRUTH_PATH, (scale,) * 3)
+        SUBMISSION_PATH = setup_temp_path / "data" / "submission.zarr"
+        submission_zarr = zarr.open(SUBMISSION_PATH, mode="w")
+        truth_zarr = zarr.open(TRUTH_PATH, mode="r")
+        for crop in truth_zarr.keys():
+            crop_zarr = truth_zarr[crop]
+            submission_zarr.create_group(crop)
+            labels = []
+            preds = []
+            for label in crop_zarr.keys():
+                label_zarr = crop_zarr[label]
+                attrs = label_zarr.attrs.asdict()
+                truth = label_zarr[:]
+
+                if iou is not None and label not in INSTANCE_CLASSES:
+                    pred = simulate_predictions_iou(truth, iou)
+                elif accuracy is not None and label in INSTANCE_CLASSES:
+                    pred = simulate_predictions_accuracy(truth, accuracy)
+
+                if scale:
+                    pred = rescale(pred, scale, order=0, preserve_range=True)
+                    attrs["voxel_size"] = [s * scale for s in attrs["voxel_size"]]
+
+                labels.append(label)
+                preds.append(pred)
+
+            save_numpy_class_arrays_to_zarr(
+                SUBMISSION_PATH,
+                crop,
+                labels,
+                preds,
+                overwrite=True,
+                attrs=attrs,
+            )
     else:
         SUBMISSION_PATH = TRUTH_PATH
+    zip_submission(SUBMISSION_PATH)
 
     evaluate_cli.callback(
-        SUBMISSION_PATH.replace(".zarr", ".zip"),
-        result_file=os.path.join(workdir, "result.json"),
+        SUBMISSION_PATH.with_suffix(".zip"),
+        result_file=setup_temp_path / "result.json",
         truth_path=TRUTH_PATH,
         instance_classes=",".join(INSTANCE_CLASSES),
     )
 
     # Check the results:
-    with open(os.path.join(workdir, "result_submitted_only.json")) as f:
+    with open(setup_temp_path / "result_submitted_only.json") as f:
         results = json.load(f)
 
     if iou is not None and accuracy is not None:
-        assert 1 - results["overall_score"] < 1e-4
+        assert (
+            1 - results["overall_score"] < ERROR_TOLERANCE
+        ), f"Overall score should be 1 but is: {results['overall_score']}"
     else:
-        assert np.abs(iou - results["overall_semantic_score"]) < 1e-4
+        assert (
+            np.abs(iou - results["overall_semantic_score"]) < ERROR_TOLERANCE
+        ), f"Semantic score should be {iou} but is: {results['overall_semantic_score']}"
         # Check all accuracy scores
         for label, scores in results["label_scores"].items():
             if label in INSTANCE_CLASSES:
-                assert np.abs(accuracy - scores["accuracy"]) < 1e-4
+                assert (
+                    np.abs(accuracy - scores["accuracy"]) < ERROR_TOLERANCE
+                ), f"Accuracy score for {label} should be {accuracy} but is: {scores['accuracy']}"
 
 
 # %%
-
-
-def resample_arrays(zarr_path: str, scale_factors: tuple[float, ...] | None = None): ...
 
 
 def simulate_predictions_iou(true_labels, iou):
