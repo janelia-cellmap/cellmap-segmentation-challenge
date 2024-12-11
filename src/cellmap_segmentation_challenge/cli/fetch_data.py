@@ -19,8 +19,11 @@ from cellmap_segmentation_challenge.utils.crops import (
     CropRow,
     TestCropRow,
     fetch_manifest,
+    ZipDatasetRow,
+    fetch_zip_manifest,
     get_test_crops,
 )
+
 from cellmap_segmentation_challenge.utils.fetch_data import (
     _resolve_em_dest_path,
     _resolve_gt_dest_path,
@@ -28,6 +31,8 @@ from cellmap_segmentation_challenge.utils.fetch_data import (
     partition_copy_store,
     read_group,
     subset_to_slice,
+    get_zip_if_available,
+    download_file_with_progress,
 )
 from cellmap_segmentation_challenge.config import BASE_DATA_PATH
 
@@ -114,6 +119,26 @@ def fetch_data_cli(
     crops_parsed: tuple[CropRow, ...]
 
     crops_from_manifest = fetch_manifest()
+    zips_from_manifest = fetch_zip_manifest()
+
+    zip_url = get_zip_if_available(
+        crops, raw_padding, fetch_all_em_resolutions, zips_from_manifest
+    )
+
+    if zip_url is not None:
+        import zipfile
+
+        log.info(f"Found a zip file for the requested crops at {zip_url}.")
+        zip_path = dest_path_abs / Path(zip_url.name)
+        log.info(f"Downloading zip file to {zip_path}")
+        download_file_with_progress(str(zip_url), str(zip_path))
+        log.info(f"Unzipping file to {dest_path_abs}")
+        with zipfile.ZipFile(zip_path, "r") as zip_ref:
+            with click.progressbar(zip_ref.namelist(), label="Extracting files") as bar:
+                for member in bar:
+                    zip_ref.extract(member, dest_path_abs)
+        log.info(f"Unzipped file to {dest_path_abs}")
+        return
 
     if crops == "all" or crops == "test":
         test_crops = get_test_crops()

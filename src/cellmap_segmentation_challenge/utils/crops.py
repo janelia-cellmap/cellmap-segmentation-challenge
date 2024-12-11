@@ -65,6 +65,49 @@ MANIFEST_URL = os.environ.get(
     "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/manifest.csv",
 )
 
+ZIP_MANIFEST_URL = os.environ.get(
+    "CSC_FETCH_ZIP_DATA_MANIFEST_URL",
+    "/Users/zouinkhim/Desktop/cellmap/cellmap-segmentation-challenge-1/src/cellmap_segmentation_challenge/utils/zip_manifest.csv",
+    # "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/zip_manifest.csv",
+)
+
+
+@dataclass
+class ZipDatasetRow:
+    """A dataclass representing a row in the zip dataset manifest file."""
+
+    all_res: bool
+    padding: int
+    name: str
+    url: URL
+
+    @classmethod
+    def from_csv_row(cls, row: str) -> Self:
+        """Create a CropRow object from a CSV row."""
+        all_res, padding, name, url = row.split(",")
+        all_res = all_res == "True"
+        padding = int(padding)
+        return cls(all_res, padding, name, URL(url))
+
+
+def fetch_zip_manifest(url: str | URL = ZIP_MANIFEST_URL) -> tuple[ZipDatasetRow, ...]:
+    """
+    Fetch a manifest file from a URL and return a tuple of CropRow objects.
+
+    Parameters
+    ----------
+    url : str or yarl.URL
+        The URL to the manifest file.
+
+    Returns
+    -------
+    tuple[CropRow, ...]
+        A tuple of CropRow objects.
+    """
+    fs, path = fsspec.url_to_fs(str(url))
+    head, *rows = fs.cat_file(path).decode().splitlines()
+    return tuple(ZipDatasetRow.from_csv_row(row) for row in rows)
+
 
 @dataclass
 class CropRow:

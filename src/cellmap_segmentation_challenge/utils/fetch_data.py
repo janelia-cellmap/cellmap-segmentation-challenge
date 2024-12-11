@@ -10,10 +10,8 @@ import zarr.indexing
 import zarr.storage
 from yarl import URL
 from zarr._storage.store import Store
-import boto3
-from tqdm import tqdm
 
-from .crops import CropRow
+from .crops import CropRow, ZipDatasetRow
 
 
 def copy_store(*, keys: Iterable[str], source_store: Store, dest_store: Store):
@@ -170,8 +168,22 @@ def resolve_em_url(em_source_root: URL, em_source_paths: list[str]):
     raise zarr.errors.GroupNotFoundError(f"No EM data found in {em_source_root}")
 
 
-def download_file_with_progress(bucket_name, object_key, local_filename):
+def parse_s3_url(s3_url: str) -> (str, str):
+    if not s3_url.startswith("s3://"):
+        raise ValueError("URL must start with s3://")
+    without_prefix = s3_url[len("s3://") :]
+    parts = without_prefix.split("/", 1)
+    if len(parts) < 2:
+        raise ValueError("Invalid S3 URL. Could not split into bucket and key.")
+    return parts[0], parts[1]
+
+
+def download_file_with_progress(s3_url, local_filename):
+    import boto3
+    from tqdm import tqdm
+
     s3 = boto3.client("s3")
+    bucket_name, object_key = parse_s3_url(s3_url)
     response = s3.head_object(Bucket=bucket_name, Key=object_key)
     total_size = response["ContentLength"]
 
@@ -186,3 +198,15 @@ def download_file_with_progress(bucket_name, object_key, local_filename):
         bucket_name, object_key, local_filename, Callback=progress_callback
     )
     progress_bar.close()
+
+
+def get_zip_if_available(
+    crops, raw_padding, fetch_all_em_resolutions, zips_from_manifest
+):
+    if crops != "all":
+        return None
+
+    for z in zips_from_manifest:
+        if z.all_res == fetch_all_em_resolutions and z.padding == raw_padding:
+            return z.url
+    return None
