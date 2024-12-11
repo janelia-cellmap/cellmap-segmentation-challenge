@@ -98,6 +98,7 @@ Additionally, you can request raw data in all resolutions (not just those matchi
 ```bash
 csc fetch-data --help
 ```
+Default option will download the data as **Zarr** files. You can download compressed **Zip** files by adding the `--zip` flag. While zip files are faster to download, they can take a long time to unzip. Available Zip files are listed [here](src/cellmap_segmentation_challenge/utils/zip_manifest.csv).
 
 Downloading the data may take some time, depending on your internet connection and the size of the data based on your download preferences. For reference, the download time for the default options on a MacBook Pro Apple M3 Max with 128 GB of memory through WiFi was 1.6 hours, and required approximately 36.7 GB of storage. Downloading full-resolution data for all crops with 128 voxels of padding took 6.6 hours on an internet connection with 820Mbps download speed, and required approximately 1.18TB of storage.
 
