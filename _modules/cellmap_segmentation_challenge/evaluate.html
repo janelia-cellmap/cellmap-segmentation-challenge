@@ -328,7 +328,7 @@
 
 
 <div class="viewcode-block" id="unzip_file">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.evaluate.unzip_file">[docs]</a>
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.unzip_file">[docs]</a>
 <span class="k">def</span> <span class="nf">unzip_file</span><span class="p">(</span><span class="n">zip_path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Unzip a zip file to a specified directory.</span>
@@ -349,9 +349,9 @@
 
 
 <div class="viewcode-block" id="save_numpy_class_labels_to_zarr">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.evaluate.save_numpy_class_labels_to_zarr">[docs]</a>
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.save_numpy_class_labels_to_zarr">[docs]</a>
 <span class="k">def</span> <span class="nf">save_numpy_class_labels_to_zarr</span><span class="p">(</span>
-    <span class="n">save_path</span><span class="p">,</span> <span class="n">test_volume_name</span><span class="p">,</span> <span class="n">label_name</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span>
+    <span class="n">save_path</span><span class="p">,</span> <span class="n">test_volume_name</span><span class="p">,</span> <span class="n">label_name</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Save a single 3D numpy array of class labels to a</span>
@@ -362,6 +362,8 @@
 <span class="sd">        test_volume_name (str): The name of the test volume.</span>
 <span class="sd">        label_names (str): The names of the labels.</span>
 <span class="sd">        labels (np.ndarray): A 3D numpy array of class labels.</span>
+<span class="sd">        overwrite (bool): Whether to overwrite the Zarr-2 file if it already exists.</span>
+<span class="sd">        attrs (dict): A dictionary of attributes to save with the Zarr-2 file.</span>
 
 <span class="sd">    Example usage:</span>
 <span class="sd">        # Generate random class labels, with 0 as background</span>
@@ -381,21 +383,23 @@
     <span class="c1"># Save the labels</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">label_name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">label_name</span><span class="p">):</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving </span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">zarr_group</span><span class="p">[</span><span class="n">test_volume_name</span><span class="p">]</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
+        <span class="n">ds</span> <span class="o">=</span> <span class="n">zarr_group</span><span class="p">[</span><span class="n">test_volume_name</span><span class="p">]</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
             <span class="n">label_name</span><span class="p">,</span>
             <span class="n">data</span><span class="o">=</span><span class="p">(</span><span class="n">labels</span> <span class="o">==</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="n">chunks</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span>
+            <span class="n">chunks</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
             <span class="c1"># compressor=zarr.Blosc(cname=&#39;zstd&#39;, clevel=3, shuffle=2),</span>
         <span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="p">(</span><span class="n">attrs</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Done saving&quot;</span><span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="save_numpy_class_arrays_to_zarr">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.evaluate.save_numpy_class_arrays_to_zarr">[docs]</a>
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.save_numpy_class_arrays_to_zarr">[docs]</a>
 <span class="k">def</span> <span class="nf">save_numpy_class_arrays_to_zarr</span><span class="p">(</span>
-    <span class="n">save_path</span><span class="p">,</span> <span class="n">test_volume_name</span><span class="p">,</span> <span class="n">label_names</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span>
+    <span class="n">save_path</span><span class="p">,</span> <span class="n">test_volume_name</span><span class="p">,</span> <span class="n">label_names</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Save a list of 3D numpy arrays of binary or instance labels to a</span>
@@ -406,6 +410,8 @@
 <span class="sd">        test_volume_name (str): The name of the test volume.</span>
 <span class="sd">        label_names (list): A list of label names corresponding to the list of 3D numpy arrays.</span>
 <span class="sd">        labels (list): A list of 3D numpy arrays of binary labels.</span>
+<span class="sd">        overwrite (bool): Whether to overwrite the Zarr-2 file if it already exists.</span>
+<span class="sd">        attrs (dict): A dictionary of attributes to save with the Zarr-2 file.</span>
 
 <span class="sd">    Example usage:</span>
 <span class="sd">        label_names = [&#39;label1&#39;, &#39;label2&#39;, &#39;label3&#39;]</span>
@@ -427,19 +433,21 @@
     <span class="c1"># Save the labels</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">label_name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">label_names</span><span class="p">):</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving </span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">zarr_group</span><span class="p">[</span><span class="n">test_volume_name</span><span class="p">]</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
+        <span class="n">ds</span> <span class="o">=</span> <span class="n">zarr_group</span><span class="p">[</span><span class="n">test_volume_name</span><span class="p">]</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
             <span class="n">label_name</span><span class="p">,</span>
             <span class="n">data</span><span class="o">=</span><span class="n">labels</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
-            <span class="n">chunks</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span>
+            <span class="n">chunks</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
             <span class="c1"># compressor=zarr.Blosc(cname=&#39;zstd&#39;, clevel=3, shuffle=2),</span>
         <span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="p">(</span><span class="n">attrs</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Done saving&quot;</span><span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="resize_array">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.evaluate.resize_array">[docs]</a>
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.resize_array">[docs]</a>
 <span class="k">def</span> <span class="nf">resize_array</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">target_shape</span><span class="p">,</span> <span class="n">pad_value</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Resize an array to a target shape by padding or cropping as needed.</span>
@@ -489,7 +497,7 @@
 
 
 <div class="viewcode-block" id="hausdorff_distance">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.evaluate.hausdorff_distance">[docs]</a>
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.hausdorff_distance">[docs]</a>
 <span class="k">def</span> <span class="nf">hausdorff_distance</span><span class="p">(</span>
     <span class="n">image0</span><span class="p">,</span> <span class="n">image1</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span> <span class="n">max_distance</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;standard&quot;</span>
 <span class="p">):</span>
@@ -567,7 +575,7 @@
 
 
 <div class="viewcode-block" id="score_instance">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.evaluate.score_instance">[docs]</a>
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.score_instance">[docs]</a>
 <span class="k">def</span> <span class="nf">score_instance</span><span class="p">(</span>
     <span class="n">pred_label</span><span class="p">,</span> <span class="n">truth_label</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span> <span class="n">hausdorff_distance_max</span><span class="o">=</span><span class="n">HAUSDORFF_DISTANCE_MAX</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
@@ -662,7 +670,7 @@
 
 
 <div class="viewcode-block" id="score_semantic">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.evaluate.score_semantic">[docs]</a>
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.score_semantic">[docs]</a>
 <span class="k">def</span> <span class="nf">score_semantic</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">truth_label</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Score a single semantic label volume against the ground truth semantic label volume.</span>
@@ -695,7 +703,7 @@
 
 
 <div class="viewcode-block" id="score_label">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.evaluate.score_label">[docs]</a>
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.score_label">[docs]</a>
 <span class="k">def</span> <span class="nf">score_label</span><span class="p">(</span>
     <span class="n">pred_label_path</span><span class="p">,</span> <span class="n">truth_path</span><span class="o">=</span><span class="n">TRUTH_PATH</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">INSTANCE_CLASSES</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
@@ -749,7 +757,7 @@
 
 
 <div class="viewcode-block" id="score_volume">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.evaluate.score_volume">[docs]</a>
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.score_volume">[docs]</a>
 <span class="k">def</span> <span class="nf">score_volume</span><span class="p">(</span>
     <span class="n">pred_volume_path</span><span class="p">,</span> <span class="n">truth_path</span><span class="o">=</span><span class="n">TRUTH_PATH</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">INSTANCE_CLASSES</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
@@ -836,7 +844,7 @@
 
 
 <div class="viewcode-block" id="missing_volume_score">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.evaluate.missing_volume_score">[docs]</a>
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.missing_volume_score">[docs]</a>
 <span class="k">def</span> <span class="nf">missing_volume_score</span><span class="p">(</span>
     <span class="n">truth_volume_path</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">INSTANCE_CLASSES</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
@@ -895,7 +903,7 @@
 
 
 <div class="viewcode-block" id="combine_scores">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.evaluate.combine_scores">[docs]</a>
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.combine_scores">[docs]</a>
 <span class="k">def</span> <span class="nf">combine_scores</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">include_missing</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">INSTANCE_CLASSES</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Combine scores across volumes, normalizing by the number of voxels.</span>
@@ -985,7 +993,7 @@
 
 
 <div class="viewcode-block" id="score_submission">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.evaluate.score_submission">[docs]</a>
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.score_submission">[docs]</a>
 <span class="k">def</span> <span class="nf">score_submission</span><span class="p">(</span>
     <span class="n">submission_path</span><span class="o">=</span><span class="n">UPath</span><span class="p">(</span><span class="n">SUBMISSION_PATH</span><span class="p">)</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;.zip&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
     <span class="n">result_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1120,7 +1128,7 @@
 
 
 <div class="viewcode-block" id="package_submission">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.evaluate.package_submission">[docs]</a>
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.package_submission">[docs]</a>
 <span class="k">def</span> <span class="nf">package_submission</span><span class="p">(</span>
     <span class="n">input_search_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">UPath</span> <span class="o">=</span> <span class="n">PROCESSED_PATH</span><span class="p">,</span>
     <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">UPath</span> <span class="o">=</span> <span class="n">SUBMISSION_PATH</span><span class="p">,</span>
@@ -1189,7 +1197,7 @@
 
 
 <div class="viewcode-block" id="match_crop_space">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.evaluate.match_crop_space">[docs]</a>
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.match_crop_space">[docs]</a>
 <span class="k">def</span> <span class="nf">match_crop_space</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">class_label</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">translation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Match the resolution of a zarr array to a target resolution and shape, resampling as necessary with interpolation dependent on the class label. Instance segmentations will be resampled with nearest neighbor interpolation, while semantic segmentations will be resampled with linear interpolation and then thresholded.</span>
@@ -1341,7 +1349,7 @@
 
 
 <div class="viewcode-block" id="zip_submission">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.evaluate.zip_submission">[docs]</a>
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.evaluate.html#cellmap_segmentation_challenge.zip_submission">[docs]</a>
 <span class="k">def</span> <span class="nf">zip_submission</span><span class="p">(</span><span class="n">zarr_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">UPath</span> <span class="o">=</span> <span class="n">SUBMISSION_PATH</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    (Re-)Zip a submission zarr file.</span>

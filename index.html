@@ -496,18 +496,17 @@ python<span class="w"> </span>train_2D.py
 </section>
 <section id="visualize-data-and-predictions">
 <h1>Visualize data and predictions<a class="headerlink" href="#visualize-data-and-predictions" title="Link to this heading">#</a></h1>
-<p>To visualize all of the data and predictions, you can view them with neuroglancer. To do this, you can run the following command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>csc<span class="w"> </span>visualize
+<p>To visualize data and predictions, you can view them with neuroglancer. As an example, the following command will visualize the groundtruth and predictions for the jrc_cos7-1a dataset, crops 234 and 236, and label classes nuc, cell, mito, and er:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>csc<span class="w"> </span>visualize<span class="w"> </span>-d<span class="w"> </span>jrc_cos7-1a<span class="w"> </span>-c<span class="w"> </span><span class="m">234</span>,236<span class="w"> </span>-C<span class="w"> </span>nuc,cell,mito,er<span class="w"> </span>-k<span class="w"> </span>gt,predictions
 </pre></div>
 </div>
 <p>This will serve the data and predictions on a local server, and open a browser window with the neuroglancer viewer. You can then navigate through the data and predictions, and compare them side by side. The default call with no arguments will do this for all datasets and groundtruth, prediction, and processed crops for all label classes found at the search paths defined in the global configuration file (<code class="docutils literal notranslate"><span class="pre">config.py</span></code>). You can also specify particular datasets, crops, labels classes, and whether to show groundtruth, predictions, or processed data to visualize.</p>
-<p>As an example, the following command will visualize the groundtruth and predictions for the jrc_cos7-1a dataset, crops 234 and 236, and label classes nuc, cell, mito, and er:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>csc<span class="w"> </span>visualize<span class="w"> </span>-d<span class="w"> </span>jrc_cos7-1a<span class="w"> </span>-c<span class="w"> </span><span class="m">234</span>,236<span class="w"> </span>-C<span class="w"> </span>nuc,cell,mito,er<span class="w"> </span>-k<span class="w"> </span>gt,predictions
-
-Run<span class="w"> </span>the<span class="w"> </span>following<span class="w"> </span><span class="nb">command</span><span class="w"> </span>to<span class="w"> </span>see<span class="w"> </span>all<span class="w"> </span>the<span class="w"> </span>options:
-
-<span class="sb">```</span>bash
-csc<span class="w"> </span>visualize<span class="w"> </span>--help
+<p>To visualize all of the data and predictions, you can run the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>csc<span class="w"> </span>visualize
+</pre></div>
+</div>
+<p>Run the following command to see all the options:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>csc<span class="w"> </span>visualize<span class="w"> </span>--help
 </pre></div>
 </div>
 </section>
@@ -578,11 +577,11 @@ Note: The instance labels, if used, should be unique IDs per object, with 0 as b
 <tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.html#module-cellmap_segmentation_challenge" title="cellmap_segmentation_challenge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cellmap_segmentation_challenge</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.train.html#cellmap_segmentation_challenge.train" title="cellmap_segmentation_challenge.train"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cellmap_segmentation_challenge.train</span></code></a>(config_path)</p></td>
-<td><p>Train a model using the configuration file at the specified path.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.train.html#module-cellmap_segmentation_challenge.train" title="cellmap_segmentation_challenge.train"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cellmap_segmentation_challenge.train</span></code></a></p></td>
+<td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.predict.html#cellmap_segmentation_challenge.predict" title="cellmap_segmentation_challenge.predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cellmap_segmentation_challenge.predict</span></code></a>(...)</p></td>
-<td><p>Given a model configuration file and list of crop numbers, predicts the output of a model on a large dataset by splitting it into blocks and predicting each block separately.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.predict.html#module-cellmap_segmentation_challenge.predict" title="cellmap_segmentation_challenge.predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cellmap_segmentation_challenge.predict</span></code></a></p></td>
+<td><p></p></td>
 </tr>
 </tbody>
 </table>
