@@ -91,6 +91,12 @@ load_dotenv()
     default=int(os.environ.get("CSC_FETCH_DATA_NUM_WORKERS", 32)),
     help=f"Number of workers to use for parallel downloads. Default: {int(os.environ.get('CSC_FETCH_DATA_NUM_WORKERS', 32))}.",
 )
+@click.option(
+    "--zip",
+    "use_zip",
+    is_flag=True,
+    help="Fetch data from a zip file if available.",
+)
 def fetch_data_cli(
     crops: str,
     raw_padding: int,
@@ -99,6 +105,7 @@ def fetch_data_cli(
     fetch_all_em_resolutions: bool,
     batch_size: int,
     num_workers: int,
+    use_zip: bool,
 ):
     """
     Download data for the CellMap segmentation challenge.
@@ -116,29 +123,30 @@ def fetch_data_cli(
     dest_path_abs = Path(dest).absolute()
 
     log = structlog.get_logger()
-    crops_parsed: tuple[CropRow, ...]
 
-    crops_from_manifest = fetch_manifest()
-    zips_from_manifest = fetch_zip_manifest()
+    if use_zip:
+        zips_from_manifest = fetch_zip_manifest()
 
-    zip_url = get_zip_if_available(
-        crops, raw_padding, fetch_all_em_resolutions, zips_from_manifest
-    )
-
-    if zip_url is not None:
-        import zipfile
-
+        zip_url = get_zip_if_available(
+            crops, raw_padding, fetch_all_em_resolutions, zips_from_manifest
+        )
+        if zip_url is None:
+            log.info(f"No zip file found for the requested crops., Please rerun the command without the --zip flag.")
+            return
+            
         log.info(f"Found a zip file for the requested crops at {zip_url}.")
         zip_path = dest_path_abs / Path(zip_url.name)
         log.info(f"Downloading zip file to {zip_path}")
         download_file_with_progress(str(zip_url), str(zip_path))
-        log.info(f"Unzipping file to {dest_path_abs}")
-        with zipfile.ZipFile(zip_path, "r") as zip_ref:
-            with click.progressbar(zip_ref.namelist(), label="Extracting files") as bar:
-                for member in bar:
-                    zip_ref.extract(member, dest_path_abs)
-        log.info(f"Unzipped file to {dest_path_abs}")
+        log.info(f"Done after {time.time() - fetch_save_start:0.3f}s")
+        log.info("Please unzip the file manually before continuing.")
+        log.info("You can use the following command:")
+        log.info(f"unzip {zip_path} -d {dest_path_abs}")
         return
+    crops_parsed: tuple[CropRow, ...]
+
+    crops_from_manifest = fetch_manifest()
+
 
     if crops == "all" or crops == "test":
         test_crops = get_test_crops()

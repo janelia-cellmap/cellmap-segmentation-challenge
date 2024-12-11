@@ -67,8 +67,7 @@ MANIFEST_URL = os.environ.get(
 
 ZIP_MANIFEST_URL = os.environ.get(
     "CSC_FETCH_ZIP_DATA_MANIFEST_URL",
-    "/Users/zouinkhim/Desktop/cellmap/cellmap-segmentation-challenge-1/src/cellmap_segmentation_challenge/utils/zip_manifest.csv",
-    # "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/zip_manifest.csv",
+    "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/zip_fetch/src/cellmap_segmentation_challenge/utils/zip_manifest.csv",
 )
 
 
