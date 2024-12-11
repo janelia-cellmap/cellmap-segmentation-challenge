@@ -47,7 +47,6 @@ dependencies = [
   "scikit-learn",
   "scikit-image",
   "boto3",
-  "tqdm",
   ]
 
 [project.optional-dependencies]

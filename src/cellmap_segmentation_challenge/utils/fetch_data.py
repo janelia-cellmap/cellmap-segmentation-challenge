@@ -10,7 +10,8 @@ import zarr.indexing
 import zarr.storage
 from yarl import URL
 from zarr._storage.store import Store
-
+import boto3
+from tqdm import tqdm
 from .crops import CropRow, ZipDatasetRow
 
 
@@ -179,8 +180,7 @@ def parse_s3_url(s3_url: str) -> (str, str):
 
 
 def download_file_with_progress(s3_url, local_filename):
-    import boto3
-    from tqdm import tqdm
+    
 
     s3 = boto3.client("s3")
     bucket_name, object_key = parse_s3_url(s3_url)
