@@ -10,6 +10,7 @@
    :caption: Contents:
 
    cellmap-schemas.rst
+   available_data.rst
 
 API
 ==============
