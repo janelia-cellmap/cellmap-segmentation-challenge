@@ -7,7 +7,7 @@ import os
 import numpy as np
 from skimage.measure import label as relabel
 from skimage.transform import rescale
-from upath import UPath
+import requests
 
 # Set the manifest URL for the test crops
 os.environ["CSC_TEST_CROP_MANIFEST_URL"] = (
@@ -70,8 +70,9 @@ def test_fetch_data(setup_temp_path):
 # %%
 @pytest.mark.dependency(depends=["test_fetch_data"])
 def test_train(setup_temp_path):
-    shutil.copy(
-        REPO_ROOT / "tests" / "train_config.py", setup_temp_path / "train_config.py"
+    download_file(
+        "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/train_config.py",
+        setup_temp_path / "train_config.py",
     )
 
     from cellmap_segmentation_challenge.cli import train_cli
@@ -97,6 +98,11 @@ def test_train(setup_temp_path):
 def test_predict(setup_temp_path):
     from cellmap_segmentation_challenge.cli import predict_cli
 
+    download_file(
+        "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/train_config.py",
+        setup_temp_path / "train_config.py",
+    )
+
     PREDICTION_PATH = os.path.join(
         setup_temp_path, *"data/predictions/{dataset}.zarr/{crop}".split("/")
     )
@@ -114,6 +120,11 @@ def test_predict(setup_temp_path):
 @pytest.mark.dependency(depends=["test_fetch_test_crops"])
 def test_predict_test_crops(setup_temp_path):
     from cellmap_segmentation_challenge.cli import predict_cli
+
+    download_file(
+        "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/train_config.py",
+        setup_temp_path / "train_config.py",
+    )
 
     PREDICTION_PATH = os.path.join(
         setup_temp_path, *"data/predictions/{dataset}.zarr/{crop}".split("/")
@@ -133,8 +144,9 @@ def test_predict_test_crops(setup_temp_path):
 def test_process(setup_temp_path):
     from cellmap_segmentation_challenge.cli import process_cli
 
-    shutil.copy(
-        REPO_ROOT / "tests" / "process_config.py", setup_temp_path / "process_config.py"
+    download_file(
+        "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/process_config.py",
+        setup_temp_path / "process_config.py",
     )
 
     PREDICTION_PATH = os.path.join(
@@ -307,3 +319,10 @@ def simulate_predictions_accuracy(true_labels, accuracy):
     simulated_predictions = relabel(simulated_predictions, connectivity=len(shape))
 
     return simulated_predictions
+
+
+def download_file(url, dest):
+    response = requests.get(url)
+    response.raise_for_status()
+    with open(dest, "wb") as f:
+        f.write(response.content)
