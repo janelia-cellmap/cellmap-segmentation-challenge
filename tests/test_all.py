@@ -26,8 +26,8 @@ ERROR_TOLERANCE = 1e-4
 # %%
 @pytest.fixture(scope="session")
 def setup_temp_path(tmp_path_factory):
-    temp_dir = tmp_path_factory.mktemp("shared_test_dir")
-    # temp_dir = (REPO_ROOT / "tests" / "tmp").absolute()
+    # temp_dir = tmp_path_factory.mktemp("shared_test_dir")
+    temp_dir = (REPO_ROOT / "tests" / "tmp").absolute()  # For debugging
     os.environ["TEST_TMP_DIR"] = str(temp_dir)
     yield temp_dir
     # Cleanup: Unset the environment variable after tests are done
@@ -41,7 +41,7 @@ def test_fetch_test_crops(setup_temp_path):
     os.makedirs(setup_temp_path / "data", exist_ok=True)
     fetch_data_cli.callback(
         crops="test",
-        raw_padding=0,
+        raw_padding=2,
         dest=setup_temp_path / "data",
         access_mode="append",
         fetch_all_em_resolutions=False,
@@ -73,7 +73,6 @@ def test_train(setup_temp_path):
     shutil.copy(
         REPO_ROOT / "tests" / "train_config.py", setup_temp_path / "train_config.py"
     )
-    # os.chdir(setup_temp_path)
 
     from cellmap_segmentation_challenge.cli import train_cli
     from cellmap_segmentation_challenge.utils import make_datasplit_csv
@@ -173,11 +172,11 @@ def test_pack_results(setup_temp_path):
     "scale, iou, accuracy",
     [
         (None, None, None),
-        (2, None, None),
-        (0.5, None, None),
-        (None, 0.8, 0.8),
-        (2, 0.8, 0.8),
-        (0.5, 0.8, 0.8),
+        (2, None, None),  # 2x resolution
+        (0.5, None, None),  # 0.5x resolution
+        (None, 0.8, 0.8),  # 0.8 iou, 0.8 accuracy
+        (2, 0.8, 0.8),  # 2x resolution, 0.8 iou, 0.8 accuracy
+        (0.5, 0.8, 0.8),  # 0.5x resolution, 0.8 iou, 0.8 accuracy
     ],
 )
 @pytest.mark.dependency(depends=["test_pack_results"])
@@ -190,6 +189,9 @@ def test_evaluate(setup_temp_path, scale, iou, accuracy):
 
     if any([scale, iou, accuracy]):
         SUBMISSION_PATH = setup_temp_path / "data" / "submission.zarr"
+        if SUBMISSION_PATH.exists():
+            # Remove the submission zarr if it already exists
+            shutil.rmtree(SUBMISSION_PATH)
         submission_zarr = zarr.open(SUBMISSION_PATH, mode="w")
         truth_zarr = zarr.open(TRUTH_PATH, mode="r")
         for crop in truth_zarr.keys():
@@ -201,15 +203,16 @@ def test_evaluate(setup_temp_path, scale, iou, accuracy):
                 label_zarr = crop_zarr[label]
                 attrs = label_zarr.attrs.asdict()
                 truth = label_zarr[:]
+                pred = truth.copy()
 
                 if iou is not None and label not in INSTANCE_CLASSES:
-                    pred = simulate_predictions_iou(truth, iou)
-                elif accuracy is not None and label in INSTANCE_CLASSES:
-                    pred = simulate_predictions_accuracy(truth, accuracy)
+                    pred = simulate_predictions_iou(pred, iou)
+                if accuracy is not None and label in INSTANCE_CLASSES:
+                    pred = simulate_predictions_accuracy(pred, accuracy)
 
                 if scale:
                     pred = rescale(pred, scale, order=0, preserve_range=True)
-                    attrs["voxel_size"] = [s * scale for s in attrs["voxel_size"]]
+                    attrs["voxel_size"] = [s / scale for s in attrs["voxel_size"]]
 
                 labels.append(label)
                 preds.append(pred)
@@ -237,20 +240,20 @@ def test_evaluate(setup_temp_path, scale, iou, accuracy):
     with open(setup_temp_path / "result_submitted_only.json") as f:
         results = json.load(f)
 
-    if iou is not None and accuracy is not None:
+    if iou is None and accuracy is None:
         assert (
             1 - results["overall_score"] < ERROR_TOLERANCE
         ), f"Overall score should be 1 but is: {results['overall_score']}"
     else:
         assert (
-            np.abs(iou - results["overall_semantic_score"]) < ERROR_TOLERANCE
-        ), f"Semantic score should be {iou} but is: {results['overall_semantic_score']}"
+            np.abs((iou or 1) - results["overall_semantic_score"]) < ERROR_TOLERANCE
+        ), f"Semantic score should be {(iou or 1)} but is: {results['overall_semantic_score']}"
         # Check all accuracy scores
         for label, scores in results["label_scores"].items():
             if label in INSTANCE_CLASSES:
                 assert (
-                    np.abs(accuracy - scores["accuracy"]) < ERROR_TOLERANCE
-                ), f"Accuracy score for {label} should be {accuracy} but is: {scores['accuracy']}"
+                    np.abs((accuracy or 1) - scores["accuracy"]) < ERROR_TOLERANCE
+                ), f"Accuracy score for {label} should be {(accuracy or 1)} but is: {scores['accuracy']}"
 
 
 # %%

@@ -384,9 +384,10 @@ def score_semantic(pred_label, truth_label) -> dict[str, float]:
     pred_label = (pred_label > 0.0).flatten()
     truth_label = (truth_label > 0.0).flatten()
     # Compute the scores
+    dice_score = 1 - dice(truth_label, pred_label)
     scores = {
         "iou": jaccard_score(truth_label, pred_label, zero_division=1),
-        "dice_score": 1 - dice(truth_label, pred_label),
+        "dice_score": dice_score if not np.isnan(dice_score) else 1,
     }
 
     print(f"IoU: {scores['iou']:.4f}")
@@ -794,7 +795,7 @@ def score_submission(
         with open(result_file, "w") as f:
             json.dump(all_scores, f)
 
-        found_result_file = result_file.replace(
+        found_result_file = str(result_file).replace(
             UPath(result_file).suffix, "_submitted_only" + UPath(result_file).suffix
         )
         print(f"Saving scores for only submitted data to {found_result_file}...")
@@ -955,7 +956,6 @@ def match_crop_space(path, class_label, voxel_size, shape, translation) -> np.nd
                 np.divide(input_voxel_size, voxel_size),
                 order=1,
                 mode="constant",
-                anti_aliasing=True,
             )
             image = image > 0.5
 
