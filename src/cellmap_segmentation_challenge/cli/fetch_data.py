@@ -131,9 +131,20 @@ def fetch_data_cli(
             crops, raw_padding, fetch_all_em_resolutions, zips_from_manifest
         )
         if zip_url is None:
-            log.info(f"No zip file found for the requested crops., Please rerun the command without the --zip flag.")
+            p_str = (
+                "no raw padding" if raw_padding == 0 else f"raw padding {raw_padding}"
+            )
+            res_str = (
+                "all resolutions"
+                if fetch_all_em_resolutions
+                else "only the highest resolution"
+            )
+            log.info(
+                f"No zip file found for the requested crops.{str(crops)} with {p_str} and {res_str}."
+            )
+            log.info("Please rerun the command without the --zip flag.")
             return
-            
+
         log.info(f"Found a zip file for the requested crops at {zip_url}.")
         zip_path = dest_path_abs / Path(zip_url.name)
         log.info(f"Downloading zip file to {zip_path}")
@@ -146,7 +157,6 @@ def fetch_data_cli(
     crops_parsed: tuple[CropRow, ...]
 
     crops_from_manifest = fetch_manifest()
-
 
     if crops == "all" or crops == "test":
         test_crops = get_test_crops()

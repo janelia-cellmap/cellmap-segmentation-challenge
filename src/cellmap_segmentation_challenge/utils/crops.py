@@ -91,7 +91,7 @@ class ZipDatasetRow:
 
 def fetch_zip_manifest(url: str | URL = ZIP_MANIFEST_URL) -> tuple[ZipDatasetRow, ...]:
     """
-    Fetch a manifest file from a URL and return a tuple of CropRow objects.
+    Fetch a manifest file from a URL and return a tuple of ZipDatasetRow objects.
 
     Parameters
     ----------
@@ -100,8 +100,8 @@ def fetch_zip_manifest(url: str | URL = ZIP_MANIFEST_URL) -> tuple[ZipDatasetRow
 
     Returns
     -------
-    tuple[CropRow, ...]
-        A tuple of CropRow objects.
+    tuple[ZipDatasetRow, ...]
+        A tuple of ZipDatasetRow objects.
     """
     fs, path = fsspec.url_to_fs(str(url))
     head, *rows = fs.cat_file(path).decode().splitlines()
