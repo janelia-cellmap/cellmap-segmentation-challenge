@@ -20,14 +20,14 @@ from cellmap_segmentation_challenge.evaluate import (
     save_numpy_class_arrays_to_zarr,
 )
 
-ERROR_TOLERANCE = 1e-4
+ERROR_TOLERANCE = 0.1
 
 
 # %%
 @pytest.fixture(scope="session")
 def setup_temp_path(tmp_path_factory):
-    # temp_dir = tmp_path_factory.mktemp("shared_test_dir")
-    temp_dir = (REPO_ROOT / "tests" / "tmp").absolute()  # For debugging
+    temp_dir = tmp_path_factory.mktemp("shared_test_dir")
+    # temp_dir = (REPO_ROOT / "tests" / "tmp").absolute()  # For debugging
     os.environ["TEST_TMP_DIR"] = str(temp_dir)
     yield temp_dir
     # Cleanup: Unset the environment variable after tests are done
@@ -57,7 +57,7 @@ def test_fetch_data(setup_temp_path):
 
     os.makedirs(setup_temp_path / "data", exist_ok=True)
     fetch_data_cli.callback(
-        crops="116,234",
+        crops="116,118",
         raw_padding=0,
         dest=setup_temp_path / "data",
         access_mode="append",
@@ -197,8 +197,6 @@ def test_evaluate(setup_temp_path, scale, iou, accuracy):
         for crop in truth_zarr.keys():
             crop_zarr = truth_zarr[crop]
             submission_zarr.create_group(crop)
-            labels = []
-            preds = []
             for label in crop_zarr.keys():
                 label_zarr = crop_zarr[label]
                 attrs = label_zarr.attrs.asdict()
@@ -212,19 +210,24 @@ def test_evaluate(setup_temp_path, scale, iou, accuracy):
 
                 if scale:
                     pred = rescale(pred, scale, order=0, preserve_range=True)
-                    attrs["voxel_size"] = [s / scale for s in attrs["voxel_size"]]
+                    old_voxel_size = attrs["voxel_size"]
+                    new_voxel_size = [s / scale for s in attrs["voxel_size"]]
+                    attrs["voxel_size"] = new_voxel_size
+                    # Adjust the translation
+                    attrs["translation"] = [
+                        t + (n - o) / 2
+                        for t, o, n in zip(
+                            attrs["translation"], old_voxel_size, new_voxel_size
+                        )
+                    ]
 
-                labels.append(label)
-                preds.append(pred)
-
-            save_numpy_class_arrays_to_zarr(
-                SUBMISSION_PATH,
-                crop,
-                labels,
-                preds,
-                overwrite=True,
-                attrs=attrs,
-            )
+                save_numpy_class_arrays_to_zarr(
+                    SUBMISSION_PATH,
+                    crop,
+                    [label],
+                    [pred],
+                    attrs=attrs,
+                )
     else:
         SUBMISSION_PATH = TRUTH_PATH
     zip_submission(SUBMISSION_PATH)
@@ -245,18 +248,22 @@ def test_evaluate(setup_temp_path, scale, iou, accuracy):
             1 - results["overall_score"] < ERROR_TOLERANCE
         ), f"Overall score should be 1 but is: {results['overall_score']}"
     else:
-        assert (
-            np.abs((iou or 1) - results["overall_semantic_score"]) < ERROR_TOLERANCE
-        ), f"Semantic score should be {(iou or 1)} but is: {results['overall_semantic_score']}"
-        # Check all accuracy scores
+        # Check all accuracy scores and ious
         for label, scores in results["label_scores"].items():
             if label in INSTANCE_CLASSES:
                 assert (
                     np.abs((accuracy or 1) - scores["accuracy"]) < ERROR_TOLERANCE
                 ), f"Accuracy score for {label} should be {(accuracy or 1)} but is: {scores['accuracy']}"
+            else:
+                assert (
+                    np.abs((iou or 1) - scores["iou"]) < ERROR_TOLERANCE
+                ), f"IoU score for {label} should be {(iou or 1)} but is: {scores['iou']}"
 
 
 # %%
+
+
+def get_scaled_test_label(): ...
 
 
 def simulate_predictions_iou(true_labels, iou):

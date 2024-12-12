@@ -1,3 +1,0 @@
-crop_name,dataset,class_label,voxel_size,translation,shape
-234,jrc_cos7-1a,er,[5.2;4.0;4.0],[3589.3;5161.0;10671.0],[200;200;200]
-234,jrc_cos7-1a,mito,[20.8;16.0;16.0],[3597.1;5167.0;10677.0],[50;50;50]
