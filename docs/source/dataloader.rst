@@ -55,7 +55,7 @@ Example Usage
 
 .. code-block:: python
 
-   from cellmap_segmentation_challenge.utils import get_dataloader 
+   from cellmap_segmentation_challenge.utils import get_dataloader  
 
    train_loader, val_loader = get_dataloader(
        datasplit_path=datasplit_path,

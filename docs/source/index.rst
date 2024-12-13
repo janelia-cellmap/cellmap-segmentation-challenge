@@ -11,17 +11,15 @@
 
    cellmap-schemas.rst
    dataloader.rst
+   load_model_weights.rst
 
-API
-==============
-.. autosummary::
-   :recursive:
-   :toctree:
-
+.. toctree::
+   :maxdepth: 1
+   :caption: API:
    
-   cellmap_segmentation_challenge
-   cellmap_segmentation_challenge.train
-   cellmap_segmentation_challenge.predict
+   cellmap_segmentation_challenge.train.rst
+   cellmap_segmentation_challenge.predict.rst
+   cellmap_segmentation_challenge.rst
    
 
 
