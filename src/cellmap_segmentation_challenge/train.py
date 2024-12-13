@@ -162,9 +162,6 @@ def train(config_path: str):
                 f"Unknown model name: {model_name}. Preconfigured models are '2d_unet', '2d_resnet', '3d_unet', '3d_resnet', and 'vitnet'. Otherwise provide a custom model as a torch.nn.Module."
             )
 
-    # %% Move model to device
-    model = model.to(device)
-
     # Optionally, load a pre-trained model
     if load_model.lower() == "latest":
         # Check to see if there are any checkpoints and if so load the latest one
@@ -178,6 +175,9 @@ def train(config_path: str):
             model_save_path.format(epoch="{epoch}", model_name=model_to_load),
             model,
         )
+
+    # %% Move model to device
+    model = model.to(device)
 
     # %% Define the optimizer
     optimizer = torch.optim.RAdam(model.parameters(), lr=learning_rate)
