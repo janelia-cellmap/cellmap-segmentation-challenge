@@ -15,6 +15,7 @@ from tqdm import tqdm
 from upath import UPath
 
 from cellmap_data import CellMapImage
+import zarr.errors
 
 from .config import PROCESSED_PATH, SUBMISSION_PATH, BASE_DATA_PATH
 from .utils import TEST_CROPS, TEST_CROPS_DICT
@@ -105,7 +106,7 @@ def save_numpy_class_labels_to_zarr(
 
 
 def save_numpy_class_arrays_to_zarr(
-    save_path, test_volume_name, label_names, labels, overwrite=False, attrs=None
+    save_path, test_volume_name, label_names, labels, mode="append", attrs=None
 ):
     """
     Save a list of 3D numpy arrays of binary or instance labels to a
@@ -116,7 +117,7 @@ def save_numpy_class_arrays_to_zarr(
         test_volume_name (str): The name of the test volume.
         label_names (list): A list of label names corresponding to the list of 3D numpy arrays.
         labels (list): A list of 3D numpy arrays of binary labels.
-        overwrite (bool): Whether to overwrite the Zarr-2 file if it already exists.
+        mode (str): The mode to use when saving the Zarr-2 file. Options are 'append' or 'overwrite'.
         attrs (dict): A dictionary of attributes to save with the Zarr-2 file.
 
     Example usage:
@@ -134,7 +135,10 @@ def save_numpy_class_arrays_to_zarr(
     zarr_group = zarr.group(store)
 
     # Save the test volume group
-    zarr_group.create_group(test_volume_name, overwrite=overwrite)
+    try:
+        zarr_group.create_group(test_volume_name, overwrite=(mode == "overwrite"))
+    except zarr.errors.ContainsGroupError:
+        print(f"Appending to existing group {test_volume_name}")
 
     # Save the labels
     for i, label_name in enumerate(label_names):
@@ -349,9 +353,9 @@ def score_instance(
     # Compute the scores
     accuracy = accuracy_score(truth_label.flatten(), matched_pred_label.flatten())
     hausdorff_dist = np.mean(hausdorff_distances) if hausdorff_distances else 0
-    normalized_hausdorff_dist = 32 ** (
-        -hausdorff_dist
-    )  # normalize Hausdorff distance to [0, 1]. 32 is abritrary chosen to have a reasonable range
+    normalized_hausdorff_dist = 1.01 ** (
+        -hausdorff_dist / np.linalg.norm(voxel_size)
+    )  # normalize Hausdorff distance to [0, 1] using the maximum distance represented by a voxel. 32 is abritrary chosen to have a reasonable range
     combined_score = (accuracy * normalized_hausdorff_dist) ** 0.5
     print(f"Accuracy: {accuracy:.4f}")
     print(f"Hausdorff Distance: {hausdorff_dist:.4f}")
@@ -384,9 +388,10 @@ def score_semantic(pred_label, truth_label) -> dict[str, float]:
     pred_label = (pred_label > 0.0).flatten()
     truth_label = (truth_label > 0.0).flatten()
     # Compute the scores
+    dice_score = 1 - dice(truth_label, pred_label)
     scores = {
         "iou": jaccard_score(truth_label, pred_label, zero_division=1),
-        "dice_score": 1 - dice(truth_label, pred_label),
+        "dice_score": dice_score if not np.isnan(dice_score) else 1,
     }
 
     print(f"IoU: {scores['iou']:.4f}")
@@ -794,7 +799,7 @@ def score_submission(
         with open(result_file, "w") as f:
             json.dump(all_scores, f)
 
-        found_result_file = result_file.replace(
+        found_result_file = str(result_file).replace(
             UPath(result_file).suffix, "_submitted_only" + UPath(result_file).suffix
         )
         print(f"Saving scores for only submitted data to {found_result_file}...")
@@ -955,7 +960,7 @@ def match_crop_space(path, class_label, voxel_size, shape, translation) -> np.nd
                 np.divide(input_voxel_size, voxel_size),
                 order=1,
                 mode="constant",
-                anti_aliasing=True,
+                preserve_range=True,
             )
             image = image > 0.5
 

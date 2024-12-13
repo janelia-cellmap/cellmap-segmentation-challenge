@@ -47,16 +47,16 @@ dependencies = [
   "scikit-learn",
   "scikit-image",
   "boto3",
+  "pyreadline3; sys_platform == 'win32'",
   ]
 
 [project.optional-dependencies]
-test = ["pytest>=6.0", "pytest-cov", "mypy", "black", "pytest-dependency"]
+test = ["pytest>=6.0", "pytest-cov", "mypy", "black", "pytest-dependency", "pytest-xdist"]
 docs = [
     "sphinx",
     "sphinx-book-theme",
     "sphinx_mdinclude",
 ]
-
 dev = [
     "ipython",
     "jupyter",
@@ -72,6 +72,7 @@ dev = [
     "matplotlib",
     "isort",
 ]
+all = ["cellmap-segmentation-challenge[dev,docs,test]"]
 
 [project.urls]
 Documentation = "https://github.com/janelia-cellmap/cellmap-segmentation-challenge#readme"
