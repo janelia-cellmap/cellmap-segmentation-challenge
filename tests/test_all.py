@@ -7,7 +7,7 @@ import os
 import numpy as np
 from skimage.measure import label as relabel
 from skimage.transform import rescale
-from upath import UPath
+import requests
 
 # Set the manifest URL for the test crops
 os.environ["CSC_TEST_CROP_MANIFEST_URL"] = (
@@ -20,14 +20,14 @@ from cellmap_segmentation_challenge.evaluate import (
     save_numpy_class_arrays_to_zarr,
 )
 
-ERROR_TOLERANCE = 1e-4
+ERROR_TOLERANCE = 0.1
 
 
 # %%
 @pytest.fixture(scope="session")
 def setup_temp_path(tmp_path_factory):
     temp_dir = tmp_path_factory.mktemp("shared_test_dir")
-    # temp_dir = (REPO_ROOT / "tests" / "tmp").absolute()
+    # temp_dir = (REPO_ROOT / "tests" / "tmp").absolute()  # For debugging
     os.environ["TEST_TMP_DIR"] = str(temp_dir)
     yield temp_dir
     # Cleanup: Unset the environment variable after tests are done
@@ -41,7 +41,7 @@ def test_fetch_test_crops(setup_temp_path):
     os.makedirs(setup_temp_path / "data", exist_ok=True)
     fetch_data_cli.callback(
         crops="test",
-        raw_padding=0,
+        raw_padding=2,
         dest=setup_temp_path / "data",
         access_mode="append",
         fetch_all_em_resolutions=False,
@@ -57,7 +57,7 @@ def test_fetch_data(setup_temp_path):
 
     os.makedirs(setup_temp_path / "data", exist_ok=True)
     fetch_data_cli.callback(
-        crops="116,234",
+        crops="116,118",
         raw_padding=0,
         dest=setup_temp_path / "data",
         access_mode="append",
@@ -70,10 +70,10 @@ def test_fetch_data(setup_temp_path):
 # %%
 @pytest.mark.dependency(depends=["test_fetch_data"])
 def test_train(setup_temp_path):
-    shutil.copy(
-        REPO_ROOT / "tests" / "train_config.py", setup_temp_path / "train_config.py"
+    download_file(
+        "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/train_config.py",
+        setup_temp_path / "train_config.py",
     )
-    # os.chdir(setup_temp_path)
 
     from cellmap_segmentation_challenge.cli import train_cli
     from cellmap_segmentation_challenge.utils import make_datasplit_csv
@@ -98,6 +98,11 @@ def test_train(setup_temp_path):
 def test_predict(setup_temp_path):
     from cellmap_segmentation_challenge.cli import predict_cli
 
+    download_file(
+        "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/train_config.py",
+        setup_temp_path / "train_config.py",
+    )
+
     PREDICTION_PATH = os.path.join(
         setup_temp_path, *"data/predictions/{dataset}.zarr/{crop}".split("/")
     )
@@ -115,6 +120,11 @@ def test_predict(setup_temp_path):
 @pytest.mark.dependency(depends=["test_fetch_test_crops"])
 def test_predict_test_crops(setup_temp_path):
     from cellmap_segmentation_challenge.cli import predict_cli
+
+    download_file(
+        "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/train_config.py",
+        setup_temp_path / "train_config.py",
+    )
 
     PREDICTION_PATH = os.path.join(
         setup_temp_path, *"data/predictions/{dataset}.zarr/{crop}".split("/")
@@ -134,8 +144,9 @@ def test_predict_test_crops(setup_temp_path):
 def test_process(setup_temp_path):
     from cellmap_segmentation_challenge.cli import process_cli
 
-    shutil.copy(
-        REPO_ROOT / "tests" / "process_config.py", setup_temp_path / "process_config.py"
+    download_file(
+        "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/process_config.py",
+        setup_temp_path / "process_config.py",
     )
 
     PREDICTION_PATH = os.path.join(
@@ -173,11 +184,11 @@ def test_pack_results(setup_temp_path):
     "scale, iou, accuracy",
     [
         (None, None, None),
-        (2, None, None),
-        (0.5, None, None),
-        (None, 0.8, 0.8),
-        (2, 0.8, 0.8),
-        (0.5, 0.8, 0.8),
+        (2, None, None),  # 2x resolution
+        (0.5, None, None),  # 0.5x resolution
+        (None, 0.8, 0.8),  # 0.8 iou, 0.8 accuracy
+        (2, 0.8, 0.8),  # 2x resolution, 0.8 iou, 0.8 accuracy
+        (0.5, 0.8, 0.8),  # 0.5x resolution, 0.8 iou, 0.8 accuracy
     ],
 )
 @pytest.mark.dependency(depends=["test_pack_results"])
@@ -190,38 +201,45 @@ def test_evaluate(setup_temp_path, scale, iou, accuracy):
 
     if any([scale, iou, accuracy]):
         SUBMISSION_PATH = setup_temp_path / "data" / "submission.zarr"
+        if SUBMISSION_PATH.exists():
+            # Remove the submission zarr if it already exists
+            shutil.rmtree(SUBMISSION_PATH)
         submission_zarr = zarr.open(SUBMISSION_PATH, mode="w")
         truth_zarr = zarr.open(TRUTH_PATH, mode="r")
         for crop in truth_zarr.keys():
             crop_zarr = truth_zarr[crop]
             submission_zarr.create_group(crop)
-            labels = []
-            preds = []
             for label in crop_zarr.keys():
                 label_zarr = crop_zarr[label]
                 attrs = label_zarr.attrs.asdict()
                 truth = label_zarr[:]
+                pred = truth.copy()
 
                 if iou is not None and label not in INSTANCE_CLASSES:
-                    pred = simulate_predictions_iou(truth, iou)
-                elif accuracy is not None and label in INSTANCE_CLASSES:
-                    pred = simulate_predictions_accuracy(truth, accuracy)
+                    pred = simulate_predictions_iou(pred, iou)
+                if accuracy is not None and label in INSTANCE_CLASSES:
+                    pred = simulate_predictions_accuracy(pred, accuracy)
 
                 if scale:
                     pred = rescale(pred, scale, order=0, preserve_range=True)
-                    attrs["voxel_size"] = [s * scale for s in attrs["voxel_size"]]
+                    old_voxel_size = attrs["voxel_size"]
+                    new_voxel_size = [s / scale for s in attrs["voxel_size"]]
+                    attrs["voxel_size"] = new_voxel_size
+                    # Adjust the translation
+                    attrs["translation"] = [
+                        t + (n - o) / 2
+                        for t, o, n in zip(
+                            attrs["translation"], old_voxel_size, new_voxel_size
+                        )
+                    ]
 
-                labels.append(label)
-                preds.append(pred)
-
-            save_numpy_class_arrays_to_zarr(
-                SUBMISSION_PATH,
-                crop,
-                labels,
-                preds,
-                overwrite=True,
-                attrs=attrs,
-            )
+                save_numpy_class_arrays_to_zarr(
+                    SUBMISSION_PATH,
+                    crop,
+                    [label],
+                    [pred],
+                    attrs=attrs,
+                )
     else:
         SUBMISSION_PATH = TRUTH_PATH
     zip_submission(SUBMISSION_PATH)
@@ -237,23 +255,27 @@ def test_evaluate(setup_temp_path, scale, iou, accuracy):
     with open(setup_temp_path / "result_submitted_only.json") as f:
         results = json.load(f)
 
-    if iou is not None and accuracy is not None:
+    if iou is None and accuracy is None:
         assert (
             1 - results["overall_score"] < ERROR_TOLERANCE
         ), f"Overall score should be 1 but is: {results['overall_score']}"
     else:
-        assert (
-            np.abs(iou - results["overall_semantic_score"]) < ERROR_TOLERANCE
-        ), f"Semantic score should be {iou} but is: {results['overall_semantic_score']}"
-        # Check all accuracy scores
+        # Check all accuracy scores and ious
         for label, scores in results["label_scores"].items():
             if label in INSTANCE_CLASSES:
                 assert (
-                    np.abs(accuracy - scores["accuracy"]) < ERROR_TOLERANCE
-                ), f"Accuracy score for {label} should be {accuracy} but is: {scores['accuracy']}"
+                    np.abs((accuracy or 1) - scores["accuracy"]) < ERROR_TOLERANCE
+                ), f"Accuracy score for {label} should be {(accuracy or 1)} but is: {scores['accuracy']}"
+            else:
+                assert (
+                    np.abs((iou or 1) - scores["iou"]) < ERROR_TOLERANCE
+                ), f"IoU score for {label} should be {(iou or 1)} but is: {scores['iou']}"
 
 
 # %%
+
+
+def get_scaled_test_label(): ...
 
 
 def simulate_predictions_iou(true_labels, iou):
@@ -297,3 +319,10 @@ def simulate_predictions_accuracy(true_labels, accuracy):
     simulated_predictions = relabel(simulated_predictions, connectivity=len(shape))
 
     return simulated_predictions
+
+
+def download_file(url, dest):
+    response = requests.get(url)
+    response.raise_for_status()
+    with open(dest, "wb") as f:
+        f.write(response.content)

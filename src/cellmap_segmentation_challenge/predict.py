@@ -163,7 +163,9 @@ def predict(
     )
 
     # %% Check that the GPU is available
-    if torch.cuda.is_available():
+    if getattr(config, "device", None) is not None:
+        device = config.device
+    elif torch.cuda.is_available():
         device = "cuda"
     elif torch.backends.mps.is_available():
         device = "mps"

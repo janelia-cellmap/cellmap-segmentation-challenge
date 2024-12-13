@@ -18,7 +18,7 @@ def get_dataloader(
     # TODO: Add value transforms
     iterations_per_epoch: int = 1000,
     random_validation: bool = False,
-    device: str | torch.device = "cuda",
+    device: Optional[str | torch.device] = None,
 ) -> tuple[CellMapDataLoader, CellMapDataLoader]:
     """
     Get the train and validation dataloaders.
@@ -69,8 +69,8 @@ def get_dataloader(
         Number of iterations per epoch.
     random_validation : bool
         Whether or not to randomize the validation data draws. Useful if not evaluating on the entire validation set everytime. Defaults to False.
-    device : str or torch.device
-        Device to use for the dataloaders.
+    device : Optional[str or torch.device]
+        Device to use for training. If None, defaults to "cuda" if available, or "mps" if available, or "cpu".
 
     Returns
     -------
@@ -96,6 +96,14 @@ def get_dataloader(
         ],
     )
 
+    if device is None:
+        if torch.cuda.is_available():
+            device = "cuda"
+        elif torch.mps.is_available():
+            device = "mps"
+        else:
+            device = "cpu"
+
     datasplit = CellMapDataSplit(
         input_arrays=input_arrays,
         target_arrays=target_arrays,
@@ -106,6 +114,7 @@ def get_dataloader(
         val_raw_value_transforms=value_transforms,
         target_value_transforms=T.ToDtype(torch.float),
         spatial_transforms=spatial_transforms,
+        device=device,
     )
 
     validation_loader = CellMapDataLoader(
@@ -113,6 +122,7 @@ def get_dataloader(
         classes=classes,
         batch_size=batch_size,
         is_train=random_validation,
+        device=device,
     )
 
     train_loader = CellMapDataLoader(
@@ -122,6 +132,7 @@ def get_dataloader(
         sampler=lambda: datasplit.train_datasets_combined.get_subset_random_sampler(
             iterations_per_epoch * batch_size, weighted=False
         ),
+        device=device,
     )
 
     return train_loader, validation_loader  # type: ignore

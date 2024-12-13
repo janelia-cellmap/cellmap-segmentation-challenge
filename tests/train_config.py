@@ -18,6 +18,7 @@
 
 # %% Imports
 from upath import UPath
+import torch
 
 from cellmap_segmentation_challenge.models import ResNet, UNet_2D
 
@@ -71,6 +72,7 @@ spatial_transforms = {  # dictionary of spatial transformations to apply to the 
 
 # Set a limit to how long the validation can take
 validation_count_limit = 1  # limit number of batches for the validation step
+device = "cuda" if torch.cuda.is_available() else "cpu"  # device to use for training
 
 if __name__ == "__main__":
     from cellmap_segmentation_challenge import train

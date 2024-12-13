@@ -30,3 +30,6 @@ The test data will be stored alongside the training data with `test` as the only
 ```bash
 csc fetch-data --crops test
 ```
+
+## Data Format
+To learn more about the data format, please refer to the [data format documentation](https://open.quiltdata.com/b/janelia-cosem-datasets/tree/) in our AWS S3 bucket [janelia-cosem-datasets](https://open.quiltdata.com/b/janelia-cosem-datasets/tree/).
