@@ -10,6 +10,7 @@
    :caption: Contents:
 
    cellmap-schemas.rst
+   dataloader.rst
 
 API
 ==============
