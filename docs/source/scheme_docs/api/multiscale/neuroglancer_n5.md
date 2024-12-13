@@ -1,1 +1,0 @@
-::: cellmap_schemas.multiscale.neuroglancer_n5

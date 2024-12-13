@@ -88,7 +88,7 @@ print(group_model.model_dump(exclude='attributes'))
 The above example did not write out any of the arrays to disk. To do this, you can use the `to_zarr`
 method of `Group` to create a hierarchy in storage, then write the arrays.
 
-```{.py test="skip"}
+```python
 from zarr import N5FSStore
 store = N5FSStore('path/to/n5/data.n5')
 group = group_model.to_zarr(store=store, path='image')

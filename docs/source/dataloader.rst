@@ -1,8 +1,8 @@
 .. _pytorch_dataloader_guide:
 
-===========================
+======================================================
 Creating a CellMap Data PyTorch Dataloader
-===========================
+======================================================
 
 This guide explains how to create and use PyTorch Cellmap data dataloaders with the provided ``get_dataloader`` function, and demonstrates how to integrate them into a training loop. The function leverages the ``CellMapDataLoader`` and ``CellMapDataSplit`` classes from the `cellmap_data` package.
 
