@@ -51,7 +51,7 @@ Each crop can be visualized separately in this table by clicking on the "Neurogl
    <script>
    $(document).ready(function() {
        // Fetch the CSV file
-       $.get("_static/SegmentationChallengeWithNeuroglancerURLs_20241211.csv", function(csvData) {
+       $.get("_static/SegmentationChallengeWithNeuroglancerURLs_20241211_all_s3.csv", function(csvData) {
             // Split into lines
            var lines = csvData.trim().split("\n");
            
@@ -67,9 +67,7 @@ Each crop can be visualized separately in this table by clicking on the "Neurogl
                data: data,
                columns: [
                    { title: headers[0] },
-                   { title: headers[1] },
-                   { 
-                     title: headers[2],
+                   { title: headers[1] ,
                      render: function(data, type, row, meta) {
                          // 'data' is the cell content for the URL column
                          return '<a href="' + data + '" target="_blank" rel="noopener noreferrer">Neuroglancer Link</a>';
@@ -79,7 +77,7 @@ Each crop can be visualized separately in this table by clicking on the "Neurogl
            });
        });
 
-       $.get("_static/SegmentationChallengeWithNeuroglancerURLs_20241211.csv", function(csvData) {
+       $.get("_static/SegmentationChallengeWithNeuroglancerURLs_20241211_s3.csv", function(csvData) {
             // Split into lines
            var lines = csvData.trim().split("\n");
            
