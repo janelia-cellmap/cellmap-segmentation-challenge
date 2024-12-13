@@ -127,6 +127,9 @@ def predict(
     output_path: str = PREDICTIONS_PATH,
     do_orthoplanes: bool = True,
     overwrite: bool = False,
+    search_path: str = SEARCH_PATH,
+    raw_name: str = RAW_NAME,
+    crop_name: str = CROP_NAME,
 ):
     """
     Given a model configuration file and list of crop numbers, predicts the output of a model on a large dataset by splitting it into blocks and predicting each block separately.
@@ -143,6 +146,12 @@ def predict(
         Whether to compute the average of predictions from x, y, and z orthogonal planes for the full 3D volume. This is sometimes called 2.5D predictions. It expects a model that yields 2D outputs. Similarly, it expects the input shape to the model to be 2D. Default is True for 2D models.
     overwrite: bool, optional
         Whether to overwrite the output dataset if it already exists. Default is False.
+    search_path: str, optional
+        The path to search for the raw dataset, with placeholders for dataset and name. Default is SEARCH_PATH set in `cellmap-segmentation/config.py`.
+    raw_name: str, optional
+        The name of the raw dataset. Default is RAW_NAME set in `cellmap-segmentation/config.py`.
+    crop_name: str, optional
+        The name of the crop dataset with placeholders for crop and label. Default is CROP_NAME set in `cellmap-segmentation/config.py`.
     """
     config = load_safe_config(config_path)
     classes = config.classes
@@ -208,7 +217,7 @@ def predict(
         dataset_writers = []
         for crop in test_crops:
             # Get path to raw dataset
-            raw_path = SEARCH_PATH.format(dataset=crop.dataset, name=RAW_NAME)
+            raw_path = search_path.format(dataset=crop.dataset, name=raw_name)
 
             # Get the boundaries of the crop
             target_bounds = {
@@ -247,8 +256,8 @@ def predict(
 
             crop_paths.extend(
                 glob(
-                    SEARCH_PATH.format(
-                        dataset="*", name=CROP_NAME.format(crop=crop, label="")
+                    search_path.format(
+                        dataset="*", name=crop_name.format(crop=crop, label="")
                     ).rstrip(os.path.sep)
                 )
             )
@@ -276,7 +285,7 @@ def predict(
                 for array_name, image in gt_images.items()
             }
 
-            dataset = get_formatted_fields(raw_path, SEARCH_PATH, ["{dataset}"])[
+            dataset = get_formatted_fields(raw_path, search_path, ["{dataset}"])[
                 "dataset"
             ]
 

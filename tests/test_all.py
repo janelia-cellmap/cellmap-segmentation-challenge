@@ -14,7 +14,7 @@ os.environ["CSC_TEST_CROP_MANIFEST_URL"] = (
     "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/test_crop_manifest.csv"
 )
 
-from cellmap_segmentation_challenge import REPO_ROOT
+from cellmap_segmentation_challenge import REPO_ROOT, RAW_NAME, CROP_NAME
 from cellmap_segmentation_challenge.evaluate import (
     zip_submission,
     save_numpy_class_arrays_to_zarr,
@@ -28,10 +28,7 @@ ERROR_TOLERANCE = 0.1
 def setup_temp_path(tmp_path_factory):
     temp_dir = tmp_path_factory.mktemp("shared_test_dir")
     # temp_dir = (REPO_ROOT / "tests" / "tmp").absolute()  # For debugging
-    os.environ["TEST_TMP_DIR"] = str(temp_dir)
     yield temp_dir
-    # Cleanup: Unset the environment variable after tests are done
-    del os.environ["TEST_TMP_DIR"]
 
 
 @pytest.mark.dependency()
@@ -113,6 +110,11 @@ def test_predict(setup_temp_path):
         output_path=PREDICTION_PATH,
         do_orthoplanes=False,
         overwrite=True,
+        search_path=os.path.join(
+            setup_temp_path, *"data/{dataset}/{dataset}.zarr/recon-1/{name}".split("/")
+        ),
+        raw_name=RAW_NAME,
+        crop_name=CROP_NAME,
     )
 
 
@@ -136,6 +138,11 @@ def test_predict_test_crops(setup_temp_path):
         output_path=PREDICTION_PATH,
         do_orthoplanes=False,
         overwrite=True,
+        search_path=os.path.join(
+            setup_temp_path, *"data/{dataset}/{dataset}.zarr/recon-1/{name}".split("/")
+        ),
+        raw_name=RAW_NAME,
+        crop_name=CROP_NAME,
     )
 
 
@@ -275,9 +282,7 @@ def test_evaluate(setup_temp_path, scale, iou, accuracy):
 # %%
 
 
-def get_scaled_test_label(): ...
-
-
+# Helper functions for simulating predictions
 def simulate_predictions_iou(true_labels, iou):
     # TODO: Add false positives (only makes false negatives currently)
 

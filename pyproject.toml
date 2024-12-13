@@ -46,6 +46,7 @@ dependencies = [
   "neuroglancer",
   "scikit-learn",
   "scikit-image",
+  "pyreadline3; sys_platform == 'win32'",
   ]
 
 [project.optional-dependencies]

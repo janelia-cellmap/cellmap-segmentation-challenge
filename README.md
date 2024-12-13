@@ -17,10 +17,16 @@ The package is built on top of the [`cellmap-data`](https://github.com/janelia-c
 
 ## Set up your environment
 
-We recommend using micromamba to create a new environment with the required dependencies. You can install micromamba by following the instructions [here](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html#automatic-install). The fastest way to do this install is to run the following in your terminal:
+We recommend using micromamba to create a new environment with the required dependencies. You can install micromamba by following the instructions [here](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html#automatic-install). The fastest way to do this install, if you are using Linux, macOS, or Git Bash on Windows, is to run the following in your terminal:
 
 ```bash
 "${SHELL}" <(curl -L micro.mamba.pm/install.sh)
+```
+
+If you are using Windows Powershell (not recommended), you should be able to install micromamba by running the following command (NOTE: you will need to replace `micromamba` with `Invoke-Mamba` in the commands below):
+
+```powershell
+Invoke-Expression ((Invoke-WebRequest -Uri https://micro.mamba.pm/install.ps1).Content)
 ```
 
 Once you have micromamba installed, you can create a new environment with the required dependencies by running the following commands:

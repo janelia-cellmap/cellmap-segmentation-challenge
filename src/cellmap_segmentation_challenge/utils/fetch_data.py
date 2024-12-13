@@ -1,5 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Generator, Iterable, Sequence
+import os
 
 import numpy as np
 import structlog
@@ -43,11 +44,13 @@ def partition_copy_store(
 
 
 def _resolve_gt_dest_path(crop: CropRow) -> str:
-    return f"{crop.alignment}/labels/groundtruth/crop{crop.id}"
+    return os.path.join(
+        *f"{crop.alignment}/labels/groundtruth/crop{crop.id}".split("/")
+    )
 
 
 def _resolve_em_dest_path(crop: CropRow) -> str:
-    return "/".join(crop.em_url.parts[crop.em_url.parts.index(crop.alignment) :])
+    return os.path.join(*crop.em_url.parts[crop.em_url.parts.index(crop.alignment) :])
 
 
 def get_url(node: zarr.Group | zarr.Array) -> URL:

@@ -172,9 +172,10 @@ def fetch_data_cli(
                 f"No EM data was found at {em_source_url}. Saving EM data will be skipped."
             )
 
-        dest_root = URL.build(scheme="file", path=str(dest_path_abs)).joinpath(
-            f"{crop.dataset}/{crop.dataset}.zarr"
-        )
+        dest_root = URL.build(
+            scheme="file", path=f"/{Path(dest_path_abs).as_posix()}"
+        ).joinpath(f"{crop.dataset}/{crop.dataset}.zarr")
+
         gt_dest_path = _resolve_gt_dest_path(crop)
         em_dest_path = _resolve_em_dest_path(crop)
 
