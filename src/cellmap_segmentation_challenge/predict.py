@@ -108,7 +108,6 @@ def _predict(
     dataset_writer = CellMapDatasetWriter(
         **dataset_writer_kwargs, raw_value_transforms=value_transforms
     )
-    dataset_writer.to(model.device)
     dataloader = dataset_writer.loader(batch_size=batch_size)
     model.eval()
     with torch.no_grad():
@@ -300,6 +299,7 @@ def predict(
                     "target_arrays": target_arrays,
                     "target_bounds": target_bounds,
                     "overwrite": overwrite,
+                    "device": device,
                 }
             )
 
