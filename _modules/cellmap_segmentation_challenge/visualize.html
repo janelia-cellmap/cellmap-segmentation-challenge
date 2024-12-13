@@ -314,7 +314,7 @@
 
 
 <div class="viewcode-block" id="visualize">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.visualize.html#cellmap_segmentation_challenge.visualize">[docs]</a>
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.visualize.html#cellmap_segmentation_challenge.visualize.visualize">[docs]</a>
 <span class="k">def</span> <span class="nf">visualize</span><span class="p">(</span>
     <span class="n">datasets</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;*&quot;</span><span class="p">,</span>
     <span class="n">crops</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;*&quot;</span><span class="p">],</span>
@@ -401,6 +401,8 @@
 
 
 
+<div class="viewcode-block" id="add_layers">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.visualize.html#cellmap_segmentation_challenge.visualize.add_layers">[docs]</a>
 <span class="k">def</span> <span class="nf">add_layers</span><span class="p">(</span>
     <span class="n">viewer</span><span class="p">:</span> <span class="n">neuroglancer</span><span class="o">.</span><span class="n">Viewer</span><span class="p">,</span>
     <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -459,9 +461,12 @@
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">crop_paths</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
-    <span class="k">return</span> <span class="n">viewer</span>
+    <span class="k">return</span> <span class="n">viewer</span></div>
 
 
+
+<div class="viewcode-block" id="get_layer">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.visualize.html#cellmap_segmentation_challenge.visualize.get_layer">[docs]</a>
 <span class="k">def</span> <span class="nf">get_layer</span><span class="p">(</span>
     <span class="n">data_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">layer_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="n">multiscale</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">neuroglancer</span><span class="o">.</span><span class="n">Layer</span><span class="p">:</span>
@@ -568,7 +573,8 @@
     <span class="k">if</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;segmentation&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">neuroglancer</span><span class="o">.</span><span class="n">SegmentationLayer</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">volume</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">neuroglancer</span><span class="o">.</span><span class="n">ImageLayer</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">volume</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">neuroglancer</span><span class="o">.</span><span class="n">ImageLayer</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">volume</span><span class="p">)</span></div>
+
 </pre></div>
 
                 </article>
