@@ -10,8 +10,10 @@
    :caption: Contents:
 
    cellmap-schemas.rst
+   available_data.rst
    dataloader.rst
    load_model_weights.rst
+
 
 .. toctree::
    :maxdepth: 1
