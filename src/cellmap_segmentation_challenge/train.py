@@ -91,6 +91,7 @@ def train(config_path: str):
     )
     validation_time_limit = getattr(config, "validation_time_limit", None)
     validation_batch_limit = getattr(config, "validation_batch_limit", None)
+    device = getattr(config, "device", None)
 
     # %% Make sure the save path exists
     for path in [model_save_path, logs_save_path, datasplit_path]:
@@ -104,12 +105,13 @@ def train(config_path: str):
     random.seed(random_seed)
 
     # %% Check that the GPU is available
-    if torch.cuda.is_available():
-        device = "cuda"
-    elif torch.backends.mps.is_available():
-        device = "mps"
-    else:
-        device = "cpu"
+    if device is None:
+        if torch.cuda.is_available():
+            device = "cuda"
+        elif torch.backends.mps.is_available():
+            device = "mps"
+        else:
+            device = "cpu"
     print(f"Training device: {device}")
 
     # %% Make the datasplit file if it doesn't exist
