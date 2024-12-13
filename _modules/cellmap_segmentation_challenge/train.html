@@ -305,7 +305,7 @@
 
 
 <div class="viewcode-block" id="train">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.train.html#cellmap_segmentation_challenge.train">[docs]</a>
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.train.html#cellmap_segmentation_challenge.train.train">[docs]</a>
 <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="n">config_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Train a model using the configuration file at the specified path. The model checkpoints and training logs, as well as the datasets used for training, will be saved to the paths specified in the configuration file.</span>
@@ -450,9 +450,6 @@
                 <span class="sa">f</span><span class="s2">&quot;Unknown model name: </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">. Preconfigured models are &#39;2d_unet&#39;, &#39;2d_resnet&#39;, &#39;3d_unet&#39;, &#39;3d_resnet&#39;, and &#39;vitnet&#39;. Otherwise provide a custom model as a torch.nn.Module.&quot;</span>
             <span class="p">)</span>
 
-    <span class="c1"># %% Move model to device</span>
-    <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
-
     <span class="c1"># Optionally, load a pre-trained model</span>
     <span class="k">if</span> <span class="n">load_model</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;latest&quot;</span><span class="p">:</span>
         <span class="c1"># Check to see if there are any checkpoints and if so load the latest one</span>
@@ -466,6 +463,9 @@
             <span class="n">model_save_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">epoch</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{epoch}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="n">model_to_load</span><span class="p">),</span>
             <span class="n">model</span><span class="p">,</span>
         <span class="p">)</span>
+
+    <span class="c1"># %% Move model to device</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
 
     <span class="c1"># %% Define the optimizer</span>
     <span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">RAdam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="n">learning_rate</span><span class="p">)</span>

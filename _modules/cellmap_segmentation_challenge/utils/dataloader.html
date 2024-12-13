@@ -306,7 +306,7 @@
     <span class="c1"># TODO: Add value transforms</span>
     <span class="n">iterations_per_epoch</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
     <span class="n">random_validation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="n">device</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span><span class="p">,</span>
+    <span class="n">device</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">CellMapDataLoader</span><span class="p">,</span> <span class="n">CellMapDataLoader</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get the train and validation dataloaders.</span>
@@ -357,8 +357,8 @@
 <span class="sd">        Number of iterations per epoch.</span>
 <span class="sd">    random_validation : bool</span>
 <span class="sd">        Whether or not to randomize the validation data draws. Useful if not evaluating on the entire validation set everytime. Defaults to False.</span>
-<span class="sd">    device : str or torch.device</span>
-<span class="sd">        Device to use for the dataloaders.</span>
+<span class="sd">    device : Optional[str or torch.device]</span>
+<span class="sd">        Device to use for training. If None, defaults to &quot;cuda&quot; if available, or &quot;mps&quot; if available, or &quot;cpu&quot;.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -384,6 +384,14 @@
         <span class="p">],</span>
     <span class="p">)</span>
 
+    <span class="k">if</span> <span class="n">device</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+            <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span>
+        <span class="k">elif</span> <span class="n">torch</span><span class="o">.</span><span class="n">mps</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+            <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;mps&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cpu&quot;</span>
+
     <span class="n">datasplit</span> <span class="o">=</span> <span class="n">CellMapDataSplit</span><span class="p">(</span>
         <span class="n">input_arrays</span><span class="o">=</span><span class="n">input_arrays</span><span class="p">,</span>
         <span class="n">target_arrays</span><span class="o">=</span><span class="n">target_arrays</span><span class="p">,</span>
@@ -394,6 +402,7 @@
         <span class="n">val_raw_value_transforms</span><span class="o">=</span><span class="n">value_transforms</span><span class="p">,</span>
         <span class="n">target_value_transforms</span><span class="o">=</span><span class="n">T</span><span class="o">.</span><span class="n">ToDtype</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">),</span>
         <span class="n">spatial_transforms</span><span class="o">=</span><span class="n">spatial_transforms</span><span class="p">,</span>
+        <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">validation_loader</span> <span class="o">=</span> <span class="n">CellMapDataLoader</span><span class="p">(</span>
@@ -401,6 +410,7 @@
         <span class="n">classes</span><span class="o">=</span><span class="n">classes</span><span class="p">,</span>
         <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
         <span class="n">is_train</span><span class="o">=</span><span class="n">random_validation</span><span class="p">,</span>
+        <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">train_loader</span> <span class="o">=</span> <span class="n">CellMapDataLoader</span><span class="p">(</span>
@@ -410,6 +420,7 @@
         <span class="n">sampler</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">datasplit</span><span class="o">.</span><span class="n">train_datasets_combined</span><span class="o">.</span><span class="n">get_subset_random_sampler</span><span class="p">(</span>
             <span class="n">iterations_per_epoch</span> <span class="o">*</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">weighted</span><span class="o">=</span><span class="kc">False</span>
         <span class="p">),</span>
+        <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">train_loader</span><span class="p">,</span> <span class="n">validation_loader</span>  <span class="c1"># type: ignore</span></div>
