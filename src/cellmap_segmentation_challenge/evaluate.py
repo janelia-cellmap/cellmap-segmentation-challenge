@@ -2,24 +2,28 @@ import argparse
 import json
 import os
 import zipfile
-from glob import glob
 
 import numpy as np
 import zarr
 from scipy.optimize import linear_sum_assignment
 from scipy.spatial.distance import dice  # , jaccard
 from skimage.measure import label as relabel
-from skimage.metrics import hausdorff_distance
+from skimage.transform import rescale
+from scipy.spatial import cKDTree
 from sklearn.metrics import accuracy_score, jaccard_score
 from tqdm import tqdm
 from upath import UPath
 
 from cellmap_data import CellMapImage
+import zarr.errors
 
 from .config import PROCESSED_PATH, SUBMISSION_PATH, BASE_DATA_PATH
+from .utils import TEST_CROPS, TEST_CROPS_DICT
+
 
 INSTANCE_CLASSES = [
     "nuc",
+    "vim",
     "ves",
     "endo",
     "lyso",
@@ -32,32 +36,6 @@ INSTANCE_CLASSES = [
     "instance",
 ]
 
-CLASS_RESOLUTIONS = {
-    "nuc": 16,
-    "ves": 16,
-    "endo": 16,
-    "lyso": 16,
-    "ld": 16,
-    "perox": 16,
-    "mito": 16,
-    "np": 16,
-    "mt": 16,
-    "cell": 16,
-    "instance": 16,
-    "default": 4,
-    "eres": 2,
-    "ld": 2,
-}
-
-TEST_CROPS = [234]
-
-CROP_SHAPE = {
-    234: {
-        "nuc": (25, 25, 25),
-        "mito": (50, 50, 50),
-        "er": (200, 200, 200),
-    }
-}
 
 HAUSDORFF_DISTANCE_MAX = np.inf
 
@@ -83,7 +61,7 @@ def unzip_file(zip_path):
 
 
 def save_numpy_class_labels_to_zarr(
-    save_path, test_volume_name, label_name, labels, overwrite=False
+    save_path, test_volume_name, label_name, labels, overwrite=False, attrs=None
 ):
     """
     Save a single 3D numpy array of class labels to a
@@ -94,6 +72,8 @@ def save_numpy_class_labels_to_zarr(
         test_volume_name (str): The name of the test volume.
         label_names (str): The names of the labels.
         labels (np.ndarray): A 3D numpy array of class labels.
+        overwrite (bool): Whether to overwrite the Zarr-2 file if it already exists.
+        attrs (dict): A dictionary of attributes to save with the Zarr-2 file.
 
     Example usage:
         # Generate random class labels, with 0 as background
@@ -113,18 +93,20 @@ def save_numpy_class_labels_to_zarr(
     # Save the labels
     for i, label_name in enumerate(label_name):
         print(f"Saving {label_name}")
-        zarr_group[test_volume_name].create_dataset(
+        ds = zarr_group[test_volume_name].create_dataset(
             label_name,
             data=(labels == i + 1),
-            chunks=(64, 64, 64),
+            chunks=64,
             # compressor=zarr.Blosc(cname='zstd', clevel=3, shuffle=2),
         )
+        for k, v in (attrs or {}).items():
+            ds.attrs[k] = v
 
     print("Done saving")
 
 
 def save_numpy_class_arrays_to_zarr(
-    save_path, test_volume_name, label_names, labels, overwrite=False
+    save_path, test_volume_name, label_names, labels, mode="append", attrs=None
 ):
     """
     Save a list of 3D numpy arrays of binary or instance labels to a
@@ -135,6 +117,8 @@ def save_numpy_class_arrays_to_zarr(
         test_volume_name (str): The name of the test volume.
         label_names (list): A list of label names corresponding to the list of 3D numpy arrays.
         labels (list): A list of 3D numpy arrays of binary labels.
+        mode (str): The mode to use when saving the Zarr-2 file. Options are 'append' or 'overwrite'.
+        attrs (dict): A dictionary of attributes to save with the Zarr-2 file.
 
     Example usage:
         label_names = ['label1', 'label2', 'label3']
@@ -151,17 +135,22 @@ def save_numpy_class_arrays_to_zarr(
     zarr_group = zarr.group(store)
 
     # Save the test volume group
-    zarr_group.create_group(test_volume_name, overwrite=overwrite)
+    try:
+        zarr_group.create_group(test_volume_name, overwrite=(mode == "overwrite"))
+    except zarr.errors.ContainsGroupError:
+        print(f"Appending to existing group {test_volume_name}")
 
     # Save the labels
     for i, label_name in enumerate(label_names):
         print(f"Saving {label_name}")
-        zarr_group[test_volume_name].create_dataset(
+        ds = zarr_group[test_volume_name].create_dataset(
             label_name,
             data=labels[i],
-            chunks=(64, 64, 64),
+            chunks=64,
             # compressor=zarr.Blosc(cname='zstd', clevel=3, shuffle=2),
         )
+        for k, v in (attrs or {}).items():
+            ds.attrs[k] = v
 
     print("Done saving")
 
@@ -213,8 +202,83 @@ def resize_array(arr, target_shape, pad_value=0):
     return resized_arr[tuple(slices)]
 
 
+def hausdorff_distance(
+    image0, image1, voxel_size, max_distance=np.inf, method="standard"
+):
+    """Calculate the Hausdorff distance between nonzero elements of given images.
+
+    Modified from the `scipy.spatial.distance.hausdorff` function by Jeff Rhoades (2024) to handle non-isotropic resolutions.
+
+    Parameters
+    ----------
+    image0, image1 : ndarray
+        Arrays where ``True`` represents a point that is included in a
+        set of points. Both arrays must have the same shape.
+    voxel_size : tuple
+        The size of a voxel in each dimension. Assumes the same resolution for both images.
+    max_distance : float, optional
+        The maximum distance to consider. Default is infinity.
+    method : {'standard', 'modified'}, optional, default = 'standard'
+        The method to use for calculating the Hausdorff distance.
+        ``standard`` is the standard Hausdorff distance, while ``modified``
+        is the modified Hausdorff distance.
+
+    Returns
+    -------
+    distance : float
+        The Hausdorff distance between coordinates of nonzero pixels in
+        ``image0`` and ``image1``, using the Euclidean distance.
+
+    Notes
+    -----
+    The Hausdorff distance [1]_ is the maximum distance between any point on
+    ``image0`` and its nearest point on ``image1``, and vice-versa.
+    The Modified Hausdorff Distance (MHD) has been shown to perform better
+    than the directed Hausdorff Distance (HD) in the following work by
+    Dubuisson et al. [2]_. The function calculates forward and backward
+    mean distances and returns the largest of the two.
+
+    References
+    ----------
+    .. [1] http://en.wikipedia.org/wiki/Hausdorff_distance
+    .. [2] M. P. Dubuisson and A. K. Jain. A Modified Hausdorff distance for object
+       matching. In ICPR94, pages A:566-568, Jerusalem, Israel, 1994.
+       :DOI:`10.1109/ICPR.1994.576361`
+       http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.1.8155
+
+    """
+
+    if method not in ("standard", "modified"):
+        raise ValueError(f"unrecognized method {method}")
+
+    a_points = np.argwhere(image0)
+    b_points = np.argwhere(image1)
+
+    # Handle empty sets properly:
+    # - if both sets are empty, return zero
+    # - if only one set is empty, return infinity
+    if len(a_points) == 0:
+        return 0 if len(b_points) == 0 else np.inf
+    elif len(b_points) == 0:
+        return np.inf
+
+    # Scale the points by the voxel size
+    a_points = a_points * np.array(voxel_size)
+    b_points = b_points * np.array(voxel_size)
+
+    fwd, bwd = (
+        cKDTree(a_points).query(b_points, k=1, distance_upper_bound=max_distance)[0],
+        cKDTree(b_points).query(a_points, k=1, distance_upper_bound=max_distance)[0],
+    )
+
+    if method == "standard":  # standard Hausdorff distance
+        return max(max(fwd), max(bwd))
+    elif method == "modified":  # modified Hausdorff distance
+        return max(np.mean(fwd), np.mean(bwd))
+
+
 def score_instance(
-    pred_label, truth_label, hausdorff_distance_max=HAUSDORFF_DISTANCE_MAX
+    pred_label, truth_label, voxel_size, hausdorff_distance_max=HAUSDORFF_DISTANCE_MAX
 ) -> dict[str, float]:
     """
     Score a single instance label volume against the ground truth instance label volume.
@@ -222,6 +286,8 @@ def score_instance(
     Args:
         pred_label (np.ndarray): The predicted instance label volume.
         truth_label (np.ndarray): The ground truth instance label volume.
+        voxel_size (tuple): The size of a voxel in each dimension.
+        hausdorff_distance_max (float): The maximum distance to consider for the Hausdorff distance.
 
     Returns:
         dict: A dictionary of scores for the instance label volume.
@@ -238,7 +304,7 @@ def score_instance(
     pred_ids = np.unique(pred_label)
     truth_ids = np.unique(truth_label)
     cost_matrix = np.zeros((len(truth_ids), len(pred_ids)))
-    bar = tqdm(pred_ids, desc="Computing cost matrix", leave=True)
+    bar = tqdm(pred_ids, desc="Computing cost matrix", leave=True, dynamic_ncols=True)
     for j, pred_id in enumerate(bar):
         if pred_id == 0:
             # Don't score the background
@@ -260,7 +326,9 @@ def score_instance(
 
     # Contruct the volume for the matched instances
     matched_pred_label = np.zeros_like(pred_label)
-    for i, j in tqdm(zip(col_inds, row_inds), desc="Relabeled matched instances"):
+    for i, j in tqdm(
+        zip(col_inds, row_inds), desc="Relabeled matched instances", dynamic_ncols=True
+    ):
         if pred_ids[i] == 0 or truth_ids[j] == 0:
             # Don't score the background
             continue
@@ -268,12 +336,16 @@ def score_instance(
         matched_pred_label[pred_mask] = truth_ids[j]
 
     hausdorff_distances = []
-    for truth_id in tqdm(truth_ids, desc="Computing Hausdorff distances"):
+    for truth_id in tqdm(
+        truth_ids, desc="Computing Hausdorff distances", dynamic_ncols=True
+    ):
         if truth_id == 0:
             # Don't score the background
             continue
         h_dist = hausdorff_distance(
-            truth_label == truth_id, matched_pred_label == truth_id
+            truth_label == truth_id,
+            matched_pred_label == truth_id,
+            voxel_size,
         )
         h_dist = min(h_dist, hausdorff_distance_max)
         hausdorff_distances.append(h_dist)
@@ -281,9 +353,9 @@ def score_instance(
     # Compute the scores
     accuracy = accuracy_score(truth_label.flatten(), matched_pred_label.flatten())
     hausdorff_dist = np.mean(hausdorff_distances) if hausdorff_distances else 0
-    normalized_hausdorff_dist = 32 ** (
-        -hausdorff_dist
-    )  # normalize Hausdorff distance to [0, 1]. 32 is abritrary chosen to have a reasonable range
+    normalized_hausdorff_dist = 1.01 ** (
+        -hausdorff_dist / np.linalg.norm(voxel_size)
+    )  # normalize Hausdorff distance to [0, 1] using the maximum distance represented by a voxel. 32 is abritrary chosen to have a reasonable range
     combined_score = (accuracy * normalized_hausdorff_dist) ** 0.5
     print(f"Accuracy: {accuracy:.4f}")
     print(f"Hausdorff Distance: {hausdorff_dist:.4f}")
@@ -316,9 +388,10 @@ def score_semantic(pred_label, truth_label) -> dict[str, float]:
     pred_label = (pred_label > 0.0).flatten()
     truth_label = (truth_label > 0.0).flatten()
     # Compute the scores
+    dice_score = 1 - dice(truth_label, pred_label)
     scores = {
-        "iou": jaccard_score(truth_label, pred_label),
-        "dice_score": 1 - dice(truth_label, pred_label),
+        "iou": jaccard_score(truth_label, pred_label, zero_division=1),
+        "dice_score": dice_score if not np.isnan(dice_score) else 1,
     }
 
     print(f"IoU: {scores['iou']:.4f}")
@@ -343,35 +416,37 @@ def score_label(
         scores = score_label('pred.zarr/test_volume/label1')
     """
     print(f"Scoring {pred_label_path}...")
+    truth_path = UPath(truth_path)
     # Load the predicted and ground truth label volumes
     label_name = UPath(pred_label_path).name
-    volume_name = UPath(pred_label_path).parent.name
-    pred_label = zarr.open(pred_label_path)[:]
-    truth_label_path = (UPath(truth_path) / volume_name / label_name).path
-    truth_label = zarr.open(truth_label_path)[:]
+    crop_name = UPath(pred_label_path).parent.name
+    truth_label_path = (truth_path / crop_name / label_name).path
+    truth_label_ds = zarr.open(truth_label_path, mode="r")
+    truth_label = truth_label_ds[:]
+    crop = TEST_CROPS_DICT[int(crop_name.removeprefix("crop")), label_name]
+    pred_label = match_crop_space(
+        pred_label_path,
+        label_name,
+        crop.voxel_size,
+        crop.shape,
+        crop.translation,
+    )
 
-    # Check if the label volumes have the same shape
-    if not (pred_label.shape == truth_label.shape):
-        print(
-            f"Shapes of {pred_label_path} and {truth_label_path} do not match: {pred_label.shape} vs {truth_label.shape}"
-        )
-        # Make the submission match the truth shape
-        pred_label = resize_array(pred_label, truth_label.shape)
-
-    mask_path = UPath(truth_path) / volume_name / f"{label_name}_mask"
+    mask_path = truth_path / crop_name / f"{label_name}_mask"
     if mask_path.exists():
         # Mask out uncertain regions resulting from low-res ground truth annotations
         print(f"Masking {label_name} with {mask_path}...")
-        mask = zarr.open(mask_path.path)[:]
+        mask = zarr.open(mask_path.path, mode="r")[:]
         pred_label = pred_label * mask
         truth_label = truth_label * mask
 
     # Compute the scores
     if label_name in instance_classes:
-        results = score_instance(pred_label, truth_label)
+        results = score_instance(pred_label, truth_label, crop.voxel_size)
     else:
         results = score_semantic(pred_label, truth_label)
     results["num_voxels"] = int(np.prod(truth_label.shape))
+    results["voxel_size"] = crop.voxel_size
     results["is_missing"] = False
     return results
 
@@ -393,13 +468,14 @@ def score_volume(
     """
     print(f"Scoring {pred_volume_path}...")
     pred_volume_path = UPath(pred_volume_path)
+    truth_path = UPath(truth_path)
 
     # Find labels to score
-    pred_labels = [a for a in zarr.open(pred_volume_path.path).array_keys()]
+    pred_labels = [a for a in zarr.open(pred_volume_path.path, mode="r").array_keys()]
 
     volume_name = pred_volume_path.name
     truth_labels = [
-        a for a in zarr.open((UPath(truth_path) / volume_name).path).array_keys()
+        a for a in zarr.open((truth_path / volume_name).path, mode="r").array_keys()
     ]
 
     found_labels = list(set(pred_labels) & set(truth_labels))
@@ -425,10 +501,13 @@ def score_volume(
                     "num_voxels": int(
                         np.prod(
                             zarr.open(
-                                (UPath(truth_path) / volume_name / label).path
+                                (truth_path / volume_name / label).path, mode="r"
                             ).shape
                         )
                     ),
+                    "voxel_size": zarr.open(
+                        (truth_path / volume_name / label).path, mode="r"
+                    ).attrs["voxel_size"],
                     "is_missing": True,
                 }
                 if label in instance_classes
@@ -438,10 +517,13 @@ def score_volume(
                     "num_voxels": int(
                         np.prod(
                             zarr.open(
-                                (UPath(truth_path) / volume_name / label).path
+                                (truth_path / volume_name / label).path, mode="r"
                             ).shape
                         )
                     ),
+                    "voxel_size": zarr.open(
+                        (truth_path / volume_name / label).path, mode="r"
+                    ).attrs["voxel_size"],
                     "is_missing": True,
                 }
             )
@@ -472,7 +554,7 @@ def missing_volume_score(
     truth_volume_path = UPath(truth_volume_path)
 
     # Find labels to score
-    truth_labels = [a for a in zarr.open(truth_volume_path.path).array_keys()]
+    truth_labels = [a for a in zarr.open(truth_volume_path.path, mode="r").array_keys()]
 
     # Score each label
     scores = {
@@ -483,8 +565,11 @@ def missing_volume_score(
                 "normalized_hausdorff_distance": 0.0,
                 "combined_score": 0.0,
                 "num_voxels": int(
-                    np.prod(zarr.open((truth_volume_path / label).path).shape)
+                    np.prod(zarr.open((truth_volume_path / label).path, mode="r").shape)
                 ),
+                "voxel_size": zarr.open(
+                    (truth_volume_path / label).path, mode="r"
+                ).attrs["voxel_size"],
                 "is_missing": True,
             }
             if label in instance_classes
@@ -492,8 +577,11 @@ def missing_volume_score(
                 "iou": 0.0,
                 "dice_score": 0.0,
                 "num_voxels": int(
-                    np.prod(zarr.open((truth_volume_path / label).path).shape)
+                    np.prod(zarr.open((truth_volume_path / label).path, mode="r").shape)
                 ),
+                "voxel_size": zarr.open(
+                    (truth_volume_path / label).path, mode="r"
+                ).attrs["voxel_size"],
                 "is_missing": True,
             }
         )
@@ -523,12 +611,13 @@ def combine_scores(scores, include_missing=True, instance_classes=INSTANCE_CLASS
     print(f"Combining label scores...")
     scores = scores.copy()
     label_scores = {}
-    num_voxels = {}
-    for volume, these_scores in scores.items():
+    total_volumes = {}
+    for these_scores in scores.values():
         for label, this_score in these_scores.items():
             print(this_score)
             if this_score["is_missing"] and not include_missing:
                 continue
+            total_volume = np.prod(this_score["voxel_size"]) * this_score["num_voxels"]
             if label in instance_classes:
                 if label not in label_scores:
                     label_scores[label] = {
@@ -537,43 +626,38 @@ def combine_scores(scores, include_missing=True, instance_classes=INSTANCE_CLASS
                         "normalized_hausdorff_distance": 0,
                         "combined_score": 0,
                     }
-                    num_voxels[label] = 0
-                label_scores[label]["accuracy"] += (
-                    this_score["accuracy"] / this_score["num_voxels"]
-                )
+                    total_volumes[label] = 0
+                label_scores[label]["accuracy"] += this_score["accuracy"] * total_volume
                 label_scores[label]["hausdorff_distance"] += (
-                    this_score["hausdorff_distance"] / this_score["num_voxels"]
+                    this_score["hausdorff_distance"] * total_volume
                 )
                 label_scores[label]["normalized_hausdorff_distance"] += (
-                    this_score["normalized_hausdorff_distance"]
-                    / this_score["num_voxels"]
+                    this_score["normalized_hausdorff_distance"] * total_volume
                 )
                 label_scores[label]["combined_score"] += (
-                    this_score["combined_score"] / this_score["num_voxels"]
+                    this_score["combined_score"] * total_volume
                 )
-                num_voxels[label] += this_score["num_voxels"]
+                total_volumes[label] += total_volume
             else:
                 if label not in label_scores:
                     label_scores[label] = {"iou": 0, "dice_score": 0}
-                    num_voxels[label] = 0
-                label_scores[label]["iou"] += (
-                    this_score["iou"] / this_score["num_voxels"]
-                )
+                    total_volumes[label] = 0
+                label_scores[label]["iou"] += this_score["iou"] * total_volume
                 label_scores[label]["dice_score"] += (
-                    this_score["dice_score"] / this_score["num_voxels"]
+                    this_score["dice_score"] * total_volume
                 )
-                num_voxels[label] += this_score["num_voxels"]
+                total_volumes[label] += total_volume
 
     # Normalize back to the total number of voxels
     for label in label_scores:
         if label in instance_classes:
-            label_scores[label]["accuracy"] *= num_voxels[label]
-            label_scores[label]["hausdorff_distance"] *= num_voxels[label]
-            label_scores[label]["normalized_hausdorff_distance"] *= num_voxels[label]
-            label_scores[label]["combined_score"] *= num_voxels[label]
+            label_scores[label]["accuracy"] /= total_volumes[label]
+            label_scores[label]["hausdorff_distance"] /= total_volumes[label]
+            label_scores[label]["normalized_hausdorff_distance"] /= total_volumes[label]
+            label_scores[label]["combined_score"] /= total_volumes[label]
         else:
-            label_scores[label]["iou"] *= num_voxels[label]
-            label_scores[label]["dice_score"] *= num_voxels[label]
+            label_scores[label]["iou"] /= total_volumes[label]
+            label_scores[label]["dice_score"] /= total_volumes[label]
     scores["label_scores"] = label_scores
 
     # Compute the overall score
@@ -584,7 +668,7 @@ def combine_scores(scores, include_missing=True, instance_classes=INSTANCE_CLASS
         if label in instance_classes:
             overall_instance_scores += [label_scores[label]["combined_score"]]
         else:
-            overall_semantic_scores += [label_scores[label]["dice_score"]]
+            overall_semantic_scores += [label_scores[label]["iou"]]
     scores["overall_instance_score"] = np.mean(overall_instance_scores)
     scores["overall_semantic_score"] = np.mean(overall_semantic_scores)
     scores["overall_score"] = (
@@ -654,9 +738,10 @@ def score_submission(
     # Find volumes to score
     print(f"Scoring volumes in {submission_path}...")
     pred_volumes = [d.name for d in UPath(submission_path).glob("*") if d.is_dir()]
+    truth_path = UPath(truth_path)
     print(f"Volumes: {pred_volumes}")
     print(f"Truth path: {truth_path}")
-    truth_volumes = [d.name for d in UPath(truth_path).glob("*") if d.is_dir()]
+    truth_volumes = [d.name for d in truth_path.glob("*") if d.is_dir()]
     print(f"Truth volumes: {truth_volumes}")
 
     found_volumes = list(
@@ -714,7 +799,7 @@ def score_submission(
         with open(result_file, "w") as f:
             json.dump(all_scores, f)
 
-        found_result_file = result_file.replace(
+        found_result_file = str(result_file).replace(
             UPath(result_file).suffix, "_submitted_only" + UPath(result_file).suffix
         )
         print(f"Saving scores for only submitted data to {found_result_file}...")
@@ -728,6 +813,7 @@ def score_submission(
 def package_submission(
     input_search_path: str | UPath = PROCESSED_PATH,
     output_path: str | UPath = SUBMISSION_PATH,
+    overwrite: bool = False,
 ):
     """
     Package a submission for the CellMap challenge. This will create a zarr file, combining all the processed volumes, and then zip it.
@@ -735,6 +821,7 @@ def package_submission(
     Args:
         input_search_path (str): The base path to the processed volumes, with placeholders for dataset and crops.
         output_path (str | UPath): The path to save the submission zarr to. (ending with `<filename>.zarr`; `.zarr` will be appended if not present, and replaced with `.zip` when zipped).
+        overwrite (bool): Whether to overwrite the submission zarr if it already exists.
     """
     input_search_path = str(input_search_path)
     output_path = UPath(output_path)
@@ -748,44 +835,38 @@ def package_submission(
 
     # Find all the processed test volumes
     for crop in TEST_CROPS:
-        crop_group = zarr_group.create_group(f"crop{crop}")
-        crop_path = input_search_path.format(dataset="*", crop=f"crop{crop}")
-        crop_path = glob(crop_path)
-        if len(crop_path) == 0:
+        crop_path = (
+            UPath(input_search_path.format(dataset=crop.dataset, crop=f"crop{crop.id}"))
+            / crop.class_label
+        )
+        if not crop_path.exists():
             print(f"Skipping {crop_path} as it does not exist.")
             continue
-        crop_path = crop_path[0]
-
-        # Find all the processed labels for the test volume
-        test_volume = UPath(crop_path).name
-        labels = [d.name for d in UPath(crop_path).glob("*") if d.is_dir()]
-        print(f"Found labels for {test_volume}: {labels}")
+        if f"crop{crop.id}" not in zarr_group:
+            crop_group = zarr_group.create_group(f"crop{crop.id}")
+        else:
+            crop_group = zarr_group[f"crop{crop.id}"]
 
         # Rescale the processed volumes to match the expected submission resolution if required
-        for label in labels:
-            if label in CLASS_RESOLUTIONS:
-                resolution = CLASS_RESOLUTIONS[label]
-            else:
-                resolution = CLASS_RESOLUTIONS["default"]
-            label_array = crop_group.create_dataset(
-                label,
-                overwrite=True,
-                shape=CROP_SHAPE[crop][label],
-            )
-            print(f"Scaling {label} to {resolution}nm")
-            image = CellMapImage(
-                path=(UPath(crop_path) / label).path,
-                target_class=label,
-                target_scale=[
-                    resolution,
-                ]
-                * 3,
-                target_voxel_shape=CROP_SHAPE[crop][label],
-                pad=True,
-                pad_value=0,
-            )
-            # Save the processed labels to the submission zarr
-            label_array[:] = image[image.center].cpu().numpy()
+        label_array = crop_group.create_dataset(
+            crop.class_label,
+            overwrite=overwrite,
+            shape=crop.shape,
+        )
+        print(f"Scaling {crop_path} to {crop.voxel_size} nm")
+        # Match the resolution of the processed volume to the test volume
+        image = match_crop_space(
+            path=crop_path.path,
+            class_label=crop.class_label,
+            voxel_size=crop.voxel_size,
+            shape=crop.shape,
+            translation=crop.translation,
+        )
+        # Save the processed labels to the submission zarr
+        label_array[:] = image
+        # Add the metadata
+        label_array.attrs["voxel_size"] = crop.voxel_size
+        label_array.attrs["translation"] = crop.translation
 
     print(f"Saved submission to {output_path}")
 
@@ -793,6 +874,155 @@ def package_submission(
     zip_submission(output_path)
 
     print("Done packaging submission")
+
+
+def match_crop_space(path, class_label, voxel_size, shape, translation) -> np.ndarray:
+    """
+    Match the resolution of a zarr array to a target resolution and shape, resampling as necessary with interpolation dependent on the class label. Instance segmentations will be resampled with nearest neighbor interpolation, while semantic segmentations will be resampled with linear interpolation and then thresholded.
+
+    Args:
+        path (str | UPath): The path to the zarr array to match. The zarr can be an OME-NGFF multiscale zarr file, or a traditional single scale formatted zarr.
+        class_label (str): The class label of the array.
+        voxel_size (tuple): The target voxel size.
+        shape (tuple): The target shape.
+        translation (tuple): The translation (i.e. offset) of the array in world units.
+
+    Returns:
+        np.ndarray: The rescaled array.
+    """
+    ds = zarr.open(str(path), mode="r")
+    if "multiscales" in ds.attrs:
+        # Handle multiscale zarr files
+        _image = CellMapImage(
+            path=path,
+            target_class=class_label,
+            target_scale=voxel_size,
+            target_voxel_shape=shape,
+            pad=True,
+            pad_value=0,
+        )
+        path = UPath(path) / _image.scale_level
+        for attr in ds.attrs["multiscales"][0]["datasets"]:
+            if attr["path"] == _image.scale_level:
+                for transform in attr["coordinateTransformations"]:
+                    if transform["type"] == "translation":
+                        input_translation = transform["translation"]
+                    elif transform["type"] == "scale":
+                        input_voxel_size = transform["scale"]
+                break
+        ds = zarr.open(path.path, mode="r")
+    elif (
+        ("voxel_size" in ds.attrs)
+        or ("resolution" in ds.attrs)
+        or ("scale" in ds.attrs)
+    ) or (("translation" in ds.attrs) or ("offset" in ds.attrs)):
+        # Handle single scale zarr files
+        if "voxel_size" in ds.attrs:
+            input_voxel_size = ds.attrs["voxel_size"]
+        elif "resolution" in ds.attrs:
+            input_voxel_size = ds.attrs["resolution"]
+        elif "scale" in ds.attrs:
+            input_voxel_size = ds.attrs["scale"]
+        else:
+            input_voxel_size = None
+
+        if "translation" in ds.attrs:
+            input_translation = ds.attrs["translation"]
+        elif "offset" in ds.attrs:
+            input_translation = ds.attrs["offset"]
+        else:
+            input_translation = None
+    else:
+        print(f"Could not find voxel size and translation for {path}")
+        print(
+            "Assuming voxel size matches target voxel size and will crop to target shape centering the volume."
+        )
+        image = ds[:]
+        # Crop the array if necessary
+        if any(s1 != s2 for s1, s2 in zip(image.shape, shape)):
+            return resize_array(image, shape)  # type: ignore
+        return image  # type: ignore
+
+    # Load the array
+    image = ds[:]
+
+    # Rescale the array if necessary
+    if input_voxel_size is not None and any(
+        r1 != r2 for r1, r2 in zip(input_voxel_size, voxel_size)
+    ):
+        if class_label in INSTANCE_CLASSES:
+            image = rescale(
+                image, np.divide(input_voxel_size, voxel_size), order=0, mode="constant"
+            )
+        else:
+            image = rescale(
+                image,
+                np.divide(input_voxel_size, voxel_size),
+                order=1,
+                mode="constant",
+                preserve_range=True,
+            )
+            image = image > 0.5
+
+    if input_translation is not None:
+        # Calculate the relative offset
+        adjusted_input_translation = (
+            np.array(input_translation) // np.array(voxel_size)
+        ) * np.array(voxel_size)
+
+        # Positive relative offset is the amount to crop from the start, negative is the amount to pad at the start
+        relative_offset = (
+            abs(np.subtract(adjusted_input_translation, translation))
+            // np.array(voxel_size)
+            * np.sign(np.subtract(adjusted_input_translation, translation))
+        )
+    else:
+        # TODO: Handle the case where the translation is not provided
+        relative_offset = np.zeros(len(shape))
+
+    # Translate and crop the array if necessary
+    if any(offset != 0 for offset in relative_offset) or any(
+        s1 != s2 for s1, s2 in zip(image.shape, shape)
+    ):
+        print(
+            f"Translating and cropping {path} to {shape} with offset {relative_offset}"
+        )
+        # Make destination array
+        result = np.zeros(shape, dtype=image.dtype)
+
+        # Calculate the slices for the source and destination arrays
+        input_slices = []
+        output_slices = []
+        for i in range(len(shape)):
+            if relative_offset[i] < 0:
+                # Crop from the start
+                input_start = abs(relative_offset[i])
+                output_start = 0
+                input_end = min(input_start + shape[i], image.shape[i])
+                input_length = input_end - input_start
+                output_end = output_start + input_length
+            else:
+                # Pad at the start
+                input_start = 0
+                output_start = relative_offset[i]
+                output_end = min(shape[i], image.shape[i])
+                input_length = output_end - output_start
+                input_end = input_length
+
+            if input_length <= 0:
+                print("WARNING: Cropping to proper offset resulted in empty volume.")
+                print(f"\tInput shape: {image.shape}, Output shape: {shape}")
+                print(f"\tInput offset: {input_start}, Output offset: {output_start}")
+                return result
+
+            input_slices.append(slice(int(input_start), int(input_end)))
+            output_slices.append(slice(int(output_start), int(output_end)))
+
+        # Copy the data
+        result[*output_slices] = image[*input_slices]
+        return result
+    else:
+        return image
 
 
 def zip_submission(zarr_path: str | UPath = SUBMISSION_PATH):

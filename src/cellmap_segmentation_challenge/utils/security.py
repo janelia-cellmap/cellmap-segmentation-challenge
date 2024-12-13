@@ -1,4 +1,5 @@
 import ast
+import importlib
 from importlib.machinery import SourceFileLoader
 
 from upath import UPath
@@ -66,5 +67,24 @@ def load_safe_config(config_path):
         raise ValueError("Unsafe script detected; loading aborted.")
 
     # Load the config module if script is safe
-    config = SourceFileLoader(UPath(config_path).stem, str(config_path)).load_module()
+    config_path = UPath(config_path)
+    # Create a dedicated namespace for the config
+    config_namespace = {}
+    try:
+        with open(config_path, "r") as config_file:
+            code = config_file.read()
+            exec(code, config_namespace)
+        # Extract the config object from the namespace
+        config = Config(**config_namespace)
+    except Exception as e:
+        print(e)
+        raise RuntimeError(
+            f"Failed to execute configuration file: {config_path}"
+        ) from e
+
     return config
+
+
+class Config:
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)

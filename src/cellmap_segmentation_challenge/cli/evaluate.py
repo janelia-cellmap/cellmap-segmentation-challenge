@@ -70,8 +70,14 @@ def evaluate_cli(submission_path, result_file, truth_path, instance_classes):
     help=f"Directory to save the packaged submission. Defaults to {SUBMISSION_PATH}",
     required=True,
 )
-def package_submission_cli(input_search_path, output_path):
+@click.option(
+    "--overwrite",
+    "-O",
+    is_flag=True,
+    help="Whether to overwrite the output submission file if it already exists",
+)
+def package_submission_cli(input_search_path, output_path, overwrite):
     """
     Package zarr datasets for submission.
     """
-    package_submission(input_search_path, output_path)
+    package_submission(input_search_path, output_path, overwrite)

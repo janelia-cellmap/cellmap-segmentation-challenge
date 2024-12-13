@@ -1,5 +1,6 @@
 import os
 import random
+import time
 
 import numpy as np
 import torch
@@ -8,10 +9,13 @@ from tensorboardX import SummaryWriter
 from tqdm import tqdm
 from upath import UPath
 
-from .models import (ResNet, UNet_2D, UNet_3D, ViTVNet, load_best_val,
-                     load_latest)
-from .utils import (CellMapLossWrapper, get_dataloader, load_safe_config,
-                    make_datasplit_csv)
+from .models import ResNet, UNet_2D, UNet_3D, ViTVNet, load_best_val, load_latest
+from .utils import (
+    CellMapLossWrapper,
+    get_dataloader,
+    load_safe_config,
+    make_datasplit_csv,
+)
 
 
 def train(config_path: str):
@@ -40,6 +44,8 @@ def train(config_path: str):
         - model: PyTorch model to use for training. If this is provided, the `model_name` and `model_to_load` can be any string. Default is None.
         - load_model: Which model checkpoint to load if it exists. Options are 'latest' or 'best'. If no checkpoints exist, will silently use the already initialized model. Default is 'latest'.
         - spatial_transforms: Dictionary of spatial transformations to apply to the training data. Default is {'mirror': {'axes': {'x': 0.5, 'y': 0.5}}, 'transpose': {'axes': ['x', 'y']}, 'rotate': {'axes': {'x': [-180, 180], 'y': [-180, 180]}}}. See the `dataloader` module documentation for more information.
+        - validation_time_limit: Maximum time to spend on validation in seconds. If None, there is no time limit. Default is None.
+        - validation_batch_limit: Maximum number of validation batches to process. If None, there is no limit. Default is None.
 
     Returns
     -------
@@ -83,6 +89,9 @@ def train(config_path: str):
             "rotate": {"axes": {"x": [-180, 180], "y": [-180, 180]}},
         },
     )
+    validation_time_limit = getattr(config, "validation_time_limit", None)
+    validation_batch_limit = getattr(config, "validation_batch_limit", None)
+    device = getattr(config, "device", None)
 
     # %% Make sure the save path exists
     for path in [model_save_path, logs_save_path, datasplit_path]:
@@ -96,12 +105,13 @@ def train(config_path: str):
     random.seed(random_seed)
 
     # %% Check that the GPU is available
-    if torch.cuda.is_available():
-        device = "cuda"
-    elif torch.backends.mps.is_available():
-        device = "mps"
-    else:
-        device = "cpu"
+    if device is None:
+        if torch.cuda.is_available():
+            device = "cuda"
+        elif torch.backends.mps.is_available():
+            device = "mps"
+        else:
+            device = "cpu"
     print(f"Training device: {device}")
 
     # %% Make the datasplit file if it doesn't exist
@@ -121,6 +131,7 @@ def train(config_path: str):
         target_array_info=target_array_info,
         spatial_transforms=spatial_transforms,
         iterations_per_epoch=iterations_per_epoch,
+        random_validation=validation_time_limit or validation_batch_limit,
         device=device,
     )
 
@@ -151,9 +162,6 @@ def train(config_path: str):
                 f"Unknown model name: {model_name}. Preconfigured models are '2d_unet', '2d_resnet', '3d_unet', '3d_resnet', and 'vitnet'. Otherwise provide a custom model as a torch.nn.Module."
             )
 
-    # %% Move model to device
-    model = model.to(device)
-
     # Optionally, load a pre-trained model
     if load_model.lower() == "latest":
         # Check to see if there are any checkpoints and if so load the latest one
@@ -167,6 +175,9 @@ def train(config_path: str):
             model_save_path.format(epoch="{epoch}", model_name=model_to_load),
             model,
         )
+
+    # %% Move model to device
+    model = model.to(device)
 
     # %% Define the optimizer
     optimizer = torch.optim.RAdam(model.parameters(), lr=learning_rate)
@@ -193,7 +204,11 @@ def train(config_path: str):
 
         # Training loop for the epoch
         post_fix_dict["Epoch"] = epoch + 1
-        epoch_bar = tqdm(train_loader.loader, desc="Training")
+
+        # Refresh the train loader to shuffle the data yielded by the dataloader
+        train_loader.refresh()
+
+        epoch_bar = tqdm(train_loader.loader, desc="Training", dynamic_ncols=True)
         for batch in epoch_bar:
             # Increment the training iteration
             n_iter += 1
@@ -234,16 +249,52 @@ def train(config_path: str):
         model.eval()
 
         # Compute the validation score by averaging the loss across the validation set
-        if len(val_loader) > 0:
+        if len(val_loader.loader) > 0:
             val_score = 0
-            val_bar = tqdm(val_loader, desc="Validation")
+            val_loader.refresh()
+            if validation_time_limit is not None:
+                elapsed_time = 0
+                last_time = time.time()
+                val_bar = val_loader.loader
+                pbar = tqdm(
+                    total=validation_time_limit,
+                    desc="Validation",
+                    bar_format="{l_bar}{bar}| {remaining}s",
+                    dynamic_ncols=True,
+                )
+            else:
+                val_bar = tqdm(
+                    val_loader.loader,
+                    desc="Validation",
+                    total=validation_batch_limit or len(val_loader.loader),
+                    dynamic_ncols=True,
+                )
+            i = 0
+
             with torch.no_grad():
                 for batch in val_bar:
                     inputs = batch["input"]
                     targets = batch["output"]
                     outputs = model(inputs)
                     val_score += criterion(outputs, targets).item()
-            val_score /= len(val_loader)
+                    i += 1
+
+                    # Check time limit
+                    if validation_time_limit is not None:
+                        last_elapsed_time = time.time() - last_time
+                        elapsed_time += last_elapsed_time
+                        if elapsed_time >= validation_time_limit:
+                            break
+                        pbar.update(last_elapsed_time)
+                        last_time = time.time()
+
+                    # Check batch limit
+                    elif (
+                        validation_batch_limit is not None
+                        and i >= validation_batch_limit
+                    ):
+                        break
+            val_score /= i
 
             # Log the validation using tensorboard
             writer.add_scalar("validation", val_score, n_iter)

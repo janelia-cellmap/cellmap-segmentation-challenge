@@ -140,6 +140,7 @@ def get_csv_string(
     classes: list[str],
     usage: str,
     raw_name: str = RAW_NAME,
+    search_path: str = SEARCH_PATH,
 ):
     """
     Get the csv string for a given dataset path, to be written to the datasplit csv file.
@@ -154,6 +155,8 @@ def get_csv_string(
         The usage of the dataset (train or validate).
     raw_name : str, optional
         The name of the raw data. Default is RAW_NAME.
+    search_path : str, optional
+        The search path to use to find the datasets. Default is SEARCH_PATH.
 
     Returns
     -------
@@ -161,7 +164,9 @@ def get_csv_string(
         The csv string for the dataset.
     """
     raw_path = get_raw_path(path, raw_name)
-    dataset_name = get_dataset_name(raw_path)
+    dataset_name = get_dataset_name(
+        raw_path, search_path=search_path, raw_name=raw_name
+    )
 
     if not UPath(raw_path).exists():
         bar_string = (
@@ -362,6 +367,12 @@ def make_datasplit_csv(
         k: "train" if np.random.rand() > validation_prob else "validate"
         for k in datapaths.keys()
     }
+    # Now enforce that there is one training and one validation crop if possible
+    if len(usage_dict) >= 2:
+        if np.sum(usage_dict.values() == "train") == 0:
+            usage_dict[list(usage_dict.keys())[0]] = "train"
+        elif np.sum(usage_dict.values() == "validate") == 0:
+            usage_dict[list(usage_dict.keys())[0]] = "validate"
     num_train = num_validate = 0
     bar = tqdm(datapaths.keys())
     for path in bar:
@@ -376,7 +387,9 @@ def make_datasplit_csv(
                 continue
         usage_dict[path] = usage
 
-        csv_string, bar_string = get_csv_string(path, datapaths[path], usage, raw_name)
+        csv_string, bar_string = get_csv_string(
+            path, datapaths[path], usage, raw_name, search_path
+        )
         bar.set_postfix_str(bar_string)
         if csv_string is not None:
             with open(csv_path, "a") as f:

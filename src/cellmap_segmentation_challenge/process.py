@@ -7,9 +7,8 @@ from tqdm import tqdm
 from upath import UPath
 
 from .config import PREDICTIONS_PATH, PROCESSED_PATH
-from .evaluate import TEST_CROPS
-from .utils import load_safe_config
-from .utils.datasplit import get_dataset_name, get_formatted_fields
+from .utils import load_safe_config, fetch_test_crop_manifest
+from .utils.datasplit import get_formatted_fields
 
 
 def _process(
@@ -31,7 +30,7 @@ def _process(
     dataset_writer = CellMapDatasetWriter(**dataset_writer_kwargs)
 
     # Process the data
-    for batch in tqdm(dataset_writer.loader(batch_size=batch_size)):
+    for batch in tqdm(dataset_writer.loader(batch_size=batch_size), dynamic_ncols=True):
         # Get the input data
         inputs = batch["input"]
 
@@ -70,9 +69,7 @@ def process(
     process_func = config.process_func
     classes = config.classes
     batch_size = getattr(config, "batch_size", 8)
-    input_array_info = getattr(
-        config, "input_array_info", {"shape": (1, 128, 128), "scale": (8, 8, 8)}
-    )
+    input_array_info = config.input_array_info
     target_array_info = getattr(config, "target_array_info", input_array_info)
 
     input_arrays = {"input": input_array_info}
@@ -83,7 +80,8 @@ def process(
 
     # Get the crops to predict on
     if crops == "test":
-        crop_list = TEST_CROPS
+        test_crops = fetch_test_crop_manifest()
+        crop_list = list(set([c.id for c in test_crops]))
     else:
         crop_list = crops.split(",")
 

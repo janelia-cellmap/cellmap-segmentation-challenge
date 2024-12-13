@@ -1,6 +1,6 @@
 import click
 
-from ..config import PREDICTIONS_PATH
+from ..config import PREDICTIONS_PATH, SEARCH_PATH, RAW_NAME, CROP_NAME
 from ..predict import predict
 
 
@@ -44,7 +44,40 @@ from ..predict import predict
     default=False,
     help="Whether to overwrite the output path if it already exists. Default: False.",
 )
-def predict_cli(config_path, crops, output_path, do_orthoplanes, overwrite):
+@click.option(
+    "--search-path",
+    "-s",
+    type=click.STRING,
+    required=False,
+    default=SEARCH_PATH,
+    help=f"The path to search for the raw dataset, with placeholders for dataset and name. Default is {SEARCH_PATH}",
+)
+@click.option(
+    "--raw-name",
+    "-r",
+    type=click.STRING,
+    required=False,
+    default=RAW_NAME,
+    help=f"The name of the raw dataset in the zarr store. Default is {RAW_NAME}",
+)
+@click.option(
+    "--crop-name",
+    "-n",
+    type=click.STRING,
+    required=False,
+    default=CROP_NAME,
+    help=f"The name of the crop dataset with placeholders for crop and label. Default is {CROP_NAME}",
+)
+def predict_cli(
+    config_path,
+    crops,
+    output_path,
+    do_orthoplanes,
+    overwrite,
+    search_path,
+    raw_name,
+    crop_name,
+):
     """
     Predict the output of a model on a large dataset by splitting it into blocks and predicting each block separately.
 
@@ -56,4 +89,7 @@ def predict_cli(config_path, crops, output_path, do_orthoplanes, overwrite):
         output_path=output_path,
         do_orthoplanes=do_orthoplanes,
         overwrite=overwrite,
+        search_path=search_path,
+        raw_name=raw_name,
+        crop_name=crop_name,
     )

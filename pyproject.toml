@@ -47,17 +47,17 @@ dependencies = [
   "scikit-image",
   "xarray-tensorstore>=0.1.5,<0.2",
   "tensorstore>=0.1.65,<0.2",
-  "torch", "cellpose>=3.1.0,<4",
+  "torch",
+  "pyreadline3; sys_platform == 'win32'",
   ]
 
 [project.optional-dependencies]
-test = ["pytest>=6.0", "pytest-cov", "mypy", "black"]
+test = ["pytest>=6.0", "pytest-cov", "mypy", "black", "pytest-dependency", "pytest-xdist"]
 docs = [
     "sphinx",
     "sphinx-book-theme",
     "sphinx_mdinclude",
 ]
-
 dev = [
     "ipython",
     "jupyter",
@@ -73,6 +73,7 @@ dev = [
     "matplotlib",
     "isort",
 ]
+all = ["cellmap-segmentation-challenge[dev,docs,test]"]
 
 [project.urls]
 Documentation = "https://github.com/janelia-cellmap/cellmap-segmentation-challenge#readme"
@@ -194,3 +195,9 @@ xarray-tensorstore = ">=0.1.5,<0.2"
 
 [tool.pixi.feature.dev.dependencies]
 gunpowder = "*"
+
+[tool.pytest.ini_options]
+"testpaths" = "tests"
+markers = [
+    "dependency: mark tests as dependent on other tests"
+]
