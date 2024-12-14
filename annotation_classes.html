@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>cellmap_segmentation_challenge.cli package &#8212; CellMap Segmentation Challenge</title>
+    <title>Annotation Classes &#8212; CellMap Segmentation Challenge</title>
   
   
   
@@ -44,12 +44,12 @@
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'cellmap_segmentation_challenge.cli';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'annotation_classes';</script>
     <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="cellmap_segmentation_challenge.models package" href="cellmap_segmentation_challenge.models.html" />
-    <link rel="prev" title="cellmap_segmentation_challenge package" href="cellmap_segmentation_challenge.html" />
+    <link rel="next" title="Creating a CellMap Data PyTorch Dataloader" href="dataloader.html" />
+    <link rel="prev" title="Available Data" href="available_data.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -149,12 +149,12 @@
 <li class="toctree-l1"><a class="reference internal" href="index.html">CellMap Segmentation Challenge</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Data:</span></p>
-<ul class="nav bd-sidenav">
+<ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="cellmap-schemas.html">CellMap Schemas</a></li>
 
 
 <li class="toctree-l1"><a class="reference internal" href="available_data.html">Available Data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="annotation_classes.html">Annotation Classes</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Annotation Classes</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Train:</span></p>
 <ul class="nav bd-sidenav">
@@ -162,9 +162,9 @@
 <li class="toctree-l1"><a class="reference internal" href="load_model_weights.html">Loading a Pretrained Model Checkpoint</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API:</span></p>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="cellmap_segmentation_challenge.html">cellmap_segmentation_challenge package</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">cellmap_segmentation_challenge.cli package</a></li>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.html">cellmap_segmentation_challenge package</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html">cellmap_segmentation_challenge.cli package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils package</a></li>
 </ul>
@@ -223,7 +223,7 @@
       
       
       
-      <li><a href="_sources/cellmap_segmentation_challenge.cli.rst" target="_blank"
+      <li><a href="_sources/annotation_classes.rst" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -299,7 +299,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>cellmap_segmentation_challenge.cli package</h1>
+    <h1>Annotation Classes</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -309,16 +309,12 @@
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.datasplit">cellmap_segmentation_challenge.cli.datasplit module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.evaluate">cellmap_segmentation_challenge.cli.evaluate module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.fetch_data">cellmap_segmentation_challenge.cli.fetch_data module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.predict">cellmap_segmentation_challenge.cli.predict module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.process">cellmap_segmentation_challenge.cli.process module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.speedtest">cellmap_segmentation_challenge.cli.speedtest module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.train">cellmap_segmentation_challenge.cli.train module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.visualize">cellmap_segmentation_challenge.cli.visualize module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli">Module contents</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#table-of-contents">Table of Contents</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#multiscale-structure">Multiscale Structure</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#class-categories">Class Categories</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#detailed-class-descriptions">Detailed Class Descriptions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#aliases">Aliases</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a></li>
 </ul>
             </nav>
         </div>
@@ -330,37 +326,95 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="cellmap-segmentation-challenge-cli-package">
-<h1>cellmap_segmentation_challenge.cli package<a class="headerlink" href="#cellmap-segmentation-challenge-cli-package" title="Link to this heading">#</a></h1>
-<section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">#</a></h2>
+  <section id="annotation-classes">
+<h1>Annotation Classes<a class="headerlink" href="#annotation-classes" title="Link to this heading">#</a></h1>
+<p>This document provides an overview of the annotation classes used in our dataset. Each zarr crop contains multiple scales for different organelles, if annotated. Additionally, there is a special multiscale named <code class="docutils literal notranslate"><span class="pre">all</span></code> that aggregates all annotated classes.</p>
+<p>Classes are categorized as either <strong>atomic classes</strong> or <strong>group classes</strong>:
+- <strong>Atomic Classes</strong> represent individual organelle components.
+- <strong>Group Classes</strong> are collections of atomic classes grouped under a common category.</p>
+<p>Group classes reference their constituent atomic classes through the <code class="docutils literal notranslate"><span class="pre">group_id</span></code>.</p>
+<section id="table-of-contents">
+<h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><cite>Multiscale Structure</cite></p></li>
+<li><p><cite>Class Categories</cite>
+- <cite>Atomic Classes</cite>
+- <cite>Group Classes</cite></p></li>
+<li><p><cite>Detailed Class Descriptions</cite></p></li>
+<li><p><cite>Aliases</cite></p></li>
+<li><p><cite>Examples</cite></p></li>
+</ul>
 </section>
-<section id="module-cellmap_segmentation_challenge.cli.datasplit">
-<span id="cellmap-segmentation-challenge-cli-datasplit-module"></span><h2>cellmap_segmentation_challenge.cli.datasplit module<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli.datasplit" title="Link to this heading">#</a></h2>
+<section id="multiscale-structure">
+<h2>Multiscale Structure<a class="headerlink" href="#multiscale-structure" title="Link to this heading">#</a></h2>
+<p>In each zarr crop, annotations are organized into multiple scales:
+- <strong>Organelle-specific scales</strong>: Each annotated organelle has its own scale.
+- <strong>All-inclusive scale</strong>: The <code class="docutils literal notranslate"><span class="pre">all</span></code> scale includes annotations for all classes.</p>
+<p>This hierarchical structure facilitates efficient data navigation and retrieval based on specific or broad annotation needs.</p>
 </section>
-<section id="module-cellmap_segmentation_challenge.cli.evaluate">
-<span id="cellmap-segmentation-challenge-cli-evaluate-module"></span><h2>cellmap_segmentation_challenge.cli.evaluate module<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli.evaluate" title="Link to this heading">#</a></h2>
+<section id="class-categories">
+<h2>Class Categories<a class="headerlink" href="#class-categories" title="Link to this heading">#</a></h2>
+<p>### Atomic Classes
+Atomic classes represent the fundamental components of cellular structures. Each atomic class is defined with a unique identifier and descriptive properties.</p>
+<p>### Group Classes
+Group classes aggregate multiple atomic classes into broader categories. They are useful for high-level analysis and visualization.</p>
 </section>
-<section id="module-cellmap_segmentation_challenge.cli.fetch_data">
-<span id="cellmap-segmentation-challenge-cli-fetch-data-module"></span><h2>cellmap_segmentation_challenge.cli.fetch_data module<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli.fetch_data" title="Link to this heading">#</a></h2>
+<section id="detailed-class-descriptions">
+<h2>Detailed Class Descriptions<a class="headerlink" href="#detailed-class-descriptions" title="Link to this heading">#</a></h2>
+<p>Below is a comprehensive list of all annotation classes, categorized into atomic and group classes.</p>
+<!-- Load DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+
+<!-- Load jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Load DataTables JS -->
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script><table id="main-table" class="display" style="width:100%">
+  <thead>
+    <!-- We'll dynamically fill these from CSV headers -->
+  </thead>
+  <tbody>
+    <!-- We'll dynamically fill these from CSV data -->
+  </tbody>
+</table><script>
+$(document).ready(function() {
+    // Fetch the CSV file
+    $.get("_static/classes.csv", function(csvData) {
+         // Split into lines
+        var lines = csvData.trim().split("\n");
+
+        // First line is headers
+        var headers = lines[0].split(",");
+        // Remaining lines are data rows
+        var data = lines.slice(1).map(function(line) {
+            return line.split(",");
+        });
+
+        // Initialize DataTable with custom render for the third column (index 2)
+        $('#main-table').DataTable({
+            data: data,
+            columns: [
+                { title: headers[0] },
+                { title: headers[1] },
+                { title: headers[2] },
+                { title: headers[3] },
+            ]
+        });
+    });
+});
+</script></section>
+<section id="aliases">
+<h2>Aliases<a class="headerlink" href="#aliases" title="Link to this heading">#</a></h2>
+<p>Some classes may have aliases for compatibility or alternative naming conventions. These are listed in the <code class="docutils literal notranslate"><span class="pre">Alias</span></code> column of the table above.</p>
 </section>
-<section id="module-cellmap_segmentation_challenge.cli.predict">
-<span id="cellmap-segmentation-challenge-cli-predict-module"></span><h2>cellmap_segmentation_challenge.cli.predict module<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli.predict" title="Link to this heading">#</a></h2>
-</section>
-<section id="module-cellmap_segmentation_challenge.cli.process">
-<span id="cellmap-segmentation-challenge-cli-process-module"></span><h2>cellmap_segmentation_challenge.cli.process module<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli.process" title="Link to this heading">#</a></h2>
-</section>
-<section id="module-cellmap_segmentation_challenge.cli.speedtest">
-<span id="cellmap-segmentation-challenge-cli-speedtest-module"></span><h2>cellmap_segmentation_challenge.cli.speedtest module<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli.speedtest" title="Link to this heading">#</a></h2>
-</section>
-<section id="module-cellmap_segmentation_challenge.cli.train">
-<span id="cellmap-segmentation-challenge-cli-train-module"></span><h2>cellmap_segmentation_challenge.cli.train module<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli.train" title="Link to this heading">#</a></h2>
-</section>
-<section id="module-cellmap_segmentation_challenge.cli.visualize">
-<span id="cellmap-segmentation-challenge-cli-visualize-module"></span><h2>cellmap_segmentation_challenge.cli.visualize module<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli.visualize" title="Link to this heading">#</a></h2>
-</section>
-<section id="module-cellmap_segmentation_challenge.cli">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli" title="Link to this heading">#</a></h2>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Nucleus</strong> (<cite>nuc</cite>): Comprised of multiple components including the nuclear envelope membrane (<cite>ne_mem</cite>), nuclear pores (<cite>np_out</cite>, <cite>np_in</cite>), heterochromatin (<cite>hchrom</cite>), euchromatin (<cite>echrom</cite>), nucleoplasm (<cite>nucpl</cite>), and nucleolus (<cite>nucleo</cite>).</p></li>
+<li><p><strong>Mitochondria</strong> (<cite>mito</cite>): Includes the mitochondrial membrane (<cite>mito_mem</cite>), mitochondrial lumen (<cite>mito_lum</cite>), and mitochondrial ribosome (<cite>mito_ribo</cite>).</p></li>
+<li><p><strong>Endoplasmic Reticulum</strong> (<cite>er</cite>): A collective class that encompasses various ER components such as the ER membrane (<cite>er_mem</cite>), ER lumen (<cite>er_lum</cite>), and ER exit site (<cite>eres_mem</cite>, <cite>eres_lum</cite>).</p></li>
+</ul>
+<p>For detailed information on each class and their relationships, refer to the table above.</p>
 </section>
 </section>
 
@@ -376,20 +430,20 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="cellmap_segmentation_challenge.html"
+       href="available_data.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">cellmap_segmentation_challenge package</p>
+        <p class="prev-next-title">Available Data</p>
       </div>
     </a>
     <a class="right-next"
-       href="cellmap_segmentation_challenge.models.html"
+       href="dataloader.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">cellmap_segmentation_challenge.models package</p>
+        <p class="prev-next-title">Creating a CellMap Data PyTorch Dataloader</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -410,16 +464,12 @@
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.datasplit">cellmap_segmentation_challenge.cli.datasplit module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.evaluate">cellmap_segmentation_challenge.cli.evaluate module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.fetch_data">cellmap_segmentation_challenge.cli.fetch_data module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.predict">cellmap_segmentation_challenge.cli.predict module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.process">cellmap_segmentation_challenge.cli.process module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.speedtest">cellmap_segmentation_challenge.cli.speedtest module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.train">cellmap_segmentation_challenge.cli.train module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.visualize">cellmap_segmentation_challenge.cli.visualize module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli">Module contents</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#table-of-contents">Table of Contents</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#multiscale-structure">Multiscale Structure</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#class-categories">Class Categories</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#detailed-class-descriptions">Detailed Class Descriptions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#aliases">Aliases</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a></li>
 </ul>
   </nav></div>
 

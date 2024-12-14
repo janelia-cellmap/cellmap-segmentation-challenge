@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>cellmap_segmentation_challenge.cli.train &#8212; CellMap Segmentation Challenge</title>
+    <title>Available Data &#8212; CellMap Segmentation Challenge</title>
   
   
   
@@ -32,6 +32,7 @@
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=15603566" />
   
   <!-- So that users can add custom icons -->
   <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
@@ -43,12 +44,12 @@
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'cellmap_segmentation_challenge.cli.train';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'available_data';</script>
     <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="cellmap_segmentation_challenge.cli.visualize" href="cellmap_segmentation_challenge.cli.visualize.html" />
-    <link rel="prev" title="cellmap_segmentation_challenge.cli.speedtest" href="cellmap_segmentation_challenge.cli.speedtest.html" />
+    <link rel="next" title="Annotation Classes" href="annotation_classes.html" />
+    <link rel="prev" title="CellMap Schemas" href="cellmap-schemas.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -144,52 +145,30 @@
 </button></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
-        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul class="nav bd-sidenav">
+        <ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="index.html">CellMap Segmentation Challenge</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Data:</span></p>
+<ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="cellmap-schemas.html">CellMap Schemas</a></li>
 
 
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Available Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="annotation_classes.html">Annotation Classes</a></li>
 </ul>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="cellmap_segmentation_challenge.html">cellmap_segmentation_challenge</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 current active has-children"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html">cellmap_segmentation_challenge.cli</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.datasplit.html">cellmap_segmentation_challenge.cli.datasplit</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.evaluate.html">cellmap_segmentation_challenge.cli.evaluate</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.fetch_data.html">cellmap_segmentation_challenge.cli.fetch_data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.predict.html">cellmap_segmentation_challenge.cli.predict</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.process.html">cellmap_segmentation_challenge.cli.process</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.speedtest.html">cellmap_segmentation_challenge.cli.speedtest</a></li>
-<li class="toctree-l3 current active"><a class="current reference internal" href="#">cellmap_segmentation_challenge.cli.train</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.visualize.html">cellmap_segmentation_challenge.cli.visualize</a></li>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Train:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="dataloader.html">Creating a CellMap Data PyTorch Dataloader</a></li>
+<li class="toctree-l1"><a class="reference internal" href="load_model_weights.html">Loading a Pretrained Model Checkpoint</a></li>
 </ul>
-</details></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.config.html">cellmap_segmentation_challenge.config</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.evaluate.html">cellmap_segmentation_challenge.evaluate</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.model_load.html">cellmap_segmentation_challenge.models.model_load</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.resnet.html">cellmap_segmentation_challenge.models.resnet</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.unet_model_2D.html">cellmap_segmentation_challenge.models.unet_model_2D</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.unet_model_3D.html">cellmap_segmentation_challenge.models.unet_model_3D</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.vitnet.html">cellmap_segmentation_challenge.models.vitnet</a></li>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">API:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.html">cellmap_segmentation_challenge package</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html">cellmap_segmentation_challenge.cli package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils package</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.process.html">cellmap_segmentation_challenge.process</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.crops.html">cellmap_segmentation_challenge.utils.crops</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.dataloader.html">cellmap_segmentation_challenge.utils.dataloader</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.datasplit.html">cellmap_segmentation_challenge.utils.datasplit</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.fetch_data.html">cellmap_segmentation_challenge.utils.fetch_data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.loss.html">cellmap_segmentation_challenge.utils.loss</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.security.html">cellmap_segmentation_challenge.utils.security</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.visualize.html">cellmap_segmentation_challenge.visualize</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1"><a class="reference internal" href="cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
 </ul>
 
     </div>
@@ -244,7 +223,7 @@
       
       
       
-      <li><a href="_sources/cellmap_segmentation_challenge.cli.train.rst" target="_blank"
+      <li><a href="_sources/available_data.rst" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -318,7 +297,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>cellmap_segmentation_challenge.cli.train</h1>
+    <h1>Available Data</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -332,9 +311,96 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="module-cellmap_segmentation_challenge.cli.train">
-<span id="cellmap-segmentation-challenge-cli-train"></span><h1>cellmap_segmentation_challenge.cli.train<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli.train" title="Link to this heading">#</a></h1>
-</section>
+  <section id="available-data">
+<h1>Available Data<a class="headerlink" href="#available-data" title="Link to this heading">#</a></h1>
+<p>The training crops used in the CellMap Segmentation Challenge are derived from 23 distinct eFIB-SEM datasets, including 9 cell culture samples and 14 tissue samples.
+These samples come from a variety of organisms, including mouse (10 datasets), Drosophila (2 datasets), zebrafish (1 dataset), and human (1 dataset).
+The tissue types span key biological regions and organs such as the brain, heart, liver, kidney, and pancreas, providing a broad spectrum of biological contexts for participants to work with.</p>
+<p>Below is a list of available data for the segmentation challenge. You can visualize crops groupped by collection in neuroglancer by clicking on the link in the “Neuroglancer URL” column.</p>
+<!-- Load DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+
+<!-- Load jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Load DataTables JS -->
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script><table id="main-table" class="display" style="width:100%">
+  <thead>
+    <!-- We'll dynamically fill these from CSV headers -->
+  </thead>
+  <tbody>
+    <!-- We'll dynamically fill these from CSV data -->
+  </tbody>
+</table><p>Each crop can be visualized separately in this table by clicking on the “Neuroglancer URL” link in the table below.</p>
+<details>
+<summary>Click to expand</summary>
+
+<table id="side-table" class="display" style="width:100%">
+  <thead>
+    <!-- We'll dynamically fill these from CSV headers -->
+  </thead>
+  <tbody>
+    <!-- We'll dynamically fill these from CSV data -->
+  </tbody>
+</table>
+</details><script>
+$(document).ready(function() {
+    // Fetch the CSV file
+    $.get("_static/SegmentationChallengeWithNeuroglancerURLs_20241211_all_s3.csv", function(csvData) {
+         // Split into lines
+        var lines = csvData.trim().split("\n");
+
+        // First line is headers
+        var headers = lines[0].split(",");
+        // Remaining lines are data rows
+        var data = lines.slice(1).map(function(line) {
+            return line.split(",");
+        });
+
+        // Initialize DataTable with custom render for the third column (index 2)
+        $('#main-table').DataTable({
+            data: data,
+            columns: [
+                { title: headers[0] },
+                { title: headers[1] ,
+                  render: function(data, type, row, meta) {
+                      // 'data' is the cell content for the URL column
+                      return '<a href="' + data + '" target="_blank" rel="noopener noreferrer">Neuroglancer Link</a>';
+                  }
+                }
+            ]
+        });
+    });
+
+    $.get("_static/SegmentationChallengeWithNeuroglancerURLs_20241211_s3.csv", function(csvData) {
+         // Split into lines
+        var lines = csvData.trim().split("\n");
+
+        // First line is headers
+        var headers = lines[0].split(",");
+        // Remaining lines are data rows
+        var data = lines.slice(1).map(function(line) {
+            return line.split(",");
+        });
+
+        // Initialize DataTable with custom render for the third column (index 2)
+        $('#side-table').DataTable({
+            data: data,
+            columns: [
+                { title: headers[0] },
+                { title: headers[1] },
+                {
+                  title: headers[2],
+                  render: function(data, type, row, meta) {
+                      // 'data' is the cell content for the URL column
+                      return '<a href="' + data + '" target="_blank" rel="noopener noreferrer">Neuroglancer Link</a>';
+                  }
+                }
+            ]
+        });
+    });
+});
+</script></section>
 
 
                 </article>
@@ -348,20 +414,20 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="cellmap_segmentation_challenge.cli.speedtest.html"
+       href="cellmap-schemas.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">cellmap_segmentation_challenge.cli.speedtest</p>
+        <p class="prev-next-title">CellMap Schemas</p>
       </div>
     </a>
     <a class="right-next"
-       href="cellmap_segmentation_challenge.cli.visualize.html"
+       href="annotation_classes.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">cellmap_segmentation_challenge.cli.visualize</p>
+        <p class="prev-next-title">Annotation Classes</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

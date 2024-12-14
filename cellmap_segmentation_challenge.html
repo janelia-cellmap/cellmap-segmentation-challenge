@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>cellmap_segmentation_challenge &#8212; CellMap Segmentation Challenge</title>
+    <title>cellmap_segmentation_challenge package &#8212; CellMap Segmentation Challenge</title>
   
   
   
@@ -32,6 +32,7 @@
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=15603566" />
   
   <!-- So that users can add custom icons -->
   <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
@@ -47,8 +48,8 @@
     <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="cellmap_segmentation_challenge.cli" href="cellmap_segmentation_challenge.cli.html" />
-    <link rel="prev" title="CellMap Schemas" href="cellmap-schemas.html" />
+    <link rel="next" title="cellmap_segmentation_challenge.cli package" href="cellmap_segmentation_challenge.cli.html" />
+    <link rel="prev" title="Loading a Pretrained Model Checkpoint" href="load_model_weights.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -144,52 +145,30 @@
 </button></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
-        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+        <ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="index.html">CellMap Segmentation Challenge</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Data:</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="cellmap-schemas.html">CellMap Schemas</a></li>
 
 
+<li class="toctree-l1"><a class="reference internal" href="available_data.html">Available Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="annotation_classes.html">Annotation Classes</a></li>
 </ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Train:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="dataloader.html">Creating a CellMap Data PyTorch Dataloader</a></li>
+<li class="toctree-l1"><a class="reference internal" href="load_model_weights.html">Loading a Pretrained Model Checkpoint</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">API:</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">cellmap_segmentation_challenge</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html">cellmap_segmentation_challenge.cli</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.datasplit.html">cellmap_segmentation_challenge.cli.datasplit</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.evaluate.html">cellmap_segmentation_challenge.cli.evaluate</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.fetch_data.html">cellmap_segmentation_challenge.cli.fetch_data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.predict.html">cellmap_segmentation_challenge.cli.predict</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.process.html">cellmap_segmentation_challenge.cli.process</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.speedtest.html">cellmap_segmentation_challenge.cli.speedtest</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.train.html">cellmap_segmentation_challenge.cli.train</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.cli.visualize.html">cellmap_segmentation_challenge.cli.visualize</a></li>
+<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">cellmap_segmentation_challenge package</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html">cellmap_segmentation_challenge.cli package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils package</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.config.html">cellmap_segmentation_challenge.config</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.evaluate.html">cellmap_segmentation_challenge.evaluate</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.model_load.html">cellmap_segmentation_challenge.models.model_load</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.resnet.html">cellmap_segmentation_challenge.models.resnet</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.unet_model_2D.html">cellmap_segmentation_challenge.models.unet_model_2D</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.unet_model_3D.html">cellmap_segmentation_challenge.models.unet_model_3D</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.vitnet.html">cellmap_segmentation_challenge.models.vitnet</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.process.html">cellmap_segmentation_challenge.process</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.crops.html">cellmap_segmentation_challenge.utils.crops</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.dataloader.html">cellmap_segmentation_challenge.utils.dataloader</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.datasplit.html">cellmap_segmentation_challenge.utils.datasplit</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.fetch_data.html">cellmap_segmentation_challenge.utils.fetch_data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.loss.html">cellmap_segmentation_challenge.utils.loss</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.security.html">cellmap_segmentation_challenge.utils.security</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.visualize.html">cellmap_segmentation_challenge.visualize</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1"><a class="reference internal" href="cellmap_segmentation_challenge.train.html">cellmap_segmentation_challenge.train</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cellmap_segmentation_challenge.predict.html">cellmap_segmentation_challenge.predict</a></li>
 </ul>
 
     </div>
@@ -320,7 +299,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>cellmap_segmentation_challenge</h1>
+    <h1>cellmap_segmentation_challenge package</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -330,10 +309,53 @@
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.package_submission"><code class="docutils literal notranslate"><span class="pre">package_submission()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.save_numpy_class_arrays_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_arrays_to_zarr()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.save_numpy_class_labels_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_labels_to_zarr()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.score_submission"><code class="docutils literal notranslate"><span class="pre">score_submission()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#subpackages">Subpackages</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.config">cellmap_segmentation_challenge.config module</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.evaluate">cellmap_segmentation_challenge.evaluate module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.unzip_file"><code class="docutils literal notranslate"><span class="pre">unzip_file()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.save_numpy_class_labels_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_labels_to_zarr()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.save_numpy_class_arrays_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_arrays_to_zarr()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.resize_array"><code class="docutils literal notranslate"><span class="pre">resize_array()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.hausdorff_distance"><code class="docutils literal notranslate"><span class="pre">hausdorff_distance()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.score_instance"><code class="docutils literal notranslate"><span class="pre">score_instance()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.score_semantic"><code class="docutils literal notranslate"><span class="pre">score_semantic()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.score_label"><code class="docutils literal notranslate"><span class="pre">score_label()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.score_volume"><code class="docutils literal notranslate"><span class="pre">score_volume()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.missing_volume_score"><code class="docutils literal notranslate"><span class="pre">missing_volume_score()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.combine_scores"><code class="docutils literal notranslate"><span class="pre">combine_scores()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.score_submission"><code class="docutils literal notranslate"><span class="pre">score_submission()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.package_submission"><code class="docutils literal notranslate"><span class="pre">package_submission()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.match_crop_space"><code class="docutils literal notranslate"><span class="pre">match_crop_space()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.zip_submission"><code class="docutils literal notranslate"><span class="pre">zip_submission()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.predict">cellmap_segmentation_challenge.predict module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.predict.predict_orthoplanes"><code class="docutils literal notranslate"><span class="pre">predict_orthoplanes()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.predict.predict"><code class="docutils literal notranslate"><span class="pre">predict()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.process">cellmap_segmentation_challenge.process module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.process.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.train">cellmap_segmentation_challenge.train module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.train.train"><code class="docutils literal notranslate"><span class="pre">train()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.visualize">cellmap_segmentation_challenge.visualize module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.visualize.visualize"><code class="docutils literal notranslate"><span class="pre">visualize()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.visualize.add_layers"><code class="docutils literal notranslate"><span class="pre">add_layers()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.visualize.get_layer"><code class="docutils literal notranslate"><span class="pre">get_layer()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge">Module contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.package_submission"><code class="docutils literal notranslate"><span class="pre">package_submission()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.save_numpy_class_arrays_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_arrays_to_zarr()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.save_numpy_class_labels_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_labels_to_zarr()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.score_submission"><code class="docutils literal notranslate"><span class="pre">score_submission()</span></code></a></li>
+</ul>
+</li>
 </ul>
             </nav>
         </div>
@@ -345,8 +367,796 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="module-cellmap_segmentation_challenge">
-<span id="cellmap-segmentation-challenge"></span><h1>cellmap_segmentation_challenge<a class="headerlink" href="#module-cellmap_segmentation_challenge" title="Link to this heading">#</a></h1>
+  <section id="cellmap-segmentation-challenge-package">
+<h1>cellmap_segmentation_challenge package<a class="headerlink" href="#cellmap-segmentation-challenge-package" title="Link to this heading">#</a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading">#</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html">cellmap_segmentation_challenge.cli package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html#module-cellmap_segmentation_challenge.cli.datasplit">cellmap_segmentation_challenge.cli.datasplit module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html#module-cellmap_segmentation_challenge.cli.evaluate">cellmap_segmentation_challenge.cli.evaluate module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html#module-cellmap_segmentation_challenge.cli.fetch_data">cellmap_segmentation_challenge.cli.fetch_data module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html#module-cellmap_segmentation_challenge.cli.predict">cellmap_segmentation_challenge.cli.predict module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html#module-cellmap_segmentation_challenge.cli.process">cellmap_segmentation_challenge.cli.process module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html#module-cellmap_segmentation_challenge.cli.speedtest">cellmap_segmentation_challenge.cli.speedtest module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html#module-cellmap_segmentation_challenge.cli.train">cellmap_segmentation_challenge.cli.train module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html#module-cellmap_segmentation_challenge.cli.visualize">cellmap_segmentation_challenge.cli.visualize module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html#module-cellmap_segmentation_challenge.cli">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#module-cellmap_segmentation_challenge.models.model_load">cellmap_segmentation_challenge.models.model_load module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.model_load.load_latest"><code class="docutils literal notranslate"><span class="pre">load_latest()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.model_load.load_best_val"><code class="docutils literal notranslate"><span class="pre">load_best_val()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#module-cellmap_segmentation_challenge.models.resnet">cellmap_segmentation_challenge.models.resnet module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.Resnet2D"><code class="docutils literal notranslate"><span class="pre">Resnet2D</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.Resnet2D.forward"><code class="docutils literal notranslate"><span class="pre">Resnet2D.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.ResnetBlock2D"><code class="docutils literal notranslate"><span class="pre">ResnetBlock2D</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.ResnetBlock2D.build_conv_block"><code class="docutils literal notranslate"><span class="pre">ResnetBlock2D.build_conv_block()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.ResnetBlock2D.crop"><code class="docutils literal notranslate"><span class="pre">ResnetBlock2D.crop()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.ResnetBlock2D.forward"><code class="docutils literal notranslate"><span class="pre">ResnetBlock2D.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.Resnet3D"><code class="docutils literal notranslate"><span class="pre">Resnet3D</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.Resnet3D.forward"><code class="docutils literal notranslate"><span class="pre">Resnet3D.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.ResnetBlock3D"><code class="docutils literal notranslate"><span class="pre">ResnetBlock3D</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.ResnetBlock3D.build_conv_block"><code class="docutils literal notranslate"><span class="pre">ResnetBlock3D.build_conv_block()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.ResnetBlock3D.crop"><code class="docutils literal notranslate"><span class="pre">ResnetBlock3D.crop()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.ResnetBlock3D.forward"><code class="docutils literal notranslate"><span class="pre">ResnetBlock3D.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.ResNet"><code class="docutils literal notranslate"><span class="pre">ResNet</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#module-cellmap_segmentation_challenge.models.unet_model_2D">cellmap_segmentation_challenge.models.unet_model_2D module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.unet_model_2D.DoubleConv"><code class="docutils literal notranslate"><span class="pre">DoubleConv</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.unet_model_2D.DoubleConv.forward"><code class="docutils literal notranslate"><span class="pre">DoubleConv.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.unet_model_2D.Down"><code class="docutils literal notranslate"><span class="pre">Down</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.unet_model_2D.Down.forward"><code class="docutils literal notranslate"><span class="pre">Down.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.unet_model_2D.Up"><code class="docutils literal notranslate"><span class="pre">Up</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.unet_model_2D.Up.forward"><code class="docutils literal notranslate"><span class="pre">Up.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.unet_model_2D.OutConv"><code class="docutils literal notranslate"><span class="pre">OutConv</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.unet_model_2D.OutConv.forward"><code class="docutils literal notranslate"><span class="pre">OutConv.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.unet_model_2D.UNet_2D"><code class="docutils literal notranslate"><span class="pre">UNet_2D</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.unet_model_2D.UNet_2D.forward"><code class="docutils literal notranslate"><span class="pre">UNet_2D.forward()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#module-cellmap_segmentation_challenge.models.unet_model_3D">cellmap_segmentation_challenge.models.unet_model_3D module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.unet_model_3D.DoubleConv"><code class="docutils literal notranslate"><span class="pre">DoubleConv</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.unet_model_3D.DoubleConv.forward"><code class="docutils literal notranslate"><span class="pre">DoubleConv.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.unet_model_3D.Down"><code class="docutils literal notranslate"><span class="pre">Down</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.unet_model_3D.Down.forward"><code class="docutils literal notranslate"><span class="pre">Down.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.unet_model_3D.Up"><code class="docutils literal notranslate"><span class="pre">Up</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.unet_model_3D.Up.forward"><code class="docutils literal notranslate"><span class="pre">Up.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.unet_model_3D.OutConv"><code class="docutils literal notranslate"><span class="pre">OutConv</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.unet_model_3D.OutConv.forward"><code class="docutils literal notranslate"><span class="pre">OutConv.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.unet_model_3D.UNet_3D"><code class="docutils literal notranslate"><span class="pre">UNet_3D</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.unet_model_3D.UNet_3D.forward"><code class="docutils literal notranslate"><span class="pre">UNet_3D.forward()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#module-cellmap_segmentation_challenge.models.vitnet">cellmap_segmentation_challenge.models.vitnet module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.get_3DReg_config"><code class="docutils literal notranslate"><span class="pre">get_3DReg_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.np2th"><code class="docutils literal notranslate"><span class="pre">np2th()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.swish"><code class="docutils literal notranslate"><span class="pre">swish()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Attention"><code class="docutils literal notranslate"><span class="pre">Attention</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Attention.transpose_for_scores"><code class="docutils literal notranslate"><span class="pre">Attention.transpose_for_scores()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Attention.forward"><code class="docutils literal notranslate"><span class="pre">Attention.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Mlp"><code class="docutils literal notranslate"><span class="pre">Mlp</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Mlp.forward"><code class="docutils literal notranslate"><span class="pre">Mlp.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Embeddings"><code class="docutils literal notranslate"><span class="pre">Embeddings</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Embeddings.forward"><code class="docutils literal notranslate"><span class="pre">Embeddings.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Block"><code class="docutils literal notranslate"><span class="pre">Block</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Block.forward"><code class="docutils literal notranslate"><span class="pre">Block.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Encoder"><code class="docutils literal notranslate"><span class="pre">Encoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Encoder.forward"><code class="docutils literal notranslate"><span class="pre">Encoder.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Transformer"><code class="docutils literal notranslate"><span class="pre">Transformer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Transformer.forward"><code class="docutils literal notranslate"><span class="pre">Transformer.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Conv3dReLU"><code class="docutils literal notranslate"><span class="pre">Conv3dReLU</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.DecoderBlock"><code class="docutils literal notranslate"><span class="pre">DecoderBlock</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.DecoderBlock.forward"><code class="docutils literal notranslate"><span class="pre">DecoderBlock.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.DecoderCup"><code class="docutils literal notranslate"><span class="pre">DecoderCup</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.DecoderCup.forward"><code class="docutils literal notranslate"><span class="pre">DecoderCup.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.DoubleConv"><code class="docutils literal notranslate"><span class="pre">DoubleConv</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.DoubleConv.forward"><code class="docutils literal notranslate"><span class="pre">DoubleConv.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Down"><code class="docutils literal notranslate"><span class="pre">Down</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Down.forward"><code class="docutils literal notranslate"><span class="pre">Down.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.CNNEncoder"><code class="docutils literal notranslate"><span class="pre">CNNEncoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.CNNEncoder.forward"><code class="docutils literal notranslate"><span class="pre">CNNEncoder.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.RegistrationHead"><code class="docutils literal notranslate"><span class="pre">RegistrationHead</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.ViTVNet"><code class="docutils literal notranslate"><span class="pre">ViTVNet</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.ViTVNet.forward"><code class="docutils literal notranslate"><span class="pre">ViTVNet.forward()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.models.html#module-cellmap_segmentation_challenge.models">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#module-cellmap_segmentation_challenge.utils.crops">cellmap_segmentation_challenge.utils.crops module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.TestCropRow"><code class="docutils literal notranslate"><span class="pre">TestCropRow</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.TestCropRow.id"><code class="docutils literal notranslate"><span class="pre">TestCropRow.id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.TestCropRow.dataset"><code class="docutils literal notranslate"><span class="pre">TestCropRow.dataset</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.TestCropRow.class_label"><code class="docutils literal notranslate"><span class="pre">TestCropRow.class_label</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.TestCropRow.voxel_size"><code class="docutils literal notranslate"><span class="pre">TestCropRow.voxel_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.TestCropRow.translation"><code class="docutils literal notranslate"><span class="pre">TestCropRow.translation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.TestCropRow.shape"><code class="docutils literal notranslate"><span class="pre">TestCropRow.shape</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.TestCropRow.from_csv_row"><code class="docutils literal notranslate"><span class="pre">TestCropRow.from_csv_row()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.fetch_test_crop_manifest"><code class="docutils literal notranslate"><span class="pre">fetch_test_crop_manifest()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.CropRow"><code class="docutils literal notranslate"><span class="pre">CropRow</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.CropRow.id"><code class="docutils literal notranslate"><span class="pre">CropRow.id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.CropRow.dataset"><code class="docutils literal notranslate"><span class="pre">CropRow.dataset</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.CropRow.alignment"><code class="docutils literal notranslate"><span class="pre">CropRow.alignment</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.CropRow.gt_source"><code class="docutils literal notranslate"><span class="pre">CropRow.gt_source</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.CropRow.em_url"><code class="docutils literal notranslate"><span class="pre">CropRow.em_url</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.CropRow.from_csv_row"><code class="docutils literal notranslate"><span class="pre">CropRow.from_csv_row()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.fetch_manifest"><code class="docutils literal notranslate"><span class="pre">fetch_manifest()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.get_test_crops"><code class="docutils literal notranslate"><span class="pre">get_test_crops()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#module-cellmap_segmentation_challenge.utils.dataloader">cellmap_segmentation_challenge.utils.dataloader module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.dataloader.get_dataloader"><code class="docutils literal notranslate"><span class="pre">get_dataloader()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#module-cellmap_segmentation_challenge.utils.datasplit">cellmap_segmentation_challenge.utils.datasplit module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.datasplit.get_dataset_name"><code class="docutils literal notranslate"><span class="pre">get_dataset_name()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.datasplit.get_raw_path"><code class="docutils literal notranslate"><span class="pre">get_raw_path()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.datasplit.get_formatted_fields"><code class="docutils literal notranslate"><span class="pre">get_formatted_fields()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.datasplit.get_s3_csv_string"><code class="docutils literal notranslate"><span class="pre">get_s3_csv_string()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.datasplit.get_csv_string"><code class="docutils literal notranslate"><span class="pre">get_csv_string()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.datasplit.make_s3_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_s3_datasplit_csv()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.datasplit.make_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_datasplit_csv()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.datasplit.get_dataset_counts"><code class="docutils literal notranslate"><span class="pre">get_dataset_counts()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#module-cellmap_segmentation_challenge.utils.fetch_data">cellmap_segmentation_challenge.utils.fetch_data module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.fetch_data.copy_store"><code class="docutils literal notranslate"><span class="pre">copy_store()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.fetch_data.partition_copy_store"><code class="docutils literal notranslate"><span class="pre">partition_copy_store()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.fetch_data.get_store_url"><code class="docutils literal notranslate"><span class="pre">get_store_url()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.fetch_data.get_chunk_keys"><code class="docutils literal notranslate"><span class="pre">get_chunk_keys()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.fetch_data.read_group"><code class="docutils literal notranslate"><span class="pre">read_group()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.fetch_data.subset_to_slice"><code class="docutils literal notranslate"><span class="pre">subset_to_slice()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#module-cellmap_segmentation_challenge.utils.loss">cellmap_segmentation_challenge.utils.loss module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.loss.CellMapLossWrapper"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.loss.CellMapLossWrapper.forward"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper.forward()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#module-cellmap_segmentation_challenge.utils.security">cellmap_segmentation_challenge.utils.security module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.security.analyze_script"><code class="docutils literal notranslate"><span class="pre">analyze_script()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.security.load_safe_config"><code class="docutils literal notranslate"><span class="pre">load_safe_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.security.Config"><code class="docutils literal notranslate"><span class="pre">Config</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#module-cellmap_segmentation_challenge.utils">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">#</a></h2>
+</section>
+<section id="module-cellmap_segmentation_challenge.config">
+<span id="cellmap-segmentation-challenge-config-module"></span><h2>cellmap_segmentation_challenge.config module<a class="headerlink" href="#module-cellmap_segmentation_challenge.config" title="Link to this heading">#</a></h2>
+</section>
+<section id="module-cellmap_segmentation_challenge.evaluate">
+<span id="cellmap-segmentation-challenge-evaluate-module"></span><h2>cellmap_segmentation_challenge.evaluate module<a class="headerlink" href="#module-cellmap_segmentation_challenge.evaluate" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.unzip_file">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">unzip_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zip_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#unzip_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.unzip_file" title="Link to this definition">#</a></dt>
+<dd><p>Unzip a zip file to a specified directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>zip_path</strong> (<em>str</em>) – The path to the zip file.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Example usage:</dt><dd><p>unzip_file(‘submission.zip’)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.save_numpy_class_labels_to_zarr">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">save_numpy_class_labels_to_zarr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_volume_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attrs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#save_numpy_class_labels_to_zarr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.save_numpy_class_labels_to_zarr" title="Link to this definition">#</a></dt>
+<dd><p>Save a single 3D numpy array of class labels to a
+Zarr-2 file with the required structure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>save_path</strong> (<em>str</em>) – The path to save the Zarr-2 file (ending with &lt;filename&gt;.zarr).</p></li>
+<li><p><strong>test_volume_name</strong> (<em>str</em>) – The name of the test volume.</p></li>
+<li><p><strong>label_names</strong> (<em>str</em>) – The names of the labels.</p></li>
+<li><p><strong>labels</strong> (<em>np.ndarray</em>) – A 3D numpy array of class labels.</p></li>
+<li><p><strong>overwrite</strong> (<em>bool</em>) – Whether to overwrite the Zarr-2 file if it already exists.</p></li>
+<li><p><strong>attrs</strong> (<em>dict</em>) – A dictionary of attributes to save with the Zarr-2 file.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Example usage:</dt><dd><p># Generate random class labels, with 0 as background
+labels = np.random.randint(0, 4, (128, 128, 128))
+save_numpy_labels_to_zarr(‘submission.zarr’, ‘test_volume’, [‘label1’, ‘label2’, ‘label3’], labels)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.save_numpy_class_arrays_to_zarr">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">save_numpy_class_arrays_to_zarr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_volume_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'append'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attrs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#save_numpy_class_arrays_to_zarr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.save_numpy_class_arrays_to_zarr" title="Link to this definition">#</a></dt>
+<dd><p>Save a list of 3D numpy arrays of binary or instance labels to a
+Zarr-2 file with the required structure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>save_path</strong> (<em>str</em>) – The path to save the Zarr-2 file (ending with &lt;filename&gt;.zarr).</p></li>
+<li><p><strong>test_volume_name</strong> (<em>str</em>) – The name of the test volume.</p></li>
+<li><p><strong>label_names</strong> (<em>list</em>) – A list of label names corresponding to the list of 3D numpy arrays.</p></li>
+<li><p><strong>labels</strong> (<em>list</em>) – A list of 3D numpy arrays of binary labels.</p></li>
+<li><p><strong>mode</strong> (<em>str</em>) – The mode to use when saving the Zarr-2 file. Options are ‘append’ or ‘overwrite’.</p></li>
+<li><p><strong>attrs</strong> (<em>dict</em>) – A dictionary of attributes to save with the Zarr-2 file.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Example usage:</dt><dd><p>label_names = [‘label1’, ‘label2’, ‘label3’]
+# Generate random binary volumes for each label
+labels = [np.random.randint(0, 2, (128, 128, 128)) for _ in range len(label_names)]
+save_numpy_binary_to_zarr(‘submission.zarr’, ‘test_volume’, label_names, labels)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.resize_array">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">resize_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#resize_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.resize_array" title="Link to this definition">#</a></dt>
+<dd><p>Resize an array to a target shape by padding or cropping as needed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arr</strong> (<em>np.ndarray</em>) – Input array to resize.</p></li>
+<li><p><strong>target_shape</strong> (<em>tuple</em>) – Desired shape for the output array.</p></li>
+<li><p><strong>pad_value</strong> (<em>int</em><em>, </em><em>float</em><em>, </em><em>etc.</em>) – Value to use for padding if the array is smaller than the target shape.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Resized array with the specified target shape.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.hausdorff_distance">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">hausdorff_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">inf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'standard'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#hausdorff_distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.hausdorff_distance" title="Link to this definition">#</a></dt>
+<dd><p>Calculate the Hausdorff distance between nonzero elements of given images.</p>
+<p>Modified from the <cite>scipy.spatial.distance.hausdorff</cite> function by Jeff Rhoades (2024) to handle non-isotropic resolutions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image0</strong> (<em>ndarray</em>) – Arrays where <code class="docutils literal notranslate"><span class="pre">True</span></code> represents a point that is included in a
+set of points. Both arrays must have the same shape.</p></li>
+<li><p><strong>image1</strong> (<em>ndarray</em>) – Arrays where <code class="docutils literal notranslate"><span class="pre">True</span></code> represents a point that is included in a
+set of points. Both arrays must have the same shape.</p></li>
+<li><p><strong>voxel_size</strong> (<em>tuple</em>) – The size of a voxel in each dimension. Assumes the same resolution for both images.</p></li>
+<li><p><strong>max_distance</strong> (<em>float</em><em>, </em><em>optional</em>) – The maximum distance to consider. Default is infinity.</p></li>
+<li><p><strong>method</strong> (<em>{'standard'</em><em>, </em><em>'modified'}</em><em>, </em><em>optional</em><em>, </em><em>default = 'standard'</em>) – The method to use for calculating the Hausdorff distance.
+<code class="docutils literal notranslate"><span class="pre">standard</span></code> is the standard Hausdorff distance, while <code class="docutils literal notranslate"><span class="pre">modified</span></code>
+is the modified Hausdorff distance.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>distance</strong> – The Hausdorff distance between coordinates of nonzero pixels in
+<code class="docutils literal notranslate"><span class="pre">image0</span></code> and <code class="docutils literal notranslate"><span class="pre">image1</span></code>, using the Euclidean distance.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The Hausdorff distance <a class="footnote-reference brackets" href="#id3" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> is the maximum distance between any point on
+<code class="docutils literal notranslate"><span class="pre">image0</span></code> and its nearest point on <code class="docutils literal notranslate"><span class="pre">image1</span></code>, and vice-versa.
+The Modified Hausdorff Distance (MHD) has been shown to perform better
+than the directed Hausdorff Distance (HD) in the following work by
+Dubuisson et al. <a class="footnote-reference brackets" href="#id4" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>. The function calculates forward and backward
+mean distances and returns the largest of the two.</p>
+<p class="rubric">References</p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id3" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p><a class="reference external" href="http://en.wikipedia.org/wiki/Hausdorff_distance">http://en.wikipedia.org/wiki/Hausdorff_distance</a></p>
+</aside>
+<aside class="footnote brackets" id="id4" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
+<p>M. P. Dubuisson and A. K. Jain. A Modified Hausdorff distance for object
+matching. In ICPR94, pages A:566-568, Jerusalem, Israel, 1994.
+<a href="#id5"><span class="problematic" id="id6">:DOI:`10.1109/ICPR.1994.576361`</span></a>
+<a class="reference external" href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.1.8155">http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.1.8155</a></p>
+</aside>
+</aside>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.score_instance">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">score_instance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pred_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">truth_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hausdorff_distance_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">inf</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#score_instance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.score_instance" title="Link to this definition">#</a></dt>
+<dd><p>Score a single instance label volume against the ground truth instance label volume.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pred_label</strong> (<em>np.ndarray</em>) – The predicted instance label volume.</p></li>
+<li><p><strong>truth_label</strong> (<em>np.ndarray</em>) – The ground truth instance label volume.</p></li>
+<li><p><strong>voxel_size</strong> (<em>tuple</em>) – The size of a voxel in each dimension.</p></li>
+<li><p><strong>hausdorff_distance_max</strong> (<em>float</em>) – The maximum distance to consider for the Hausdorff distance.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary of scores for the instance label volume.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Example usage:</dt><dd><p>scores = score_instance(pred_label, truth_label)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.score_semantic">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">score_semantic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pred_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">truth_label</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#score_semantic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.score_semantic" title="Link to this definition">#</a></dt>
+<dd><p>Score a single semantic label volume against the ground truth semantic label volume.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pred_label</strong> (<em>np.ndarray</em>) – The predicted semantic label volume.</p></li>
+<li><p><strong>truth_label</strong> (<em>np.ndarray</em>) – The ground truth semantic label volume.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary of scores for the semantic label volume.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Example usage:</dt><dd><p>scores = score_semantic(pred_label, truth_label)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.score_label">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">score_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pred_label_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">truth_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.8/x64/lib/python3.12/data/ground_truth.zarr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['nuc',</span> <span class="pre">'vim',</span> <span class="pre">'ves',</span> <span class="pre">'endo',</span> <span class="pre">'lyso',</span> <span class="pre">'ld',</span> <span class="pre">'perox',</span> <span class="pre">'mito',</span> <span class="pre">'np',</span> <span class="pre">'mt',</span> <span class="pre">'cell',</span> <span class="pre">'instance']</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#score_label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.score_label" title="Link to this definition">#</a></dt>
+<dd><p>Score a single label volume against the ground truth label volume.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pred_label_path</strong> (<em>str</em>) – The path to the predicted label volume.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary of scores for the label volume.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Example usage:</dt><dd><p>scores = score_label(‘pred.zarr/test_volume/label1’)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.score_volume">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">score_volume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pred_volume_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">truth_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.8/x64/lib/python3.12/data/ground_truth.zarr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['nuc',</span> <span class="pre">'vim',</span> <span class="pre">'ves',</span> <span class="pre">'endo',</span> <span class="pre">'lyso',</span> <span class="pre">'ld',</span> <span class="pre">'perox',</span> <span class="pre">'mito',</span> <span class="pre">'np',</span> <span class="pre">'mt',</span> <span class="pre">'cell',</span> <span class="pre">'instance']</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#score_volume"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.score_volume" title="Link to this definition">#</a></dt>
+<dd><p>Score a single volume against the ground truth volume.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pred_volume_path</strong> (<em>str</em>) – The path to the predicted volume.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary of scores for the volume.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Example usage:</dt><dd><p>scores = score_volume(‘pred.zarr/test_volume’)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.missing_volume_score">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">missing_volume_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">truth_volume_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['nuc',</span> <span class="pre">'vim',</span> <span class="pre">'ves',</span> <span class="pre">'endo',</span> <span class="pre">'lyso',</span> <span class="pre">'ld',</span> <span class="pre">'perox',</span> <span class="pre">'mito',</span> <span class="pre">'np',</span> <span class="pre">'mt',</span> <span class="pre">'cell',</span> <span class="pre">'instance']</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#missing_volume_score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.missing_volume_score" title="Link to this definition">#</a></dt>
+<dd><p>Score a missing volume as 0’s, congruent with the score_volume function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>truth_volume_path</strong> (<em>str</em>) – The path to the ground truth volume.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary of scores for the volume.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Example usage:</dt><dd><p>scores = missing_volume_score(‘truth.zarr/test_volume’)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.combine_scores">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">combine_scores</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_missing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['nuc',</span> <span class="pre">'vim',</span> <span class="pre">'ves',</span> <span class="pre">'endo',</span> <span class="pre">'lyso',</span> <span class="pre">'ld',</span> <span class="pre">'perox',</span> <span class="pre">'mito',</span> <span class="pre">'np',</span> <span class="pre">'mt',</span> <span class="pre">'cell',</span> <span class="pre">'instance']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#combine_scores"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.combine_scores" title="Link to this definition">#</a></dt>
+<dd><p>Combine scores across volumes, normalizing by the number of voxels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scores</strong> (<em>dict</em>) – A dictionary of scores for each volume, as returned by <cite>score_volume</cite>.</p></li>
+<li><p><strong>include_missing</strong> (<em>bool</em>) – Whether to include missing volumes in the combined scores.</p></li>
+<li><p><strong>instance_classes</strong> (<em>list</em>) – A list of instance classes.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary of combined scores across all volumes.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Example usage:</dt><dd><p>combined_scores = combine_scores(scores)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.score_submission">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">score_submission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">submission_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.8/x64/lib/python3.12/data/submission.zip'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">truth_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.8/x64/lib/python3.12/data/ground_truth.zarr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['nuc',</span> <span class="pre">'vim',</span> <span class="pre">'ves',</span> <span class="pre">'endo',</span> <span class="pre">'lyso',</span> <span class="pre">'ld',</span> <span class="pre">'perox',</span> <span class="pre">'mito',</span> <span class="pre">'np',</span> <span class="pre">'mt',</span> <span class="pre">'cell',</span> <span class="pre">'instance']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#score_submission"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.score_submission" title="Link to this definition">#</a></dt>
+<dd><p>Score a submission against the ground truth data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>submission_path</strong> (<em>str</em>) – The path to the zipped submission Zarr-2 file.</p></li>
+<li><p><strong>result_file</strong> (<em>str</em>) – The path to save the scores.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary of scores for the submission.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Example usage:</dt><dd><p>scores = score_submission(‘submission.zip’)</p>
+</dd>
+</dl>
+<p>The results json is a dictionary with the following structure:
+{</p>
+<blockquote>
+<div><dl>
+<dt>“volume” (the name of the ground truth volume): {</dt><dd><dl>
+<dt>“label” (the name of the predicted class): {</dt><dd><dl class="simple">
+<dt>(For semantic segmentation)</dt><dd><p>“iou”: (the intersection over union score),
+“dice_score”: (the dice score),</p>
+</dd>
+</dl>
+<p>OR</p>
+<dl class="simple">
+<dt>(For instance segmentation)</dt><dd><p>“accuracy”: (the accuracy score),
+“haussdorf_distance”: (the haussdorf distance),
+“normalized_haussdorf_distance”: (the normalized haussdorf distance),
+“combined_score”: (the geometric mean of the accuracy and normalized haussdorf distance),</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>}
+“num_voxels”: (the number of voxels in the ground truth volume),</p>
+</dd>
+</dl>
+<p>}
+“label_scores”: {</p>
+<blockquote>
+<div><dl>
+<dt>(the name of the predicted class): {</dt><dd><dl class="simple">
+<dt>(For semantic segmentation)</dt><dd><p>“iou”: (the mean intersection over union score),
+“dice_score”: (the mean dice score),</p>
+</dd>
+</dl>
+<p>OR</p>
+<dl class="simple">
+<dt>(For instance segmentation)</dt><dd><p>“accuracy”: (the mean accuracy score),
+“haussdorf_distance”: (the mean haussdorf distance),
+“combined_score”: (the mean geometric mean of the accuracy and haussdorf distance),</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>}</p>
+</div></blockquote>
+<p>“overall_score”: (the mean of the combined scores across all classes),</p>
+</div></blockquote>
+<p>}</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.package_submission">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">package_submission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_search_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">UPath</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.8/x64/lib/python3.12/data/processed/{dataset}.zarr/{crop}'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">UPath</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.8/x64/lib/python3.12/data/submission.zarr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#package_submission"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.package_submission" title="Link to this definition">#</a></dt>
+<dd><p>Package a submission for the CellMap challenge. This will create a zarr file, combining all the processed volumes, and then zip it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_search_path</strong> (<em>str</em>) – The base path to the processed volumes, with placeholders for dataset and crops.</p></li>
+<li><p><strong>output_path</strong> (<em>str</em><em> | </em><em>UPath</em>) – The path to save the submission zarr to. (ending with <cite>&lt;filename&gt;.zarr</cite>; <cite>.zarr</cite> will be appended if not present, and replaced with <cite>.zip</cite> when zipped).</p></li>
+<li><p><strong>overwrite</strong> (<em>bool</em>) – Whether to overwrite the submission zarr if it already exists.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.match_crop_space">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">match_crop_space</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">class_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">translation</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#match_crop_space"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.match_crop_space" title="Link to this definition">#</a></dt>
+<dd><p>Match the resolution of a zarr array to a target resolution and shape, resampling as necessary with interpolation dependent on the class label. Instance segmentations will be resampled with nearest neighbor interpolation, while semantic segmentations will be resampled with linear interpolation and then thresholded.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em><em> | </em><em>UPath</em>) – The path to the zarr array to match. The zarr can be an OME-NGFF multiscale zarr file, or a traditional single scale formatted zarr.</p></li>
+<li><p><strong>class_label</strong> (<em>str</em>) – The class label of the array.</p></li>
+<li><p><strong>voxel_size</strong> (<em>tuple</em>) – The target voxel size.</p></li>
+<li><p><strong>shape</strong> (<em>tuple</em>) – The target shape.</p></li>
+<li><p><strong>translation</strong> (<em>tuple</em>) – The translation (i.e. offset) of the array in world units.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The rescaled array.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.zip_submission">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">zip_submission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zarr_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">UPath</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.8/x64/lib/python3.12/data/submission.zarr'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#zip_submission"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.zip_submission" title="Link to this definition">#</a></dt>
+<dd><p>(Re-)Zip a submission zarr file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>zarr_path</strong> (<em>str</em><em> | </em><em>UPath</em>) – The path to the submission zarr file (ending with <cite>&lt;filename&gt;.zarr</cite>). <cite>.zarr</cite> will be replaced with <cite>.zip</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-cellmap_segmentation_challenge.predict">
+<span id="cellmap-segmentation-challenge-predict-module"></span><h2>cellmap_segmentation_challenge.predict module<a class="headerlink" href="#module-cellmap_segmentation_challenge.predict" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.predict.predict_orthoplanes">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.predict.</span></span><span class="sig-name descname"><span class="pre">predict_orthoplanes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_writer_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/predict.html#predict_orthoplanes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.predict.predict_orthoplanes" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>Module</em>)</p></li>
+<li><p><strong>dataset_writer_kwargs</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>)</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.predict.predict">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.predict.</span></span><span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crops</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'test'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.8/x64/lib/python3.12/data/predictions/{dataset}.zarr/{crop}'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_orthoplanes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.8/x64/lib/python3.12/data/{dataset}/{dataset}.zarr/recon-1/{name}'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raw_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'em/fibsem-uint8'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crop_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'labels/groundtruth/{crop}/{label}'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/predict.html#predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.predict.predict" title="Link to this definition">#</a></dt>
+<dd><p>Given a model configuration file and list of crop numbers, predicts the output of a model on a large dataset by splitting it into blocks and predicting each block separately.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_path</strong> (<em>str</em>) – The path to the model configuration file. This can be the same as the config file used for training.</p></li>
+<li><p><strong>crops</strong> (<em>str</em><em>, </em><em>optional</em>) – A comma-separated list of crop numbers to predict on, or “test” to predict on the entire test set. Default is “test”.</p></li>
+<li><p><strong>output_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The path to save the output predictions to, formatted as a string with a placeholders for the dataset, crop number, and label. Default is PREDICTIONS_PATH set in <cite>cellmap-segmentation/config.py</cite>.</p></li>
+<li><p><strong>do_orthoplanes</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to compute the average of predictions from x, y, and z orthogonal planes for the full 3D volume. This is sometimes called 2.5D predictions. It expects a model that yields 2D outputs. Similarly, it expects the input shape to the model to be 2D. Default is True for 2D models.</p></li>
+<li><p><strong>overwrite</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to overwrite the output dataset if it already exists. Default is False.</p></li>
+<li><p><strong>search_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The path to search for the raw dataset, with placeholders for dataset and name. Default is SEARCH_PATH set in <cite>cellmap-segmentation/config.py</cite>.</p></li>
+<li><p><strong>raw_name</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the raw dataset. Default is RAW_NAME set in <cite>cellmap-segmentation/config.py</cite>.</p></li>
+<li><p><strong>crop_name</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the crop dataset with placeholders for crop and label. Default is CROP_NAME set in <cite>cellmap-segmentation/config.py</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-cellmap_segmentation_challenge.process">
+<span id="cellmap-segmentation-challenge-process-module"></span><h2>cellmap_segmentation_challenge.process module<a class="headerlink" href="#module-cellmap_segmentation_challenge.process" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.process.process">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.process.</span></span><span class="sig-name descname"><span class="pre">process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">UPath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crops</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'test'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.8/x64/lib/python3.12/data/predictions/{dataset}.zarr/{crop}'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.8/x64/lib/python3.12/data/processed/{dataset}.zarr/{crop}'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/process.html#process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.process.process" title="Link to this definition">#</a></dt>
+<dd><p>Process and save arrays using an arbitrary process function defined in a config python file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_path</strong> (<em>str</em><em> | </em><em>UPath</em>) – The path to the python file containing the process function and other configurations. The script should specify the process function as <cite>process_func</cite>; <cite>input_array_info</cite> and <cite>target_array_info</cite> corresponding to the chunk sizes and scales for the input and output datasets, respectively; <cite>batch_size</cite>; <cite>classes</cite>; and any other required configurations.
+The process function should take an array as input and return an array as output.</p></li>
+<li><p><strong>crops</strong> (<em>str</em><em>, </em><em>optional</em>) – A comma-separated list of crop numbers to process, or “test” to process the entire test set. Default is “test”.</p></li>
+<li><p><strong>input_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The path to the data to process, formatted as a string with a placeholders for the crop number, dataset, and label. Default is PREDICTIONS_PATH set in <cite>cellmap-segmentation/config.py</cite>.</p></li>
+<li><p><strong>output_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The path to save the processed output to, formatted as a string with a placeholders for the crop number, dataset, and label. Default is PROCESSED_PATH set in <cite>cellmap-segmentation/config.py</cite>.</p></li>
+<li><p><strong>overwrite</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to overwrite the output dataset if it already exists. Default is False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-cellmap_segmentation_challenge.train">
+<span id="cellmap-segmentation-challenge-train-module"></span><h2>cellmap_segmentation_challenge.train module<a class="headerlink" href="#module-cellmap_segmentation_challenge.train" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.train.train">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.train.</span></span><span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/train.html#train"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.train.train" title="Link to this definition">#</a></dt>
+<dd><p>Train a model using the configuration file at the specified path. The model checkpoints and training logs, as well as the datasets used for training, will be saved to the paths specified in the configuration file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config_path</strong> (<em>str</em>) – Path to the configuration file to use for training the model. This file should be a Python file that defines the hyperparameters and other configurations for training the model. This may include:
+- model_save_path: Path to save the model checkpoints. Default is ‘checkpoints/{model_name}_{epoch}.pth’.
+- logs_save_path: Path to save the logs for tensorboard. Default is ‘tensorboard/{model_name}’. Training progress may be monitored by running <cite>tensorboard –logdir &lt;logs_save_path&gt;</cite> in the terminal.
+- datasplit_path: Path to the datasplit file that defines the train/val split the dataloader should use. Default is ‘datasplit.csv’.
+- validation_prob: Proportion of the datasets to use for validation. This is used if the datasplit CSV specified by <cite>datasplit_path</cite> does not already exist. Default is 0.3.
+- learning_rate: Learning rate for the optimizer. Default is 0.0001.
+- batch_size: Batch size for the dataloader. Default is 8.
+- input_array_info: Dictionary containing the shape and scale of the input data. Default is {‘shape’: (1, 128, 128), ‘scale’: (8, 8, 8)}.
+- target_array_info: Dictionary containing the shape and scale of the target data. Default is to use <cite>input_array_info</cite>.
+- epochs: Number of epochs to train the model for. Default is 1000.
+- iterations_per_epoch: Number of iterations per epoch. Each iteration includes an independently generated random batch from the training set. Default is 1000.
+- random_seed: Random seed for reproducibility. Default is 42.
+- classes: List of classes to train the model to predict. This will be reflected in the data included in the datasplit, if generated de novo after calling this script. Default is [‘nuc’, ‘er’].
+- model_name: Name of the model to use. If the config file constructs the PyTorch model, this name can be anything. If the config file does not construct the PyTorch model, the model_name will need to specify which included architecture to use. This includes ‘2d_unet’, ‘2d_resnet’, ‘3d_unet’, ‘3d_resnet’, and ‘vitnet’. Default is ‘2d_unet’. See the <cite>models</cite> module <cite>README.md</cite> for more information.
+- model_to_load: Name of the pre-trained model to load. Default is the same as <cite>model_name</cite>.
+- model_kwargs: Dictionary of keyword arguments to pass to the model constructor. Default is {}. If the PyTorch <cite>model</cite> is passed, this will be ignored. See the <cite>models</cite> module <cite>README.md</cite> for more information.
+- model: PyTorch model to use for training. If this is provided, the <cite>model_name</cite> and <cite>model_to_load</cite> can be any string. Default is None.
+- load_model: Which model checkpoint to load if it exists. Options are ‘latest’ or ‘best’. If no checkpoints exist, will silently use the already initialized model. Default is ‘latest’.
+- spatial_transforms: Dictionary of spatial transformations to apply to the training data. Default is {‘mirror’: {‘axes’: {‘x’: 0.5, ‘y’: 0.5}}, ‘transpose’: {‘axes’: [‘x’, ‘y’]}, ‘rotate’: {‘axes’: {‘x’: [-180, 180], ‘y’: [-180, 180]}}}. See the <cite>dataloader</cite> module documentation for more information.
+- validation_time_limit: Maximum time to spend on validation in seconds. If None, there is no time limit. Default is None.
+- validation_batch_limit: Maximum number of validation batches to process. If None, there is no limit. Default is None.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-cellmap_segmentation_challenge.visualize">
+<span id="cellmap-segmentation-challenge-visualize-module"></span><h2>cellmap_segmentation_challenge.visualize module<a class="headerlink" href="#module-cellmap_segmentation_challenge.visualize" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.visualize.visualize">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.visualize.</span></span><span class="sig-name descname"><span class="pre">visualize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datasets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'*'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crops</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['*']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'*'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kinds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['gt',</span> <span class="pre">'predictions',</span> <span class="pre">'processed',</span> <span class="pre">'submission']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/visualize.html#visualize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.visualize.visualize" title="Link to this definition">#</a></dt>
+<dd><p>Visualize datasets and crops in Neuroglancer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datasets</strong> (<em>str</em><em> | </em><em>Sequence</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The name of the dataset to visualize. Can be a string or a list of strings. Default is “*”. If “*”, all datasets will be visualized.</p></li>
+<li><p><strong>crops</strong> (<em>int</em><em> | </em><em>Sequence</em><em>[</em><em>int</em><em>]</em><em>, </em><em>optional</em>) – The crop number(s) to visualize. Can be an integer or a list of integers, or None. Default is None. If None, all crops will be visualized.</p></li>
+<li><p><strong>classes</strong> (<em>str</em><em> | </em><em>Sequence</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The class to visualize. Can be a string or a list of strings. Default is “*”. If “*”, all classes will be visualized.</p></li>
+<li><p><strong>kinds</strong> (<em>Sequence</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The type of layers to visualize. Can be “gt” for groundtruth, “predictions” for predictions, or “processed” for processed data. Default is [“gt”, “predictions”, “processed”, “submission”].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.visualize.add_layers">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.visualize.</span></span><span class="sig-name descname"><span class="pre">add_layers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viewer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Viewer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crops</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Viewer</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/visualize.html#add_layers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.visualize.add_layers" title="Link to this definition">#</a></dt>
+<dd><p>Add layers to a Neuroglancer viewer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>viewer</strong> (<em>neuroglancer.Viewer</em>) – The viewer to add layers to.</p></li>
+<li><p><strong>kind</strong> (<em>str</em>) – The type of layers to add. Can be “gt” for groundtruth, “predictions” for predictions, or “processed” for processed data.</p></li>
+<li><p><strong>dataset_name</strong> (<em>str</em>) – The name of the dataset to add layers for.</p></li>
+<li><p><strong>crops</strong> (<em>Sequence</em>) – The crops to add layers for.</p></li>
+<li><p><strong>classes</strong> (<em>Sequence</em><em>[</em><em>str</em><em>]</em>) – The class(es) to add layers for.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Viewer</em> | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.visualize.get_layer">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.visualize.</span></span><span class="sig-name descname"><span class="pre">get_layer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layer_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'image'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multiscale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Layer</span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/visualize.html#get_layer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.visualize.get_layer" title="Link to this definition">#</a></dt>
+<dd><p>Get a Neuroglancer layer from a zarr data path for a LocalVolume.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_path</strong> (<em>str</em>) – The path to the zarr data.</p></li>
+<li><p><strong>layer_type</strong> (<em>str</em>) – The type of layer to get. Can be “image” or “segmentation”. Default is “image”.</p></li>
+<li><p><strong>multiscale</strong> (<em>bool</em>) – Whether the metadata is OME-NGFF multiscale. Default is True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The Neuroglancer layer.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>neuroglancer.Layer</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-cellmap_segmentation_challenge">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-cellmap_segmentation_challenge" title="Link to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.package_submission">
 <span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.</span></span><span class="sig-name descname"><span class="pre">package_submission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_search_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">UPath</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.8/x64/lib/python3.12/data/processed/{dataset}.zarr/{crop}'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">UPath</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.8/x64/lib/python3.12/data/submission.zarr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#package_submission"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.package_submission" title="Link to this definition">#</a></dt>
@@ -484,39 +1294,7 @@ save_numpy_labels_to_zarr(‘submission.zarr’, ‘test_volume’, [‘label1�
 <p>}</p>
 </dd></dl>
 
-<p class="rubric">Modules</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.cli.html#module-cellmap_segmentation_challenge.cli" title="cellmap_segmentation_challenge.cli"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cli</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.config.html#module-cellmap_segmentation_challenge.config" title="cellmap_segmentation_challenge.config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">config</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.evaluate.html#module-cellmap_segmentation_challenge.evaluate" title="cellmap_segmentation_challenge.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.models.html#module-cellmap_segmentation_challenge.models" title="cellmap_segmentation_challenge.models"><code class="xref py py-obj docutils literal notranslate"><span class="pre">models</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.predict.html#module-cellmap_segmentation_challenge.predict" title="cellmap_segmentation_challenge.predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.process.html#module-cellmap_segmentation_challenge.process" title="cellmap_segmentation_challenge.process"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.train.html#module-cellmap_segmentation_challenge.train" title="cellmap_segmentation_challenge.train"><code class="xref py py-obj docutils literal notranslate"><span class="pre">train</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#module-cellmap_segmentation_challenge.utils" title="cellmap_segmentation_challenge.utils"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="cellmap_segmentation_challenge.visualize.html#module-cellmap_segmentation_challenge.visualize" title="cellmap_segmentation_challenge.visualize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">visualize</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-</tbody>
-</table>
-</div>
+</section>
 </section>
 
 
@@ -531,12 +1309,12 @@ save_numpy_labels_to_zarr(‘submission.zarr’, ‘test_volume’, [‘label1�
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="cellmap-schemas.html"
+       href="load_model_weights.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">CellMap Schemas</p>
+        <p class="prev-next-title">Loading a Pretrained Model Checkpoint</p>
       </div>
     </a>
     <a class="right-next"
@@ -544,7 +1322,7 @@ save_numpy_labels_to_zarr(‘submission.zarr’, ‘test_volume’, [‘label1�
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">cellmap_segmentation_challenge.cli</p>
+        <p class="prev-next-title">cellmap_segmentation_challenge.cli package</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -565,10 +1343,53 @@ save_numpy_labels_to_zarr(‘submission.zarr’, ‘test_volume’, [‘label1�
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.package_submission"><code class="docutils literal notranslate"><span class="pre">package_submission()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.save_numpy_class_arrays_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_arrays_to_zarr()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.save_numpy_class_labels_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_labels_to_zarr()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.score_submission"><code class="docutils literal notranslate"><span class="pre">score_submission()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#subpackages">Subpackages</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.config">cellmap_segmentation_challenge.config module</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.evaluate">cellmap_segmentation_challenge.evaluate module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.unzip_file"><code class="docutils literal notranslate"><span class="pre">unzip_file()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.save_numpy_class_labels_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_labels_to_zarr()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.save_numpy_class_arrays_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_arrays_to_zarr()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.resize_array"><code class="docutils literal notranslate"><span class="pre">resize_array()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.hausdorff_distance"><code class="docutils literal notranslate"><span class="pre">hausdorff_distance()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.score_instance"><code class="docutils literal notranslate"><span class="pre">score_instance()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.score_semantic"><code class="docutils literal notranslate"><span class="pre">score_semantic()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.score_label"><code class="docutils literal notranslate"><span class="pre">score_label()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.score_volume"><code class="docutils literal notranslate"><span class="pre">score_volume()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.missing_volume_score"><code class="docutils literal notranslate"><span class="pre">missing_volume_score()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.combine_scores"><code class="docutils literal notranslate"><span class="pre">combine_scores()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.score_submission"><code class="docutils literal notranslate"><span class="pre">score_submission()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.package_submission"><code class="docutils literal notranslate"><span class="pre">package_submission()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.match_crop_space"><code class="docutils literal notranslate"><span class="pre">match_crop_space()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.zip_submission"><code class="docutils literal notranslate"><span class="pre">zip_submission()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.predict">cellmap_segmentation_challenge.predict module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.predict.predict_orthoplanes"><code class="docutils literal notranslate"><span class="pre">predict_orthoplanes()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.predict.predict"><code class="docutils literal notranslate"><span class="pre">predict()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.process">cellmap_segmentation_challenge.process module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.process.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.train">cellmap_segmentation_challenge.train module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.train.train"><code class="docutils literal notranslate"><span class="pre">train()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.visualize">cellmap_segmentation_challenge.visualize module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.visualize.visualize"><code class="docutils literal notranslate"><span class="pre">visualize()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.visualize.add_layers"><code class="docutils literal notranslate"><span class="pre">add_layers()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.visualize.get_layer"><code class="docutils literal notranslate"><span class="pre">get_layer()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge">Module contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.package_submission"><code class="docutils literal notranslate"><span class="pre">package_submission()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.save_numpy_class_arrays_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_arrays_to_zarr()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.save_numpy_class_labels_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_labels_to_zarr()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.score_submission"><code class="docutils literal notranslate"><span class="pre">score_submission()</span></code></a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 
