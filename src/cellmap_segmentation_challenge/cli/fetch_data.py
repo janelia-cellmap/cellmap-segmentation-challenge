@@ -143,8 +143,6 @@ def fetch_data_cli(
 
         em_source_group: None | zarr.Group = None
         if not isinstance(crop.gt_source, TestCropRow):
-            # gt_save_start = time.time()
-            # gt_source_url = _resolve_gt_source_url(crop_url, crop)
             gt_source_url = crop.gt_source
             log.info(f"Fetching GT data for crop {crop.id} from {gt_source_url}")
             try:
@@ -173,7 +171,7 @@ def fetch_data_cli(
             )
 
         dest_root = URL.build(
-            scheme="file", path=f"/{Path(dest_path_abs).as_posix()}"
+            scheme="file", path=f"/{dest_path_abs.as_posix().lstrip('/')}"
         ).joinpath(f"{crop.dataset}/{crop.dataset}.zarr")
 
         gt_dest_path = _resolve_gt_dest_path(crop)
@@ -222,7 +220,7 @@ def fetch_data_cli(
 
             # model the em group locally
             dest_em_group = GroupSpec.from_zarr(em_source_group).to_zarr(
-                FSStore(str(dest_root / em_dest_path)),
+                FSStore(str(dest_root / em_dest_path), normalize_keys=True),
                 path="",
                 overwrite=(mode == "w"),
             )
@@ -329,7 +327,7 @@ def fetch_data_cli(
                     )
                     new_chunks = tuple(
                         map(
-                            lambda v: "/".join([key, v]),
+                            lambda v: os.path.join(key, v),
                             get_chunk_keys(em_source_group[key], slices_padded),
                         )
                     )
@@ -339,7 +337,7 @@ def fetch_data_cli(
                     log.info(
                         f"Skipping scale level {key} because it is sampled more densely than the groundtruth data"
                     )
-                em_group_inventory += (f"{key}/.zarray",)
+                em_group_inventory += (os.path.join(key, ".zarray"),)
             # em_group_inventory += (".zattrs",)
             log.info(
                 f"Preparing to fetch {len(em_group_inventory)} files from {em_source_url}."
@@ -359,7 +357,7 @@ def fetch_data_cli(
     num_iter = len(futures)
     for idx, maybe_result in enumerate(as_completed(futures)):
         try:
-            result = maybe_result.result()
+            _ = maybe_result.result()
             log.debug(f"Completed fetching batch {idx + 1} / {num_iter}")
         except Exception as e:
             log.exception(e)
