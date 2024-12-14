@@ -217,19 +217,12 @@ def fetch_data_cli(
             )
             continue
         else:
-            # ensure that intermediate groups are present
-            # dest_root_group.require_group(em_dest_path)
-
             # model the em group locally
             dest_em_group = GroupSpec.from_zarr(em_source_group).to_zarr(
-                FSStore(
-                    str(dest_root / em_dest_path).replace("%5C", "\\"),
-                    normalize_keys=True,
-                ),
+                FSStore(str(dest_root / em_dest_path).replace("%5C", "\\")),
                 path="",
                 overwrite=(mode == "w"),
             )
-            # dest_em_group = zarr.open_group(str(dest_root / em_dest_path), mode=mode)
 
             # get the multiscale model of the source em group
             array_wrapper = {"name": "dask_array", "config": {"chunks": "auto"}}
@@ -332,7 +325,7 @@ def fetch_data_cli(
                     )
                     new_chunks = tuple(
                         map(
-                            lambda v: os.path.join(key, v),
+                            lambda v: f"{key}/{v}",
                             get_chunk_keys(em_source_group[key], slices_padded),
                         )
                     )
@@ -342,7 +335,7 @@ def fetch_data_cli(
                     log.info(
                         f"Skipping scale level {key} because it is sampled more densely than the groundtruth data"
                     )
-                em_group_inventory += (os.path.join(key, ".zarray"),)
+                em_group_inventory += (f"{key}/.zarray",)
             # em_group_inventory += (".zattrs",)
             log.info(
                 f"Preparing to fetch {len(em_group_inventory)} files from {em_source_url}."
