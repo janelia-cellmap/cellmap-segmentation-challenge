@@ -31,7 +31,9 @@ def get_dataset_name(
     assert "{dataset}" in path_base, (
         f"search_path {search_path} must contain" + "{dataset}"
     )
-    for rp, sp in zip(raw_path.split(os.path.sep), path_base.split(os.path.sep)):
+    for rp, sp in zip(
+        UPath(raw_path).path.split("/"), UPath(path_base).path.split("/")
+    ):
         if sp == "{dataset}":
             return rp
     raise ValueError(
@@ -86,7 +88,7 @@ def get_formatted_fields(
         The formatted fields.
     """
     field_results = {}
-    for rp, sp in zip(path.split(os.path.sep), base_path.split(os.path.sep)):
+    for rp, sp in zip(UPath(path).path.split("/"), UPath(base_path).path.split("/")):
         for field in fields:
             if (
                 field in sp and field.strip("{}") not in field_results
