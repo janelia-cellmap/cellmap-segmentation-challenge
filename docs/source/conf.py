@@ -48,6 +48,9 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 html_theme = "sphinx_book_theme"
 html_static_path = ["_static"]
+html_css_files = [
+    "custom.css",
+]
 html_title = "CellMap Segmentation Challenge"
 html_logo = "https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/CellMapLogo.png"
 html_favicon = "https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"
