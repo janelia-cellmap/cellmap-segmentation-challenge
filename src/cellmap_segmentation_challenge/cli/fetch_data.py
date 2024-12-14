@@ -141,7 +141,7 @@ def fetch_data_cli(
         log = log.bind(crop_id=crop.id, dataset=crop.dataset)
         em_source_url = crop.em_url
 
-        em_source_group: None | zarr.Group = None
+        gt_source_group: None | zarr.Group = None
         if not isinstance(crop.gt_source, TestCropRow):
             gt_source_url = crop.gt_source
             log.info(f"Fetching GT data for crop {crop.id} from {gt_source_url}")
@@ -180,7 +180,9 @@ def fetch_data_cli(
         dest_root_group = zarr.open_group(str(dest_root), mode=mode)
         # create intermediate groups
         dest_root_group.require_group(gt_dest_path)
-        dest_crop_group = zarr.open_group(str(dest_root / gt_dest_path), mode=mode)
+        dest_crop_group = zarr.open_group(
+            str(dest_root / gt_dest_path).replace("%5C", "\\"), mode=mode
+        )
 
         if gt_source_group is None:
             log.info(
@@ -220,7 +222,10 @@ def fetch_data_cli(
 
             # model the em group locally
             dest_em_group = GroupSpec.from_zarr(em_source_group).to_zarr(
-                FSStore(str(dest_root / em_dest_path), normalize_keys=True),
+                FSStore(
+                    str(dest_root / em_dest_path).replace("%5C", "\\"),
+                    normalize_keys=True,
+                ),
                 path="",
                 overwrite=(mode == "w"),
             )
