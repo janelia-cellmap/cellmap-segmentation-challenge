@@ -100,19 +100,20 @@ def test_predict(setup_temp_path):
         setup_temp_path / "train_config.py",
     )
 
-    PREDICTION_PATH = os.path.join(
+    prediction_path = os.path.join(
         setup_temp_path, *"data/predictions/{dataset}.zarr/{crop}".split("/")
+    )
+    search_path = os.path.join(
+        setup_temp_path, *"data/{dataset}/{dataset}.zarr/recon-1/{name}".split("/")
     )
 
     predict_cli.callback(
         setup_temp_path / "train_config.py",
         crops="116",
-        output_path=PREDICTION_PATH,
+        output_path=prediction_path,
         do_orthoplanes=False,
         overwrite=True,
-        search_path=os.path.join(
-            setup_temp_path, *"data/{dataset}/{dataset}.zarr/recon-1/{name}".split("/")
-        ),
+        search_path=search_path,
         raw_name=RAW_NAME,
         crop_name=CROP_NAME,
     )
@@ -128,19 +129,20 @@ def test_predict_test_crops(setup_temp_path):
         setup_temp_path / "train_config.py",
     )
 
-    PREDICTION_PATH = os.path.join(
+    prediction_path = os.path.join(
         setup_temp_path, *"data/predictions/{dataset}.zarr/{crop}".split("/")
+    )
+    search_path = os.path.join(
+        setup_temp_path, *"data/{dataset}/{dataset}.zarr/recon-1/{name}".split("/")
     )
 
     predict_cli.callback(
         setup_temp_path / "train_config.py",
         crops="test",
-        output_path=PREDICTION_PATH,
+        output_path=prediction_path,
         do_orthoplanes=False,
         overwrite=True,
-        search_path=os.path.join(
-            setup_temp_path, *"data/{dataset}/{dataset}.zarr/recon-1/{name}".split("/")
-        ),
+        search_path=search_path,
         raw_name=RAW_NAME,
         crop_name=CROP_NAME,
     )
@@ -156,10 +158,10 @@ def test_process(setup_temp_path):
         setup_temp_path / "process_config.py",
     )
 
-    PREDICTION_PATH = os.path.join(
+    prediction_path = os.path.join(
         setup_temp_path, *"data/predictions/{dataset}.zarr/{crop}".split("/")
     )
-    PROCESSED_PATH = os.path.join(
+    processed_path = os.path.join(
         setup_temp_path, *"data/processed/{dataset}.zarr/{crop}".split("/")
     )
 
@@ -167,8 +169,8 @@ def test_process(setup_temp_path):
         setup_temp_path / "process_config.py",
         crops="test",
         overwrite=True,
-        input_path=PREDICTION_PATH,
-        output_path=PROCESSED_PATH,
+        input_path=prediction_path,
+        output_path=processed_path,
     )
 
 
@@ -177,13 +179,13 @@ def test_process(setup_temp_path):
 def test_pack_results(setup_temp_path):
     from cellmap_segmentation_challenge.cli import package_submission_cli
 
-    PROCESSED_PATH = os.path.join(
+    processed_path = os.path.join(
         setup_temp_path,
         *"data/{dataset}/{dataset}.zarr/recon-1/labels/groundtruth/{crop}".split("/"),
     )
-    TRUTH_PATH = setup_temp_path / "data" / "truth.zarr"
+    truth_path = setup_temp_path / "data" / "truth.zarr"
 
-    package_submission_cli.callback(PROCESSED_PATH, str(TRUTH_PATH), overwrite=True)
+    package_submission_cli.callback(processed_path, str(truth_path), overwrite=True)
 
 
 # %%
@@ -204,15 +206,15 @@ def test_evaluate(setup_temp_path, scale, iou, accuracy):
     from cellmap_segmentation_challenge.evaluate import INSTANCE_CLASSES
     import zarr
 
-    TRUTH_PATH = setup_temp_path / "data" / "truth.zarr"
+    truth_path = setup_temp_path / "data" / "truth.zarr"
 
     if any([scale, iou, accuracy]):
-        SUBMISSION_PATH = setup_temp_path / "data" / "submission.zarr"
-        if SUBMISSION_PATH.exists():
+        submission_path = setup_temp_path / "data" / "submission.zarr"
+        if submission_path.exists():
             # Remove the submission zarr if it already exists
-            shutil.rmtree(SUBMISSION_PATH)
-        submission_zarr = zarr.open(SUBMISSION_PATH, mode="w")
-        truth_zarr = zarr.open(TRUTH_PATH, mode="r")
+            shutil.rmtree(submission_path)
+        submission_zarr = zarr.open(submission_path, mode="w")
+        truth_zarr = zarr.open(truth_path, mode="r")
         for crop in truth_zarr.keys():
             crop_zarr = truth_zarr[crop]
             submission_zarr.create_group(crop)
@@ -241,20 +243,20 @@ def test_evaluate(setup_temp_path, scale, iou, accuracy):
                     ]
 
                 save_numpy_class_arrays_to_zarr(
-                    SUBMISSION_PATH,
+                    submission_path,
                     crop,
                     [label],
                     [pred],
                     attrs=attrs,
                 )
     else:
-        SUBMISSION_PATH = TRUTH_PATH
-    zip_submission(SUBMISSION_PATH)
+        submission_path = truth_path
+    zip_submission(submission_path)
 
     evaluate_cli.callback(
-        SUBMISSION_PATH.with_suffix(".zip"),
+        submission_path.with_suffix(".zip"),
         result_file=setup_temp_path / "result.json",
-        truth_path=TRUTH_PATH,
+        truth_path=truth_path,
         instance_classes=",".join(INSTANCE_CLASSES),
     )
 
