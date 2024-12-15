@@ -44,7 +44,15 @@ from ..process import process
     default=False,
     help="Whether to overwrite the output path if it already exists. Default: False.",
 )
-def process_cli(config_path, crops, input_path, output_path, overwrite):
+@click.option(
+    "--device",
+    "-d",
+    type=click.STRING,
+    required=False,
+    default=None,
+    help="Device to use for processing the data. Default: None.",
+)
+def process_cli(config_path, crops, input_path, output_path, overwrite, device):
     """
     Process data from a large dataset by splitting it into blocks and processing each block separately.
 
@@ -56,4 +64,5 @@ def process_cli(config_path, crops, input_path, output_path, overwrite):
         input_path=input_path,
         output_path=output_path,
         overwrite=overwrite,
+        device=device,
     )

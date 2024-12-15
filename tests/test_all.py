@@ -171,6 +171,7 @@ def test_process(setup_temp_path):
         overwrite=True,
         input_path=prediction_path,
         output_path=processed_path,
+        device="cpu",
     )
 
 
