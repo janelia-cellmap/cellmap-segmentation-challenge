@@ -196,7 +196,7 @@ csc visualize --help
 
 # Submit your final predictions
 
-To submit your predictions, first make sure that they are in the correct format (see below), then submit them through [the online submission portal](https://staging.cellmapchallenge.2i2c.cloud/upload). You will need to sign in with your GitHub account to submit your predictions.
+Once submissions open, ensure your predictions are in the correct format (see below), then upload them through [the online submission portal](https://cellmapchallenge.janelia.org/submissions/). You will need to sign in with your GitHub account to submit your predictions.
 
 For convenience, if you have followed the prediction and processing steps described above and in the example scripts, you can use the following command to zip your predictions in the correct format:
 
