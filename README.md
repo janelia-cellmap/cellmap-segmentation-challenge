@@ -2,16 +2,30 @@
 
 # CellMap Segmentation Challenge
 
-Welcome to the **CellMap Segmentation Challenge** documentation!
+Welcome to the **CellMap Segmentation Challenge** toolbox!
 
 This Python package provides a simple and flexible API for:
 
-- Accessing challenge data
-- Running model training
-- Making predictions
-- Evaluating results
+- [Accessing challenge data](#download-the-data)
+- [Running model training](#train-a-model)
+- [Making predictions](#predict-on-test-data)
+- [Evaluating results](#post-process-model-predictions)
 
 The package is built on top of the [`cellmap-data`](https://github.com/janelia-cellmap/cellmap-data) package, which offers tools for interacting with the CellMap data format. Whether you're a beginner or advanced user, this package is designed to be easy to use and highly extensible.
+
+## Table of Contents
+1. [Getting Started](#getting-started)
+    - [Set up your environment](#set-up-your-environment)
+    - [Clone the repository](#clone-the-repository)
+    - [Repository structure](#repository-structure)
+    - [Download the data](#download-the-data)
+2. [Train a model](#train-a-model)
+3. [Predict on test data](#predict-on-test-data)
+4. [Post-process model predictions](#post-process-model-predictions)
+5. [Visualize data and predictions](#visualize-data-and-predictions)
+6. [Submit your final predictions](#submit-your-final-predictions)
+    - [Data format](#data-format)
+7. [Acknowledgements](#acknowledgements)
 
 # Getting started
 
@@ -247,4 +261,4 @@ zip -r submission.zip submission.zarr
 ```
 
 # Acknowledgements
-@rhoadesScholar served as the lead developer for this toolbox, supported by contributions from @aemmav, @d-v-b, and @mzouink. Additional support was provided by @jonesa3, @rinva, @avweigel, and @yuriyzubov. The CellMap Segmentation Challenge is organized by Janelia's [CellMap Project Team](https://www.janelia.org/project-team/cellmap).
+[@rhoadesScholar](https://www.linkedin.com/in/rhoadesscholar/) served as the lead developer for this toolbox, supported by contributions from [@aemmav](https://www.linkedin.com/in/emma-avetissian-362089297/), [@d-v-b](https://www.linkedin.com/in/davis-bennett-62922126a/), and [@mzouink](https://www.linkedin.com/in/zouinkhi/). Additional support was provided by [@jonesa3](https://www.linkedin.com/in/alysonpetruncio/), [@rinva](https://www.linkedin.com/in/rebecca-vorimo-831271a0/), [@avweigel](https://www.linkedin.com/in/aubrey-weigel/), and [@yuriyzubov](https://www.linkedin.com/in/yuriizubov/). The CellMap Segmentation Challenge is organized by Janelia's [CellMap Project Team](https://www.janelia.org/project-team/cellmap).
