@@ -15,6 +15,7 @@ authors = [
   { name = "Emma Avetissian", email = "avetissiane@janelia.hhmi.org" },
   { name = "Davis Vann Bennett", email = "davis.v.bennett@gmail.com" },
   { name = "Marwan Zouinkhi", email = "zouinkhim@hhmi.org" },
+  { name = "Mark Kittisopikul", email = "kittisopikulm@janelia.hhmi.org" },
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -25,7 +26,6 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-  "torch",
   "tensorboard",
   "tensorboardX",
   "cellmap-schemas==0.8.0",
@@ -40,12 +40,14 @@ dependencies = [
   "ml-collections",
   "scipy",
   "numpy",
-  "tensorstore",
   "python-dotenv",
   "universal-pathlib",
   "neuroglancer",
   "scikit-learn",
   "scikit-image",
+  "xarray-tensorstore>=0.1.5,<0.2",
+  "tensorstore>=0.1.65,<0.2",
+  "torch",
   "pyreadline3; sys_platform == 'win32'",
   ]
 
@@ -119,6 +121,80 @@ exclude_lines = [
 
 [project.scripts]
 csc = "cellmap_segmentation_challenge.cli:run"
+
+[tool.pixi.project]
+channels = ["conda-forge", "pytorch"]
+platforms = ["win-64", "linux-64", "osx-arm64", "osx-64"]
+
+[tool.pixi.pypi-dependencies]
+cellmap-segmentation-challenge = { path = ".", editable = true }
+
+[tool.pixi.environments]
+default = { solve-group = "default" }
+dev = { features = ["dev", "test", "docs"], solve-group = "default" }
+docs = { features = ["docs"], solve-group = "default" }
+test = { features = ["test"], solve-group = "default" }
+
+[tool.pixi.tasks]
+
+[tool.pixi.dependencies]
+python = ">=3.11"
+numba = "*"
+torchvision = ">=0.20.1,<0.21"
+pytorch = ">=2.5.1,<3"
+numpy = "*"
+tensorboard = ">=2.18.0,<3"
+tensorboardx = ">=2.6.2.2,<3"
+click = ">=8.1.7,<9"
+tqdm = ">=4.67.0,<5"
+yarl = "*"
+toolz = "*"
+ml-collections = "*"
+scipy = "*"
+python-dotenv = "*"
+scikit-learn = ">=1.5.2,<2"
+scikit-image = ">=0.24.0,<0.25"
+aiohttp = ">=3.11.6,<4"
+dask = ">=2024.11.2,<2025"
+s3fs = ">=2024.10.0,<2025"
+rich = "*"
+pygments = "*"
+pyasn1 = "*"
+zarr = ">=2.18.3,<3"
+pydantic = ">=2.9.2,<3"
+atomicwrites = ">=1.4.1,<2"
+cachetools = ">=5.5.0,<6"
+cycler = ">=0.12.1,<0.13"
+flexcache = ">=0.3,<0.4"
+flexparser = ">=0.4,<0.5"
+google-apitools = ">=0.5.32,<0.6"
+google-auth = ">=2.36.0,<3"
+httplib2 = ">=0.22.0,<0.23"
+kiwisolver = ">=1.4.7,<2"
+natsort = ">=8.4.0,<9"
+oauth2client = ">=4.1.3,<5"
+pint = ">=0.24.4,<0.25"
+platformdirs = ">=4.3.6,<5"
+roifile = ">=2024.5.24,<2025"
+rsa = ">=4.9,<5"
+structlog = ">=24.4.0,<25"
+matplotlib = ">=3.9.2,<4"
+fastremap = "1.13.*"
+
+[tool.pixi.target.linux-64.dependencies]
+tensorstore = "=0.1.65,<0.2"
+xarray-tensorstore = ">=0.1.5,<0.2"
+
+[tool.pixi.target.osx-64.dependencies]
+tensorstore = "=0.1.65,<0.2"
+xarray-tensorstore = ">=0.1.5,<0.2"
+
+[tool.pixi.target.osx-arm64.dependencies]
+tensorstore = "=0.1.65,<0.2"
+xarray-tensorstore = ">=0.1.5,<0.2"
+
+[tool.pixi.feature.dev.dependencies]
+gunpowder = "*"
 
 [tool.pytest.ini_options]
 "testpaths" = "tests"
