@@ -245,3 +245,6 @@ To zip the Zarr-2 file, you can use the following command:
 ```bash
 zip -r submission.zip submission.zarr
 ```
+
+# Acknowledgements
+@rhoadesScholar served as the lead developer for this toolbox, supported by contributions from @aemmav, @d-v-b, and @mzouink. Additional support was provided by @jonesa3, @rinva, @avweigel, and @yuriyzubov. The CellMap Segmentation Challenge is organized by Janelia's [CellMap Project Team](https://www.janelia.org/project-team/cellmap).
