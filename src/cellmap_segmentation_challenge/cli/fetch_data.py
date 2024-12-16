@@ -184,10 +184,8 @@ def fetch_data_cli(
         log = log.bind(crop_id=crop.id, dataset=crop.dataset)
         em_source_url = crop.em_url
 
-        em_source_group: None | zarr.Group = None
+        gt_source_group: None | zarr.Group = None
         if not isinstance(crop.gt_source, TestCropRow):
-            # gt_save_start = time.time()
-            # gt_source_url = _resolve_gt_source_url(crop_url, crop)
             gt_source_url = crop.gt_source
             log.info(f"Fetching GT data for crop {crop.id} from {gt_source_url}")
             try:
@@ -216,7 +214,7 @@ def fetch_data_cli(
             )
 
         dest_root = URL.build(
-            scheme="file", path=f"/{Path(dest_path_abs).as_posix()}"
+            scheme="file", path=f"/{dest_path_abs.as_posix().lstrip('/')}"
         ).joinpath(f"{crop.dataset}/{crop.dataset}.zarr")
 
         gt_dest_path = _resolve_gt_dest_path(crop)
@@ -225,7 +223,9 @@ def fetch_data_cli(
         dest_root_group = zarr.open_group(str(dest_root), mode=mode)
         # create intermediate groups
         dest_root_group.require_group(gt_dest_path)
-        dest_crop_group = zarr.open_group(str(dest_root / gt_dest_path), mode=mode)
+        dest_crop_group = zarr.open_group(
+            str(dest_root / gt_dest_path).replace("%5C", "\\"), mode=mode
+        )
 
         if gt_source_group is None:
             log.info(
@@ -260,16 +260,12 @@ def fetch_data_cli(
             )
             continue
         else:
-            # ensure that intermediate groups are present
-            # dest_root_group.require_group(em_dest_path)
-
             # model the em group locally
             dest_em_group = GroupSpec.from_zarr(em_source_group).to_zarr(
-                FSStore(str(dest_root / em_dest_path)),
+                FSStore(str(dest_root / em_dest_path).replace("%5C", "\\")),
                 path="",
                 overwrite=(mode == "w"),
             )
-            # dest_em_group = zarr.open_group(str(dest_root / em_dest_path), mode=mode)
 
             # get the multiscale model of the source em group
             array_wrapper = {"name": "dask_array", "config": {"chunks": "auto"}}
@@ -372,7 +368,7 @@ def fetch_data_cli(
                     )
                     new_chunks = tuple(
                         map(
-                            lambda v: "/".join([key, v]),
+                            lambda v: f"{key}/{v}",
                             get_chunk_keys(em_source_group[key], slices_padded),
                         )
                     )
@@ -402,7 +398,7 @@ def fetch_data_cli(
     num_iter = len(futures)
     for idx, maybe_result in enumerate(as_completed(futures)):
         try:
-            result = maybe_result.result()
+            _ = maybe_result.result()
             log.debug(f"Completed fetching batch {idx + 1} / {num_iter}")
         except Exception as e:
             log.exception(e)

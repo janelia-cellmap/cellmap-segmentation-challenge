@@ -45,17 +45,11 @@ def partition_copy_store(
 
 
 def _resolve_gt_dest_path(crop: CropRow) -> str:
-    return os.path.join(
-        *f"{crop.alignment}/labels/groundtruth/crop{crop.id}".split("/")
-    )
+    return os.path.normpath(f"{crop.alignment}/labels/groundtruth/crop{crop.id}")
 
 
 def _resolve_em_dest_path(crop: CropRow) -> str:
     return os.path.join(*crop.em_url.parts[crop.em_url.parts.index(crop.alignment) :])
-
-
-def get_url(node: zarr.Group | zarr.Array) -> URL:
-    return get_store_url(node.store, node.path)
 
 
 def get_store_url(store: zarr.storage.BaseStore, path: str):
@@ -69,20 +63,14 @@ def get_store_url(store: zarr.storage.BaseStore, path: str):
         else:
             protocol = "file"
 
-        # fsstore keeps the protocol in the path, but not s3store
-        store_path = store.path.split("://")[-1] if "://" in store.path else store.path
-        return URL.build(scheme=protocol, host=store_path, path=path)
+        # Normalize Windows-style paths to Unix-style for URL compatibility
+        store_path = (
+            store.path.split("://")[-1] if "://" in store.path else store.path
+        ).replace("\\", "/")
 
+        return URL.build(scheme=protocol, host="", path=f"{store_path}/{path}")
     msg = f"Store with type {type(store)} cannot be resolved to a url"
     raise ValueError(msg)
-
-
-def get_fibsem_path(crop_path: str) -> str:
-    """
-    Get the path to the reconstructed FIB-SEM data used to create the crop.
-    Returns a uri that resolves to a zarr group
-    """
-    return ""
 
 
 def get_chunk_keys(
@@ -109,37 +97,7 @@ def get_chunk_keys(
     indexer = zarr.indexing.BasicIndexer(region, array)
     chunk_coords = (idx.chunk_coords for idx in indexer)
     for cc in chunk_coords:
-        yield array._chunk_key(cc).rsplit(array.path)[-1].lstrip("/")
-
-
-def get_array_objects(
-    node: zarr.Array, region: tuple[slice, ...] = ()
-) -> tuple[str, ...]:
-    """
-    Get a list of the objects supporting this array.
-    These objects may or may not exist in storage.
-    """
-
-    array_metadata_key = ".zarray"
-    attrs_key = ".zattrs"
-    ckeys = get_chunk_keys(node, region=region)
-
-    out = tuple([array_metadata_key, attrs_key, *ckeys])
-    return out
-
-
-def get_group_objects(node: zarr.Group) -> tuple[str, ...]:
-    group_metadata_key = ".zgroup"
-    attrs_key = ".zattrs"
-    results: tuple[str] = (group_metadata_key, attrs_key)
-
-    for name, subnode in node.items():
-        if isinstance(subnode, zarr.Array):
-            subobjects = get_array_objects(subnode)
-        else:
-            subobjects = get_group_objects(subnode)
-        results += tuple(map(lambda v: "/".join([name, v]), subobjects))
-    return results
+        yield array._chunk_key(cc).rsplit(array.path)[-1].lstrip(os.sep)
 
 
 def read_group(path: str, **kwargs) -> zarr.Group:

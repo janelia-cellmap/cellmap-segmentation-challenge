@@ -1,8 +1,9 @@
 import os
 from glob import glob
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 from cellmap_data import CellMapDatasetWriter, CellMapImage
+import torch
 from tqdm import tqdm
 from upath import UPath
 
@@ -47,6 +48,7 @@ def process(
     input_path: str = PREDICTIONS_PATH,
     output_path: str = PROCESSED_PATH,
     overwrite: bool = False,
+    device: Optional[str | torch.device] = None,
 ) -> None:
     """
     Process and save arrays using an arbitrary process function defined in a config python file.
@@ -64,6 +66,8 @@ def process(
         The path to save the processed output to, formatted as a string with a placeholders for the crop number, dataset, and label. Default is PROCESSED_PATH set in `cellmap-segmentation/config.py`.
     overwrite: bool, optional
         Whether to overwrite the output dataset if it already exists. Default is False.
+    device: str | torch.device, optional
+        The device to use for processing the data. Default is to use that specified in the config. If not specified, then defaults to "cuda" if available, then "mps", otherwise "cpu".
     """
     config = load_safe_config(config_path)
     process_func = config.process_func
@@ -71,6 +75,16 @@ def process(
     batch_size = getattr(config, "batch_size", 8)
     input_array_info = config.input_array_info
     target_array_info = getattr(config, "target_array_info", input_array_info)
+
+    if device is None:
+        if hasattr(config, "device"):
+            device = config.device
+        elif torch.cuda.is_available():
+            device = "cuda"
+        elif torch.cuda.is_mps_available():
+            device = "mps"
+        else:
+            device = "cpu"
 
     input_arrays = {"input": input_array_info}
     target_arrays = {"output": target_array_info}
@@ -142,6 +156,7 @@ def process(
                     "target_arrays": target_arrays,
                     "target_bounds": target_bounds,
                     "overwrite": overwrite,
+                    "device": device,
                 }
             )
 

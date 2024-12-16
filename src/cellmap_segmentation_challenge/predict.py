@@ -244,6 +244,7 @@ def predict(
                     "target_arrays": target_arrays,
                     "target_bounds": target_bounds,
                     "overwrite": overwrite,
+                    "device": device,
                 }
             )
     else:
@@ -299,6 +300,7 @@ def predict(
                     "target_arrays": target_arrays,
                     "target_bounds": target_bounds,
                     "overwrite": overwrite,
+                    "device": device,
                 }
             )
 

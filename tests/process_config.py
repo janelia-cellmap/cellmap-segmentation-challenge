@@ -11,6 +11,7 @@ input_array_info = getattr(
 )
 target_array_info = getattr(config, "target_array_info", input_array_info)
 classes = config.classes
+device = "cpu"
 
 
 # Define the process function, which takes a numpy array as input and returns a numpy array as output

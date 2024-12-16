@@ -5,22 +5,35 @@
 
 .. mdinclude:: ../../README.md
 
+
+.. toctree::
+   :hidden:
+
+   self
+
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Data:
 
    cellmap-schemas.rst
+   available_data.rst
+   annotation_classes.rst
 
-API
-==============
-.. autosummary::
-   :recursive:
-   :toctree:
+.. toctree::
+   :maxdepth: 2
+   :caption: Train:
 
+   dataloader.rst
+   load_model_weights.rst
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: API:
    
-   cellmap_segmentation_challenge
    cellmap_segmentation_challenge.train
    cellmap_segmentation_challenge.predict
+   cellmap_segmentation_challenge
    
 
 

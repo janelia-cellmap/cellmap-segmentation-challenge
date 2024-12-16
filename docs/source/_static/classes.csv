@@ -1,0 +1,78 @@
+field_name,class_id,group_id,long_name
+ecs,1,,extracellular space
+pm,2,,plasma membrane
+mito_mem,3,,mitochondrial membrane
+mito_lum,4,,mitochondrial lumen
+mito_ribo,5,,mitochondrial ribosome
+golgi_mem,6,,Golgi membrane
+golgi_lum,7,,Golgi lumen
+ves_mem,8,,vesicle membrane
+ves_lum,9,,vesicle lumen
+endo_mem,10,,endosome membrane
+endo_lum,11,,endosome lumen
+lyso_mem,12,,lysosome membrane
+lyso_lum,13,,lysosome lumen
+ld_mem,14,,lipid droplet membrane
+ld_lum,15,,lipid droplet lumen
+er_mem,16,,endoplasmic reticulum membrane
+er_lum,17,,endoplasmic reticulum lumen
+eres_mem,18,,endoplasmic reticulum exit site membrane
+eres_lum,19,,endoplasmic reticulum exit site lumen
+ne_mem,20,,nuclear envelope membrane
+ne_lum,21,,nuclear envelope lumen
+np_out,22,,nuclear pore out
+np_in,23,,nuclear pore in
+hchrom,24,,heterochromatin
+nhchrom,25,,nucleolus-associated heterochromatin
+echrom,26,,euchromatin
+nechrom,27,,nucleolus-associated euchromatin
+nucpl,28,,nucleoplasm
+nucleo,29,,nucleolus
+mt_out,30,,microtubule out
+cent,31,,centrosome
+cent_dapp,32,,centrosome distal appendage
+cent_sdapp,33,,centrosome subdistal appendage
+ribo,34,,ribosomes
+cyto,35,,cytosol
+mt_in,36,,microtubule in
+nuc,37,20-21-22-23-24-25-26-27-28-29,nucleus
+vim,38,,vimentin
+glyco,39,,glycogen
+golgi,40,6-7,Golgi
+ves,41,8-9,vesicle
+endo,42,10-11,endosome
+lyso,43,12-13,lysosome
+ld,44,14-15,lipid droplet
+rbc,45,,red blood cells
+eres,46,18-19,endoplasmic reticulum exit site
+perox_mem,47,,peroxisome membrane
+perox_lum,48,,peroxisome lumen
+perox,49,47-48,peroxisome
+mito,50,3-4-5,mitochondria
+er,51,16-17-18-19-20-21-22-23,endoplasmic reticulum
+ne,52,20-21-22-23,nuclear envelope
+np,53,22-23,nuclear pore
+chrom,54,24-25-26-27,chromatin
+mt,55,30-36,microtubule
+isg_mem,56,,insulin secretory granule membrane
+isg_lum,57,,insulin secretory granule lumen
+isg_ins,58,,insulin secretory granule insulin
+isg,59,56-57-58,insulin secretory granule
+cell,60,2-3-4-5-6-7-8-9-10-11-12-13-14-15-16-17-18-19-20-21-22-23-24-25-26-27-28-29-30-31-32-33-34-35-36-38-39-47-48-56-57-58-61-62,cell
+actin,61,,actin
+tbar,62,,t-bar
+bm,63,,basement membrane
+er_mem_all,64,16-18-20,endoplasmic reticulum membrane collective
+ne_mem_all,65,20-22-23,nuclear envelope membrane collective
+cent_all,66,31-32-33,centrosome collective
+chlor_mem,67,,chloroplast membrane
+chlor_lum,68,,chloroplast lumen
+chlor_sg,69,,chloroplast starch granule
+chlor,70,67-68-69,chloroplast
+vac_mem,71,,vacuole membrane
+vac_lum,72,,vacuole lumen
+vac,73,71-72,vacuole
+pd,74,,plasmodesmata
+yolk_mem,75,,yolk organelle membrane
+yolk_lum,76,,yolk organelle lumen
+yolk,77,75-76,yolk organelle
