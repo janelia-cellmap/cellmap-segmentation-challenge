@@ -310,7 +310,10 @@
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">CellMap Segmentation Challenge</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">CellMap Segmentation Challenge</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#table-of-contents">Table of Contents</a></li>
+</ul>
+</li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#getting-started">Getting started</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#set-up-your-environment">Set up your environment</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#clone-the-repository">Clone the repository</a></li>
@@ -341,15 +344,38 @@
                   
   <img src="https://raw.githubusercontent.com/janelia-cellmap/dacapo/main/docs/source/_static/CellMapLogo.png" alt="CellMap logo" width="85%"><section id="cellmap-segmentation-challenge">
 <h1>CellMap Segmentation Challenge<a class="headerlink" href="#cellmap-segmentation-challenge" title="Link to this heading">#</a></h1>
-<p>Welcome to the <strong>CellMap Segmentation Challenge</strong> documentation!</p>
+<p>Welcome to the <strong>CellMap Segmentation Challenge</strong> toolbox!</p>
 <p>This Python package provides a simple and flexible API for:</p>
 <ul class="simple">
-<li><p>Accessing challenge data</p></li>
-<li><p>Running model training</p></li>
-<li><p>Making predictions</p></li>
-<li><p>Evaluating results</p></li>
+<li><p><span class="xref std std-ref">Accessing challenge data</span></p></li>
+<li><p><span class="xref std std-ref">Running model training</span></p></li>
+<li><p><span class="xref std std-ref">Making predictions</span></p></li>
+<li><p><span class="xref std std-ref">Evaluating results</span></p></li>
 </ul>
 <p>The package is built on top of the <span class="raw-html-md"><a href="https://github.com/janelia-cellmap/cellmap-data"><code class="docutils literal"><span class="pre">cellmap-data</span></code></a></span> package, which offers tools for interacting with the CellMap data format. Whether you’re a beginner or advanced user, this package is designed to be easy to use and highly extensible.</p>
+<section id="table-of-contents">
+<h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p><span class="xref std std-ref">Getting Started</span></p>
+<ul class="simple">
+<li><p><span class="xref std std-ref">Set up your environment</span></p></li>
+<li><p><span class="xref std std-ref">Clone the repository</span></p></li>
+<li><p><span class="xref std std-ref">Repository structure</span></p></li>
+<li><p><span class="xref std std-ref">Download the data</span></p></li>
+</ul>
+</li>
+<li><p><span class="xref std std-ref">Train a model</span></p></li>
+<li><p><span class="xref std std-ref">Predict on test data</span></p></li>
+<li><p><span class="xref std std-ref">Post-process model predictions</span></p></li>
+<li><p><span class="xref std std-ref">Visualize data and predictions</span></p></li>
+<li><p><span class="xref std std-ref">Submit your final predictions</span></p>
+<ul class="simple">
+<li><p><span class="xref std std-ref">Data format</span></p></li>
+</ul>
+</li>
+<li><p><span class="xref std std-ref">Acknowledgements</span></p></li>
+</ol>
+</section>
 </section>
 <section id="getting-started">
 <h1>Getting started<a class="headerlink" href="#getting-started" title="Link to this heading">#</a></h1>
@@ -545,7 +571,7 @@ Note: The instance labels, if used, should be unique IDs per object, with 0 as b
 </section>
 <section id="acknowledgements">
 <h1>Acknowledgements<a class="headerlink" href="#acknowledgements" title="Link to this heading">#</a></h1>
-<p>&#64;rhoadesScholar served as the lead developer for this toolbox, supported by contributions from &#64;aemmav, &#64;d-v-b, and &#64;mzouink. Additional support was provided by &#64;jonesa3, &#64;rinva, &#64;avweigel, and &#64;yuriyzubov. The CellMap Segmentation Challenge is organized by Janelia’s <a class="reference external" href="https://www.janelia.org/project-team/cellmap">CellMap Project Team</a>.</p>
+<p><a class="reference external" href="https://www.linkedin.com/in/rhoadesscholar/">&#64;rhoadesScholar</a> served as the lead developer for this toolbox, supported by contributions from <a class="reference external" href="https://www.linkedin.com/in/emma-avetissian-362089297/">&#64;aemmav</a>, <a class="reference external" href="https://www.linkedin.com/in/davis-bennett-62922126a/">&#64;d-v-b</a>, and <a class="reference external" href="https://www.linkedin.com/in/zouinkhi/">&#64;mzouink</a>. Additional support was provided by <a class="reference external" href="https://www.linkedin.com/in/alysonpetruncio/">&#64;jonesa3</a>, <a class="reference external" href="https://www.linkedin.com/in/rebecca-vorimo-831271a0/">&#64;rinva</a>, <a class="reference external" href="https://www.linkedin.com/in/aubrey-weigel/">&#64;avweigel</a>, and <a class="reference external" href="https://www.linkedin.com/in/yuriizubov/">&#64;yuriyzubov</a>. The CellMap Segmentation Challenge is organized by Janelia’s <a class="reference external" href="https://www.janelia.org/project-team/cellmap">CellMap Project Team</a>.</p>
 <div class="toctree-wrapper compound">
 </div>
 <div class="toctree-wrapper compound">
@@ -658,7 +684,10 @@ Note: The instance labels, if used, should be unique IDs per object, with 0 as b
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">CellMap Segmentation Challenge</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">CellMap Segmentation Challenge</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#table-of-contents">Table of Contents</a></li>
+</ul>
+</li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#getting-started">Getting started</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#set-up-your-environment">Set up your environment</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#clone-the-repository">Clone the repository</a></li>
