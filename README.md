@@ -25,6 +25,7 @@ The package is built on top of the [`cellmap-data`](https://github.com/janelia-c
 5. [Visualize data and predictions](#visualize-data-and-predictions)
 6. [Submit your final predictions](#submit-your-final-predictions)
     - [Data format](#data-format)
+8. [Issues](#issues)
 7. [Acknowledgements](#acknowledgements)
 
 # Getting started
@@ -259,6 +260,11 @@ To zip the Zarr-2 file, you can use the following command:
 ```bash
 zip -r submission.zip submission.zarr
 ```
+
+# Issues
+If you encounter any code-related issues, please open an issue on the [GitHub repository](https://github.com/janelia-cellmap/cellmap-segmentation-challenge/issues) so we can address it as soon as possible. To help us resolve the issue, please provide as much information as possible, including the command you ran, the error message you received, and any other relevant information.
+
+We also have opened [the discussion feature on this repository](https://github.com/janelia-cellmap/cellmap-segmentation-challenge/discussions), so feel free to ask questions or share your thoughts, ideas, progress, etc. there! We are happy to help you with any questions you may have.
 
 # Acknowledgements
 [@rhoadesScholar](https://www.linkedin.com/in/rhoadesscholar/) served as the lead developer for this toolbox, supported by contributions from [@aemmav](https://www.linkedin.com/in/emma-avetissian-362089297/), [@d-v-b](https://www.linkedin.com/in/davis-bennett-62922126a/), and [@mzouink](https://www.linkedin.com/in/zouinkhi/). Additional support was provided by [@jonesa3](https://www.linkedin.com/in/alysonpetruncio/), [@rinva](https://www.linkedin.com/in/rebecca-vorimo-831271a0/), [@avweigel](https://www.linkedin.com/in/aubrey-weigel/), and [@yuriyzubov](https://www.linkedin.com/in/yuriizubov/). The CellMap Segmentation Challenge is organized by Janelia's [CellMap Project Team](https://www.janelia.org/project-team/cellmap).
