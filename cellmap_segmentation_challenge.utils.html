@@ -326,6 +326,15 @@
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.crops.fetch_test_crop_manifest"><code class="docutils literal notranslate"><span class="pre">fetch_test_crop_manifest()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.crops.ZipDatasetRow"><code class="docutils literal notranslate"><span class="pre">ZipDatasetRow</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.crops.ZipDatasetRow.all_res"><code class="docutils literal notranslate"><span class="pre">ZipDatasetRow.all_res</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.crops.ZipDatasetRow.padding"><code class="docutils literal notranslate"><span class="pre">ZipDatasetRow.padding</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.crops.ZipDatasetRow.name"><code class="docutils literal notranslate"><span class="pre">ZipDatasetRow.name</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.crops.ZipDatasetRow.url"><code class="docutils literal notranslate"><span class="pre">ZipDatasetRow.url</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.crops.ZipDatasetRow.from_csv_row"><code class="docutils literal notranslate"><span class="pre">ZipDatasetRow.from_csv_row()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.crops.fetch_zip_manifest"><code class="docutils literal notranslate"><span class="pre">fetch_zip_manifest()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.crops.CropRow"><code class="docutils literal notranslate"><span class="pre">CropRow</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.crops.CropRow.id"><code class="docutils literal notranslate"><span class="pre">CropRow.id</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.crops.CropRow.dataset"><code class="docutils literal notranslate"><span class="pre">CropRow.dataset</span></code></a></li>
@@ -361,6 +370,10 @@
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.fetch_data.get_chunk_keys"><code class="docutils literal notranslate"><span class="pre">get_chunk_keys()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.fetch_data.read_group"><code class="docutils literal notranslate"><span class="pre">read_group()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.fetch_data.subset_to_slice"><code class="docutils literal notranslate"><span class="pre">subset_to_slice()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.fetch_data.resolve_em_url"><code class="docutils literal notranslate"><span class="pre">resolve_em_url()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.fetch_data.parse_s3_url"><code class="docutils literal notranslate"><span class="pre">parse_s3_url()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.fetch_data.download_file_with_progress"><code class="docutils literal notranslate"><span class="pre">download_file_with_progress()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.fetch_data.get_zip_if_available"><code class="docutils literal notranslate"><span class="pre">get_zip_if_available()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils.loss">cellmap_segmentation_challenge.utils.loss module</a><ul class="nav section-nav flex-column">
@@ -471,6 +484,74 @@
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>tuple[<a class="reference internal" href="#cellmap_segmentation_challenge.utils.crops.TestCropRow" title="cellmap_segmentation_challenge.utils.crops.TestCropRow">TestCropRow</a>, …]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.crops.ZipDatasetRow">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.crops.</span></span><span class="sig-name descname"><span class="pre">ZipDatasetRow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_res</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">URL</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/crops.html#ZipDatasetRow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.crops.ZipDatasetRow" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A dataclass representing a row in the zip dataset manifest file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>all_res</strong> (<em>bool</em>)</p></li>
+<li><p><strong>padding</strong> (<em>int</em>)</p></li>
+<li><p><strong>name</strong> (<em>str</em>)</p></li>
+<li><p><strong>url</strong> (<em>URL</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.crops.ZipDatasetRow.all_res">
+<span class="sig-name descname"><span class="pre">all_res</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#cellmap_segmentation_challenge.utils.crops.ZipDatasetRow.all_res" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.crops.ZipDatasetRow.padding">
+<span class="sig-name descname"><span class="pre">padding</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#cellmap_segmentation_challenge.utils.crops.ZipDatasetRow.padding" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.crops.ZipDatasetRow.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#cellmap_segmentation_challenge.utils.crops.ZipDatasetRow.name" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.crops.ZipDatasetRow.url">
+<span class="sig-name descname"><span class="pre">url</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">URL</span></em><a class="headerlink" href="#cellmap_segmentation_challenge.utils.crops.ZipDatasetRow.url" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.crops.ZipDatasetRow.from_csv_row">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_csv_row</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/crops.html#ZipDatasetRow.from_csv_row"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.crops.ZipDatasetRow.from_csv_row" title="Link to this definition">#</a></dt>
+<dd><p>Create a CropRow object from a CSV row.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>row</strong> (<em>str</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Self</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.crops.fetch_zip_manifest">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.crops.</span></span><span class="sig-name descname"><span class="pre">fetch_zip_manifest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">URL</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/zip_manifest.csv'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cellmap_segmentation_challenge.utils.crops.ZipDatasetRow" title="cellmap_segmentation_challenge.utils.crops.ZipDatasetRow"><span class="pre">ZipDatasetRow</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/crops.html#fetch_zip_manifest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.crops.fetch_zip_manifest" title="Link to this definition">#</a></dt>
+<dd><p>Fetch a manifest file from a URL and return a tuple of ZipDatasetRow objects.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>url</strong> (<em>str</em><em> or </em><em>yarl.URL</em>) – The URL to the manifest file.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple of ZipDatasetRow objects.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[<a class="reference internal" href="#cellmap_segmentation_challenge.utils.crops.ZipDatasetRow" title="cellmap_segmentation_challenge.utils.crops.ZipDatasetRow">ZipDatasetRow</a>, …]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -896,6 +977,42 @@ will result in all the chunk keys being returned.</p></li>
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.fetch_data.resolve_em_url">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.fetch_data.</span></span><span class="sig-name descname"><span class="pre">resolve_em_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">em_source_root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">URL</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">em_source_paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/fetch_data.html#resolve_em_url"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.fetch_data.resolve_em_url" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>em_source_root</strong> (<em>URL</em>)</p></li>
+<li><p><strong>em_source_paths</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.fetch_data.parse_s3_url">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.fetch_data.</span></span><span class="sig-name descname"><span class="pre">parse_s3_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s3_url:</span> <span class="pre">str)</span> <span class="pre">-&gt;</span> <span class="pre">(&lt;class</span> <span class="pre">'str'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">&lt;class</span> <span class="pre">'str'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/fetch_data.html#parse_s3_url"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.fetch_data.parse_s3_url" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>s3_url</strong> (<em>str</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>(&lt;class ‘str’&gt;, &lt;class ‘str’&gt;)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.fetch_data.download_file_with_progress">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.fetch_data.</span></span><span class="sig-name descname"><span class="pre">download_file_with_progress</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s3_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/fetch_data.html#download_file_with_progress"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.fetch_data.download_file_with_progress" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.fetch_data.get_zip_if_available">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.fetch_data.</span></span><span class="sig-name descname"><span class="pre">get_zip_if_available</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crops</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raw_padding</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fetch_all_em_resolutions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zips_from_manifest</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/fetch_data.html#get_zip_if_available"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.fetch_data.get_zip_if_available" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
 </section>
 <section id="module-cellmap_segmentation_challenge.utils.loss">
 <span id="cellmap-segmentation-challenge-utils-loss-module"></span><h2>cellmap_segmentation_challenge.utils.loss module<a class="headerlink" href="#module-cellmap_segmentation_challenge.utils.loss" title="Link to this heading">#</a></h2>
@@ -1011,6 +1128,15 @@ Returns a boolean indicating whether the script is safe and a list of detected i
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.crops.fetch_test_crop_manifest"><code class="docutils literal notranslate"><span class="pre">fetch_test_crop_manifest()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.crops.ZipDatasetRow"><code class="docutils literal notranslate"><span class="pre">ZipDatasetRow</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.crops.ZipDatasetRow.all_res"><code class="docutils literal notranslate"><span class="pre">ZipDatasetRow.all_res</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.crops.ZipDatasetRow.padding"><code class="docutils literal notranslate"><span class="pre">ZipDatasetRow.padding</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.crops.ZipDatasetRow.name"><code class="docutils literal notranslate"><span class="pre">ZipDatasetRow.name</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.crops.ZipDatasetRow.url"><code class="docutils literal notranslate"><span class="pre">ZipDatasetRow.url</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.crops.ZipDatasetRow.from_csv_row"><code class="docutils literal notranslate"><span class="pre">ZipDatasetRow.from_csv_row()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.crops.fetch_zip_manifest"><code class="docutils literal notranslate"><span class="pre">fetch_zip_manifest()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.crops.CropRow"><code class="docutils literal notranslate"><span class="pre">CropRow</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.crops.CropRow.id"><code class="docutils literal notranslate"><span class="pre">CropRow.id</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.crops.CropRow.dataset"><code class="docutils literal notranslate"><span class="pre">CropRow.dataset</span></code></a></li>
@@ -1046,6 +1172,10 @@ Returns a boolean indicating whether the script is safe and a list of detected i
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.fetch_data.get_chunk_keys"><code class="docutils literal notranslate"><span class="pre">get_chunk_keys()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.fetch_data.read_group"><code class="docutils literal notranslate"><span class="pre">read_group()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.fetch_data.subset_to_slice"><code class="docutils literal notranslate"><span class="pre">subset_to_slice()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.fetch_data.resolve_em_url"><code class="docutils literal notranslate"><span class="pre">resolve_em_url()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.fetch_data.parse_s3_url"><code class="docutils literal notranslate"><span class="pre">parse_s3_url()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.fetch_data.download_file_with_progress"><code class="docutils literal notranslate"><span class="pre">download_file_with_progress()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.fetch_data.get_zip_if_available"><code class="docutils literal notranslate"><span class="pre">get_zip_if_available()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils.loss">cellmap_segmentation_challenge.utils.loss module</a><ul class="nav section-nav flex-column">

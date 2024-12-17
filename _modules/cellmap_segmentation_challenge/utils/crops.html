@@ -344,6 +344,57 @@
     <span class="s2">&quot;https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/manifest.csv&quot;</span><span class="p">,</span>
 <span class="p">)</span>
 
+<span class="n">ZIP_MANIFEST_URL</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+    <span class="s2">&quot;CSC_FETCH_ZIP_DATA_MANIFEST_URL&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/zip_manifest.csv&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="ZipDatasetRow">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.ZipDatasetRow">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">ZipDatasetRow</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A dataclass representing a row in the zip dataset manifest file.&quot;&quot;&quot;</span>
+
+    <span class="n">all_res</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">padding</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">url</span><span class="p">:</span> <span class="n">URL</span>
+
+<div class="viewcode-block" id="ZipDatasetRow.from_csv_row">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.ZipDatasetRow.from_csv_row">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_csv_row</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">row</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a CropRow object from a CSV row.&quot;&quot;&quot;</span>
+        <span class="n">all_res</span><span class="p">,</span> <span class="n">padding</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">url</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+        <span class="n">all_res</span> <span class="o">=</span> <span class="n">all_res</span> <span class="o">==</span> <span class="s2">&quot;True&quot;</span>
+        <span class="n">padding</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">padding</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">all_res</span><span class="p">,</span> <span class="n">padding</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">URL</span><span class="p">(</span><span class="n">url</span><span class="p">))</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="fetch_zip_manifest">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.fetch_zip_manifest">[docs]</a>
+<span class="k">def</span> <span class="nf">fetch_zip_manifest</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">URL</span> <span class="o">=</span> <span class="n">ZIP_MANIFEST_URL</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ZipDatasetRow</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fetch a manifest file from a URL and return a tuple of ZipDatasetRow objects.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    url : str or yarl.URL</span>
+<span class="sd">        The URL to the manifest file.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple[ZipDatasetRow, ...]</span>
+<span class="sd">        A tuple of ZipDatasetRow objects.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fs</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">url_to_fs</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">url</span><span class="p">))</span>
+    <span class="n">head</span><span class="p">,</span> <span class="o">*</span><span class="n">rows</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">cat_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ZipDatasetRow</span><span class="o">.</span><span class="n">from_csv_row</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">)</span></div>
+
+
 
 <div class="viewcode-block" id="CropRow">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.CropRow">[docs]</a>
