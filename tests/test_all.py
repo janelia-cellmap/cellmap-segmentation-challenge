@@ -44,7 +44,8 @@ def test_fetch_test_crops(setup_temp_path):
         fetch_all_em_resolutions=False,
         batch_size=256,
         num_workers=32,
-    )
+        use_zip=False,
+)
 
 
 # %%
@@ -61,6 +62,7 @@ def test_fetch_data(setup_temp_path):
         fetch_all_em_resolutions=False,
         batch_size=256,
         num_workers=32,
+        use_zip=False,
     )
 
 

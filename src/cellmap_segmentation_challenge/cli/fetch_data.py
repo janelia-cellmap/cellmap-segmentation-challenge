@@ -19,8 +19,11 @@ from cellmap_segmentation_challenge.utils.crops import (
     CropRow,
     TestCropRow,
     fetch_manifest,
+    ZipDatasetRow,
+    fetch_zip_manifest,
     get_test_crops,
 )
+
 from cellmap_segmentation_challenge.utils.fetch_data import (
     _resolve_em_dest_path,
     _resolve_gt_dest_path,
@@ -28,6 +31,8 @@ from cellmap_segmentation_challenge.utils.fetch_data import (
     partition_copy_store,
     read_group,
     subset_to_slice,
+    get_zip_if_available,
+    download_file_with_progress,
 )
 from cellmap_segmentation_challenge.config import BASE_DATA_PATH
 
@@ -86,6 +91,12 @@ load_dotenv()
     default=int(os.environ.get("CSC_FETCH_DATA_NUM_WORKERS", 32)),
     help=f"Number of workers to use for parallel downloads. Default: {int(os.environ.get('CSC_FETCH_DATA_NUM_WORKERS', 32))}.",
 )
+@click.option(
+    "--zip",
+    "use_zip",
+    is_flag=True,
+    help="Fetch data from a zip file if available.",
+)
 def fetch_data_cli(
     crops: str,
     raw_padding: int,
@@ -94,6 +105,7 @@ def fetch_data_cli(
     fetch_all_em_resolutions: bool,
     batch_size: int,
     num_workers: int,
+    use_zip: bool,
 ):
     """
     Download data for the CellMap segmentation challenge.
@@ -111,6 +123,37 @@ def fetch_data_cli(
     dest_path_abs = Path(dest).absolute()
 
     log = structlog.get_logger()
+
+    if use_zip:
+        zips_from_manifest = fetch_zip_manifest()
+
+        zip_url = get_zip_if_available(
+            crops, raw_padding, fetch_all_em_resolutions, zips_from_manifest
+        )
+        if zip_url is None:
+            p_str = (
+                "no raw padding" if raw_padding == 0 else f"raw padding {raw_padding}"
+            )
+            res_str = (
+                "all resolutions"
+                if fetch_all_em_resolutions
+                else "only the highest resolution"
+            )
+            log.info(
+                f"No zip file found for the requested crops.{str(crops)} with {p_str} and {res_str}."
+            )
+            log.info("Please rerun the command without the --zip flag.")
+            return
+
+        log.info(f"Found a zip file for the requested crops at {zip_url}.")
+        zip_path = dest_path_abs / Path(zip_url.name)
+        log.info(f"Downloading zip file to {zip_path}")
+        download_file_with_progress(str(zip_url), str(zip_path))
+        log.info(f"Done after {time.time() - fetch_save_start:0.3f}s")
+        log.info("Please unzip the file manually before continuing.")
+        log.info("You can use the following command:")
+        log.info(f"unzip {zip_path} -d {dest_path_abs}")
+        return
     crops_parsed: tuple[CropRow, ...]
 
     crops_from_manifest = fetch_manifest()
