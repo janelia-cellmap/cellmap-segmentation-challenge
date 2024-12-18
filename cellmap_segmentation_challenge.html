@@ -991,7 +991,7 @@ matching. In ICPR94, pages A:566-568, Jerusalem, Israel, 1994.
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>path</strong> (<em>str</em><em> | </em><em>UPath</em>) – The path to the zarr array to match. The zarr can be an OME-NGFF multiscale zarr file, or a traditional single scale formatted zarr.</p></li>
+<li><p><strong>path</strong> (<em>str</em><em> | </em><em>UPath</em>) – The path to the zarr array to be adjusted. The zarr can be an OME-NGFF multiscale zarr file, or a traditional single scale formatted zarr.</p></li>
 <li><p><strong>class_label</strong> (<em>str</em>) – The class label of the array.</p></li>
 <li><p><strong>voxel_size</strong> (<em>tuple</em>) – The target voxel size.</p></li>
 <li><p><strong>shape</strong> (<em>tuple</em>) – The target shape.</p></li>
@@ -1109,7 +1109,9 @@ The process function should take an array as input and return an array as output
 - load_model: Which model checkpoint to load if it exists. Options are ‘latest’ or ‘best’. If no checkpoints exist, will silently use the already initialized model. Default is ‘latest’.
 - spatial_transforms: Dictionary of spatial transformations to apply to the training data. Default is {‘mirror’: {‘axes’: {‘x’: 0.5, ‘y’: 0.5}}, ‘transpose’: {‘axes’: [‘x’, ‘y’]}, ‘rotate’: {‘axes’: {‘x’: [-180, 180], ‘y’: [-180, 180]}}}. See the <cite>dataloader</cite> module documentation for more information.
 - validation_time_limit: Maximum time to spend on validation in seconds. If None, there is no time limit. Default is None.
-- validation_batch_limit: Maximum number of validation batches to process. If None, there is no limit. Default is None.</p>
+- validation_batch_limit: Maximum number of validation batches to process. If None, there is no limit. Default is None.
+- device: Device to use for training. If None, will use ‘cuda’ if available, ‘mps’ if available, or ‘cpu’ otherwise. Default is None.
+- use_s3: Whether to use the S3 bucket for the datasplit. Default is False.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>None</p>
@@ -1385,7 +1387,9 @@ save_numpy_labels_to_zarr(‘submission.zarr’, ‘test_volume’, [‘label1�
 - load_model: Which model checkpoint to load if it exists. Options are ‘latest’ or ‘best’. If no checkpoints exist, will silently use the already initialized model. Default is ‘latest’.
 - spatial_transforms: Dictionary of spatial transformations to apply to the training data. Default is {‘mirror’: {‘axes’: {‘x’: 0.5, ‘y’: 0.5}}, ‘transpose’: {‘axes’: [‘x’, ‘y’]}, ‘rotate’: {‘axes’: {‘x’: [-180, 180], ‘y’: [-180, 180]}}}. See the <cite>dataloader</cite> module documentation for more information.
 - validation_time_limit: Maximum time to spend on validation in seconds. If None, there is no time limit. Default is None.
-- validation_batch_limit: Maximum number of validation batches to process. If None, there is no limit. Default is None.</p>
+- validation_batch_limit: Maximum number of validation batches to process. If None, there is no limit. Default is None.
+- device: Device to use for training. If None, will use ‘cuda’ if available, ‘mps’ if available, or ‘cpu’ otherwise. Default is None.
+- use_s3: Whether to use the S3 bucket for the datasplit. Default is False.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>None</p>
