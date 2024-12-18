@@ -277,12 +277,11 @@
                 <article class="bd-article">
                   
   <h1>Source code for cellmap_segmentation_challenge.utils.fetch_data</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="kn">import</span> <span class="n">ThreadPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
+<span></span><span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="kn">import</span> <span class="n">ThreadPoolExecutor</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Sequence</span>
 <span class="kn">import</span> <span class="nn">os</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">structlog</span>
 <span class="kn">import</span> <span class="nn">toolz</span>
 <span class="kn">import</span> <span class="nn">zarr</span>
 <span class="kn">import</span> <span class="nn">zarr.errors</span>
