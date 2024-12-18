@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Evaluation Resampling &#8212; CellMap Segmentation Challenge</title>
+    <title>Evaluation &#8212; CellMap Segmentation Challenge</title>
   
   
   
@@ -44,12 +44,12 @@
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'evaluation_resampling';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'evaluation';</script>
     <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Evaluation" href="evaluation.html" />
-    <link rel="prev" title="Loading a Pretrained Model Checkpoint" href="load_model_weights.html" />
+    <link rel="next" title="Visualization" href="visualization.html" />
+    <link rel="prev" title="Evaluation Resampling" href="evaluation_resampling.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -163,8 +163,8 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Evaluation:</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Evaluation Resampling</a></li>
-<li class="toctree-l1"><a class="reference internal" href="evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluation_resampling.html">Evaluation Resampling</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Evaluation</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Visualization:</span></p>
 <ul class="nav bd-sidenav">
@@ -237,7 +237,7 @@
       
       
       
-      <li><a href="_sources/evaluation_resampling.rst" target="_blank"
+      <li><a href="_sources/evaluation.rst" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -313,7 +313,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Evaluation Resampling</h1>
+    <h1>Evaluation</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -323,9 +323,9 @@
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#purpose">Purpose</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#resampling-process">Resampling Process</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#function">Function</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#resampling">Resampling</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#instance-segmentations">Instance Segmentations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#semantic-segmentations">Semantic Segmentations</a></li>
 </ul>
             </nav>
         </div>
@@ -337,30 +337,46 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="evaluation-resampling">
-<h1>Evaluation Resampling<a class="headerlink" href="#evaluation-resampling" title="Link to this heading">#</a></h1>
-<section id="purpose">
-<h2>Purpose<a class="headerlink" href="#purpose" title="Link to this heading">#</a></h2>
-<p>Evaluation resampling ensures that the predicted and ground truth volumes are compared at the same resolution and region of interest (ROI) with the dataset. This is crucial for accurate evaluation of the model’s performance.</p>
+  <section id="evaluation">
+<h1>Evaluation<a class="headerlink" href="#evaluation" title="Link to this heading">#</a></h1>
+<p>This document describes how submitted data is scored in the CellMap Segmentation Challenge.</p>
+<section id="resampling">
+<h2>Resampling<a class="headerlink" href="#resampling" title="Link to this heading">#</a></h2>
+<p>Before scoring, the predicted volumes are resampled to ensure they are compared to the ground truth at the same resolution and region of interest (ROI). For more details on the resampling process, refer to <cite>evaluation_resampling.rst</cite>.</p>
 </section>
-<section id="resampling-process">
-<h2>Resampling Process<a class="headerlink" href="#resampling-process" title="Link to this heading">#</a></h2>
-<p>The resampling process involves adjusting the resolution and ROI of the predicted volumes to match those of the ground truth volumes. This is done using different interpolation methods depending on the type of segmentation:</p>
+<section id="instance-segmentations">
+<h2>Instance Segmentations<a class="headerlink" href="#instance-segmentations" title="Link to this heading">#</a></h2>
 <ul class="simple">
-<li><p><strong>Instance Segmentations</strong>: Nearest neighbor interpolation is used to preserve the unique IDs of instance labels.</p></li>
-<li><p><strong>Semantic Segmentations</strong>: Linear interpolation followed by thresholding is used, as it is more accurate than nearest neighbor interpolation.</p></li>
+<li><p><strong>Classes Included</strong>: The following classes are included in the instance segmentation evaluation:
+- Cell (<cite>cell</cite>)
+- Endosome (<cite>endo</cite>)
+- Lipid droplet (<cite>ld</cite>)
+- Lysosome (<cite>lyso</cite>)
+- Mitochondria (<cite>mito</cite>)
+- Microtubule (<cite>mt</cite>)
+- Nuclear pore (<cite>np</cite>)
+- Nucleus (<cite>nuc</cite>)
+- Peroxisome (<cite>perox</cite>)
+- Vesicle (<cite>ves</cite>)
+- Vimentin (<cite>vim</cite>)</p></li>
+<li><p><strong>Scoring Components</strong>:
+- <strong>Hausdorff Distance</strong>: The Hausdorff distance is calculated in nanometers between the predicted and ground truth instance segmentations. This metric measures the maximum distance between any point on the predicted instance and its nearest point on the ground truth instance, and vice versa.
+- <strong>Accuracy</strong>: The accuracy is calculated as the proportion of correctly predicted instance labels to the total number of instance labels.</p></li>
+<li><p><strong>Score Normalization and Combination</strong>:
+- The Hausdorff distance is normalized to a range of [0, 1] using the maximum distance represented by a voxel. Specifically, the normalized Hausdorff distance is 1.01^(-hausdorff distance / ||voxel_size||)
+- The combined score is calculated as the geometric mean of the accuracy and the normalized Hausdorff distance.
+- The final instance score across volumes is produced by taking the average across the combined scores for each volume, normalized by the total spatial volume of each image.</p></li>
 </ul>
-<p>Note: Linear interpolation followed by thresholding can also be used for instance segmentations, but requires doing so iteratively for each unique ID. We do not implement this here.</p>
 </section>
-<section id="function">
-<h2>Function<a class="headerlink" href="#function" title="Link to this heading">#</a></h2>
-<p>The function <cite>match_crop_space</cite> in <cite>src/cellmap_segmentation_challenge/evaluate.py</cite> handles the resampling process. It takes the following parameters:</p>
+<section id="semantic-segmentations">
+<h2>Semantic Segmentations<a class="headerlink" href="#semantic-segmentations" title="Link to this heading">#</a></h2>
 <ul class="simple">
-<li><p><cite>path</cite> (str | UPath): The path to the zarr array to be adjusted. The zarr can be an OME-NGFF multiscale zarr file, or a traditional single scale formatted zarr.</p></li>
-<li><p><cite>class_label</cite> (str): The class label of the array.</p></li>
-<li><p><cite>voxel_size</cite> (tuple): The target voxel size.</p></li>
-<li><p><cite>shape</cite> (tuple): The target shape.</p></li>
-<li><p><cite>translation</cite> (tuple): The translation (i.e. offset) of the array in world units.</p></li>
+<li><p><strong>All non-instance classes are included as semantic labels</strong></p></li>
+<li><p><strong>Scoring Components</strong>:
+- <strong>Intersection over Union (IoU)</strong>: The IoU is calculated as the intersection of the predicted and ground truth segmentations divided by their union. This metric measures the overlap between the predicted and ground truth segmentations.
+- <strong>Dice Score</strong>: The Dice score is calculated as twice the intersection of the predicted and ground truth segmentations divided by the sum of their volumes. This metric measures the similarity between the predicted and ground truth segmentations.</p></li>
+<li><p><strong>Score Normalization and Combination</strong>:
+- The IoU scores are combined across all volumes to obtain the final scores, normalized by the total volume occupied by the volumes to which each IoU corresponds.</p></li>
 </ul>
 </section>
 </section>
@@ -377,20 +393,20 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="load_model_weights.html"
+       href="evaluation_resampling.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Loading a Pretrained Model Checkpoint</p>
+        <p class="prev-next-title">Evaluation Resampling</p>
       </div>
     </a>
     <a class="right-next"
-       href="evaluation.html"
+       href="visualization.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Evaluation</p>
+        <p class="prev-next-title">Visualization</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -411,9 +427,9 @@
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#purpose">Purpose</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#resampling-process">Resampling Process</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#function">Function</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#resampling">Resampling</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#instance-segmentations">Instance Segmentations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#semantic-segmentations">Semantic Segmentations</a></li>
 </ul>
   </nav></div>
 

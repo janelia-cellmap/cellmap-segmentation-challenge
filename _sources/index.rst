@@ -31,6 +31,7 @@
    :caption: Evaluation:
 
    evaluation_resampling.rst
+   evaluation.rst
 
 .. toctree::
    :maxdepth: 2
