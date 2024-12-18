@@ -1,9 +1,8 @@
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 from typing import Generator, Iterable, Sequence
 import os
 
 import numpy as np
-import structlog
 import toolz
 import zarr
 import zarr.errors
