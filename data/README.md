@@ -35,20 +35,20 @@ csc fetch-data --crops test
 To learn more about the data format, please refer to the [data format documentation](https://open.quiltdata.com/b/janelia-cosem-datasets/tree/) in our AWS S3 bucket [janelia-cosem-datasets](https://open.quiltdata.com/b/janelia-cosem-datasets/tree/).
 
 ## Visualization Tool
-The `visualize.py` module provides functions to visualize the data and predictions using neuroglancer. This module allows you to view the groundtruth, predictions, and post-processed data side by side.
+The `visualize.py` module provides functions to visualize, with neuroglancer, raw (EM) and ground truth data alongside your predictions, post-processed outputs, and results packaged for submission.
 
-To visualize the data and predictions, you can use the `csc visualize` command. This command serves the data and predictions on a local server and opens a browser window with the neuroglancer viewer. You can then navigate through the data and predictions and compare them side by side.
+To visualize the data and predictions, you can use the `csc visualize` command. This command serves the image arrays on a local server and opens a browser window with the neuroglancer viewer. You can then navigate through the data and predictions and compare them side by side.
 
 For more detailed information, refer to the [visualization documentation](../docs/source/visualization.rst).
 
 ## Evaluation Resampling
 
-Evaluation resampling ensures that the predicted and ground truth volumes are compared at the same resolution and shape. This is crucial for accurate evaluation of the model's performance.
+Evaluation resampling ensures that the predicted and ground truth volumes are compared at the same resolution and region of interest (ROI). This is crucial for accurate evaluation of the model's performance.
 
-The resampling process involves adjusting the resolution and shape of the predicted volumes to match those of the ground truth volumes. This is done using different interpolation methods depending on the type of segmentation:
+The resampling process involves adjusting the resolution and ROI of the predicted volumes to match those of the ground truth volumes. This is done using different interpolation methods depending on the type of segmentation:
 
-- **Instance Segmentations**: Nearest neighbor interpolation is used to preserve the discrete nature of instance labels.
-- **Semantic Segmentations**: Linear interpolation is used to smoothly adjust the continuous nature of semantic labels.
+- **Instance Segmentations**: Nearest neighbor interpolation is used to preserve the unique IDs of instance labels.
+- **Semantic Segmentations**: Linear interpolation followed by thresholding is used to resample semantic labels.
 
 The function `match_crop_space` in `src/cellmap_segmentation_challenge/evaluate.py` handles the resampling process. It takes the following parameters:
 
