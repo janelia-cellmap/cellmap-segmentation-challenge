@@ -29,6 +29,14 @@
 
 .. toctree::
    :maxdepth: 2
+   :caption: API:
+   
+   cellmap_segmentation_challenge.train
+   cellmap_segmentation_challenge.predict
+   cellmap_segmentation_challenge
+
+.. toctree::
+   :maxdepth: 2
    :caption: Evaluation:
 
    evaluation_resampling.rst
@@ -38,14 +46,6 @@
    :caption: Visualization:
 
    visualization.rst
-
-.. toctree::
-   :maxdepth: 2
-   :caption: API:
-   
-   cellmap_segmentation_challenge.train
-   cellmap_segmentation_challenge.predict
-   cellmap_segmentation_challenge
 
 
 Links
