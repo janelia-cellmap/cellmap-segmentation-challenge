@@ -114,22 +114,7 @@ Additionally, you can explicitly specify the path to the submission zarr, with p
 
 ### Evaluation Resampling
 
-Evaluation resampling ensures that the predicted and ground truth volumes are compared at the same resolution and shape. This is crucial for accurate evaluation of the model's performance.
-
-The resampling process involves adjusting the resolution and shape of the predicted volumes to match those of the ground truth volumes. This is done using different interpolation methods depending on the type of segmentation:
-
-- **Instance Segmentations**: Nearest neighbor interpolation is used to preserve the discrete nature of instance labels.
-- **Semantic Segmentations**: Linear interpolation is used to smoothly adjust the continuous nature of semantic labels.
-
-The function `match_crop_space` in `src/cellmap_segmentation_challenge/evaluate.py` handles the resampling process. It takes the following parameters:
-
-- `path`: The path to the zarr array to match.
-- `class_label`: The class label of the array.
-- `voxel_size`: The target voxel size.
-- `shape`: The target shape.
-- `translation`: The translation (i.e., offset) of the array in world units.
-
-For more detailed information, refer to the [evaluation resampling documentation](../docs/source/evaluation_resampling.rst).
+Evaluation resampling ensures that the predicted and ground truth volumes are compared at the same resolution and region of interest (ROI) by adjusting the resolution and ROI of the predicted volumes to match those of the ground truth volumes. This is crucial for accurate evaluation of the model's performance. For more detailed information, refer to the [evaluation resampling documentation](../docs/source/evaluation_resampling.rst).
 
 ### Manual data packaging
 If you are packaging your predictions manually, the submission file format requirements are as follows:
