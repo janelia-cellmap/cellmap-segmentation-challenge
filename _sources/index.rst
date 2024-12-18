@@ -26,6 +26,17 @@
    dataloader.rst
    load_model_weights.rst
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Evaluation:
+
+   evaluation_resampling.rst
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Visualization:
+
+   visualization.rst
 
 .. toctree::
    :maxdepth: 2
@@ -34,7 +45,6 @@
    cellmap_segmentation_challenge.train
    cellmap_segmentation_challenge.predict
    cellmap_segmentation_challenge
-   
 
 
 Links

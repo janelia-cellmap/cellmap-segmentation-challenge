@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>cellmap_segmentation_challenge.cli package &#8212; CellMap Segmentation Challenge</title>
+    <title>Visualization &#8212; CellMap Segmentation Challenge</title>
   
   
   
@@ -44,12 +44,12 @@
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'cellmap_segmentation_challenge.cli';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'visualization';</script>
     <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="cellmap_segmentation_challenge.models package" href="cellmap_segmentation_challenge.models.html" />
-    <link rel="prev" title="cellmap_segmentation_challenge package" href="cellmap_segmentation_challenge.html" />
+    <link rel="next" title="cellmap_segmentation_challenge package" href="cellmap_segmentation_challenge.html" />
+    <link rel="prev" title="Evaluation Resampling" href="evaluation_resampling.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -166,13 +166,13 @@
 <li class="toctree-l1"><a class="reference internal" href="evaluation_resampling.html">Evaluation Resampling</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Visualization:</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Visualization</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API:</span></p>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="cellmap_segmentation_challenge.html">cellmap_segmentation_challenge package</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">cellmap_segmentation_challenge.cli package</a></li>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.html">cellmap_segmentation_challenge package</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html">cellmap_segmentation_challenge.cli package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils package</a></li>
 </ul>
@@ -236,7 +236,7 @@
       
       
       
-      <li><a href="_sources/cellmap_segmentation_challenge.cli.rst" target="_blank"
+      <li><a href="_sources/visualization.rst" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -312,7 +312,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>cellmap_segmentation_challenge.cli package</h1>
+    <h1>Visualization</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -322,16 +322,8 @@
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.datasplit">cellmap_segmentation_challenge.cli.datasplit module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.evaluate">cellmap_segmentation_challenge.cli.evaluate module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.fetch_data">cellmap_segmentation_challenge.cli.fetch_data module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.predict">cellmap_segmentation_challenge.cli.predict module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.process">cellmap_segmentation_challenge.cli.process module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.speedtest">cellmap_segmentation_challenge.cli.speedtest module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.train">cellmap_segmentation_challenge.cli.train module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.visualize">cellmap_segmentation_challenge.cli.visualize module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli">Module contents</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#usage">Usage</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a></li>
 </ul>
             </nav>
         </div>
@@ -343,37 +335,81 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="cellmap-segmentation-challenge-cli-package">
-<h1>cellmap_segmentation_challenge.cli package<a class="headerlink" href="#cellmap-segmentation-challenge-cli-package" title="Link to this heading">#</a></h1>
-<section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">#</a></h2>
+  <section id="visualization">
+<h1>Visualization<a class="headerlink" href="#visualization" title="Link to this heading">#</a></h1>
+<dl>
+<dt>Purpose ——-</dt><dd><p>The purpose of this documentation is to provide instructions on how to visualize data and predictions using the <cite>visualize.py</cite> module and the <cite>csc visualize</cite> command. This module allows you to view the raw (EM), groundtruth, predictions, post-processed, and packaged data side by side.</p>
+<p>To visualize the data, you can use the <cite>csc visualize</cite> command. This command serves the data on a local server and opens a browser window with the neuroglancer viewer.</p>
+<p>This command provides multiple options for filtering what data is loaded for viewing. Datasets can be selected with the <cite>-d</cite> option followed by the name of the dataset or a comma-separated list of multiple datasets. A separate viewing window will always be created for each dataset visualized and raw (EM) data will always be shown. If no dataset(s) are specified, all datasets matching any other filters will be shown.
+Similarly, specific crops can also be selected for viewing by using the <cite>-c</cite> option followed by the number of the crop, a comma-separated list of crop numbers (e.g. <cite>-c 234,113</cite>), or “test”. <cite>… -c test</cite> will only load the challenge’s test crops for viewing. If no crop(s) are specified, all crops matching any other filters will be shown.
+Users can filter what label classes are loaded with the <cite>-C</cite> option followed by the name of the class or a comma-separated list of class names (e.g. <cite>-C nuc,mito,er</cite>). If no class(es) are specified, all available will be shown.
+Which type(s) of data should be visualized can be selected with the <cite>-k</cite> option followed by a string or comma-separated list of strings specifying the data to load. Valid strings include “gt” for groundtruth, “predictions” for predictions, “processed” for post-processed data, and/or “submission” for the data packaged for submission (after resampling). Again, raw (EM) data is always shown. If no type(s) are specified, all available will be shown.</p>
+<ul class="simple">
+<li><p>Visualize all datasets and crops:
+<code class="docutils literal notranslate"><span class="pre">`bash</span>
+<span class="pre">csc</span> <span class="pre">visualize</span>
+<span class="pre">`</span></code></p></li>
+<li><p>Visualize specific datasets, crops, classes, and kinds:
+<code class="docutils literal notranslate"><span class="pre">`bash</span>
+<span class="pre">csc</span> <span class="pre">visualize</span> <span class="pre">-d</span> <span class="pre">jrc_cos7-1a</span> <span class="pre">-c</span> <span class="pre">234,236</span> <span class="pre">-C</span> <span class="pre">nuc,cell,mito,er</span> <span class="pre">-k</span> <span class="pre">gt,predictions</span>
+<span class="pre">`</span></code></p></li>
+</ul>
+<ul>
+<li><p><cite>visualize(datasets, crops, classes, kinds)</cite>: Visualize datasets and crops in Neuroglancer.
+- Parameters:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite>datasets</cite> (str | Sequence[str]): The name of the dataset to visualize. Can be a string or a list of strings. Default is “*”. If “*”, all datasets will be visualized, each in its own browser window/neuroglancer session.</p></li>
+<li><p><cite>crops</cite> (int | Sequence[int]): The crop number(s) to visualize. Can be an integer, a list of integers, “test”, or None. If “test”, only the test crops for the competition will be loaded. Default is None. If None, all crops will be visualized.</p></li>
+<li><p><cite>classes</cite> (str | Sequence[str]): The label class to visualize. Can be a string or a list of strings. Default is “*”. If “*”, all classes will be visualized.</p></li>
+<li><p><cite>kinds</cite> (Sequence[str]): The type of layers to visualize. Can be “gt” for groundtruth, “predictions” for predictions, “processed” for post-processed data, and/or “submission” for the data packaged for submission (after resampling). Raw (EM) data is always shown. Default is [“gt”, “predictions”, “processed”, “submission”].</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</dd>
+</dl>
+<ul>
+<li><p><cite>add_layers(viewer, kind, dataset_name, crops, classes)</cite>: Add layers to a Neuroglancer viewer.
+- Parameters:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite>viewer</cite> (neuroglancer.Viewer): The viewer to add layers to.</p></li>
+<li><p><cite>kind</cite> (str): The type of layers to add. Can be “gt” for groundtruth, “predictions” for predictions, or “processed” for processed data.</p></li>
+<li><p><cite>dataset_name</cite> (str): The name of the dataset to add layers for.</p></li>
+<li><p><cite>crops</cite> (Sequence): The crops to add layers for.</p></li>
+<li><p><cite>classes</cite> (Sequence[str]): The class(es) to add layers for.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><cite>get_layer(data_path, layer_type, multiscale)</cite>: Get a Neuroglancer layer from a zarr data path for a LocalVolume.
+- Parameters:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite>data_path</cite> (str): The path to the zarr data.</p></li>
+<li><p><cite>layer_type</cite> (str): The type of layer to get. Can be “image” or “segmentation”. Default is “image”.</p></li>
+<li><p><cite>multiscale</cite> (bool): Whether the metadata is OME-NGFF multiscale. Default is True.</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+<section id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading">#</a></h2>
+<p>To visualize the data and predictions, you can use the <cite>csc visualize</cite> command. This command serves the data and predictions on a local server and opens a browser window with the neuroglancer viewer.</p>
 </section>
-<section id="module-cellmap_segmentation_challenge.cli.datasplit">
-<span id="cellmap-segmentation-challenge-cli-datasplit-module"></span><h2>cellmap_segmentation_challenge.cli.datasplit module<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli.datasplit" title="Link to this heading">#</a></h2>
-</section>
-<section id="module-cellmap_segmentation_challenge.cli.evaluate">
-<span id="cellmap-segmentation-challenge-cli-evaluate-module"></span><h2>cellmap_segmentation_challenge.cli.evaluate module<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli.evaluate" title="Link to this heading">#</a></h2>
-</section>
-<section id="module-cellmap_segmentation_challenge.cli.fetch_data">
-<span id="cellmap-segmentation-challenge-cli-fetch-data-module"></span><h2>cellmap_segmentation_challenge.cli.fetch_data module<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli.fetch_data" title="Link to this heading">#</a></h2>
-</section>
-<section id="module-cellmap_segmentation_challenge.cli.predict">
-<span id="cellmap-segmentation-challenge-cli-predict-module"></span><h2>cellmap_segmentation_challenge.cli.predict module<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli.predict" title="Link to this heading">#</a></h2>
-</section>
-<section id="module-cellmap_segmentation_challenge.cli.process">
-<span id="cellmap-segmentation-challenge-cli-process-module"></span><h2>cellmap_segmentation_challenge.cli.process module<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli.process" title="Link to this heading">#</a></h2>
-</section>
-<section id="module-cellmap_segmentation_challenge.cli.speedtest">
-<span id="cellmap-segmentation-challenge-cli-speedtest-module"></span><h2>cellmap_segmentation_challenge.cli.speedtest module<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli.speedtest" title="Link to this heading">#</a></h2>
-</section>
-<section id="module-cellmap_segmentation_challenge.cli.train">
-<span id="cellmap-segmentation-challenge-cli-train-module"></span><h2>cellmap_segmentation_challenge.cli.train module<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli.train" title="Link to this heading">#</a></h2>
-</section>
-<section id="module-cellmap_segmentation_challenge.cli.visualize">
-<span id="cellmap-segmentation-challenge-cli-visualize-module"></span><h2>cellmap_segmentation_challenge.cli.visualize module<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli.visualize" title="Link to this heading">#</a></h2>
-</section>
-<section id="module-cellmap_segmentation_challenge.cli">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli" title="Link to this heading">#</a></h2>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Visualize all datasets and crops:
+<code class="docutils literal notranslate"><span class="pre">`bash</span>
+<span class="pre">csc</span> <span class="pre">visualize</span>
+<span class="pre">`</span></code></p></li>
+<li><p>Visualize specific datasets and crops:
+<code class="docutils literal notranslate"><span class="pre">`bash</span>
+<span class="pre">csc</span> <span class="pre">visualize</span> <span class="pre">-d</span> <span class="pre">jrc_cos7-1a</span> <span class="pre">-c</span> <span class="pre">234,236</span> <span class="pre">-C</span> <span class="pre">nuc,cell,mito,er</span> <span class="pre">-k</span> <span class="pre">gt,predictions</span>
+<span class="pre">`</span></code></p></li>
+</ul>
+<p>For more detailed information, refer to the [visualization documentation](../docs/source/visualization.rst).</p>
 </section>
 </section>
 
@@ -389,20 +425,20 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="cellmap_segmentation_challenge.html"
+       href="evaluation_resampling.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">cellmap_segmentation_challenge package</p>
+        <p class="prev-next-title">Evaluation Resampling</p>
       </div>
     </a>
     <a class="right-next"
-       href="cellmap_segmentation_challenge.models.html"
+       href="cellmap_segmentation_challenge.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">cellmap_segmentation_challenge.models package</p>
+        <p class="prev-next-title">cellmap_segmentation_challenge package</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -423,16 +459,8 @@
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.datasplit">cellmap_segmentation_challenge.cli.datasplit module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.evaluate">cellmap_segmentation_challenge.cli.evaluate module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.fetch_data">cellmap_segmentation_challenge.cli.fetch_data module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.predict">cellmap_segmentation_challenge.cli.predict module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.process">cellmap_segmentation_challenge.cli.process module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.speedtest">cellmap_segmentation_challenge.cli.speedtest module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.train">cellmap_segmentation_challenge.cli.train module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.visualize">cellmap_segmentation_challenge.cli.visualize module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli">Module contents</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#usage">Usage</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a></li>
 </ul>
   </nav></div>
 

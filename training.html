@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Annotation Classes &#8212; CellMap Segmentation Challenge</title>
+    <title>Training &#8212; CellMap Segmentation Challenge</title>
   
   
   
@@ -44,12 +44,10 @@
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'annotation_classes';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'training';</script>
     <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Creating a CellMap Data PyTorch Dataloader" href="dataloader.html" />
-    <link rel="prev" title="Available Data" href="available_data.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -101,6 +99,8 @@
       
       
       
+        
+      
       <dialog id="pst-primary-sidebar-modal"></dialog>
       <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
@@ -149,12 +149,12 @@
 <li class="toctree-l1"><a class="reference internal" href="index.html">CellMap Segmentation Challenge</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Data:</span></p>
-<ul class="current nav bd-sidenav">
+<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="cellmap-schemas.html">CellMap Schemas</a></li>
 
 
 <li class="toctree-l1"><a class="reference internal" href="available_data.html">Available Data</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Annotation Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="annotation_classes.html">Annotation Classes</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Train:</span></p>
 <ul class="nav bd-sidenav">
@@ -236,7 +236,7 @@
       
       
       
-      <li><a href="_sources/annotation_classes.rst" target="_blank"
+      <li><a href="_sources/training.rst" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -312,7 +312,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Annotation Classes</h1>
+    <h1>Training</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -322,12 +322,12 @@
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#table-of-contents">Table of Contents</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#multiscale-structure">Multiscale Structure</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#class-categories">Class Categories</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#detailed-class-descriptions">Detailed Class Descriptions</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#aliases">Aliases</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#training-configuration">Training configuration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#model-loading">Model Loading</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#datasplit-generation">Datasplit Generation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#training-from-s3-data">Training from S3 Data</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#validation-time-batch-limit-setting">Validation Time/Batch Limit Setting</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-and-usage-instructions">Examples and Usage Instructions</a></li>
 </ul>
             </nav>
         </div>
@@ -339,95 +339,97 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="annotation-classes">
-<h1>Annotation Classes<a class="headerlink" href="#annotation-classes" title="Link to this heading">#</a></h1>
-<p>This document provides an overview of the annotation classes used in our dataset. Each zarr crop contains multiple scales for different organelles, if annotated. Additionally, there is a special multiscale named <code class="docutils literal notranslate"><span class="pre">all</span></code> that aggregates all annotated classes.</p>
-<p>Classes are categorized as either <strong>atomic classes</strong> or <strong>group classes</strong>:
-- <strong>Atomic Classes</strong> represent individual organelle components.
-- <strong>Group Classes</strong> are collections of atomic classes grouped under a common category.</p>
-<p>Group classes reference their constituent atomic classes through the <code class="docutils literal notranslate"><span class="pre">group_id</span></code>.</p>
-<section id="table-of-contents">
-<h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Link to this heading">#</a></h2>
+  <section id="training">
+<h1>Training<a class="headerlink" href="#training" title="Link to this heading">#</a></h1>
+<p>This document covers details involved in training models for the CellMap Segmentation Challenge.</p>
+<section id="training-configuration">
+<h2>Training configuration<a class="headerlink" href="#training-configuration" title="Link to this heading">#</a></h2>
+<p>The <cite>csc train &lt;path/to/training_config.py&gt;</cite> functionality loads training configuration parameters from a python file, including constructing the model to be trained.</p>
+<blockquote>
+<div><p>&lt;path/to/training_config.py&gt; should be replaced with the path to the configuration file to use for training. Supported settings that will be read from this file if specified include:
+- model_save_path: Path to save the model checkpoints. Default is ‘checkpoints/{model_name}_{epoch}.pth’.
+- logs_save_path: Path to save the logs for tensorboard. Default is ‘tensorboard/{model_name}’. Training progress may be monitored by running <cite>tensorboard –logdir &lt;logs_save_path&gt;</cite> in the terminal.
+- datasplit_path: Path to the datasplit file that defines the train/val split the dataloader should use. Default is ‘datasplit.csv’.
+- validation_prob: Proportion of the datasets to use for validation. This is used if the datasplit CSV specified by <cite>datasplit_path</cite> does not already exist. Default is 0.3.
+- learning_rate: Learning rate for the optimizer. Default is 0.0001.
+- batch_size: Batch size for the dataloader. Default is 8.
+- input_array_info: Dictionary containing the shape and scale of the input data. Default is {‘shape’: (1, 128, 128), ‘scale’: (8, 8, 8)}.
+- target_array_info: Dictionary containing the shape and scale of the target data. Default is to use <cite>input_array_info</cite>.
+- epochs: Number of epochs to train the model for. Default is 1000.
+- iterations_per_epoch: Number of iterations per epoch. Each iteration includes an independently generated random batch from the training set. Default is 1000.
+- random_seed: Random seed for reproducibility. Default is 42.
+- classes: List of classes to train the model to predict. This will be reflected in the data included in the datasplit, if generated de novo after calling this script. Default is [‘nuc’, ‘er’].
+- model_name: Name of the model to use. If the config file constructs the PyTorch model, this name can be anything. If the config file does not construct the PyTorch model, the model_name will need to specify which included architecture to use. This includes ‘2d_unet’, ‘2d_resnet’, ‘3d_unet’, ‘3d_resnet’, and ‘vitnet’. Default is ‘2d_unet’. See the <cite>models</cite> module <cite>README.md</cite> for more information.
+- model_to_load: Name of the pre-trained model to load. Default is the same as <cite>model_name</cite>.
+- model_kwargs: Dictionary of keyword arguments to pass to the model constructor. Default is {}. If the PyTorch <cite>model</cite> is passed, this will be ignored. See the <cite>models</cite> module <cite>README.md</cite> for more information.
+- model: PyTorch model to use for training. If this is provided, the <cite>model_name</cite> and <cite>model_to_load</cite> can be any string. Default is None.
+- load_model: Which model checkpoint to load if it exists. Options are ‘latest’ or ‘best’. If no checkpoints exist, will silently use the already initialized model. Default is ‘latest’.
+- spatial_transforms: Dictionary of spatial transformations to apply to the training data. Default is {‘mirror’: {‘axes’: {‘x’: 0.5, ‘y’: 0.5}}, ‘transpose’: {‘axes’: [‘x’, ‘y’]}, ‘rotate’: {‘axes’: {‘x’: [-180, 180], ‘y’: [-180, 180]}}}. See the <cite>dataloader</cite> module documentation for more information.
+- validation_time_limit: Maximum time to spend on validation in seconds. If None, there is no time limit. Default is None.
+- validation_batch_limit: Maximum number of validation batches to process. If None, there is no limit. Default is None.
+- device: Device to use for training. If None, will use ‘cuda’ if available, ‘mps’ if available, or ‘cpu’ otherwise. Default is None.
+- use_s3: Whether to stream data from the S3 bucket during training. Default is False.</p>
+</div></blockquote>
+</section>
+<section id="model-loading">
+<h2>Model Loading<a class="headerlink" href="#model-loading" title="Link to this heading">#</a></h2>
+<p>The <cite>model_load.py</cite> file contains functions for loading model checkpoints:</p>
 <ul class="simple">
-<li><p><cite>Multiscale Structure</cite></p></li>
-<li><p><cite>Class Categories</cite>
-- <cite>Atomic Classes</cite>
-- <cite>Group Classes</cite></p></li>
-<li><p><cite>Detailed Class Descriptions</cite></p></li>
-<li><p><cite>Aliases</cite></p></li>
-<li><p><cite>Examples</cite></p></li>
+<li><p><cite>load_latest(search_path, model)</cite>: Load the latest checkpoint from a directory into a model.</p></li>
+<li><p><cite>load_best_val(logs_save_path, model_save_path, model, low_is_best=True)</cite>: Load the model weights with the best validation score, as recorded in tensorboard logs, from a directory into an existing model object.</p></li>
 </ul>
+<p>For more detailed information about the models and their usage, refer to the [models documentation](../../src/cellmap_segmentation_challenge/models/README.md) and the [model loading documentation](load_model_weights.rst).</p>
 </section>
-<section id="multiscale-structure">
-<h2>Multiscale Structure<a class="headerlink" href="#multiscale-structure" title="Link to this heading">#</a></h2>
-<p>In each zarr crop, annotations are organized into multiple scales:
-- <strong>Organelle-specific scales</strong>: Each annotated organelle has its own scale.
-- <strong>All-inclusive scale</strong>: The <code class="docutils literal notranslate"><span class="pre">all</span></code> scale includes annotations for all classes.</p>
-<p>This hierarchical structure facilitates efficient data navigation and retrieval based on specific or broad annotation needs.</p>
+<section id="datasplit-generation">
+<h2>Datasplit Generation<a class="headerlink" href="#datasplit-generation" title="Link to this heading">#</a></h2>
+<p>The datasplit generation process creates a CSV file that defines the train/validation split for the datasets. This is done using the function <cite>make_datasplit_csv</cite> in <cite>src/cellmap_segmentation_challenge/utils/datasplit.py</cite>.</p>
+<p>The datasplit generation process involves the following steps:
+1. Defines the paths to the raw and groundtruth data and the label classes by crawling the directories and writing the paths to a CSV file.
+2. Uses the <cite>glob</cite> function to find the paths to the datasets and store them in a dictionary.
+3. Determines the usage (train or validate) for each dataset based on the <cite>validation_prob</cite> parameter.
+4. Writes the dataset paths and their usage to the CSV file.</p>
+<p>The function <cite>make_datasplit_csv</cite> takes the following parameters:
+- <cite>classes</cite>: A list of classes to include in the CSV.
+- <cite>force_all_classes</cite>: A boolean flag to force all classes to be present in the training/validation datasets.
+- <cite>validation_prob</cite>: The probability of a dataset being in the validation set.
+- <cite>datasets</cite>: A list of datasets to include in the CSV.
+- <cite>crops</cite>: A list of crops to include in the CSV.
+- <cite>search_path</cite>: The search path to use to find the datasets.
+- <cite>raw_name</cite>: The name of the raw data.
+- <cite>crop_name</cite>: The name of the crop.
+- <cite>csv_path</cite>: The path to write the CSV file to.
+- <cite>dry_run</cite>: A boolean flag to perform a dry run without writing the CSV file.</p>
 </section>
-<section id="class-categories">
-<h2>Class Categories<a class="headerlink" href="#class-categories" title="Link to this heading">#</a></h2>
-<p>### Atomic Classes
-Atomic classes represent the fundamental components of cellular structures. Each atomic class is defined with a unique identifier and descriptive properties.</p>
-<p>### Group Classes
-Group classes aggregate multiple atomic classes into broader categories. They are useful for high-level analysis and visualization.</p>
+<section id="training-from-s3-data">
+<h2>Training from S3 Data<a class="headerlink" href="#training-from-s3-data" title="Link to this heading">#</a></h2>
+<p>The <cite>make_s3_datasplit_csv</cite> function in <cite>src/cellmap_segmentation_challenge/utils/datasplit.py</cite> handles the datasplit generation process for S3 data. This function is similar to <cite>make_datasplit_csv</cite>, but it uses S3 (remote) data stores instead of locally downloaded stores. The function <cite>make_s3_datasplit_csv</cite> takes the same parameters as <cite>make_datasplit_csv</cite>. Whether to stream data from s3 during training can be set in the training config file by includeing <cite>use_s3 = True</cite>.</p>
 </section>
-<section id="detailed-class-descriptions">
-<h2>Detailed Class Descriptions<a class="headerlink" href="#detailed-class-descriptions" title="Link to this heading">#</a></h2>
-<p>Below is a comprehensive list of all annotation classes, categorized into atomic and group classes.</p>
-<!-- Load DataTables CSS -->
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
-
-<!-- Load jQuery -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<!-- Load DataTables JS -->
-<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script><table id="main-table" class="display" style="width:100%">
-  <thead>
-    <!-- We'll dynamically fill these from CSV headers -->
-  </thead>
-  <tbody>
-    <!-- We'll dynamically fill these from CSV data -->
-  </tbody>
-</table><script>
-$(document).ready(function() {
-    // Fetch the CSV file
-    $.get("_static/classes.csv", function(csvData) {
-         // Split into lines
-        var lines = csvData.trim().split("\n");
-
-        // First line is headers
-        var headers = lines[0].split(",");
-        // Remaining lines are data rows
-        var data = lines.slice(1).map(function(line) {
-            return line.split(",");
-        });
-
-        // Initialize DataTable with custom render for the third column (index 2)
-        $('#main-table').DataTable({
-            data: data,
-            columns: [
-                { title: headers[0] },
-                { title: headers[1] },
-                { title: headers[2] },
-                { title: headers[3] },
-            ]
-        });
-    });
-});
-</script></section>
-<section id="aliases">
-<h2>Aliases<a class="headerlink" href="#aliases" title="Link to this heading">#</a></h2>
-<p>Some classes may have aliases for compatibility or alternative naming conventions. These are listed in the <code class="docutils literal notranslate"><span class="pre">Alias</span></code> column of the table above.</p>
+<section id="validation-time-batch-limit-setting">
+<h2>Validation Time/Batch Limit Setting<a class="headerlink" href="#validation-time-batch-limit-setting" title="Link to this heading">#</a></h2>
+<p>The validation time and batch limit settings allow you to control the maximum time or number of batches to process during validation. These settings are useful for limiting the validation time and ensuring that the validation process does not take too long.</p>
+<p>The <cite>validation_time_limit</cite> and <cite>validation_batch_limit</cite> parameters can be set in the configuration file used for training. These parameters are optional and can be set to <cite>None</cite> if there is no time or batch limit.</p>
 </section>
-<section id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading">#</a></h2>
-<ul class="simple">
-<li><p><strong>Nucleus</strong> (<cite>nuc</cite>): Comprised of multiple components including the nuclear envelope membrane (<cite>ne_mem</cite>), nuclear pores (<cite>np_out</cite>, <cite>np_in</cite>), heterochromatin (<cite>hchrom</cite>), euchromatin (<cite>echrom</cite>), nucleoplasm (<cite>nucpl</cite>), and nucleolus (<cite>nucleo</cite>).</p></li>
-<li><p><strong>Mitochondria</strong> (<cite>mito</cite>): Includes the mitochondrial membrane (<cite>mito_mem</cite>), mitochondrial lumen (<cite>mito_lum</cite>), and mitochondrial ribosome (<cite>mito_ribo</cite>).</p></li>
-<li><p><strong>Endoplasmic Reticulum</strong> (<cite>er</cite>): A collective class that encompasses various ER components such as the ER membrane (<cite>er_mem</cite>), ER lumen (<cite>er_lum</cite>), and ER exit site (<cite>eres_mem</cite>, <cite>eres_lum</cite>).</p></li>
-</ul>
-<p>For detailed information on each class and their relationships, refer to the table above.</p>
+<section id="examples-and-usage-instructions">
+<h2>Examples and Usage Instructions<a class="headerlink" href="#examples-and-usage-instructions" title="Link to this heading">#</a></h2>
+<p>Example scripts for training 2D and 3D models are provided in the <cite>examples</cite> directory. The scripts are named <cite>train_2D.py</cite> and <cite>train_3D.py</cite>, respectively, and are thoroughly annotated for clarity. You can run one such script by running the following on the command line:</p>
+<p><code class="docutils literal notranslate"><span class="pre">`bash</span>
+<span class="pre">cd</span> <span class="pre">examples</span>
+<span class="pre">python</span> <span class="pre">train_2D.py</span>
+<span class="pre">`</span></code>
+This will train a 2D model on the training data and save the model weights to a file (defaults to <cite>./checkpoints/*.pth</cite>), along with logging loss and validation metrics, and sample predictions, viewable in TensorBoard. To view the TensorBoard logs, and monitor training progress, run the following command (assuming you are using the default log directory):</p>
+<p><code class="docutils literal notranslate"><span class="pre">`bash</span>
+<span class="pre">tensorboard</span> <span class="pre">--logdir=tensorboard</span>
+<span class="pre">`</span></code>
+This will start the TensorBoard server, which you can view in your browser at the link indicated in the terminal, often this is <cite>http://localhost:6006</cite>.</p>
+<p>You can also train a 3D model by running the same command with <cite>train_3D.py</cite>:</p>
+<p><code class="docutils literal notranslate"><span class="pre">`bash</span>
+<span class="pre">python</span> <span class="pre">train_3D.py</span>
+<span class="pre">`</span></code></p>
+<p>Alternatively, you can use the built-in command to train a model, given the path to a model configuration file. To learn more, you can run the following in the terminal:</p>
+<p><code class="docutils literal notranslate"><span class="pre">`bash</span>
+<span class="pre">csc</span> <span class="pre">train</span> <span class="pre">--help</span>
+<span class="pre">`</span></code></p>
+<p>For more information on the available options and how training works, see the <cite>README.md</cite> in the <cite>examples</cite> folder, as well as the documentation in <cite>examples/train_2D.py</cite> and <cite>examples/train_3D.py</cite>.</p>
 </section>
 </section>
 
@@ -442,24 +444,6 @@ $(document).ready(function() {
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
-    <a class="left-prev"
-       href="available_data.html"
-       title="previous page">
-      <i class="fa-solid fa-angle-left"></i>
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Available Data</p>
-      </div>
-    </a>
-    <a class="right-next"
-       href="dataloader.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Creating a CellMap Data PyTorch Dataloader</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
 </div>
                 </footer>
               
@@ -477,12 +461,12 @@ $(document).ready(function() {
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#table-of-contents">Table of Contents</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#multiscale-structure">Multiscale Structure</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#class-categories">Class Categories</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#detailed-class-descriptions">Detailed Class Descriptions</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#aliases">Aliases</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#training-configuration">Training configuration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#model-loading">Model Loading</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#datasplit-generation">Datasplit Generation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#training-from-s3-data">Training from S3 Data</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#validation-time-batch-limit-setting">Validation Time/Batch Limit Setting</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-and-usage-instructions">Examples and Usage Instructions</a></li>
 </ul>
   </nav></div>
 

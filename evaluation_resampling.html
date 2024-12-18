@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>cellmap_segmentation_challenge.cli package &#8212; CellMap Segmentation Challenge</title>
+    <title>Evaluation Resampling &#8212; CellMap Segmentation Challenge</title>
   
   
   
@@ -44,12 +44,12 @@
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'cellmap_segmentation_challenge.cli';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'evaluation_resampling';</script>
     <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="cellmap_segmentation_challenge.models package" href="cellmap_segmentation_challenge.models.html" />
-    <link rel="prev" title="cellmap_segmentation_challenge package" href="cellmap_segmentation_challenge.html" />
+    <link rel="next" title="Visualization" href="visualization.html" />
+    <link rel="prev" title="Loading a Pretrained Model Checkpoint" href="load_model_weights.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -162,17 +162,17 @@
 <li class="toctree-l1"><a class="reference internal" href="load_model_weights.html">Loading a Pretrained Model Checkpoint</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Evaluation:</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="evaluation_resampling.html">Evaluation Resampling</a></li>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Evaluation Resampling</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Visualization:</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">API:</span></p>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="cellmap_segmentation_challenge.html">cellmap_segmentation_challenge package</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">cellmap_segmentation_challenge.cli package</a></li>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.html">cellmap_segmentation_challenge package</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html">cellmap_segmentation_challenge.cli package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils package</a></li>
 </ul>
@@ -236,7 +236,7 @@
       
       
       
-      <li><a href="_sources/cellmap_segmentation_challenge.cli.rst" target="_blank"
+      <li><a href="_sources/evaluation_resampling.rst" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -312,7 +312,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>cellmap_segmentation_challenge.cli package</h1>
+    <h1>Evaluation Resampling</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -322,16 +322,9 @@
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.datasplit">cellmap_segmentation_challenge.cli.datasplit module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.evaluate">cellmap_segmentation_challenge.cli.evaluate module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.fetch_data">cellmap_segmentation_challenge.cli.fetch_data module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.predict">cellmap_segmentation_challenge.cli.predict module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.process">cellmap_segmentation_challenge.cli.process module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.speedtest">cellmap_segmentation_challenge.cli.speedtest module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.train">cellmap_segmentation_challenge.cli.train module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.visualize">cellmap_segmentation_challenge.cli.visualize module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli">Module contents</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#purpose">Purpose</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#resampling-process">Resampling Process</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#function">Function</a></li>
 </ul>
             </nav>
         </div>
@@ -343,37 +336,31 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="cellmap-segmentation-challenge-cli-package">
-<h1>cellmap_segmentation_challenge.cli package<a class="headerlink" href="#cellmap-segmentation-challenge-cli-package" title="Link to this heading">#</a></h1>
-<section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">#</a></h2>
+  <section id="evaluation-resampling">
+<h1>Evaluation Resampling<a class="headerlink" href="#evaluation-resampling" title="Link to this heading">#</a></h1>
+<section id="purpose">
+<h2>Purpose<a class="headerlink" href="#purpose" title="Link to this heading">#</a></h2>
+<p>Evaluation resampling ensures that the predicted and ground truth volumes are compared at the same resolution and region of interest (ROI) with the dataset. This is crucial for accurate evaluation of the model’s performance.</p>
 </section>
-<section id="module-cellmap_segmentation_challenge.cli.datasplit">
-<span id="cellmap-segmentation-challenge-cli-datasplit-module"></span><h2>cellmap_segmentation_challenge.cli.datasplit module<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli.datasplit" title="Link to this heading">#</a></h2>
+<section id="resampling-process">
+<h2>Resampling Process<a class="headerlink" href="#resampling-process" title="Link to this heading">#</a></h2>
+<p>The resampling process involves adjusting the resolution and ROI of the predicted volumes to match those of the ground truth volumes. This is done using different interpolation methods depending on the type of segmentation:</p>
+<ul class="simple">
+<li><p><strong>Instance Segmentations</strong>: Nearest neighbor interpolation is used to preserve the unique IDs of instance labels.</p></li>
+<li><p><strong>Semantic Segmentations</strong>: Linear interpolation followed by thresholding is used, as it is more accurate than nearest neighbor interpolation.</p></li>
+</ul>
+<p>Note: Linear interpolation followed by thresholding can also be used for instance segmentations, but requires doing so iteratively for each unique ID. We do not implement this here.</p>
 </section>
-<section id="module-cellmap_segmentation_challenge.cli.evaluate">
-<span id="cellmap-segmentation-challenge-cli-evaluate-module"></span><h2>cellmap_segmentation_challenge.cli.evaluate module<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli.evaluate" title="Link to this heading">#</a></h2>
-</section>
-<section id="module-cellmap_segmentation_challenge.cli.fetch_data">
-<span id="cellmap-segmentation-challenge-cli-fetch-data-module"></span><h2>cellmap_segmentation_challenge.cli.fetch_data module<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli.fetch_data" title="Link to this heading">#</a></h2>
-</section>
-<section id="module-cellmap_segmentation_challenge.cli.predict">
-<span id="cellmap-segmentation-challenge-cli-predict-module"></span><h2>cellmap_segmentation_challenge.cli.predict module<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli.predict" title="Link to this heading">#</a></h2>
-</section>
-<section id="module-cellmap_segmentation_challenge.cli.process">
-<span id="cellmap-segmentation-challenge-cli-process-module"></span><h2>cellmap_segmentation_challenge.cli.process module<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli.process" title="Link to this heading">#</a></h2>
-</section>
-<section id="module-cellmap_segmentation_challenge.cli.speedtest">
-<span id="cellmap-segmentation-challenge-cli-speedtest-module"></span><h2>cellmap_segmentation_challenge.cli.speedtest module<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli.speedtest" title="Link to this heading">#</a></h2>
-</section>
-<section id="module-cellmap_segmentation_challenge.cli.train">
-<span id="cellmap-segmentation-challenge-cli-train-module"></span><h2>cellmap_segmentation_challenge.cli.train module<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli.train" title="Link to this heading">#</a></h2>
-</section>
-<section id="module-cellmap_segmentation_challenge.cli.visualize">
-<span id="cellmap-segmentation-challenge-cli-visualize-module"></span><h2>cellmap_segmentation_challenge.cli.visualize module<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli.visualize" title="Link to this heading">#</a></h2>
-</section>
-<section id="module-cellmap_segmentation_challenge.cli">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-cellmap_segmentation_challenge.cli" title="Link to this heading">#</a></h2>
+<section id="function">
+<h2>Function<a class="headerlink" href="#function" title="Link to this heading">#</a></h2>
+<p>The function <cite>match_crop_space</cite> in <cite>src/cellmap_segmentation_challenge/evaluate.py</cite> handles the resampling process. It takes the following parameters:</p>
+<ul class="simple">
+<li><p><cite>path</cite> (str | UPath): The path to the zarr array to be adjusted. The zarr can be an OME-NGFF multiscale zarr file, or a traditional single scale formatted zarr.</p></li>
+<li><p><cite>class_label</cite> (str): The class label of the array.</p></li>
+<li><p><cite>voxel_size</cite> (tuple): The target voxel size.</p></li>
+<li><p><cite>shape</cite> (tuple): The target shape.</p></li>
+<li><p><cite>translation</cite> (tuple): The translation (i.e. offset) of the array in world units.</p></li>
+</ul>
 </section>
 </section>
 
@@ -389,20 +376,20 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="cellmap_segmentation_challenge.html"
+       href="load_model_weights.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">cellmap_segmentation_challenge package</p>
+        <p class="prev-next-title">Loading a Pretrained Model Checkpoint</p>
       </div>
     </a>
     <a class="right-next"
-       href="cellmap_segmentation_challenge.models.html"
+       href="visualization.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">cellmap_segmentation_challenge.models package</p>
+        <p class="prev-next-title">Visualization</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -423,16 +410,9 @@
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.datasplit">cellmap_segmentation_challenge.cli.datasplit module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.evaluate">cellmap_segmentation_challenge.cli.evaluate module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.fetch_data">cellmap_segmentation_challenge.cli.fetch_data module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.predict">cellmap_segmentation_challenge.cli.predict module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.process">cellmap_segmentation_challenge.cli.process module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.speedtest">cellmap_segmentation_challenge.cli.speedtest module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.train">cellmap_segmentation_challenge.cli.train module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli.visualize">cellmap_segmentation_challenge.cli.visualize module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.cli">Module contents</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#purpose">Purpose</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#resampling-process">Resampling Process</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#function">Function</a></li>
 </ul>
   </nav></div>
 
