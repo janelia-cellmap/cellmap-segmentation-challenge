@@ -105,7 +105,7 @@ To submit your predictions, first make sure that they are in the correct format 
 
 ## Data submission
 
-For convenience, if you have followed the prediction and processing steps described above and in the example scripts, you can use the following command to zip your predictions in the correct format:
+For convenience, if you have followed the prediction and processing steps described above and in the example scripts, you can use the following command to perform evaluation resampling and zip your predictions in the correct format:
 
 ```bash
 csc pack-results
