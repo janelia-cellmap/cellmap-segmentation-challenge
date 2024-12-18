@@ -50,15 +50,8 @@ The function `make_datasplit_csv` takes the following parameters:
 - `csv_path`: The path to write the CSV file to.
 - `dry_run`: A boolean flag to perform a dry run without writing the CSV file.
 
-For more detailed information, refer to the [datasplit generation documentation](../docs/source/dataloader.rst).
-
 ### Training from S3 Data
-
-The `make_s3_datasplit_csv` function in `src/cellmap_segmentation_challenge/utils/datasplit.py` handles the datasplit generation process for S3 data. This function is similar to `make_datasplit_csv`, but it uses S3 (remote) data stores instead of locally downloaded stores.
-
-The function `make_s3_datasplit_csv` takes the same parameters as `make_datasplit_csv`, with the addition of the `use_s3` parameter to specify whether to use S3 data stores.
-
-For more detailed information, refer to the [datasplit generation documentation](../docs/source/dataloader.rst).
+The `make_s3_datasplit_csv` function in `src/cellmap_segmentation_challenge/utils/datasplit.py` handles the datasplit generation process for S3 data. This function is similar to `make_datasplit_csv`, but it uses S3 (remote) data stores instead of locally downloaded stores. The function `make_s3_datasplit_csv` takes the same parameters as `make_datasplit_csv`. Without preconstructing a datasplit csv file you can direct training to stream data from S3 by including `use_s3 = True` in your training configuration file.
 
 ### Validation Time/Batch Limit Setting
 
@@ -114,22 +107,7 @@ Additionally, you can explicitly specify the path to the submission zarr, with p
 
 ### Evaluation Resampling
 
-Evaluation resampling ensures that the predicted and ground truth volumes are compared at the same resolution and shape. This is crucial for accurate evaluation of the model's performance.
-
-The resampling process involves adjusting the resolution and shape of the predicted volumes to match those of the ground truth volumes. This is done using different interpolation methods depending on the type of segmentation:
-
-- **Instance Segmentations**: Nearest neighbor interpolation is used to preserve the discrete nature of instance labels.
-- **Semantic Segmentations**: Linear interpolation is used to smoothly adjust the continuous nature of semantic labels.
-
-The function `match_crop_space` in `src/cellmap_segmentation_challenge/evaluate.py` handles the resampling process. It takes the following parameters:
-
-- `path`: The path to the zarr array to match.
-- `class_label`: The class label of the array.
-- `voxel_size`: The target voxel size.
-- `shape`: The target shape.
-- `translation`: The translation (i.e., offset) of the array in world units.
-
-For more detailed information, refer to the [evaluation resampling documentation](../docs/source/evaluation_resampling.rst).
+Evaluation resampling ensures that the predicted and ground truth volumes are compared at the same resolution and region of interest (ROI). This is crucial for accurate evaluation of the model's performance. The resampling process adjusts the resolution and ROI of the predicted volumes to match those of the ground truth volumes. For more detailed information, refer to the [evaluation resampling documentation](../docs/source/evaluation_resampling.rst).
 
 ### Manual data packaging
 If you are packaging your predictions manually, the submission file format requirements are as follows:
