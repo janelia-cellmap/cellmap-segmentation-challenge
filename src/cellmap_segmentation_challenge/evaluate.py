@@ -881,7 +881,7 @@ def match_crop_space(path, class_label, voxel_size, shape, translation) -> np.nd
     Match the resolution of a zarr array to a target resolution and shape, resampling as necessary with interpolation dependent on the class label. Instance segmentations will be resampled with nearest neighbor interpolation, while semantic segmentations will be resampled with linear interpolation and then thresholded.
 
     Args:
-        path (str | UPath): The path to the zarr array to match. The zarr can be an OME-NGFF multiscale zarr file, or a traditional single scale formatted zarr.
+        path (str | UPath): The path to the zarr array to be adjusted. The zarr can be an OME-NGFF multiscale zarr file, or a traditional single scale formatted zarr.
         class_label (str): The class label of the array.
         voxel_size (tuple): The target voxel size.
         shape (tuple): The target shape.

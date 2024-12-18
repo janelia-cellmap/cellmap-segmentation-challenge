@@ -8,6 +8,6 @@ from .crops import (
     get_test_crops,
 )
 from .dataloader import get_dataloader
-from .datasplit import make_datasplit_csv
+from .datasplit import make_datasplit_csv, make_s3_datasplit_csv
 from .loss import CellMapLossWrapper
 from .security import analyze_script, load_safe_config
