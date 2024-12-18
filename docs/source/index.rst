@@ -34,7 +34,18 @@
    cellmap_segmentation_challenge.train
    cellmap_segmentation_challenge.predict
    cellmap_segmentation_challenge
-   
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Evaluation:
+
+   evaluation_resampling.rst
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Visualization:
+
+   visualization.rst
 
 
 Links
