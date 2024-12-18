@@ -28,8 +28,9 @@ Instance Segmentations
   - **Accuracy**: The accuracy is calculated as the proportion of correctly predicted instance labels to the total number of instance labels.
 
 - **Score Normalization and Combination**:
-  - The Hausdorff distance is normalized to a range of [0, 1] using the maximum distance represented by a voxel. Specifically, the normalized Hausdorff distance is 1.01^(- hausdorff distance / ||voxel_size||)
+  - The Hausdorff distance is normalized to a range of [0, 1] using the maximum distance represented by a voxel. Specifically, the normalized Hausdorff distance is 1.01^(-hausdorff distance / ||voxel_size||)
   - The combined score is calculated as the geometric mean of the accuracy and the normalized Hausdorff distance.
+  - The final instance score across volumes is produced by taking the average across the combined scores for each volume, normalized by the total spatial volume of each image.
 
 Semantic Segmentations
 ----------------------
@@ -41,4 +42,4 @@ Semantic Segmentations
   - **Dice Score**: The Dice score is calculated as twice the intersection of the predicted and ground truth segmentations divided by the sum of their volumes. This metric measures the similarity between the predicted and ground truth segmentations.
 
 - **Score Normalization and Combination**:
-  - The IoU scores are combined across all volumes to obtain the final scores, normalized by the volume occupied by the voxels to which each IoU corresponds.
+  - The IoU scores are combined across all volumes to obtain the final scores, normalized by the total volume occupied by the volumes to which each IoU corresponds.
