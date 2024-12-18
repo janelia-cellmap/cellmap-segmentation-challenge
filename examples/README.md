@@ -50,15 +50,11 @@ The function `make_datasplit_csv` takes the following parameters:
 - `csv_path`: The path to write the CSV file to.
 - `dry_run`: A boolean flag to perform a dry run without writing the CSV file.
 
-For more detailed information, refer to the [datasplit generation documentation](../docs/source/dataloader.rst).
 
 ### Training from S3 Data
 
-The `make_s3_datasplit_csv` function in `src/cellmap_segmentation_challenge/utils/datasplit.py` handles the datasplit generation process for S3 data. This function is similar to `make_datasplit_csv`, but it uses S3 (remote) data stores instead of locally downloaded stores.
+The `make_s3_datasplit_csv` function in `src/cellmap_segmentation_challenge/utils/datasplit.py` handles the datasplit generation process for S3 data. This function is similar to `make_datasplit_csv`, but it uses S3 (remote) data stores instead of locally downloaded stores. The function `make_s3_datasplit_csv` takes the same parameters as `make_datasplit_csv`. Without preconstructing a datasplit csv file you can direct training to stream data from S3 by including `use_s3 = True` in your training configuration file.
 
-The function `make_s3_datasplit_csv` takes the same parameters as `make_datasplit_csv`, with the addition of the `use_s3` parameter to specify whether to use S3 data stores.
-
-For more detailed information, refer to the [datasplit generation documentation](../docs/source/dataloader.rst).
 
 ### Validation Time/Batch Limit Setting
 
@@ -66,7 +62,6 @@ The validation time and batch limit settings allow you to control the maximum ti
 
 The `validation_time_limit` and `validation_batch_limit` parameters can be set in the configuration file used for training. These parameters are optional and can be set to `None` if there is no time or batch limit.
 
-For more detailed information, refer to the [training documentation](../docs/source/dataloader.rst).
 
 ## Predicting on test data
 The `predict_2D.py` and `predict_3D.py` scripts demonstrate how to use a trained model to make predictions on test data. The predictions are saved as Zarr-2 files in the specified output directory. The scripts use a configuration file to define model and other configurations required for making predictions, this file can be the same used for training the model. The scripts call the `predict` function with the path to this configuration file as an argument. For example, to predict on the test data using the 3D model from `train_3D.py`, you can do so directly by running the following command:
@@ -114,22 +109,7 @@ Additionally, you can explicitly specify the path to the submission zarr, with p
 
 ### Evaluation Resampling
 
-Evaluation resampling ensures that the predicted and ground truth volumes are compared at the same resolution and shape. This is crucial for accurate evaluation of the model's performance.
-
-The resampling process involves adjusting the resolution and shape of the predicted volumes to match those of the ground truth volumes. This is done using different interpolation methods depending on the type of segmentation:
-
-- **Instance Segmentations**: Nearest neighbor interpolation is used to preserve the discrete nature of instance labels.
-- **Semantic Segmentations**: Linear interpolation is used to smoothly adjust the continuous nature of semantic labels.
-
-The function `match_crop_space` in `src/cellmap_segmentation_challenge/evaluate.py` handles the resampling process. It takes the following parameters:
-
-- `path`: The path to the zarr array to match.
-- `class_label`: The class label of the array.
-- `voxel_size`: The target voxel size.
-- `shape`: The target shape.
-- `translation`: The translation (i.e., offset) of the array in world units.
-
-For more detailed information, refer to the [evaluation resampling documentation](../docs/source/evaluation_resampling.rst).
+Evaluation resampling ensures that the predicted and ground truth volumes are compared at the same resolution and region of interest (ROI). This is crucial for accurate evaluation of the model's performance. The resampling process adjusts the resolution and ROI of the predicted volumes to match those of the ground truth volumes. For more detailed information, refer to the [evaluation resampling documentation](../docs/source/evaluation_resampling.rst).
 
 ### Manual data packaging
 If you are packaging your predictions manually, the submission file format requirements are as follows:
