@@ -15,6 +15,7 @@ from .utils import (
     get_dataloader,
     load_safe_config,
     make_datasplit_csv,
+    make_s3_datasplit_csv,
 )
 
 
@@ -46,6 +47,8 @@ def train(config_path: str):
         - spatial_transforms: Dictionary of spatial transformations to apply to the training data. Default is {'mirror': {'axes': {'x': 0.5, 'y': 0.5}}, 'transpose': {'axes': ['x', 'y']}, 'rotate': {'axes': {'x': [-180, 180], 'y': [-180, 180]}}}. See the `dataloader` module documentation for more information.
         - validation_time_limit: Maximum time to spend on validation in seconds. If None, there is no time limit. Default is None.
         - validation_batch_limit: Maximum number of validation batches to process. If None, there is no limit. Default is None.
+        - device: Device to use for training. If None, will use 'cuda' if available, 'mps' if available, or 'cpu' otherwise. Default is None.
+        - use_s3: Whether to use the S3 bucket for the datasplit. Default is False.
 
     Returns
     -------
@@ -92,6 +95,7 @@ def train(config_path: str):
     validation_time_limit = getattr(config, "validation_time_limit", None)
     validation_batch_limit = getattr(config, "validation_batch_limit", None)
     device = getattr(config, "device", None)
+    use_s3 = getattr(config, "use_s3", False)
 
     # %% Make sure the save path exists
     for path in [model_save_path, logs_save_path, datasplit_path]:
@@ -116,11 +120,18 @@ def train(config_path: str):
 
     # %% Make the datasplit file if it doesn't exist
     if not os.path.exists(datasplit_path):
-        make_datasplit_csv(
-            classes=classes,
-            csv_path=datasplit_path,
-            validation_prob=validation_prob,
-        )
+        if use_s3:
+            make_s3_datasplit_csv(
+                classes=classes,
+                csv_path=datasplit_path,
+                validation_prob=validation_prob,
+            )
+        else:
+            make_datasplit_csv(
+                classes=classes,
+                csv_path=datasplit_path,
+                validation_prob=validation_prob,
+            )
 
     # %% Download the data and make the dataloader
     train_loader, val_loader = get_dataloader(
