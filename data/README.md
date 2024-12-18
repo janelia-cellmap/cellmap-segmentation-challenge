@@ -35,7 +35,7 @@ csc fetch-data --crops test
 To learn more about the data format, please refer to the [data format documentation](https://open.quiltdata.com/b/janelia-cosem-datasets/tree/) in our AWS S3 bucket [janelia-cosem-datasets](https://open.quiltdata.com/b/janelia-cosem-datasets/tree/).
 
 ## Visualization Tool
-The `visualize.py` module provides functions to visualize, with neuroglancer, raw (EM) and groundtruth data alongside your predictions, post-processed outputs, and results packaged for submission.
+The `visualize.py` module provides functions to visualize, with neuroglancer, raw (EM) and ground truth data alongside your predictions, post-processed outputs, and results packaged for submission.
 
 To visualize the data and predictions, you can use the `csc visualize` command. This command serves the image arrays on a local server and opens a browser window with the neuroglancer viewer. You can then navigate through the data and predictions and compare them side by side.
 
@@ -43,9 +43,9 @@ For more detailed information, refer to the [visualization documentation](../doc
 
 ## Evaluation Resampling
 
-Evaluation resampling ensures that the predicted and groundtruth volumes are compared at the same resolution and region of interest (ROI). This is crucial for accurate evaluation of the model's performance.
+Evaluation resampling ensures that the predicted and ground truth volumes are compared at the same resolution and region of interest (ROI). This is crucial for accurate evaluation of the model's performance.
 
-The resampling process involves adjusting the resolution and ROI of the predicted volumes to match those of the groundtruth volumes. This is done using different interpolation methods depending on the type of segmentation:
+The resampling process involves adjusting the resolution and ROI of the predicted volumes to match those of the ground truth volumes. This is done using different interpolation methods depending on the type of segmentation:
 
 - **Instance Segmentations**: Nearest neighbor interpolation is used to preserve the unique IDs of instance labels.
 - **Semantic Segmentations**: Linear interpolation followed by thresholding is used to resample semantic labels.
