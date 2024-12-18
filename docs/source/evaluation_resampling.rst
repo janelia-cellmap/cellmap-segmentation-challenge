@@ -3,7 +3,7 @@ Evaluation Resampling
 
 Purpose
 -------
-Evaluation resampling ensures that the predicted and ground truth volumes are compared at the same resolution and region of interest (ROI) with the dataset. This is crucial for accurate evaluation of the model's performance.
+Evaluation resampling ensures that the predicted and ground truth volumes are compared at the same resolution and region of interest (ROI) within the dataset. This is crucial for accurate evaluation of the model's performance.
 
 Resampling Process
 ------------------
@@ -12,7 +12,7 @@ The resampling process involves adjusting the resolution and ROI of the predicte
 - **Instance Segmentations**: Nearest neighbor interpolation is used to preserve the unique IDs of instance labels.
 - **Semantic Segmentations**: Linear interpolation followed by thresholding is used, as it is more accurate than nearest neighbor interpolation.
 
-Note: Linear interpolation followed by thresholding can also be used for instance segmentations, but requires doing so iteratively for each unique ID. We do not implement this here.
+Note: Linear interpolation followed by thresholding can also be used for instance segmentations, but requires doing so iteratively for each unique ID. We do not implement this here as it can be compute intensive if there are many unique objects.
 
 Function
 --------
