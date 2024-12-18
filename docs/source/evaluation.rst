@@ -35,7 +35,7 @@ Instance Segmentations
 Semantic Segmentations
 ----------------------
 
-- **All non-instance classesm are included as semantic labels**
+- **All non-instance classes are included as semantic labels**
 
 - **Scoring Components**:
   - **Intersection over Union (IoU)**: The IoU is calculated as the intersection of the predicted and ground truth segmentations divided by their union. This metric measures the overlap between the predicted and ground truth segmentations.
