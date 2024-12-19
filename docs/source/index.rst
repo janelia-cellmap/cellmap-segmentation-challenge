@@ -31,6 +31,7 @@
    :caption: Evaluation:
 
    evaluation.rst
+   submission_data_format.rst
    evaluation_resampling.rst
 
 .. toctree::
@@ -38,15 +39,6 @@
    :caption: Visualization:
 
    visualization.rst
-
-.. toctree::
-   :maxdepth: 2
-   :caption: API:
-   
-   cellmap_segmentation_challenge.train
-   cellmap_segmentation_challenge.predict
-   cellmap_segmentation_challenge
-
 
 Links
 ==================
