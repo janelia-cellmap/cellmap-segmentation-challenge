@@ -83,26 +83,26 @@ Examples and Usage Instructions
 
 Example scripts for training 2D and 3D models are provided in the `examples` directory. The scripts are named `train_2D.py` and `train_3D.py`, respectively, and are thoroughly annotated for clarity. You can run one such script by running the following on the command line:
 
-```bash
+```
 cd examples
 python train_2D.py
 ```
 This will train a 2D model on the training data and save the model weights to a file (defaults to `./checkpoints/*.pth`), along with logging loss and validation metrics, and sample predictions, viewable in TensorBoard. To view the TensorBoard logs, and monitor training progress, run the following command (assuming you are using the default log directory):
 
-```bash
+```
 tensorboard --logdir=tensorboard
 ```
 This will start the TensorBoard server, which you can view in your browser at the link indicated in the terminal, often this is `http://localhost:6006`.
 
 You can also train a 3D model by running the same command with `train_3D.py`:
 
-```bash
+```
 python train_3D.py
 ```
 
 Alternatively, you can use the built-in command to train a model, given the path to a model configuration file. To learn more, you can run the following in the terminal:
 
-```bash
+```
 csc train --help
 ```
 
