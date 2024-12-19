@@ -30,8 +30,8 @@
    :maxdepth: 2
    :caption: Evaluation:
 
-   evaluation_resampling.rst
    evaluation.rst
+   evaluation_resampling.rst
 
 .. toctree::
    :maxdepth: 2
