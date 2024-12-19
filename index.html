@@ -44,6 +44,7 @@
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'index';</script>
     <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
@@ -165,20 +166,12 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Evaluation:</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="submission_data_format.html">Submission Data Format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="evaluation_resampling.html">Evaluation Resampling</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Visualization:</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">API:</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.html">cellmap_segmentation_challenge package</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html">cellmap_segmentation_challenge.cli package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils package</a></li>
-</ul>
-</details></li>
 </ul>
 
     </div>
@@ -549,42 +542,7 @@ python<span class="w"> </span>train_2D.py
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>csc<span class="w"> </span>pack-results<span class="w"> </span>--help
 </pre></div>
 </div>
-<p>If you are packaging your predictions manually, the submission file format requirements are as follows:</p>
-<p>Submission file format requirements:</p>
-<ol class="arabic simple">
-<li><p>The submission should be a single zip file containing a single Zarr-2 file with the following structure:</p></li>
-</ol>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">submission</span><span class="o">.</span><span class="n">zarr</span>
-    <span class="o">-</span> <span class="o">/&lt;</span><span class="n">test_volume_name</span><span class="o">&gt;</span>
-    <span class="o">-</span> <span class="o">/&lt;</span><span class="n">label_name</span><span class="o">&gt;</span>
-</pre></div>
-</div>
-<ol class="arabic simple">
-<li><p>The names of the test volumes and labels should match the names of the test volumes and labels in the test data. See <code class="docutils literal notranslate"><span class="pre">examples/predict_2D.py</span></code> and <code class="docutils literal notranslate"><span class="pre">examples/predict_3D.py</span></code> for examples of how to generate predictions in the correct format.</p></li>
-<li><p>The scale for all volumes is 8x8x8 nm/voxel, except as otherwise specified.</p></li>
-</ol>
-<p>Assuming your data is already 8x8x8nm/voxel,and each label volume is either A) a 3D binary volume with the same shape and scale as the corresponding test volume,
-or B) instance IDs per object, you can convert the submission to the required format using the following convenience functions:</p>
-<ul class="simple">
-<li><p>For converting a single 3D numpy array of class labels to a Zarr-2 file, use the following function:
-<code class="docutils literal notranslate"><span class="pre">cellmap_segmentation_challenge.utils.evaluate.save_numpy_labels_to_zarr</span></code>
-Note: The class labels should start from 1, with 0 as background.</p></li>
-<li><p>For converting a list of 3D numpy arrays of binary or instance labels to a Zarr-2 file, use the following function:
-<code class="docutils literal notranslate"><span class="pre">cellmap_segmentation_challenge.utils.evaluate.save_numpy_binary_to_zarr</span></code>
-Note: The instance labels, if used, should be unique IDs per object, with 0 as background.</p></li>
-</ul>
-<p>The arguments for both functions are the same:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">submission_path</span></code>: The path to save the Zarr-2 file (ending with &lt;filename&gt;.zarr).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">test_volume_name</span></code>: The name of the test volume.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">label_names</span></code>: A list of label names corresponding to the list of 3D numpy arrays or the number of the class labels (0 is always assumed to be background).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">labels</span></code>: A list of 3D numpy arrays of binary labels or a single 3D numpy array of class labels.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">overwrite</span></code>: A boolean flag to overwrite the Zarr-2 file if it already exists.</p></li>
-</ul>
-<p>To zip the Zarr-2 file, you can use the following command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>zip<span class="w"> </span>-r<span class="w"> </span>submission.zip<span class="w"> </span>submission.zarr
-</pre></div>
-</div>
+<p>For more detailed information on the expected format of the data submitted, refer to the <a class="reference external" href="docs/source/submission_data_format.rst">submission_data_format.rst</a> file.</p>
 </section>
 <section id="issues">
 <h1>Issues<a class="headerlink" href="#issues" title="Link to this heading">#</a></h1>
@@ -651,6 +609,13 @@ Note: The instance labels, if used, should be unique IDs per object, with 0 as b
 <li class="toctree-l2"><a class="reference internal" href="evaluation.html#semantic-segmentations">Semantic Segmentations</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="submission_data_format.html">Submission Data Format</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="submission_data_format.html#automatic-submission-packaging">Automatic Submission Packaging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="submission_data_format.html#structure-of-the-submission-file">Structure of the Submission File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="submission_data_format.html#connected-components-for-instance-segmentation">Connected Components for Instance Segmentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="submission_data_format.html#convenience-functions-for-manual-conversion-and-packaging">Convenience functions for manual conversion and packaging</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="evaluation_resampling.html">Evaluation Resampling</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="evaluation_resampling.html#purpose">Purpose</a></li>
 <li class="toctree-l2"><a class="reference internal" href="evaluation_resampling.html#resampling-process">Resampling Process</a></li>
@@ -665,23 +630,6 @@ Note: The instance labels, if used, should be unique IDs per object, with 0 as b
 <li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="visualization.html#usage">Usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="visualization.html#examples">Examples</a></li>
-</ul>
-</li>
-</ul>
-</div>
-<div class="toctree-wrapper compound">
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">API:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="cellmap_segmentation_challenge.html">cellmap_segmentation_challenge package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.html#subpackages">Subpackages</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.html#module-cellmap_segmentation_challenge.config">cellmap_segmentation_challenge.config module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.html#module-cellmap_segmentation_challenge.evaluate">cellmap_segmentation_challenge.evaluate module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.html#module-cellmap_segmentation_challenge.predict">cellmap_segmentation_challenge.predict module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.html#module-cellmap_segmentation_challenge.process">cellmap_segmentation_challenge.process module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.html#module-cellmap_segmentation_challenge.train">cellmap_segmentation_challenge.train module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.html#module-cellmap_segmentation_challenge.visualize">cellmap_segmentation_challenge.visualize module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.html#module-cellmap_segmentation_challenge">Module contents</a></li>
 </ul>
 </li>
 </ul>

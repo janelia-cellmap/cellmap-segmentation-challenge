@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Evaluation Resampling &#8212; CellMap Segmentation Challenge</title>
+    <title>Submission Data Format &#8212; CellMap Segmentation Challenge</title>
   
   
   
@@ -44,12 +44,12 @@
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'evaluation_resampling';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'submission_data_format';</script>
     <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Visualization" href="visualization.html" />
-    <link rel="prev" title="Submission Data Format" href="submission_data_format.html" />
+    <link rel="next" title="Evaluation Resampling" href="evaluation_resampling.html" />
+    <link rel="prev" title="Evaluation" href="evaluation.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -164,8 +164,8 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Evaluation:</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="evaluation.html">Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="submission_data_format.html">Submission Data Format</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Evaluation Resampling</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Submission Data Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluation_resampling.html">Evaluation Resampling</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Visualization:</span></p>
 <ul class="nav bd-sidenav">
@@ -229,7 +229,7 @@
       
       
       
-      <li><a href="_sources/evaluation_resampling.rst" target="_blank"
+      <li><a href="_sources/submission_data_format.rst" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -305,7 +305,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Evaluation Resampling</h1>
+    <h1>Submission Data Format</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -315,9 +315,10 @@
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#purpose">Purpose</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#resampling-process">Resampling Process</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#function">Function</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automatic-submission-packaging">Automatic Submission Packaging</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#structure-of-the-submission-file">Structure of the Submission File</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#connected-components-for-instance-segmentation">Connected Components for Instance Segmentation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#convenience-functions-for-manual-conversion-and-packaging">Convenience functions for manual conversion and packaging</a></li>
 </ul>
             </nav>
         </div>
@@ -329,31 +330,189 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="evaluation-resampling">
-<h1>Evaluation Resampling<a class="headerlink" href="#evaluation-resampling" title="Link to this heading">#</a></h1>
-<section id="purpose">
-<h2>Purpose<a class="headerlink" href="#purpose" title="Link to this heading">#</a></h2>
-<p>Evaluation resampling ensures that the predicted and ground truth volumes are compared at the same resolution and region of interest (ROI) with the dataset. This is crucial for accurate evaluation of the model’s performance.</p>
+  <section id="submission-data-format">
+<h1>Submission Data Format<a class="headerlink" href="#submission-data-format" title="Link to this heading">#</a></h1>
+<p>This document describes the expected format of the data submitted for the CellMap Segmentation Challenge.</p>
+<section id="automatic-submission-packaging">
+<h2>Automatic Submission Packaging<a class="headerlink" href="#automatic-submission-packaging" title="Link to this heading">#</a></h2>
+<p>For convenience, if you have followed the prediction and processing steps described above and in the example scripts, you can use the following command to zip your predictions in the correct format:</p>
+<p><code class="docutils literal notranslate"><span class="pre">`bash</span>
+<span class="pre">csc</span> <span class="pre">pack-results</span>
+<span class="pre">`</span></code>
+Additionally, you can explicitly specify the path to the submission zarr, with placeholders {dataset} and {crop}, and the output directory for the zipped submission file using the following command. These default to the PROCESSED_PATH and SUBMISSION_PATH defined in the global configuration file (<cite>config.py</cite>).</p>
+<dl class="simple">
+<dt>The <cite>package_results</cite> function that is used by <cite>csc pack-results</cite> packages a CellMap challenge submission, creating a zarr file, combining all the processed volumes and matching them to the scale and regions of interest of the ground truth crops, and then zipping the result.</dt><dd><dl class="simple">
+<dt>Args:</dt><dd><p>input_search_path (str): The base path to the processed volumes, with placeholders for dataset and crops.
+output_path (str | UPath): The path to save the submission zarr to. (ending with <cite>&lt;filename&gt;.zarr</cite>; <cite>.zarr</cite> will be appended if not present, and replaced with <cite>.zip</cite> when zipped).
+overwrite (bool): Whether to overwrite the submission zarr if it already exists.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>After packaging the data, they can be visualized alongside the EM, raw predictions, and initial post-processed results using the following command:
+<code class="docutils literal notranslate"><span class="pre">`bash</span>
+<span class="pre">csc</span> <span class="pre">visualize</span> <span class="pre">-c</span> <span class="pre">test</span> <span class="pre">-k</span> <span class="pre">predictions,processed,submission</span>
+<span class="pre">`</span></code></p>
 </section>
-<section id="resampling-process">
-<h2>Resampling Process<a class="headerlink" href="#resampling-process" title="Link to this heading">#</a></h2>
-<p>The resampling process involves adjusting the resolution and ROI of the predicted volumes to match those of the ground truth volumes. This is done using different interpolation methods depending on the type of segmentation:</p>
-<ul class="simple">
-<li><p><strong>Instance Segmentations</strong>: Nearest neighbor interpolation is used to preserve the unique IDs of instance labels.</p></li>
-<li><p><strong>Semantic Segmentations</strong>: Linear interpolation followed by thresholding is used, as it is more accurate than nearest neighbor interpolation.</p></li>
+<section id="structure-of-the-submission-file">
+<h2>Structure of the Submission File<a class="headerlink" href="#structure-of-the-submission-file" title="Link to this heading">#</a></h2>
+<p>The submission should be a single zip file containing a single Zarr-2 file with the following structure:</p>
+<p><a href="#id1"><span class="problematic" id="id2">``</span></a>`
+submission.zarr</p>
+<blockquote>
+<div><ul>
+<li><p>.zgroup</p></li>
+<li><p>/&lt;test_crop_name&gt;
+- .zgroup
+- /&lt;label_name&gt;</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>.zattrs</p></li>
+<li><p>…</p></li>
 </ul>
-<p>Note: Linear interpolation followed by thresholding can also be used for instance segmentations, but requires doing so iteratively for each unique ID. We do not implement this here.</p>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+<p><a href="#id3"><span class="problematic" id="id4">``</span></a><a href="#id5"><span class="problematic" id="id6">`</span></a></p>
+<p>Two options are available for formatting the contents of the label array folder (<cite>/&lt;label_name&gt;/…</cite>):
+1. Single scale Zarr-2:</p>
+<blockquote>
+<div><p><a href="#id7"><span class="problematic" id="id8">``</span></a>`
+- /&lt;label_name&gt;</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>.zattrs - containing “voxel_size”/”resolution”/”scale” and “translation”/”offset”</p></li>
+<li><p>.zarray</p></li>
+<li><p>&lt;…data folders…&gt;</p></li>
+</ul>
+</div></blockquote>
+<p><a href="#id9"><span class="problematic" id="id10">``</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a></p>
+</div></blockquote>
+<ol class="arabic simple" start="2">
+<li><p>Multiscale OME-NGFF Zarr:</p></li>
+</ol>
+<blockquote>
+<div><p><a href="#id13"><span class="problematic" id="id14">``</span></a>`
+- /&lt;label_name&gt;</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>.zattrs - containing “multiscales” metadata</p></li>
+<li><p>.zgroup</p></li>
+<li><p>/s&lt;level&gt; (e.g. “s0”)
+- .zarray
+- &lt;…data folders…&gt;</p></li>
+</ul>
+</div></blockquote>
+<p><a href="#id15"><span class="problematic" id="id16">``</span></a><a href="#id17"><span class="problematic" id="id18">`</span></a></p>
+<p>An example of multiscales metadata is as follows:
+<a href="#id19"><span class="problematic" id="id20">``</span></a>`
+{</p>
+<blockquote>
+<div><dl>
+<dt>“multiscales”: [</dt><dd><dl>
+<dt>{</dt><dd><dl>
+<dt>“axes”: [</dt><dd><dl class="simple">
+<dt>{</dt><dd><p>“name”: “z”,
+“type”: “space”,
+“unit”: “nanometer”</p>
+</dd>
+</dl>
+<p>},
+{</p>
+<blockquote>
+<div><p>“name”: “y”,
+“type”: “space”,
+“unit”: “nanometer”</p>
+</div></blockquote>
+<p>},
+{</p>
+<blockquote>
+<div><p>“name”: “x”,
+“type”: “space”,
+“unit”: “nanometer”</p>
+</div></blockquote>
+<p>}</p>
+</dd>
+</dl>
+<p>],
+“datasets”: [</p>
+<blockquote>
+<div><dl>
+<dt>{</dt><dd><dl>
+<dt>“coordinateTransformations”: [</dt><dd><dl>
+<dt>{</dt><dd><dl class="simple">
+<dt>“scale”: [</dt><dd><p>2.0,
+2.0,
+2.0</p>
+</dd>
+</dl>
+<p>],
+“type”: “scale”</p>
+</dd>
+</dl>
+<p>},
+{</p>
+<blockquote>
+<div><dl class="simple">
+<dt>“translation”: [</dt><dd><p>2760.0,
+5160.0,
+10670.0</p>
+</dd>
+</dl>
+<p>],
+“type”: “translation”</p>
+</div></blockquote>
+<p>}</p>
+</dd>
+</dl>
+<p>],
+“path”: “s0”</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>],
+“version”: “0.4”</p>
+</dd>
+</dl>
+<p>}</p>
+</dd>
+</dl>
+<p>]</p>
+</div></blockquote>
+</div></blockquote>
+<p>The names of the test crops and labels should match the names of the test crops and labels as specified in [the test_crop_manifest](src/cellmap_segmentation_challenge/utils/test_crop_manifest.csv). Similarly, you will see the scale, spatial offset (in nanometers), and shape (in voxels) for each test image. The scale, spatial offset, and shape will automatically be adjusted as necessary during evaluation, if this metadata is present in the <cite>.zattrs</cite> file for each image. Using <cite>csc pack-results</cite> will also do this adjustment for you, allowing you to preview the results of resampling prior to submission (see <cite>evaluation_resampling.rst</cite> for more detailed information). Submitting higher-resolution data will likely lead to the best results after resampling.</p>
 </section>
-<section id="function">
-<h2>Function<a class="headerlink" href="#function" title="Link to this heading">#</a></h2>
-<p>The function <cite>match_crop_space</cite> in <cite>src/cellmap_segmentation_challenge/evaluate.py</cite> handles the resampling process. It takes the following parameters:</p>
+<section id="connected-components-for-instance-segmentation">
+<h2>Connected Components for Instance Segmentation<a class="headerlink" href="#connected-components-for-instance-segmentation" title="Link to this heading">#</a></h2>
+<p>Connected components will be run on all instance segmentation submissions to be consistent with the ground truth instance labels. The ground truth instance masks are formed by running connected components on binary semantic masks, which won’t necessarily always be correct. Thus, we should ensure the same errors within the submitted data. This means that participants do not need to run instance segmentation specific post-processing on their data prior to submission.</p>
+</section>
+<section id="convenience-functions-for-manual-conversion-and-packaging">
+<h2>Convenience functions for manual conversion and packaging<a class="headerlink" href="#convenience-functions-for-manual-conversion-and-packaging" title="Link to this heading">#</a></h2>
+<p>Assuming each label volume is either:
+A) a 3D binary volume with the same shape and scale as the corresponding test volume, or
+B) instance IDs per object,
+you can convert the submission to the required format using the following convenience functions:</p>
 <ul class="simple">
-<li><p><cite>path</cite> (str | UPath): The path to the zarr array to be adjusted. The zarr can be an OME-NGFF multiscale zarr file, or a traditional single scale formatted zarr.</p></li>
-<li><p><cite>class_label</cite> (str): The class label of the array.</p></li>
-<li><p><cite>voxel_size</cite> (tuple): The target voxel size.</p></li>
-<li><p><cite>shape</cite> (tuple): The target shape.</p></li>
-<li><p><cite>translation</cite> (tuple): The translation (i.e. offset) of the array in world units.</p></li>
+<li><p>For converting a single 3D numpy array of class labels to a Zarr-2 file, use the following function:
+<cite>cellmap_segmentation_challenge.utils.evaluate.save_numpy_labels_to_zarr</cite></p></li>
 </ul>
+<p>Note: The class labels should start from 1, with 0 as background.</p>
+<ul class="simple">
+<li><p>For converting a list of 3D numpy arrays of binary or instance labels to a Zarr-2 file, use the following function:
+<cite>cellmap_segmentation_challenge.utils.evaluate.save_numpy_binary_to_zarr</cite></p></li>
+</ul>
+<p>Note: The instance labels, if used, should be unique IDs per object, with 0 as background.</p>
+<p>The arguments for both functions are the same:
+- <cite>submission_path</cite>: The path to save the Zarr-2 file (ending with &lt;filename&gt;.zarr).
+- <cite>test_volume_name</cite>: The name of the test volume.
+- <cite>label_names</cite>: A list of label names corresponding to the list of 3D numpy arrays or the number of the class labels (0 is always assumed to be background).
+- <cite>labels</cite>: A list of 3D numpy arrays of binary labels or a single 3D numpy array of class labels.
+- <cite>overwrite</cite>: A boolean flag to overwrite the Zarr-2 file if it already exists.</p>
+<p>To zip the Zarr-2 file, you can use the following command:
+<code class="docutils literal notranslate"><span class="pre">`bash</span>
+<span class="pre">zip</span> <span class="pre">-r</span> <span class="pre">submission.zip</span> <span class="pre">submission.zarr</span>
+<span class="pre">`</span></code></p>
 </section>
 </section>
 
@@ -369,20 +528,20 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="submission_data_format.html"
+       href="evaluation.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Submission Data Format</p>
+        <p class="prev-next-title">Evaluation</p>
       </div>
     </a>
     <a class="right-next"
-       href="visualization.html"
+       href="evaluation_resampling.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Visualization</p>
+        <p class="prev-next-title">Evaluation Resampling</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -403,9 +562,10 @@
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#purpose">Purpose</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#resampling-process">Resampling Process</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#function">Function</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automatic-submission-packaging">Automatic Submission Packaging</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#structure-of-the-submission-file">Structure of the Submission File</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#connected-components-for-instance-segmentation">Connected Components for Instance Segmentation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#convenience-functions-for-manual-conversion-and-packaging">Convenience functions for manual conversion and packaging</a></li>
 </ul>
   </nav></div>
 

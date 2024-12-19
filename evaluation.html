@@ -44,11 +44,12 @@
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'evaluation';</script>
     <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Evaluation Resampling" href="evaluation_resampling.html" />
+    <link rel="next" title="Submission Data Format" href="submission_data_format.html" />
     <link rel="prev" title="Loading a Pretrained Model Checkpoint" href="load_model_weights.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -164,20 +165,12 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Evaluation:</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="submission_data_format.html">Submission Data Format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="evaluation_resampling.html">Evaluation Resampling</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Visualization:</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">API:</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="cellmap_segmentation_challenge.html">cellmap_segmentation_challenge package</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.cli.html">cellmap_segmentation_challenge.cli package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.models.html">cellmap_segmentation_challenge.models package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html">cellmap_segmentation_challenge.utils package</a></li>
-</ul>
-</details></li>
 </ul>
 
     </div>
@@ -347,36 +340,51 @@
 <section id="instance-segmentations">
 <h2>Instance Segmentations<a class="headerlink" href="#instance-segmentations" title="Link to this heading">#</a></h2>
 <ul class="simple">
-<li><p><strong>Classes Included</strong>: The following classes are included in the instance segmentation evaluation:
-- Cell (<cite>cell</cite>)
-- Endosome (<cite>endo</cite>)
-- Lipid droplet (<cite>ld</cite>)
-- Lysosome (<cite>lyso</cite>)
-- Mitochondria (<cite>mito</cite>)
-- Microtubule (<cite>mt</cite>)
-- Nuclear pore (<cite>np</cite>)
-- Nucleus (<cite>nuc</cite>)
-- Peroxisome (<cite>perox</cite>)
-- Vesicle (<cite>ves</cite>)
-- Vimentin (<cite>vim</cite>)</p></li>
-<li><p><strong>Scoring Components</strong>:
-- <strong>Hausdorff Distance</strong>: The Hausdorff distance is calculated in nanometers between the predicted and ground truth instance segmentations. This metric measures the maximum distance between any point on the predicted instance and its nearest point on the ground truth instance, and vice versa.
-- <strong>Accuracy</strong>: The accuracy is calculated as the proportion of correctly predicted instance labels to the total number of instance labels.</p></li>
-<li><p><strong>Score Normalization and Combination</strong>:
-- The Hausdorff distance is normalized to a range of [0, 1] using the maximum distance represented by a voxel. Specifically, the normalized Hausdorff distance is 1.01^(-hausdorff distance / ||voxel_size||)
-- The combined score is calculated as the geometric mean of the accuracy and the normalized Hausdorff distance.
-- The final instance score across volumes is produced by taking the average across the combined scores for each volume, normalized by the total spatial volume of each image.</p></li>
+<li><p><strong>Classes Included</strong>: The following classes are included in the instance segmentation evaluation:</p>
+<ul>
+<li><p>Cell (<cite>cell</cite>)</p></li>
+<li><p>Endosome (<cite>endo</cite>)</p></li>
+<li><p>Lipid droplet (<cite>ld</cite>)</p></li>
+<li><p>Lysosome (<cite>lyso</cite>)</p></li>
+<li><p>Mitochondria (<cite>mito</cite>)</p></li>
+<li><p>Microtubule (<cite>mt</cite>)</p></li>
+<li><p>Nuclear pore (<cite>np</cite>)</p></li>
+<li><p>Nucleus (<cite>nuc</cite>)</p></li>
+<li><p>Peroxisome (<cite>perox</cite>)</p></li>
+<li><p>Vesicle (<cite>ves</cite>)</p></li>
+<li><p>Vimentin (<cite>vim</cite>)</p></li>
+</ul>
+</li>
+<li><p><strong>Scoring Components</strong>:</p>
+<ul>
+<li><p><strong>Hausdorff Distance</strong>: The Hausdorff distance is calculated in nanometers between the predicted and ground truth instance segmentations. This metric measures the maximum distance between any point on the predicted instance and its nearest point on the ground truth instance, and vice versa.</p></li>
+<li><p><strong>Accuracy</strong>: The accuracy is calculated as the proportion of correctly predicted instance labels to the total number of instance labels.</p></li>
+</ul>
+</li>
+<li><p><strong>Score Normalization and Combination</strong>:</p>
+<ul>
+<li><p>The Hausdorff distance is normalized to a range of [0, 1] using the maximum distance represented by a voxel. Specifically, the normalized Hausdorff distance is <span class="math notranslate nohighlight">\(1.01^{-\frac{\text{hausdorff distance}}{\|\text{voxel\_size}\|}}\)</span>.</p></li>
+<li><p>The combined score is calculated as the geometric mean of the accuracy and the normalized Hausdorff distance.</p></li>
+<li><p>The final instance score across volumes is produced by taking the average across the combined scores for each volume, normalized by the total spatial volume of each image.</p></li>
+</ul>
+</li>
 </ul>
 </section>
 <section id="semantic-segmentations">
 <h2>Semantic Segmentations<a class="headerlink" href="#semantic-segmentations" title="Link to this heading">#</a></h2>
 <ul class="simple">
 <li><p><strong>All non-instance classes are included as semantic labels</strong></p></li>
-<li><p><strong>Scoring Components</strong>:
-- <strong>Intersection over Union (IoU)</strong>: The IoU is calculated as the intersection of the predicted and ground truth segmentations divided by their union. This metric measures the overlap between the predicted and ground truth segmentations.
-- <strong>Dice Score</strong>: The Dice score is calculated as twice the intersection of the predicted and ground truth segmentations divided by the sum of their volumes. This metric measures the similarity between the predicted and ground truth segmentations.</p></li>
-<li><p><strong>Score Normalization and Combination</strong>:
-- The IoU scores are combined across all volumes to obtain the final scores, normalized by the total volume occupied by the volumes to which each IoU corresponds.</p></li>
+<li><p><strong>Scoring Components</strong>:</p>
+<ul>
+<li><p><strong>Intersection over Union (IoU)</strong>: The IoU is calculated as the intersection of the predicted and ground truth segmentations divided by their union. This metric measures the overlap between the predicted and ground truth segmentations.</p></li>
+<li><p><strong>Dice Score</strong>: The Dice score is calculated as twice the intersection of the predicted and ground truth segmentations divided by the sum of their volumes. This metric measures the similarity between the predicted and ground truth segmentations.</p></li>
+</ul>
+</li>
+<li><p><strong>Score Normalization and Combination</strong>:</p>
+<ul>
+<li><p>The IoU scores are combined across all volumes to obtain the final scores, normalized by the total volume occupied by the volumes to which each IoU corresponds.</p></li>
+</ul>
+</li>
 </ul>
 </section>
 </section>
@@ -402,11 +410,11 @@
       </div>
     </a>
     <a class="right-next"
-       href="evaluation_resampling.html"
+       href="submission_data_format.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Evaluation Resampling</p>
+        <p class="prev-next-title">Submission Data Format</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
