@@ -32,7 +32,7 @@ Instance Segmentations
 
 - **Score Normalization and Combination**:
 
-  - The Hausdorff distance is normalized to a range of [0, 1] using the maximum distance represented by a voxel. Specifically, the normalized Hausdorff distance is 1.01^(-hausdorff distance / ||voxel_size||)
+  - The Hausdorff distance is normalized to a range of [0, 1] using the maximum distance represented by a voxel. Specifically, the normalized Hausdorff distance is :math:`1.01^{-\frac{\text{hausdorff distance}}{\|\text{voxel\_size}\|}}`.
 
   - The combined score is calculated as the geometric mean of the accuracy and the normalized Hausdorff distance.
 
