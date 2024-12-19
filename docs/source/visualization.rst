@@ -16,12 +16,12 @@ Purpose -------
  Examples
  --------
  - Visualize all datasets and crops:
-   ```bash
+   ```
    csc visualize
    ```
 
  - Visualize specific datasets, crops, classes, and kinds:
-   ```bash
+   ```
    csc visualize -d jrc_cos7-1a -c 234,236 -C nuc,cell,mito,er -k gt,predictions
    ```
 
@@ -55,12 +55,12 @@ To visualize the data and predictions, you can use the `csc visualize` command. 
 Examples
 --------
 - Visualize all datasets and crops:
-  ```bash
+  ```
   csc visualize
   ```
 
 - Visualize specific datasets and crops:
-  ```bash
+  ```
   csc visualize -d jrc_cos7-1a -c 234,236 -C nuc,cell,mito,er -k gt,predictions
   ```
 
