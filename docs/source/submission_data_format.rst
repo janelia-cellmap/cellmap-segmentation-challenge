@@ -32,10 +32,10 @@ The submission should be a single zip file containing a single Zarr-2 file with 
 
 ```
 submission.zarr
+- .zgroup
+- /<test_crop_name>
     - .zgroup
-    - /<test_crop_name>
-      - .zgroup
-      - /<label_name>
+    - /<label_name>
         - .zattrs
         - ...
 ```
