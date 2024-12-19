@@ -358,19 +358,19 @@ overwrite (bool): Whether to overwrite the submission zarr if it already exists.
 <h2>Structure of the Submission File<a class="headerlink" href="#structure-of-the-submission-file" title="Link to this heading">#</a></h2>
 <p>The submission should be a single zip file containing a single Zarr-2 file with the following structure:</p>
 <p><a href="#id1"><span class="problematic" id="id2">``</span></a>`
-submission.zarr</p>
-<blockquote>
-<div><ul>
-<li><p>.zgroup</p></li>
-<li><p>/&lt;test_crop_name&gt;
+submission.zarr
 - .zgroup
-- /&lt;label_name&gt;</p>
+- /&lt;test_crop_name&gt;</p>
 <blockquote>
 <div><ul class="simple">
+<li><p>.zgroup</p></li>
+<li><dl class="simple">
+<dt>/&lt;label_name&gt;</dt><dd><ul>
 <li><p>.zattrs</p></li>
 <li><p>…</p></li>
 </ul>
-</div></blockquote>
+</dd>
+</dl>
 </li>
 </ul>
 </div></blockquote>
