@@ -9,7 +9,7 @@ Automatic Submission Packaging
 
 For convenience, if you have followed the prediction and processing steps described above and in the example scripts, you can use the following command to zip your predictions in the correct format:
 
-```bash
+```
 csc pack-results
 ```
 Additionally, you can explicitly specify the path to the submission zarr, with placeholders {dataset} and {crop}, and the output directory for the zipped submission file using the following command. These default to the PROCESSED_PATH and SUBMISSION_PATH defined in the global configuration file (`config.py`).
@@ -21,7 +21,7 @@ The `package_results` function that is used by `csc pack-results` packages a Cel
         overwrite (bool): Whether to overwrite the submission zarr if it already exists.
 
 After packaging the data, they can be visualized alongside the EM, raw predictions, and initial post-processed results using the following command:
-```bash
+```
 csc visualize -c test -k predictions,processed,submission
 ```
 
@@ -144,6 +144,6 @@ The arguments for both functions are the same:
 - `overwrite`: A boolean flag to overwrite the Zarr-2 file if it already exists.
 
 To zip the Zarr-2 file, you can use the following command:
-```bash
+```
 zip -r submission.zip submission.zarr
 ```

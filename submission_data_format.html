@@ -336,7 +336,7 @@
 <section id="automatic-submission-packaging">
 <h2>Automatic Submission Packaging<a class="headerlink" href="#automatic-submission-packaging" title="Link to this heading">#</a></h2>
 <p>For convenience, if you have followed the prediction and processing steps described above and in the example scripts, you can use the following command to zip your predictions in the correct format:</p>
-<p><code class="docutils literal notranslate"><span class="pre">`bash</span>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
 <span class="pre">csc</span> <span class="pre">pack-results</span>
 <span class="pre">`</span></code>
 Additionally, you can explicitly specify the path to the submission zarr, with placeholders {dataset} and {crop}, and the output directory for the zipped submission file using the following command. These default to the PROCESSED_PATH and SUBMISSION_PATH defined in the global configuration file (<cite>config.py</cite>).</p>
@@ -350,7 +350,7 @@ overwrite (bool): Whether to overwrite the submission zarr if it already exists.
 </dd>
 </dl>
 <p>After packaging the data, they can be visualized alongside the EM, raw predictions, and initial post-processed results using the following command:
-<code class="docutils literal notranslate"><span class="pre">`bash</span>
+<code class="docutils literal notranslate"><span class="pre">`</span>
 <span class="pre">csc</span> <span class="pre">visualize</span> <span class="pre">-c</span> <span class="pre">test</span> <span class="pre">-k</span> <span class="pre">predictions,processed,submission</span>
 <span class="pre">`</span></code></p>
 </section>
@@ -510,7 +510,7 @@ you can convert the submission to the required format using the following conven
 - <cite>labels</cite>: A list of 3D numpy arrays of binary labels or a single 3D numpy array of class labels.
 - <cite>overwrite</cite>: A boolean flag to overwrite the Zarr-2 file if it already exists.</p>
 <p>To zip the Zarr-2 file, you can use the following command:
-<code class="docutils literal notranslate"><span class="pre">`bash</span>
+<code class="docutils literal notranslate"><span class="pre">`</span>
 <span class="pre">zip</span> <span class="pre">-r</span> <span class="pre">submission.zip</span> <span class="pre">submission.zarr</span>
 <span class="pre">`</span></code></p>
 </section>

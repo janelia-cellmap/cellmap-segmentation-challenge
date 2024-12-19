@@ -405,21 +405,21 @@
 <section id="examples-and-usage-instructions">
 <h2>Examples and Usage Instructions<a class="headerlink" href="#examples-and-usage-instructions" title="Link to this heading">#</a></h2>
 <p>Example scripts for training 2D and 3D models are provided in the <cite>examples</cite> directory. The scripts are named <cite>train_2D.py</cite> and <cite>train_3D.py</cite>, respectively, and are thoroughly annotated for clarity. You can run one such script by running the following on the command line:</p>
-<p><code class="docutils literal notranslate"><span class="pre">`bash</span>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
 <span class="pre">cd</span> <span class="pre">examples</span>
 <span class="pre">python</span> <span class="pre">train_2D.py</span>
 <span class="pre">`</span></code>
 This will train a 2D model on the training data and save the model weights to a file (defaults to <cite>./checkpoints/*.pth</cite>), along with logging loss and validation metrics, and sample predictions, viewable in TensorBoard. To view the TensorBoard logs, and monitor training progress, run the following command (assuming you are using the default log directory):</p>
-<p><code class="docutils literal notranslate"><span class="pre">`bash</span>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
 <span class="pre">tensorboard</span> <span class="pre">--logdir=tensorboard</span>
 <span class="pre">`</span></code>
 This will start the TensorBoard server, which you can view in your browser at the link indicated in the terminal, often this is <cite>http://localhost:6006</cite>.</p>
 <p>You can also train a 3D model by running the same command with <cite>train_3D.py</cite>:</p>
-<p><code class="docutils literal notranslate"><span class="pre">`bash</span>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
 <span class="pre">python</span> <span class="pre">train_3D.py</span>
 <span class="pre">`</span></code></p>
 <p>Alternatively, you can use the built-in command to train a model, given the path to a model configuration file. To learn more, you can run the following in the terminal:</p>
-<p><code class="docutils literal notranslate"><span class="pre">`bash</span>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
 <span class="pre">csc</span> <span class="pre">train</span> <span class="pre">--help</span>
 <span class="pre">`</span></code></p>
 <p>For more information on the available options and how training works, see the <cite>README.md</cite> in the <cite>examples</cite> folder, as well as the documentation in <cite>examples/train_2D.py</cite> and <cite>examples/train_3D.py</cite>.</p>
