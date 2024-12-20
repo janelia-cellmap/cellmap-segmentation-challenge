@@ -128,12 +128,20 @@ An example of multiscales metadata is as follows:
 
 
 
-The names of the test crops and labels should match the names of the test crops and labels as specified in [the test_crop_manifest](src/cellmap_segmentation_challenge/utils/test_crop_manifest.csv). Similarly, you will see the scale, spatial offset (in nanometers), and shape (in voxels) for each test image. The scale, spatial offset, and shape will automatically be adjusted as necessary during evaluation, if this metadata is present in the `.zattrs` file for each image. Using `csc pack-results` will also do this adjustment for you, allowing you to preview the results of resampling prior to submission (see `evaluation_resampling.rst` for more detailed information). Submitting higher-resolution data will likely lead to the best results after resampling.
+The names of the test crops and labels should match the names of the test crops and labels as specified in `the test_crop_manifest <https://github.com/janelia-cellmap/cellmap-segmentation-challenge/blob/main/src/cellmap_segmentation_challenge/utils/test_crop_manifest.csv>`_. 
+
+Similarly, you will see the scale, spatial offset (in nanometers), and shape (in voxels) for each test image. The scale, spatial offset, and shape will automatically be adjusted as necessary during evaluation, if this metadata is present in the ``.zattrs`` file for each image. 
+
+Using ``csc pack-results`` will also do this adjustment for you, allowing you to preview the results of resampling prior to submission (see `evaluation resampling <https://janelia-cellmap.github.io/cellmap-segmentation-challenge/evaluation_resampling.html>`_ for more detailed information). 
+
+Submitting higher-resolution data will likely lead to the best results after resampling.
 
 Connected Components for Instance Segmentation
 ----------------------------------------------
 
-Connected components will be run on all instance segmentation submissions to be consistent with the ground truth instance labels. The ground truth instance masks are formed by running connected components on binary semantic masks, which won't necessarily always be correct. Thus, we should ensure the same errors within the submitted data. This means that participants do not need to run instance segmentation specific post-processing on their data prior to submission.
+Connected components will be run on all instance segmentation submissions to be consistent with the ground truth instance labels. The ground truth instance masks are formed by running connected components on binary semantic masks, which won't necessarily always be correct. 
+
+Thus, we should ensure the same errors within the submitted data. This means that participants do not need to run instance segmentation specific post-processing on their data prior to submission.
 
 Convenience functions for manual conversion and packaging
 ---------------------------------------------------------
@@ -153,7 +161,7 @@ you can convert the submission to the required format using the following conven
 
   ``cellmap_segmentation_challenge.utils.evaluate.save_numpy_labels_to_zarr``
 
-  **Note:** The class labels should start from `1`, with `0` as background.
+  **Note:** The class labels should start from ``1``, with ``0`` as background.
 
 - For converting a list of 3D NumPy arrays of binary or instance labels to a Zarr-2 file, use the following function:
 
