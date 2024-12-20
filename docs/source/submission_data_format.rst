@@ -30,38 +30,41 @@ Structure of the Submission File
 
 The submission should be a single zip file containing a single Zarr-2 file with the following structure:
 
-```
-submission.zarr
-- .zgroup
-- /<test_crop_name>
-    - .zgroup
-    - /<label_name>
-        - .zattrs
-        - ...
-```
+::
+
+  submission.zarr
+  - .zgroup
+  - /<test_crop_name>
+      - .zgroup
+      - /<label_name>
+          - .zattrs
+          - ...
 
 Two options are available for formatting the contents of the label array folder (`/<label_name>/...`):
 1. Single scale Zarr-2:
-  ```
+
+::
+
   - /<label_name>
     - .zattrs - containing "voxel_size"/"resolution"/"scale" and "translation"/"offset"
     - .zarray
     - <...data folders...>
-  ```
+
 
 2. Multiscale OME-NGFF Zarr:
 
-  ```
+::
+
   - /<label_name>
     - .zattrs - containing "multiscales" metadata
     - .zgroup
     - /s<level> (e.g. "s0")
       - .zarray
       - <...data folders...>
-  ```
 
-  An example of multiscales metadata is as follows:
-  ```
+An example of multiscales metadata is as follows:
+::
+
   {
     "multiscales": [
       {
@@ -110,7 +113,7 @@ Two options are available for formatting the contents of the label array folder 
       }
     ]
   }
-  ```
+
 
 
 The names of the test crops and labels should match the names of the test crops and labels as specified in [the test_crop_manifest](src/cellmap_segmentation_challenge/utils/test_crop_manifest.csv). Similarly, you will see the scale, spatial offset (in nanometers), and shape (in voxels) for each test image. The scale, spatial offset, and shape will automatically be adjusted as necessary during evaluation, if this metadata is present in the `.zattrs` file for each image. Using `csc pack-results` will also do this adjustment for you, allowing you to preview the results of resampling prior to submission (see `evaluation_resampling.rst` for more detailed information). Submitting higher-resolution data will likely lead to the best results after resampling.
