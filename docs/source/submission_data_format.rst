@@ -9,21 +9,32 @@ Automatic Submission Packaging
 
 For convenience, if you have followed the prediction and processing steps described above and in the example scripts, you can use the following command to zip your predictions in the correct format:
 
-```
-csc pack-results
-```
-Additionally, you can explicitly specify the path to the submission zarr, with placeholders {dataset} and {crop}, and the output directory for the zipped submission file using the following command. These default to the PROCESSED_PATH and SUBMISSION_PATH defined in the global configuration file (`config.py`).
+.. code-block:: bash
+  
+  csc pack-results
 
-The `package_results` function that is used by `csc pack-results` packages a CellMap challenge submission, creating a zarr file, combining all the processed volumes and matching them to the scale and regions of interest of the ground truth crops, and then zipping the result.
-    Args:
-        input_search_path (str): The base path to the processed volumes, with placeholders for dataset and crops.
-        output_path (str | UPath): The path to save the submission zarr to. (ending with `<filename>.zarr`; `.zarr` will be appended if not present, and replaced with `.zip` when zipped).
-        overwrite (bool): Whether to overwrite the submission zarr if it already exists.
+Additionally, you can explicitly specify the path to the submission zarr, with placeholders {dataset} and {crop}, and the output directory for the zipped submission file using the following command. 
+
+These default to the PROCESSED_PATH and SUBMISSION_PATH defined in the global configuration file (``config.py``).
+
+The ``package_results`` function that is used by ``csc pack-results`` packages a CellMap challenge submission, creating a zarr file, combining all the processed volumes and matching them to the scale and regions of interest of the ground truth crops, and then zipping the result.
+   
+  **Args:**
+    ``input_search_path`` (str)
+        The base path to the processed volumes, with placeholders for dataset and crops.
+
+    ``output_path`` (str | UPath)
+        The path to save the submission Zarr to. (Ending with ``<filename>.zarr``; ``.zarr`` will be appended if not present, and replaced with ``.zip`` when zipped).
+
+    ``overwrite`` (bool)
+        Whether to overwrite the submission Zarr if it already exists.
 
 After packaging the data, they can be visualized alongside the EM, raw predictions, and initial post-processed results using the following command:
-```
-csc visualize -c test -k predictions,processed,submission
-```
+
+.. code-block:: bash
+
+  csc visualize -c test -k predictions,processed,submission
+
 
 Structure of the Submission File
 --------------------------------
@@ -41,6 +52,7 @@ The submission should be a single zip file containing a single Zarr-2 file with 
           - ...
 
 Two options are available for formatting the contents of the label array folder (`/<label_name>/...`):
+
 1. Single scale Zarr-2:
 
 ::
@@ -127,26 +139,41 @@ Convenience functions for manual conversion and packaging
 ---------------------------------------------------------
 
 Assuming each label volume is either:
-A) a 3D binary volume with the same shape and scale as the corresponding test volume, or
-B) instance IDs per object,
+
+A) a 3D binary volume with the same shape and scale as the corresponding test volume
+
+or
+
+B) instance IDs per object
+
+
 you can convert the submission to the required format using the following convenience functions:
 
-- For converting a single 3D numpy array of class labels to a Zarr-2 file, use the following function:
-  `cellmap_segmentation_challenge.utils.evaluate.save_numpy_labels_to_zarr`
-Note: The class labels should start from 1, with 0 as background.
+- For converting a single 3D NumPy array of class labels to a Zarr-2 file, use the following function:
 
-- For converting a list of 3D numpy arrays of binary or instance labels to a Zarr-2 file, use the following function:
-  `cellmap_segmentation_challenge.utils.evaluate.save_numpy_binary_to_zarr`
+  ``cellmap_segmentation_challenge.utils.evaluate.save_numpy_labels_to_zarr``
+
+  **Note:** The class labels should start from `1`, with `0` as background.
+
+- For converting a list of 3D NumPy arrays of binary or instance labels to a Zarr-2 file, use the following function:
+
+  ``cellmap_segmentation_challenge.utils.evaluate.save_numpy_binary_to_zarr``
+
 Note: The instance labels, if used, should be unique IDs per object, with 0 as background.
 
 The arguments for both functions are the same:
-- `submission_path`: The path to save the Zarr-2 file (ending with <filename>.zarr).
-- `test_volume_name`: The name of the test volume.
-- `label_names`: A list of label names corresponding to the list of 3D numpy arrays or the number of the class labels (0 is always assumed to be background).
-- `labels`: A list of 3D numpy arrays of binary labels or a single 3D numpy array of class labels.
-- `overwrite`: A boolean flag to overwrite the Zarr-2 file if it already exists.
+
+- ``submission_path``: The path to save the Zarr-2 file (ending with `<filename>.zarr`).
+- ``test_volume_name``: The name of the test volume.
+- ``label_names``: A list of label names corresponding to the list of 3D NumPy arrays or the number of the class labels (0 is always assumed to be background).
+- ``labels``: A list of 3D NumPy arrays of binary labels or a single 3D NumPy array of class labels.
+- ``overwrite``: A boolean flag to overwrite the Zarr-2 file if it already exists.
+
 
 To zip the Zarr-2 file, you can use the following command:
-```
-zip -r submission.zip submission.zarr
-```
+
+.. code-block:: bash
+  
+  zip -r submission.zip submission.zarr
+
+
