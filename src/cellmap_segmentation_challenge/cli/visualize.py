@@ -1,7 +1,5 @@
 import click
 
-from ..visualize import visualize
-
 
 @click.command
 @click.option(
@@ -51,6 +49,8 @@ def visualize_cli(datasets, crops, classes, kinds):
     kinds : str
         Comma-separated list of kinds of data to view (Example: 'gt,processed'). Defaults to all: 'gt,predictions,processed'. Raw (fibsem) data is always shown.
     """
+
+    from cellmap_segmentation_challenge.visualize import visualize
 
     visualize(
         datasets=datasets.split(","),

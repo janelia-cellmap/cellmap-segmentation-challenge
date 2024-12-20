@@ -1,39 +1,12 @@
 import os
+import click
+from dotenv import load_dotenv
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-
-import click
-import numpy as np
 import structlog
-import zarr
-from dotenv import load_dotenv
-from pydantic_zarr.v2 import GroupSpec
+
 from upath import UPath as Path
-from xarray import DataArray  # TODO: Add lazy import
-from xarray_ome_ngff import read_multiscale_group
-from xarray_ome_ngff.v04.multiscale import transforms_from_coords, VectorScale
-from yarl import URL
-from zarr.storage import FSStore
 
-from cellmap_segmentation_challenge.utils.crops import (
-    CropRow,
-    TestCropRow,
-    fetch_manifest,
-    ZipDatasetRow,
-    fetch_zip_manifest,
-    get_test_crops,
-)
-
-from cellmap_segmentation_challenge.utils.fetch_data import (
-    _resolve_em_dest_path,
-    _resolve_gt_dest_path,
-    get_chunk_keys,
-    partition_copy_store,
-    read_group,
-    subset_to_slice,
-    get_zip_if_available,
-    download_file_with_progress,
-)
 from cellmap_segmentation_challenge.config import BASE_DATA_PATH
 
 load_dotenv()
@@ -125,6 +98,13 @@ def fetch_data_cli(
     log = structlog.get_logger()
 
     if use_zip:
+        # Do zip specific imports here
+        from cellmap_segmentation_challenge.utils.crops import fetch_zip_manifest
+        from cellmap_segmentation_challenge.utils.fetch_data import (
+            get_zip_if_available,
+            download_file_with_progress,
+        )
+
         zips_from_manifest = fetch_zip_manifest()
 
         zip_url = get_zip_if_available(
@@ -154,6 +134,33 @@ def fetch_data_cli(
         log.info("You can use the following command:")
         log.info(f"unzip {zip_path} -d {dest_path_abs}")
         return
+
+    # Do other necessary imports here
+    import numpy as np
+    import zarr
+    from pydantic_zarr.v2 import GroupSpec
+    from xarray import DataArray
+    from xarray_ome_ngff import read_multiscale_group
+    from xarray_ome_ngff.v04.multiscale import transforms_from_coords, VectorScale
+    from yarl import URL
+    from zarr.storage import FSStore
+
+    from cellmap_segmentation_challenge.utils.fetch_data import (
+        _resolve_em_dest_path,
+        _resolve_gt_dest_path,
+        get_chunk_keys,
+        partition_copy_store,
+        read_group,
+        subset_to_slice,
+    )
+
+    from cellmap_segmentation_challenge.utils.crops import (
+        CropRow,
+        TestCropRow,
+        fetch_manifest,
+        get_test_crops,
+    )
+
     crops_parsed: tuple[CropRow, ...]
 
     crops_from_manifest = fetch_manifest()

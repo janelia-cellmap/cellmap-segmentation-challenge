@@ -1,8 +1,6 @@
 import click
-from upath import UPath
 
-from ..config import PREDICTIONS_PATH, PROCESSED_PATH
-from ..process import process
+from cellmap_segmentation_challenge.config import PREDICTIONS_PATH, PROCESSED_PATH
 
 
 @click.command
@@ -58,6 +56,9 @@ def process_cli(config_path, crops, input_path, output_path, overwrite, device):
 
     CONFIG_PATH: The path to the processing configuration file.
     """
+
+    from cellmap_segmentation_challenge.process import process
+
     process(
         config_path=config_path,
         crops=crops,

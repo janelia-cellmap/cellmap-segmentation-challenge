@@ -4,9 +4,6 @@ from cellmap_segmentation_challenge.utils.datasplit import (
     CROP_NAME,
     RAW_NAME,
     SEARCH_PATH,
-    get_dataset_counts,
-    make_datasplit_csv,
-    make_s3_datasplit_csv,
 )
 
 
@@ -101,6 +98,8 @@ def make_datasplit_csv_cli(
         force_all_classes = "validate"
 
     if use_s3:
+        from cellmap_segmentation_challenge.utils.datasplit import make_s3_datasplit_csv
+
         make_s3_datasplit_csv(
             classes=classes,
             force_all_classes=force_all_classes,
@@ -108,6 +107,8 @@ def make_datasplit_csv_cli(
             csv_path=csv_path,
         )
     else:
+        from cellmap_segmentation_challenge.utils.datasplit import make_datasplit_csv
+
         make_datasplit_csv(
             classes=classes,
             force_all_classes=force_all_classes,
@@ -150,6 +151,9 @@ def make_datasplit_csv_cli(
 )
 def get_dataset_counts_cli(classes, search_path, raw_name, crop_name):
     """Get the counts of each class in each dataset and print them to the stdout."""
+
+    from cellmap_segmentation_challenge.utils.datasplit import get_dataset_counts
+
     classes = classes.split(",")
     dataset_class_counts = get_dataset_counts(
         classes=classes, search_path=search_path, raw_name=raw_name, crop_name=crop_name

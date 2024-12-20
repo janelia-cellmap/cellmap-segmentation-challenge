@@ -1,12 +1,10 @@
 import click
 
-from ..evaluate import (
+from cellmap_segmentation_challenge.evaluate import (
     INSTANCE_CLASSES,
     PROCESSED_PATH,
     SUBMISSION_PATH,
     TRUTH_PATH,
-    package_submission,
-    score_submission,
 )
 from upath import UPath
 
@@ -46,6 +44,9 @@ def evaluate_cli(submission_path, result_file, truth_path, instance_classes):
 
     SUBMISSION_PATH: Path to the submission file
     """
+
+    from cellmap_segmentation_challenge.evaluate import score_submission
+
     if instance_classes is not None:
         instance_classes = instance_classes.split(",")
     else:
@@ -80,4 +81,7 @@ def package_submission_cli(input_search_path, output_path, overwrite):
     """
     Package zarr datasets for submission.
     """
+
+    from cellmap_segmentation_challenge.evaluate import package_submission
+
     package_submission(input_search_path, output_path, overwrite)
