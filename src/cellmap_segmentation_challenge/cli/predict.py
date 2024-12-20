@@ -1,7 +1,11 @@
 import click
 
-from ..config import PREDICTIONS_PATH, SEARCH_PATH, RAW_NAME, CROP_NAME
-from ..predict import predict
+from cellmap_segmentation_challenge.config import (
+    PREDICTIONS_PATH,
+    SEARCH_PATH,
+    RAW_NAME,
+    CROP_NAME,
+)
 
 
 @click.command
@@ -83,6 +87,8 @@ def predict_cli(
 
     CONFIG_PATH: The path to the model configuration file. This can be the same as the config file used for training.
     """
+    from cellmap_segmentation_challenge.predict import predict
+
     predict(
         config_path=config_path,
         crops=crops,

@@ -1,8 +1,4 @@
 import click
-import os
-from upath import UPath
-
-from ..train import train
 
 
 @click.command
@@ -17,5 +13,11 @@ def train_cli(config_path):
 
     CONFIG_PATH: Path to the python file defining the configuration to be used for training. The training will be executed in the same directory as the configuration file.
     """
+
+    import os
+    from upath import UPath
+
+    from cellmap_segmentation_challenge.train import train
+
     os.chdir(UPath(config_path).parent.path)
     train(config_path)
