@@ -336,183 +336,157 @@
 <section id="automatic-submission-packaging">
 <h2>Automatic Submission Packaging<a class="headerlink" href="#automatic-submission-packaging" title="Link to this heading">#</a></h2>
 <p>For convenience, if you have followed the prediction and processing steps described above and in the example scripts, you can use the following command to zip your predictions in the correct format:</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">csc</span> <span class="pre">pack-results</span>
-<span class="pre">`</span></code>
-Additionally, you can explicitly specify the path to the submission zarr, with placeholders {dataset} and {crop}, and the output directory for the zipped submission file using the following command. These default to the PROCESSED_PATH and SUBMISSION_PATH defined in the global configuration file (<cite>config.py</cite>).</p>
-<dl class="simple">
-<dt>The <cite>package_results</cite> function that is used by <cite>csc pack-results</cite> packages a CellMap challenge submission, creating a zarr file, combining all the processed volumes and matching them to the scale and regions of interest of the ground truth crops, and then zipping the result.</dt><dd><dl class="simple">
-<dt>Args:</dt><dd><p>input_search_path (str): The base path to the processed volumes, with placeholders for dataset and crops.
-output_path (str | UPath): The path to save the submission zarr to. (ending with <cite>&lt;filename&gt;.zarr</cite>; <cite>.zarr</cite> will be appended if not present, and replaced with <cite>.zip</cite> when zipped).
-overwrite (bool): Whether to overwrite the submission zarr if it already exists.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>csc<span class="w"> </span>pack-results
+</pre></div>
+</div>
+<p>Additionally, you can explicitly specify the path to the submission zarr, with placeholders {dataset} and {crop}, and the output directory for the zipped submission file using the following command.</p>
+<p>These default to the PROCESSED_PATH and SUBMISSION_PATH defined in the global configuration file (<code class="docutils literal notranslate"><span class="pre">config.py</span></code>).</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">package_results</span></code> function that is used by <code class="docutils literal notranslate"><span class="pre">csc</span> <span class="pre">pack-results</span></code> packages a CellMap challenge submission, creating a zarr file, combining all the processed volumes and matching them to the scale and regions of interest of the ground truth crops, and then zipping the result.</p>
+<blockquote>
+<div><dl class="simple">
+<dt><strong>Args:</strong></dt><dd><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">input_search_path</span></code> (str)</dt><dd><p>The base path to the processed volumes, with placeholders for dataset and crops.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">output_path</span></code> (str | UPath)</dt><dd><p>The path to save the submission Zarr to. (Ending with <code class="docutils literal notranslate"><span class="pre">&lt;filename&gt;.zarr</span></code>; <code class="docutils literal notranslate"><span class="pre">.zarr</span></code> will be appended if not present, and replaced with <code class="docutils literal notranslate"><span class="pre">.zip</span></code> when zipped).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">overwrite</span></code> (bool)</dt><dd><p>Whether to overwrite the submission Zarr if it already exists.</p>
 </dd>
 </dl>
 </dd>
 </dl>
-<p>After packaging the data, they can be visualized alongside the EM, raw predictions, and initial post-processed results using the following command:
-<code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">csc</span> <span class="pre">visualize</span> <span class="pre">-c</span> <span class="pre">test</span> <span class="pre">-k</span> <span class="pre">predictions,processed,submission</span>
-<span class="pre">`</span></code></p>
+</div></blockquote>
+<p>After packaging the data, they can be visualized alongside the EM, raw predictions, and initial post-processed results using the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>csc<span class="w"> </span>visualize<span class="w"> </span>-c<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-k<span class="w"> </span>predictions,processed,submission
+</pre></div>
+</div>
 </section>
 <section id="structure-of-the-submission-file">
 <h2>Structure of the Submission File<a class="headerlink" href="#structure-of-the-submission-file" title="Link to this heading">#</a></h2>
 <p>The submission should be a single zip file containing a single Zarr-2 file with the following structure:</p>
-<p><a href="#id1"><span class="problematic" id="id2">``</span></a>`
-submission.zarr
-- .zgroup
-- /&lt;test_crop_name&gt;</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>.zgroup</p></li>
-<li><dl class="simple">
-<dt>/&lt;label_name&gt;</dt><dd><ul>
-<li><p>.zattrs</p></li>
-<li><p>…</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-</div></blockquote>
-<p><a href="#id3"><span class="problematic" id="id4">``</span></a><a href="#id5"><span class="problematic" id="id6">`</span></a></p>
-<p>Two options are available for formatting the contents of the label array folder (<cite>/&lt;label_name&gt;/…</cite>):
-1. Single scale Zarr-2:</p>
-<blockquote>
-<div><p><a href="#id7"><span class="problematic" id="id8">``</span></a>`
-- /&lt;label_name&gt;</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>.zattrs - containing “voxel_size”/”resolution”/”scale” and “translation”/”offset”</p></li>
-<li><p>.zarray</p></li>
-<li><p>&lt;…data folders…&gt;</p></li>
-</ul>
-</div></blockquote>
-<p><a href="#id9"><span class="problematic" id="id10">``</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a></p>
-</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">submission</span><span class="o">.</span><span class="n">zarr</span>
+<span class="o">-</span> <span class="o">.</span><span class="n">zgroup</span>
+<span class="o">-</span> <span class="o">/&lt;</span><span class="n">test_crop_name</span><span class="o">&gt;</span>
+    <span class="o">-</span> <span class="o">.</span><span class="n">zgroup</span>
+    <span class="o">-</span> <span class="o">/&lt;</span><span class="n">label_name</span><span class="o">&gt;</span>
+        <span class="o">-</span> <span class="o">.</span><span class="n">zattrs</span>
+        <span class="o">-</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>Two options are available for formatting the contents of the label array folder (<cite>/&lt;label_name&gt;/…</cite>):</p>
+<ol class="arabic simple">
+<li><p>Single scale Zarr-2:</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span> <span class="o">/&lt;</span><span class="n">label_name</span><span class="o">&gt;</span>
+  <span class="o">-</span> <span class="o">.</span><span class="n">zattrs</span> <span class="o">-</span> <span class="n">containing</span> <span class="s2">&quot;voxel_size&quot;</span><span class="o">/</span><span class="s2">&quot;resolution&quot;</span><span class="o">/</span><span class="s2">&quot;scale&quot;</span> <span class="ow">and</span> <span class="s2">&quot;translation&quot;</span><span class="o">/</span><span class="s2">&quot;offset&quot;</span>
+  <span class="o">-</span> <span class="o">.</span><span class="n">zarray</span>
+  <span class="o">-</span> <span class="o">&lt;...</span><span class="n">data</span> <span class="n">folders</span><span class="o">...&gt;</span>
+</pre></div>
+</div>
 <ol class="arabic simple" start="2">
 <li><p>Multiscale OME-NGFF Zarr:</p></li>
 </ol>
-<blockquote>
-<div><p><a href="#id13"><span class="problematic" id="id14">``</span></a>`
-- /&lt;label_name&gt;</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>.zattrs - containing “multiscales” metadata</p></li>
-<li><p>.zgroup</p></li>
-<li><p>/s&lt;level&gt; (e.g. “s0”)
-- .zarray
-- &lt;…data folders…&gt;</p></li>
-</ul>
-</div></blockquote>
-<p><a href="#id15"><span class="problematic" id="id16">``</span></a><a href="#id17"><span class="problematic" id="id18">`</span></a></p>
-<p>An example of multiscales metadata is as follows:
-<a href="#id19"><span class="problematic" id="id20">``</span></a>`
-{</p>
-<blockquote>
-<div><dl>
-<dt>“multiscales”: [</dt><dd><dl>
-<dt>{</dt><dd><dl>
-<dt>“axes”: [</dt><dd><dl class="simple">
-<dt>{</dt><dd><p>“name”: “z”,
-“type”: “space”,
-“unit”: “nanometer”</p>
-</dd>
-</dl>
-<p>},
-{</p>
-<blockquote>
-<div><p>“name”: “y”,
-“type”: “space”,
-“unit”: “nanometer”</p>
-</div></blockquote>
-<p>},
-{</p>
-<blockquote>
-<div><p>“name”: “x”,
-“type”: “space”,
-“unit”: “nanometer”</p>
-</div></blockquote>
-<p>}</p>
-</dd>
-</dl>
-<p>],
-“datasets”: [</p>
-<blockquote>
-<div><dl>
-<dt>{</dt><dd><dl>
-<dt>“coordinateTransformations”: [</dt><dd><dl>
-<dt>{</dt><dd><dl class="simple">
-<dt>“scale”: [</dt><dd><p>2.0,
-2.0,
-2.0</p>
-</dd>
-</dl>
-<p>],
-“type”: “scale”</p>
-</dd>
-</dl>
-<p>},
-{</p>
-<blockquote>
-<div><dl class="simple">
-<dt>“translation”: [</dt><dd><p>2760.0,
-5160.0,
-10670.0</p>
-</dd>
-</dl>
-<p>],
-“type”: “translation”</p>
-</div></blockquote>
-<p>}</p>
-</dd>
-</dl>
-<p>],
-“path”: “s0”</p>
-</dd>
-</dl>
-</div></blockquote>
-<p>],
-“version”: “0.4”</p>
-</dd>
-</dl>
-<p>}</p>
-</dd>
-</dl>
-<p>]</p>
-</div></blockquote>
-</div></blockquote>
-<p>The names of the test crops and labels should match the names of the test crops and labels as specified in [the test_crop_manifest](src/cellmap_segmentation_challenge/utils/test_crop_manifest.csv). Similarly, you will see the scale, spatial offset (in nanometers), and shape (in voxels) for each test image. The scale, spatial offset, and shape will automatically be adjusted as necessary during evaluation, if this metadata is present in the <cite>.zattrs</cite> file for each image. Using <cite>csc pack-results</cite> will also do this adjustment for you, allowing you to preview the results of resampling prior to submission (see <cite>evaluation_resampling.rst</cite> for more detailed information). Submitting higher-resolution data will likely lead to the best results after resampling.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span> <span class="o">/&lt;</span><span class="n">label_name</span><span class="o">&gt;</span>
+  <span class="o">-</span> <span class="o">.</span><span class="n">zattrs</span> <span class="o">-</span> <span class="n">containing</span> <span class="s2">&quot;multiscales&quot;</span> <span class="n">metadata</span>
+  <span class="o">-</span> <span class="o">.</span><span class="n">zgroup</span>
+  <span class="o">-</span> <span class="o">/</span><span class="n">s</span><span class="o">&lt;</span><span class="n">level</span><span class="o">&gt;</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span> <span class="s2">&quot;s0&quot;</span><span class="p">)</span>
+    <span class="o">-</span> <span class="o">.</span><span class="n">zarray</span>
+    <span class="o">-</span> <span class="o">&lt;...</span><span class="n">data</span> <span class="n">folders</span><span class="o">...&gt;</span>
+</pre></div>
+</div>
+<p>An example of multiscales metadata is as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;multiscales&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;axes&quot;</span><span class="p">:</span> <span class="p">[</span>
+          <span class="p">{</span>
+              <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;z&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;space&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;nanometer&quot;</span>
+          <span class="p">},</span>
+          <span class="p">{</span>
+              <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;space&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;nanometer&quot;</span>
+          <span class="p">},</span>
+          <span class="p">{</span>
+              <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;space&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;nanometer&quot;</span>
+          <span class="p">}</span>
+      <span class="p">],</span>
+      <span class="s2">&quot;datasets&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;coordinateTransformations&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+              <span class="s2">&quot;scale&quot;</span><span class="p">:</span> <span class="p">[</span>
+                  <span class="mf">2.0</span><span class="p">,</span>
+                  <span class="mf">2.0</span><span class="p">,</span>
+                  <span class="mf">2.0</span>
+              <span class="p">],</span>
+              <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;scale&quot;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+              <span class="s2">&quot;translation&quot;</span><span class="p">:</span> <span class="p">[</span>
+                  <span class="mf">2760.0</span><span class="p">,</span>
+                  <span class="mf">5160.0</span><span class="p">,</span>
+                  <span class="mf">10670.0</span>
+              <span class="p">],</span>
+              <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;translation&quot;</span>
+            <span class="p">}</span>
+          <span class="p">],</span>
+          <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="s2">&quot;s0&quot;</span>
+        <span class="p">},</span>
+        <span class="o">...</span>
+      <span class="p">],</span>
+      <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;0.4&quot;</span>
+    <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The names of the test crops and labels should match the names of the test crops and labels as specified in <a class="reference external" href="https://github.com/janelia-cellmap/cellmap-segmentation-challenge/blob/main/src/cellmap_segmentation_challenge/utils/test_crop_manifest.csv">the test_crop_manifest</a>.</p>
+<p>Similarly, you will see the scale, spatial offset (in nanometers), and shape (in voxels) for each test image. The scale, spatial offset, and shape will automatically be adjusted as necessary during evaluation, if this metadata is present in the <code class="docutils literal notranslate"><span class="pre">.zattrs</span></code> file for each image.</p>
+<p>Using <code class="docutils literal notranslate"><span class="pre">csc</span> <span class="pre">pack-results</span></code> will also do this adjustment for you, allowing you to preview the results of resampling prior to submission (see <a class="reference external" href="https://janelia-cellmap.github.io/cellmap-segmentation-challenge/evaluation_resampling.html">evaluation resampling</a> for more detailed information).</p>
+<p>Submitting higher-resolution data will likely lead to the best results after resampling.</p>
 </section>
 <section id="connected-components-for-instance-segmentation">
 <h2>Connected Components for Instance Segmentation<a class="headerlink" href="#connected-components-for-instance-segmentation" title="Link to this heading">#</a></h2>
-<p>Connected components will be run on all instance segmentation submissions to be consistent with the ground truth instance labels. The ground truth instance masks are formed by running connected components on binary semantic masks, which won’t necessarily always be correct. Thus, we should ensure the same errors within the submitted data. This means that participants do not need to run instance segmentation specific post-processing on their data prior to submission.</p>
+<p>Connected components will be run on all instance segmentation submissions to be consistent with the ground truth instance labels. The ground truth instance masks are formed by running connected components on binary semantic masks, which won’t necessarily always be correct.</p>
+<p>Thus, we should ensure the same errors within the submitted data. This means that participants do not need to run instance segmentation specific post-processing on their data prior to submission.</p>
 </section>
 <section id="convenience-functions-for-manual-conversion-and-packaging">
 <h2>Convenience functions for manual conversion and packaging<a class="headerlink" href="#convenience-functions-for-manual-conversion-and-packaging" title="Link to this heading">#</a></h2>
-<p>Assuming each label volume is either:
-A) a 3D binary volume with the same shape and scale as the corresponding test volume, or
-B) instance IDs per object,
-you can convert the submission to the required format using the following convenience functions:</p>
-<ul class="simple">
-<li><p>For converting a single 3D numpy array of class labels to a Zarr-2 file, use the following function:
-<cite>cellmap_segmentation_challenge.utils.evaluate.save_numpy_labels_to_zarr</cite></p></li>
-</ul>
-<p>Note: The class labels should start from 1, with 0 as background.</p>
-<ul class="simple">
-<li><p>For converting a list of 3D numpy arrays of binary or instance labels to a Zarr-2 file, use the following function:
-<cite>cellmap_segmentation_challenge.utils.evaluate.save_numpy_binary_to_zarr</cite></p></li>
+<p>Assuming each label volume is either:</p>
+<ol class="upperalpha simple">
+<li><p>a 3D binary volume with the same shape and scale as the corresponding test volume</p></li>
+</ol>
+<p>or</p>
+<ol class="upperalpha simple" start="2">
+<li><p>instance IDs per object</p></li>
+</ol>
+<p>you can convert the submission to the required format using the following convenience functions:</p>
+<ul>
+<li><p>For converting a single 3D NumPy array of class labels to a Zarr-2 file, use the following function:</p>
+<p><code class="docutils literal notranslate"><span class="pre">cellmap_segmentation_challenge.utils.evaluate.save_numpy_labels_to_zarr</span></code></p>
+<p><strong>Note:</strong> The class labels should start from <code class="docutils literal notranslate"><span class="pre">1</span></code>, with <code class="docutils literal notranslate"><span class="pre">0</span></code> as background.</p>
+</li>
+<li><p>For converting a list of 3D NumPy arrays of binary or instance labels to a Zarr-2 file, use the following function:</p>
+<p><code class="docutils literal notranslate"><span class="pre">cellmap_segmentation_challenge.utils.evaluate.save_numpy_binary_to_zarr</span></code></p>
+</li>
 </ul>
 <p>Note: The instance labels, if used, should be unique IDs per object, with 0 as background.</p>
-<p>The arguments for both functions are the same:
-- <cite>submission_path</cite>: The path to save the Zarr-2 file (ending with &lt;filename&gt;.zarr).
-- <cite>test_volume_name</cite>: The name of the test volume.
-- <cite>label_names</cite>: A list of label names corresponding to the list of 3D numpy arrays or the number of the class labels (0 is always assumed to be background).
-- <cite>labels</cite>: A list of 3D numpy arrays of binary labels or a single 3D numpy array of class labels.
-- <cite>overwrite</cite>: A boolean flag to overwrite the Zarr-2 file if it already exists.</p>
-<p>To zip the Zarr-2 file, you can use the following command:
-<code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">zip</span> <span class="pre">-r</span> <span class="pre">submission.zip</span> <span class="pre">submission.zarr</span>
-<span class="pre">`</span></code></p>
+<p>The arguments for both functions are the same:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">submission_path</span></code>: The path to save the Zarr-2 file (ending with <cite>&lt;filename&gt;.zarr</cite>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test_volume_name</span></code>: The name of the test volume.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">label_names</span></code>: A list of label names corresponding to the list of 3D NumPy arrays or the number of the class labels (0 is always assumed to be background).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">labels</span></code>: A list of 3D NumPy arrays of binary labels or a single 3D NumPy array of class labels.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">overwrite</span></code>: A boolean flag to overwrite the Zarr-2 file if it already exists.</p></li>
+</ul>
+<p>To zip the Zarr-2 file, you can use the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>zip<span class="w"> </span>-r<span class="w"> </span>submission.zip<span class="w"> </span>submission.zarr
+</pre></div>
+</div>
 </section>
 </section>
 
