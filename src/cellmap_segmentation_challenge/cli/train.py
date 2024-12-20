@@ -20,4 +20,4 @@ def train_cli(config_path):
     from cellmap_segmentation_challenge.train import train
 
     os.chdir(UPath(config_path).parent.path)
-    train(config_path)
+    train(UPath(config_path).name)
