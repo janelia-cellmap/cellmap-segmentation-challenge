@@ -1,5 +1,5 @@
 all_res,raw_padding,file,url
-True,128,all_res_128_pad.zip,s3://janelia-cellmap-fg5f2y1pl8/csc-zipped-data/all_res_128_pad.zip
-True,0,all_res_no_pad.zip,s3://janelia-cellmap-fg5f2y1pl8/csc-zipped-data/all_res_no_pad.zip
-False,128,matched_res_128_pad.zip,s3://janelia-cellmap-fg5f2y1pl8/csc-zipped-data/matched_res_128_pad.zip
-False,0,matched_res_no_pad.zip,s3://janelia-cellmap-fg5f2y1pl8/csc-zipped-data/matched_res_no_pad.zip
+True,128,all_res_128_pad.zip,s3://janelia-cosem-datasets/csc-zipped-data/all_res_128_pad.zip
+True,0,all_res_no_pad.zip,s3://janelia-cosem-datasets/csc-zipped-data/all_res_no_pad.zip
+False,128,matched_res_128_pad.zip,s3://janelia-cosem-datasets/csc-zipped-data/matched_res_128_pad.zip
+False,0,matched_res_no_pad.zip,s3://janelia-cosem-datasets/csc-zipped-data/matched_res_no_pad.zip
