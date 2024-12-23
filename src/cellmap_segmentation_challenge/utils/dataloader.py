@@ -4,7 +4,6 @@ import torch
 import torchvision.transforms.v2 as T
 from cellmap_data import CellMapDataLoader, CellMapDataSplit
 from cellmap_data.transforms.augment import NaNtoNum, Normalize
-from torch.utils.data import DataLoader
 
 
 def get_dataloader(
