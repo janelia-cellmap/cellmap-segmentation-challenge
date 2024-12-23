@@ -322,6 +322,8 @@
 <span class="sd">        - validation_batch_limit: Maximum number of validation batches to process. If None, there is no limit. Default is None.</span>
 <span class="sd">        - device: Device to use for training. If None, will use &#39;cuda&#39; if available, &#39;mps&#39; if available, or &#39;cpu&#39; otherwise. Default is None.</span>
 <span class="sd">        - use_s3: Whether to use the S3 bucket for the datasplit. Default is False.</span>
+<span class="sd">        - optimizer: PyTorch optimizer to use for training. Default is `torch.optim.RAdam(model.parameters(), lr=learning_rate)`.</span>
+<span class="sd">        - criterion: PyTorch loss function to use for training. Default is `torch.nn.BCEWithLogitsLoss`.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -369,6 +371,14 @@
     <span class="n">validation_batch_limit</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;validation_batch_limit&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="n">device</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;device&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="n">use_s3</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;use_s3&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># %% Define the optimizer, from the config file or default to RAdam</span>
+    <span class="n">optimizer</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span>
+        <span class="n">config</span><span class="p">,</span> <span class="s2">&quot;optimizer&quot;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">RAdam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="n">learning_rate</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="c1"># %% Define the loss function, from the config file or default to BCEWithLogitsLoss</span>
+    <span class="n">criterion</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;criterion&quot;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">BCEWithLogitsLoss</span><span class="p">)</span>
 
     <span class="c1"># %% Make sure the save path exists</span>
     <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="p">[</span><span class="n">model_save_path</span><span class="p">,</span> <span class="n">logs_save_path</span><span class="p">,</span> <span class="n">datasplit_path</span><span class="p">]:</span>
@@ -462,12 +472,6 @@
 
     <span class="c1"># %% Move model to device</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
-
-    <span class="c1"># %% Define the optimizer</span>
-    <span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">RAdam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="n">learning_rate</span><span class="p">)</span>
-
-    <span class="c1"># %% Define the loss function</span>
-    <span class="n">criterion</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">BCEWithLogitsLoss</span>
 
     <span class="c1"># Use custom loss function wrapper that handles NaN values in the target. This works with any PyTorch loss function</span>
     <span class="n">criterion</span> <span class="o">=</span> <span class="n">CellMapLossWrapper</span><span class="p">(</span><span class="n">criterion</span><span class="p">)</span>

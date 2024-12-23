@@ -361,6 +361,8 @@
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.datasplit.make_s3_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_s3_datasplit_csv()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.datasplit.make_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_datasplit_csv()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.datasplit.get_dataset_counts"><code class="docutils literal notranslate"><span class="pre">get_dataset_counts()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.datasplit.get_class_incl_ids"><code class="docutils literal notranslate"><span class="pre">get_class_incl_ids()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.datasplit.get_class_relations"><code class="docutils literal notranslate"><span class="pre">get_class_relations()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils.fetch_data">cellmap_segmentation_challenge.utils.fetch_data module</a><ul class="nav section-nav flex-column">
@@ -893,6 +895,24 @@ For example the dictionary could contain transformations like mirror, transpose,
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.datasplit.get_class_incl_ids">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.datasplit.</span></span><span class="sig-name descname"><span class="pre">get_class_incl_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">incl_ids_string</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/datasplit.html#get_class_incl_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.datasplit.get_class_incl_ids" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.datasplit.get_class_relations">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.datasplit.</span></span><span class="sig-name descname"><span class="pre">get_class_relations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csv_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.8/x64/lib/python3.12/site-packages/cellmap_segmentation_challenge/utils/classes.csv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">named_classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/datasplit.html#get_class_relations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.datasplit.get_class_relations" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>csv_path</strong> (<em>str</em>)</p></li>
+<li><p><strong>named_classes</strong> (<em>list</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="module-cellmap_segmentation_challenge.utils.fetch_data">
 <span id="cellmap-segmentation-challenge-utils-fetch-data-module"></span><h2>cellmap_segmentation_challenge.utils.fetch_data module<a class="headerlink" href="#module-cellmap_segmentation_challenge.utils.fetch_data" title="Link to this heading">#</a></h2>
@@ -1154,6 +1174,8 @@ Returns a boolean indicating whether the script is safe and a list of detected i
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.datasplit.make_s3_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_s3_datasplit_csv()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.datasplit.make_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_datasplit_csv()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.datasplit.get_dataset_counts"><code class="docutils literal notranslate"><span class="pre">get_dataset_counts()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.datasplit.get_class_incl_ids"><code class="docutils literal notranslate"><span class="pre">get_class_incl_ids()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.datasplit.get_class_relations"><code class="docutils literal notranslate"><span class="pre">get_class_relations()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils.fetch_data">cellmap_segmentation_challenge.utils.fetch_data module</a><ul class="nav section-nav flex-column">
