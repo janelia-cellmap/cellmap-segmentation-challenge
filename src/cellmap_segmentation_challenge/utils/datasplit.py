@@ -1,8 +1,10 @@
 # %%
+import csv
 import os
 import shutil
 import sys
 from glob import glob
+from typing import Optional
 
 import numpy as np
 from tqdm import tqdm
@@ -491,3 +493,43 @@ if __name__ == "__main__":
     os.remove("datasplit.csv")
 
     make_datasplit_csv(classes=classes, search_path=search_path, validation_prob=0.1)
+
+
+def get_class_incl_ids(incl_ids_string):
+    if incl_ids_string is None or incl_ids_string == "":
+        return []
+    return [int(id) for id in incl_ids_string.split(",")]
+
+
+def get_class_relations(
+    csv_path: str = (UPath(__file__).parent / "classes.csv").path,
+    named_classes: Optional[list[str]] = None,
+):
+    classes_dict = {}
+    with open(csv_path, "r") as f:
+        reader = csv.reader(f)
+        for row in reader:
+            if named_classes is not None and row[0] not in named_classes:
+                continue
+            id = int(row[1])
+            if id not in classes_dict:
+                classes_dict[id] = {}
+            classes_dict[id]["name"] = row[0]
+            classes_dict[id]["incl_ids"] = set(get_class_incl_ids(*row[2:]) + [id])
+
+    # Get all potentially overlapping classes (e.g. cell can overlap with every organelle but not ecs)
+    class_relation_dict = {}
+    for id1, info1 in classes_dict.items():
+        if info1["name"] not in class_relation_dict:
+            class_relation_dict[info1["name"]] = set()
+        for id2, info2 in classes_dict.items():
+            if id1 == id2:
+                class_relation_dict[info1["name"]].add(info2["name"])
+            if len(info1["incl_ids"].intersection(info2["incl_ids"])) > 0:
+                class_relation_dict[info1["name"]].add(info2["name"])
+
+    class_ids = set(v["name"] for v in classes_dict.values())
+    for key, value in class_relation_dict.items():
+        class_relation_dict[key] = class_ids - value
+
+    return class_relation_dict

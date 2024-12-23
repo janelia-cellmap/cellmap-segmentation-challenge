@@ -49,6 +49,8 @@ def train(config_path: str):
         - validation_batch_limit: Maximum number of validation batches to process. If None, there is no limit. Default is None.
         - device: Device to use for training. If None, will use 'cuda' if available, 'mps' if available, or 'cpu' otherwise. Default is None.
         - use_s3: Whether to use the S3 bucket for the datasplit. Default is False.
+        - optimizer: PyTorch optimizer to use for training. Default is `torch.optim.RAdam(model.parameters(), lr=learning_rate)`.
+        - criterion: PyTorch loss function to use for training. Default is `torch.nn.BCEWithLogitsLoss`.
 
     Returns
     -------
@@ -96,6 +98,14 @@ def train(config_path: str):
     validation_batch_limit = getattr(config, "validation_batch_limit", None)
     device = getattr(config, "device", None)
     use_s3 = getattr(config, "use_s3", False)
+
+    # %% Define the optimizer, from the config file or default to RAdam
+    optimizer = getattr(
+        config, "optimizer", torch.optim.RAdam(model.parameters(), lr=learning_rate)
+    )
+
+    # %% Define the loss function, from the config file or default to BCEWithLogitsLoss
+    criterion = getattr(config, "criterion", torch.nn.BCEWithLogitsLoss)
 
     # %% Make sure the save path exists
     for path in [model_save_path, logs_save_path, datasplit_path]:
@@ -189,12 +199,6 @@ def train(config_path: str):
 
     # %% Move model to device
     model = model.to(device)
-
-    # %% Define the optimizer
-    optimizer = torch.optim.RAdam(model.parameters(), lr=learning_rate)
-
-    # %% Define the loss function
-    criterion = torch.nn.BCEWithLogitsLoss
 
     # Use custom loss function wrapper that handles NaN values in the target. This works with any PyTorch loss function
     criterion = CellMapLossWrapper(criterion)
