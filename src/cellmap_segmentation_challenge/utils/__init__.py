@@ -1,6 +1,6 @@
 from .crops import (
     CropRow,
-    fetch_manifest,
+    fetch_crop_manifest,
     TestCropRow,
     fetch_test_crop_manifest,
     TEST_CROPS,

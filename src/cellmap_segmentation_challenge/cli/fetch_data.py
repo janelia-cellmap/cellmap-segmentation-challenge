@@ -157,13 +157,13 @@ def fetch_data_cli(
     from cellmap_segmentation_challenge.utils.crops import (
         CropRow,
         TestCropRow,
-        fetch_manifest,
+        fetch_crop_manifest,
         get_test_crops,
     )
 
     crops_parsed: tuple[CropRow, ...]
 
-    crops_from_manifest = fetch_manifest()
+    crops_from_manifest = fetch_crop_manifest()
 
     if crops == "all" or crops == "test":
         test_crops = get_test_crops()
