@@ -59,7 +59,6 @@ model = UNet_3D(1, len(classes))
 load_model = "latest"  # load the latest model or the best validation model
 
 # Define the paths for saving the model and logs, etc.
-data_base_path = "data"  # base path where the data is stored
 logs_save_path = UPath(
     "tensorboard/{model_name}"
 ).path  # path to save the logs from tensorboard
