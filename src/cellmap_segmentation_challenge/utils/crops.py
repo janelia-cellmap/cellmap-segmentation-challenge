@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import os
 
 import fsspec
+from upath import UPath
 from typing_extensions import Self
 from yarl import URL
 
@@ -11,6 +12,45 @@ TEST_CROP_MANIFEST_URL = os.environ.get(
     "CSC_TEST_CROP_MANIFEST_URL",
     "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/test_crop_manifest.csv",
 )
+
+MANIFEST_URL = os.environ.get(
+    "CSC_FETCH_DATA_MANIFEST_URL",
+    "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/manifest.csv",
+)
+
+ZIP_MANIFEST_URL = os.environ.get(
+    "CSC_FETCH_ZIP_DATA_MANIFEST_URL",
+    "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/zip_manifest.csv",
+)
+
+
+def fetch_manifest(
+    url: str | URL,
+    file_name: str,
+    object: Self,
+) -> tuple[str, ...]:
+    local_path = UPath(__file__).parent / file_name
+    # Attempt to download the manifest file
+    try:
+        # Get the filesystem and path
+        fs, path = fsspec.url_to_fs(str(url))
+
+        # Open the file using the filesystem and save locally
+        with fs.open(path, "rb") as src, open(local_path, "wb") as dst:
+            dst.write(src.read())
+    except:
+        if local_path.exists():
+            print(
+                f"Failed to download manifest file from {url}, using local file {local_path}."
+            )
+        else:
+            raise FileNotFoundError(
+                f"Failed to download manifest file from {url} and no local file exists."
+            )
+
+    fs, path = fsspec.url_to_fs(str(local_path))
+    head, *rows = fs.cat_file(path).decode().splitlines()
+    return tuple(object.from_csv_row(row) for row in rows)
 
 
 @dataclass
@@ -54,21 +94,7 @@ def fetch_test_crop_manifest(
     tuple[TestCropRow, ...]
         A tuple of TestCropRow objects.
     """
-    fs, path = fsspec.url_to_fs(str(url))
-    head, *rows = fs.cat_file(path).decode().splitlines()
-    return tuple(TestCropRow.from_csv_row(row) for row in rows)
-
-
-# get constants from environment, falling back to defaults as needed
-MANIFEST_URL = os.environ.get(
-    "CSC_FETCH_DATA_MANIFEST_URL",
-    "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/manifest.csv",
-)
-
-ZIP_MANIFEST_URL = os.environ.get(
-    "CSC_FETCH_ZIP_DATA_MANIFEST_URL",
-    "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/zip_manifest.csv",
-)
+    return fetch_manifest(url, "test_crop_manifest.csv", TestCropRow)
 
 
 @dataclass
@@ -103,9 +129,7 @@ def fetch_zip_manifest(url: str | URL = ZIP_MANIFEST_URL) -> tuple[ZipDatasetRow
     tuple[ZipDatasetRow, ...]
         A tuple of ZipDatasetRow objects.
     """
-    fs, path = fsspec.url_to_fs(str(url))
-    head, *rows = fs.cat_file(path).decode().splitlines()
-    return tuple(ZipDatasetRow.from_csv_row(row) for row in rows)
+    return fetch_manifest(url, "zip_manifest.csv", ZipDatasetRow)
 
 
 @dataclass
@@ -125,7 +149,7 @@ class CropRow:
         return cls(int(id), dataset, alignment, URL(gt_source), URL(em_url))
 
 
-def fetch_manifest(url: str | URL = MANIFEST_URL) -> tuple[CropRow, ...]:
+def fetch_crop_manifest(url: str | URL = MANIFEST_URL) -> tuple[CropRow, ...]:
     """
     Fetch a manifest file from a URL and return a tuple of CropRow objects.
 
@@ -139,9 +163,7 @@ def fetch_manifest(url: str | URL = MANIFEST_URL) -> tuple[CropRow, ...]:
     tuple[CropRow, ...]
         A tuple of CropRow objects.
     """
-    fs, path = fsspec.url_to_fs(str(url))
-    head, *rows = fs.cat_file(path).decode().splitlines()
-    return tuple(CropRow.from_csv_row(row) for row in rows)
+    return fetch_manifest(url, "manifest.csv", CropRow)
 
 
 TEST_CROPS = fetch_test_crop_manifest()
@@ -152,7 +174,7 @@ def get_test_crops() -> tuple[CropRow, ...]:
     _test_crops = fetch_test_crop_manifest()
     dataset_em_meta = {
         crop.dataset: {"em_url": crop.em_url, "alignment": crop.alignment}
-        for crop in fetch_manifest()
+        for crop in fetch_crop_manifest()
     }
     test_crops = []
     test_crop_meta_by_id = {}
