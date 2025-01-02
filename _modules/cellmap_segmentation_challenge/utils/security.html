@@ -272,6 +272,7 @@
 <span></span><span class="kn">import</span> <span class="nn">ast</span>
 <span class="kn">import</span> <span class="nn">importlib</span>
 <span class="kn">from</span> <span class="nn">importlib.machinery</span> <span class="kn">import</span> <span class="n">SourceFileLoader</span>
+<span class="kn">import</span> <span class="nn">os</span>
 
 <span class="kn">from</span> <span class="nn">upath</span> <span class="kn">import</span> <span class="n">UPath</span>
 
@@ -327,9 +328,10 @@
 
 <div class="viewcode-block" id="load_safe_config">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.security.load_safe_config">[docs]</a>
-<span class="k">def</span> <span class="nf">load_safe_config</span><span class="p">(</span><span class="n">config_path</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">load_safe_config</span><span class="p">(</span><span class="n">config_path</span><span class="p">,</span> <span class="n">force_safe</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;FORCE_SAFE_CONFIG&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Loads the configuration script at `config_path` after verifying its safety.</span>
+<span class="sd">    If `force_safe` is True, raises an error if the script is deemed unsafe.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># print(f&quot;Analyzing script for obvious security liabilities:\n\t{config_path}&quot;)</span>
     <span class="c1"># print(</span>
@@ -340,7 +342,8 @@
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Script contains unsafe elements:&quot;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">issue</span> <span class="ow">in</span> <span class="n">issues</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; - </span><span class="si">{</span><span class="n">issue</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsafe script detected; loading aborted.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">force_safe</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsafe script detected; loading aborted.&quot;</span><span class="p">)</span>
 
     <span class="c1"># Load the config module if script is safe</span>
     <span class="n">config_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span>
