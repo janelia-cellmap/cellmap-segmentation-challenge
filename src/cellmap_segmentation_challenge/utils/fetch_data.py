@@ -11,6 +11,8 @@ import zarr.storage
 from yarl import URL
 from zarr._storage.store import Store
 import boto3
+from botocore import UNSIGNED
+from botocore.config import Config
 from tqdm import tqdm
 from .crops import CropRow, ZipDatasetRow
 
@@ -140,9 +142,8 @@ def parse_s3_url(s3_url: str) -> (str, str):
 
 
 def download_file_with_progress(s3_url, local_filename):
-    
 
-    s3 = boto3.client("s3")
+    s3 = boto3.client("s3", config=Config(signature_version=UNSIGNED))
     bucket_name, object_key = parse_s3_url(s3_url)
     response = s3.head_object(Bucket=bucket_name, Key=object_key)
     total_size = response["ContentLength"]
