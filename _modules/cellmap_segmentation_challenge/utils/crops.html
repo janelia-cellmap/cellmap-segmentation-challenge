@@ -273,6 +273,7 @@
 <span class="kn">import</span> <span class="nn">os</span>
 
 <span class="kn">import</span> <span class="nn">fsspec</span>
+<span class="kn">from</span> <span class="nn">upath</span> <span class="kn">import</span> <span class="n">UPath</span>
 <span class="kn">from</span> <span class="nn">typing_extensions</span> <span class="kn">import</span> <span class="n">Self</span>
 <span class="kn">from</span> <span class="nn">yarl</span> <span class="kn">import</span> <span class="n">URL</span>
 
@@ -282,6 +283,48 @@
     <span class="s2">&quot;CSC_TEST_CROP_MANIFEST_URL&quot;</span><span class="p">,</span>
     <span class="s2">&quot;https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/test_crop_manifest.csv&quot;</span><span class="p">,</span>
 <span class="p">)</span>
+
+<span class="n">MANIFEST_URL</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+    <span class="s2">&quot;CSC_FETCH_DATA_MANIFEST_URL&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/manifest.csv&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">ZIP_MANIFEST_URL</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+    <span class="s2">&quot;CSC_FETCH_ZIP_DATA_MANIFEST_URL&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/zip_manifest.csv&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="fetch_manifest">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.fetch_manifest">[docs]</a>
+<span class="k">def</span> <span class="nf">fetch_manifest</span><span class="p">(</span>
+    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">URL</span><span class="p">,</span>
+    <span class="n">file_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="nb">object</span><span class="p">:</span> <span class="n">Self</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+    <span class="n">local_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="n">file_name</span>
+    <span class="c1"># Attempt to download the manifest file</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Get the filesystem and path</span>
+        <span class="n">fs</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">url_to_fs</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">url</span><span class="p">))</span>
+
+        <span class="c1"># Open the file using the filesystem and save locally</span>
+        <span class="k">with</span> <span class="n">fs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">src</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">local_path</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">dst</span><span class="p">:</span>
+            <span class="n">dst</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">src</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">local_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Failed to download manifest file from </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">, using local file </span><span class="si">{</span><span class="n">local_path</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Failed to download manifest file from </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2"> and no local file exists.&quot;</span>
+            <span class="p">)</span>
+
+    <span class="n">fs</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">url_to_fs</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">local_path</span><span class="p">))</span>
+    <span class="n">head</span><span class="p">,</span> <span class="o">*</span><span class="n">rows</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">cat_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">object</span><span class="o">.</span><span class="n">from_csv_row</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">)</span></div>
+
 
 
 <div class="viewcode-block" id="TestCropRow">
@@ -333,22 +376,8 @@
 <span class="sd">    tuple[TestCropRow, ...]</span>
 <span class="sd">        A tuple of TestCropRow objects.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">fs</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">url_to_fs</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">url</span><span class="p">))</span>
-    <span class="n">head</span><span class="p">,</span> <span class="o">*</span><span class="n">rows</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">cat_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
-    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">TestCropRow</span><span class="o">.</span><span class="n">from_csv_row</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">fetch_manifest</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="s2">&quot;test_crop_manifest.csv&quot;</span><span class="p">,</span> <span class="n">TestCropRow</span><span class="p">)</span></div>
 
-
-
-<span class="c1"># get constants from environment, falling back to defaults as needed</span>
-<span class="n">MANIFEST_URL</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-    <span class="s2">&quot;CSC_FETCH_DATA_MANIFEST_URL&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/manifest.csv&quot;</span><span class="p">,</span>
-<span class="p">)</span>
-
-<span class="n">ZIP_MANIFEST_URL</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-    <span class="s2">&quot;CSC_FETCH_ZIP_DATA_MANIFEST_URL&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/zip_manifest.csv&quot;</span><span class="p">,</span>
-<span class="p">)</span>
 
 
 <div class="viewcode-block" id="ZipDatasetRow">
@@ -391,9 +420,7 @@
 <span class="sd">    tuple[ZipDatasetRow, ...]</span>
 <span class="sd">        A tuple of ZipDatasetRow objects.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">fs</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">url_to_fs</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">url</span><span class="p">))</span>
-    <span class="n">head</span><span class="p">,</span> <span class="o">*</span><span class="n">rows</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">cat_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
-    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ZipDatasetRow</span><span class="o">.</span><span class="n">from_csv_row</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">fetch_manifest</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="s2">&quot;zip_manifest.csv&quot;</span><span class="p">,</span> <span class="n">ZipDatasetRow</span><span class="p">)</span></div>
 
 
 
@@ -420,9 +447,9 @@
 
 
 
-<div class="viewcode-block" id="fetch_manifest">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.fetch_manifest">[docs]</a>
-<span class="k">def</span> <span class="nf">fetch_manifest</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">URL</span> <span class="o">=</span> <span class="n">MANIFEST_URL</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">CropRow</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<div class="viewcode-block" id="fetch_crop_manifest">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.fetch_crop_manifest">[docs]</a>
+<span class="k">def</span> <span class="nf">fetch_crop_manifest</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">URL</span> <span class="o">=</span> <span class="n">MANIFEST_URL</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">CropRow</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetch a manifest file from a URL and return a tuple of CropRow objects.</span>
 
@@ -436,9 +463,7 @@
 <span class="sd">    tuple[CropRow, ...]</span>
 <span class="sd">        A tuple of CropRow objects.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">fs</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="n">fsspec</span><span class="o">.</span><span class="n">url_to_fs</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">url</span><span class="p">))</span>
-    <span class="n">head</span><span class="p">,</span> <span class="o">*</span><span class="n">rows</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">cat_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
-    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">CropRow</span><span class="o">.</span><span class="n">from_csv_row</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">fetch_manifest</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="s2">&quot;manifest.csv&quot;</span><span class="p">,</span> <span class="n">CropRow</span><span class="p">)</span></div>
 
 
 
@@ -452,7 +477,7 @@
     <span class="n">_test_crops</span> <span class="o">=</span> <span class="n">fetch_test_crop_manifest</span><span class="p">()</span>
     <span class="n">dataset_em_meta</span> <span class="o">=</span> <span class="p">{</span>
         <span class="n">crop</span><span class="o">.</span><span class="n">dataset</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;em_url&quot;</span><span class="p">:</span> <span class="n">crop</span><span class="o">.</span><span class="n">em_url</span><span class="p">,</span> <span class="s2">&quot;alignment&quot;</span><span class="p">:</span> <span class="n">crop</span><span class="o">.</span><span class="n">alignment</span><span class="p">}</span>
-        <span class="k">for</span> <span class="n">crop</span> <span class="ow">in</span> <span class="n">fetch_manifest</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">crop</span> <span class="ow">in</span> <span class="n">fetch_crop_manifest</span><span class="p">()</span>
     <span class="p">}</span>
     <span class="n">test_crops</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">test_crop_meta_by_id</span> <span class="o">=</span> <span class="p">{}</span>
