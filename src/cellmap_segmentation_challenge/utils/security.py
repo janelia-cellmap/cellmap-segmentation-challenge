@@ -1,6 +1,7 @@
 import ast
 import importlib
 from importlib.machinery import SourceFileLoader
+import os
 
 from upath import UPath
 
@@ -51,9 +52,10 @@ def analyze_script(filepath):
     return is_safe, issues
 
 
-def load_safe_config(config_path):
+def load_safe_config(config_path, force_safe=os.getenv("FORCE_SAFE_CONFIG", True)):
     """
     Loads the configuration script at `config_path` after verifying its safety.
+    If `force_safe` is True, raises an error if the script is deemed unsafe.
     """
     # print(f"Analyzing script for obvious security liabilities:\n\t{config_path}")
     # print(
@@ -64,7 +66,8 @@ def load_safe_config(config_path):
         print("Script contains unsafe elements:")
         for issue in issues:
             print(f" - {issue}")
-        raise ValueError("Unsafe script detected; loading aborted.")
+        if force_safe:
+            raise ValueError("Unsafe script detected; loading aborted.")
 
     # Load the config module if script is safe
     config_path = UPath(config_path)
