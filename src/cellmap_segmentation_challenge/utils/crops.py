@@ -2,7 +2,6 @@ from dataclasses import dataclass
 import os
 
 import fsspec
-import requests
 from upath import UPath
 from typing_extensions import Self
 from yarl import URL
@@ -39,7 +38,7 @@ def fetch_manifest(
         # Open the file using the filesystem and save locally
         with fs.open(path, "rb") as src, open(local_path, "wb") as dst:
             dst.write(src.read())
-    except requests.RequestException as e:
+    except:
         if local_path.exists():
             print(
                 f"Failed to download manifest file from {url}, using local file {local_path}."
