@@ -9,10 +9,11 @@ from skimage.measure import label as relabel
 from skimage.transform import rescale
 import requests
 
-# Set the manifest URL for the test cropsprint(
+print(
     "Setting manifest URL for test crops for testing purposes only. This will overwrite your local test_crop_manifest.csv. Make sure you are connected to the internet next time you run an operation that uses fetch_test_crop_manifest()."
 )
 
+# Set the manifest URL for the test crops
 os.environ["CSC_TEST_CROP_MANIFEST_URL"] = (
     "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/test_crop_manifest.csv"
 )
@@ -48,7 +49,7 @@ def test_fetch_test_crops(setup_temp_path):
         batch_size=256,
         num_workers=32,
         use_zip=False,
-)
+    )
 
 
 # %%
