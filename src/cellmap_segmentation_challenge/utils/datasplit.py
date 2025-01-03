@@ -470,31 +470,6 @@ def get_dataset_counts(
     return dataset_class_counts
 
 
-if __name__ == "__main__":
-    """
-    Usage: python datasplit.py [search_path] [classes]
-
-    search_path: The search path to use to find the datasets. Defaults to SEARCH_PATH.
-    classes: A comma-separated list of classes to include in the csv. Defaults to ["nuc", "er"].
-    """
-    if len(sys.argv) > 1 and sys.argv[1][0] == "[":
-        classes = sys.argv[1][1:-1].split(",")
-        if len(sys.argv) > 2:
-            search_path = sys.argv[2]
-        else:
-            search_path = SEARCH_PATH
-    elif len(sys.argv) > 1:
-        search_path = sys.argv[1]
-        classes = ["nuc", "er"]
-    else:
-        classes = ["nuc", "er"]
-        search_path = SEARCH_PATH
-
-    os.remove("datasplit.csv")
-
-    make_datasplit_csv(classes=classes, search_path=search_path, validation_prob=0.1)
-
-
 def get_class_incl_ids(incl_ids_string):
     if incl_ids_string is None or incl_ids_string == "":
         return []
@@ -533,3 +508,28 @@ def get_class_relations(
         class_relation_dict[key] = class_ids - value
 
     return class_relation_dict
+
+
+if __name__ == "__main__":
+    """
+    Usage: python datasplit.py [search_path] [classes]
+
+    search_path: The search path to use to find the datasets. Defaults to SEARCH_PATH.
+    classes: A comma-separated list of classes to include in the csv. Defaults to ["nuc", "er"].
+    """
+    if len(sys.argv) > 1 and sys.argv[1][0] == "[":
+        classes = sys.argv[1][1:-1].split(",")
+        if len(sys.argv) > 2:
+            search_path = sys.argv[2]
+        else:
+            search_path = SEARCH_PATH
+    elif len(sys.argv) > 1:
+        search_path = sys.argv[1]
+        classes = ["nuc", "er"]
+    else:
+        classes = ["nuc", "er"]
+        search_path = SEARCH_PATH
+
+    os.remove("datasplit.csv")
+
+    make_datasplit_csv(classes=classes, search_path=search_path, validation_prob=0.1)

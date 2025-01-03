@@ -9,6 +9,8 @@ from .config import (
     SUBMISSION_PATH,
 )
 
+from . import utils
+
 import lazy_loader as lazy
 
 # Lazy-load submodules
