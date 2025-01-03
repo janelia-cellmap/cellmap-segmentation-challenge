@@ -392,7 +392,32 @@
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.Config"><code class="docutils literal notranslate"><span class="pre">Config</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils">Module contents</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils">Module contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.CellMapLossWrapper"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.CellMapLossWrapper.forward"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.TestCropRow"><code class="docutils literal notranslate"><span class="pre">TestCropRow</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.TestCropRow.id"><code class="docutils literal notranslate"><span class="pre">TestCropRow.id</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.TestCropRow.dataset"><code class="docutils literal notranslate"><span class="pre">TestCropRow.dataset</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.TestCropRow.class_label"><code class="docutils literal notranslate"><span class="pre">TestCropRow.class_label</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.TestCropRow.voxel_size"><code class="docutils literal notranslate"><span class="pre">TestCropRow.voxel_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.TestCropRow.translation"><code class="docutils literal notranslate"><span class="pre">TestCropRow.translation</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.TestCropRow.shape"><code class="docutils literal notranslate"><span class="pre">TestCropRow.shape</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.TestCropRow.from_csv_row"><code class="docutils literal notranslate"><span class="pre">TestCropRow.from_csv_row()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.analyze_script"><code class="docutils literal notranslate"><span class="pre">analyze_script()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.fetch_crop_manifest"><code class="docutils literal notranslate"><span class="pre">fetch_crop_manifest()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.fetch_test_crop_manifest"><code class="docutils literal notranslate"><span class="pre">fetch_test_crop_manifest()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_class_relations"><code class="docutils literal notranslate"><span class="pre">get_class_relations()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_dataloader"><code class="docutils literal notranslate"><span class="pre">get_dataloader()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_test_crops"><code class="docutils literal notranslate"><span class="pre">get_test_crops()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.load_safe_config"><code class="docutils literal notranslate"><span class="pre">load_safe_config()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.make_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_datasplit_csv()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.make_s3_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_s3_datasplit_csv()</span></code></a></li>
+</ul>
+</li>
 </ul>
             </nav>
         </div>
@@ -1114,6 +1139,295 @@ If <cite>force_safe</cite> is True, raises an error if the script is deemed unsa
 </section>
 <section id="module-cellmap_segmentation_challenge.utils">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-cellmap_segmentation_challenge.utils" title="Link to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.CellMapLossWrapper">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">CellMapLossWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss_fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">_Loss</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">_WeightedLoss</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/loss.html#CellMapLossWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.CellMapLossWrapper" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_Loss</span></code></p>
+<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>loss_fn</strong> (<em>_Loss</em><em> | </em><em>_WeightedLoss</em>)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.CellMapLossWrapper.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/loss.html#CellMapLossWrapper.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.CellMapLossWrapper.forward" title="Link to this definition">#</a></dt>
+<dd><p>Define the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>outputs</strong> (<em>Tensor</em>)</p></li>
+<li><p><strong>target</strong> (<em>Tensor</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.TestCropRow">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">TestCropRow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">class_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">translation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/crops.html#TestCropRow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.TestCropRow" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A dataclass representing a row in the test crop manifest file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>int</em>)</p></li>
+<li><p><strong>dataset</strong> (<em>str</em>)</p></li>
+<li><p><strong>class_label</strong> (<em>str</em>)</p></li>
+<li><p><strong>voxel_size</strong> (<em>tuple</em><em>[</em><em>float</em><em>, </em><em>...</em><em>]</em>)</p></li>
+<li><p><strong>translation</strong> (<em>tuple</em><em>[</em><em>float</em><em>, </em><em>...</em><em>]</em>)</p></li>
+<li><p><strong>shape</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>...</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.TestCropRow.id">
+<span class="sig-name descname"><span class="pre">id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#cellmap_segmentation_challenge.utils.TestCropRow.id" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.TestCropRow.dataset">
+<span class="sig-name descname"><span class="pre">dataset</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#cellmap_segmentation_challenge.utils.TestCropRow.dataset" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.TestCropRow.class_label">
+<span class="sig-name descname"><span class="pre">class_label</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#cellmap_segmentation_challenge.utils.TestCropRow.class_label" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.TestCropRow.voxel_size">
+<span class="sig-name descname"><span class="pre">voxel_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#cellmap_segmentation_challenge.utils.TestCropRow.voxel_size" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.TestCropRow.translation">
+<span class="sig-name descname"><span class="pre">translation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#cellmap_segmentation_challenge.utils.TestCropRow.translation" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.TestCropRow.shape">
+<span class="sig-name descname"><span class="pre">shape</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#cellmap_segmentation_challenge.utils.TestCropRow.shape" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.TestCropRow.from_csv_row">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_csv_row</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/crops.html#TestCropRow.from_csv_row"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.TestCropRow.from_csv_row" title="Link to this definition">#</a></dt>
+<dd><p>Create a CropRow object from a CSV row.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>row</strong> (<em>str</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Self</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.analyze_script">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">analyze_script</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/security.html#analyze_script"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.analyze_script" title="Link to this definition">#</a></dt>
+<dd><p>Analyzes the script at <cite>filepath</cite> using <cite>ast</cite> for potentially unsafe imports and function calls.
+Returns a boolean indicating whether the script is safe and a list of detected issues.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.fetch_crop_manifest">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">fetch_crop_manifest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">URL</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/manifest.csv'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cellmap_segmentation_challenge.utils.crops.CropRow" title="cellmap_segmentation_challenge.utils.crops.CropRow"><span class="pre">CropRow</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/crops.html#fetch_crop_manifest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.fetch_crop_manifest" title="Link to this definition">#</a></dt>
+<dd><p>Fetch a manifest file from a URL and return a tuple of CropRow objects.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>url</strong> (<em>str</em><em> or </em><em>yarl.URL</em>) – The URL to the manifest file.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple of CropRow objects.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[<a class="reference internal" href="#cellmap_segmentation_challenge.utils.crops.CropRow" title="cellmap_segmentation_challenge.utils.crops.CropRow">CropRow</a>, …]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.fetch_test_crop_manifest">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">fetch_test_crop_manifest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">URL</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/test_crop_manifest.csv'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cellmap_segmentation_challenge.utils.crops.TestCropRow" title="cellmap_segmentation_challenge.utils.crops.TestCropRow"><span class="pre">TestCropRow</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/crops.html#fetch_test_crop_manifest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.fetch_test_crop_manifest" title="Link to this definition">#</a></dt>
+<dd><p>Fetch a test manifest file from a URL and return a tuple of TestCropRow objects.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>url</strong> (<em>str</em><em> or </em><em>yarl.URL</em>) – The URL to the manifest file.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple of TestCropRow objects.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[<a class="reference internal" href="#cellmap_segmentation_challenge.utils.TestCropRow" title="cellmap_segmentation_challenge.utils.TestCropRow">TestCropRow</a>, …]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.get_class_relations">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">get_class_relations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csv_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.8/x64/lib/python3.12/site-packages/cellmap_segmentation_challenge/utils/classes.csv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">named_classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/datasplit.html#get_class_relations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.get_class_relations" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>csv_path</strong> (<em>str</em>)</p></li>
+<li><p><strong>named_classes</strong> (<em>list</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.get_dataloader">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">get_dataloader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datasplit_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">array_info</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_array_info</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_array_info</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spatial_transforms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iterations_per_epoch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_validation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">device</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">CellMapDataLoader</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">CellMapDataLoader</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/dataloader.html#get_dataloader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.get_dataloader" title="Link to this definition">#</a></dt>
+<dd><p>Get the train and validation dataloaders.</p>
+<p>This function gets the train and validation dataloaders for the given datasplit file, classes, batch size, array
+info, spatial transforms, iterations per epoch, number of workers, and device.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datasplit_path</strong> (<em>str</em>) – Path to the datasplit file that defines the train/val split the dataloader should use.</p></li>
+<li><p><strong>classes</strong> (<em>Sequence</em><em>[</em><em>str</em><em>]</em>) – List of classes to segment.</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em>) – Batch size for the dataloader.</p></li>
+<li><p><strong>array_info</strong> (<em>Optional</em><em>[</em><em>Mapping</em><em>[</em><em>str</em><em>, </em><em>Sequence</em><em>[</em><em>int</em><em> | </em><em>float</em><em>]</em><em>]</em><em>]</em>) – Dictionary containing the shape and scale of the data to load for the input and target. Either <cite>array_info</cite> or <cite>input_array_info</cite> &amp; <cite>target_array_info</cite> must be provided.</p></li>
+<li><p><strong>input_array_info</strong> (<em>Optional</em><em>[</em><em>Mapping</em><em>[</em><em>str</em><em>, </em><em>Sequence</em><em>[</em><em>int</em><em> | </em><em>float</em><em>]</em><em>]</em><em>]</em>) – Dictionary containing the shape and scale of the data to load for the input.</p></li>
+<li><p><strong>target_array_info</strong> (<em>Optional</em><em>[</em><em>Mapping</em><em>[</em><em>str</em><em>, </em><em>Sequence</em><em>[</em><em>int</em><em> | </em><em>float</em><em>]</em><em>]</em><em>]</em>) – Dictionary containing the shape and scale of the data to load for the target.</p></li>
+<li><p><strong>spatial_transforms</strong> (<em>Optional</em><em>[</em><em>Mapping</em><em>[</em><em>str</em><em>, </em><em>any</em><em>]</em><em>]</em>) – Dictionary containing the spatial transformations to apply to the data.
+For example the dictionary could contain transformations like mirror, transpose, and rotate.</p></li>
+<li><p><strong>{</strong> (<em>spatial_transforms =</em>) – <p># 3D</p>
+<blockquote>
+<div><p># Probability of applying mirror for each axis
+# Values range from 0 (no mirroring) to 1 (will always mirror)</p>
+</div></blockquote>
+<p>”mirror”: {“axes”: {“x”: 0.5, “y”: 0.5, “z”: 0.5}},</p>
+<blockquote>
+<div><p># Specifies the axes that will be invovled in the trasposition</p>
+</div></blockquote>
+<p>”transpose”: {“axes”: [“x”, “y”, “z”]},</p>
+<blockquote>
+<div><p># Defines rotation range for each axis.
+# Rotation angle for each axis is randomly chosen within the specified range (-180, 180).</p>
+</div></blockquote>
+<p>”rotate”: {“axes”: {“x”: [-180, 180], “y”: [-180, 180], “z”: [-180, 180]}},</p>
+<p># 2D (used when there is no z axis)
+# “mirror”: {“axes”: {“x”: 0.5, “y”: 0.5}},
+# “transpose”: {“axes”: [“x”, “y”]},
+# “rotate”: {“axes”: {“x”: [-180, 180], “y”: [-180, 180]}},</p>
+</p></li>
+<li><p><strong>}</strong></p></li>
+<li><p><strong>iterations_per_epoch</strong> (<em>int</em>)</p></li>
+<li><p><strong>random_validation</strong> (<em>bool</em>)</p></li>
+<li><p><strong>device</strong> (<em>str</em><em> | </em><em>device</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple[<em>CellMapDataLoader</em>, <em>CellMapDataLoader</em>]</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>iterations_per_epoch<span class="classifier">int</span></dt><dd><p>Number of iterations per epoch.</p>
+</dd>
+<dt>random_validation<span class="classifier">bool</span></dt><dd><p>Whether or not to randomize the validation data draws. Useful if not evaluating on the entire validation set everytime. Defaults to False.</p>
+</dd>
+<dt>device<span class="classifier">Optional[str or torch.device]</span></dt><dd><p>Device to use for training. If None, defaults to “cuda” if available, or “mps” if available, or “cpu”.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple containing the train and validation dataloaders.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader]</p>
+</dd>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datasplit_path</strong> (<em>str</em>)</p></li>
+<li><p><strong>classes</strong> (<em>Sequence</em><em>[</em><em>str</em><em>]</em>)</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>array_info</strong> (<em>Mapping</em><em>[</em><em>str</em><em>, </em><em>Sequence</em><em>[</em><em>int</em><em> | </em><em>float</em><em>]</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>input_array_info</strong> (<em>Mapping</em><em>[</em><em>str</em><em>, </em><em>Sequence</em><em>[</em><em>int</em><em> | </em><em>float</em><em>]</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>target_array_info</strong> (<em>Mapping</em><em>[</em><em>str</em><em>, </em><em>Sequence</em><em>[</em><em>int</em><em> | </em><em>float</em><em>]</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>spatial_transforms</strong> (<em>Mapping</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>iterations_per_epoch</strong> (<em>int</em>)</p></li>
+<li><p><strong>random_validation</strong> (<em>bool</em>)</p></li>
+<li><p><strong>device</strong> (<em>str</em><em> | </em><em>device</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.get_test_crops">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">get_test_crops</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cellmap_segmentation_challenge.utils.crops.CropRow" title="cellmap_segmentation_challenge.utils.crops.CropRow"><span class="pre">CropRow</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/crops.html#get_test_crops"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.get_test_crops" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[<a class="reference internal" href="#cellmap_segmentation_challenge.utils.crops.CropRow" title="cellmap_segmentation_challenge.utils.crops.CropRow"><em>CropRow</em></a>, …]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.load_safe_config">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">load_safe_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_safe</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/security.html#load_safe_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.load_safe_config" title="Link to this definition">#</a></dt>
+<dd><p>Loads the configuration script at <cite>config_path</cite> after verifying its safety.
+If <cite>force_safe</cite> is True, raises an error if the script is deemed unsafe.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.make_datasplit_csv">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">make_datasplit_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['nuc',</span> <span class="pre">'mito']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_all_classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation_prob</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datasets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['*']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crops</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['*']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.8/x64/lib/python3.12/data/{dataset}/{dataset}.zarr/recon-1/{name}'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raw_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'em/fibsem-uint8'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crop_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'labels/groundtruth/{crop}/{label}'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">csv_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'datasplit.csv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dry_run</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/datasplit.html#make_datasplit_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.make_datasplit_csv" title="Link to this definition">#</a></dt>
+<dd><p>Make a datasplit csv file for the given classes and datasets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>classes</strong> (<em>list</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The classes to include in the csv, by default [“nuc”, “mito”]</p></li>
+<li><p><strong>force_all_classes</strong> (<em>bool</em><em> | </em><em>str</em><em>, </em><em>optional</em>) – If True, force all classes to be present in the training/validation datasets. If False, as long as at least one requested class is present, a crop will be included. If “train” or “validate”, force all classes to be present in the training or validation datasets, respectively. By default False.</p></li>
+<li><p><strong>validation_prob</strong> (<em>float</em><em>, </em><em>optional</em>) – The probability of a dataset being in the validation set, by default 0.1</p></li>
+<li><p><strong>datasets</strong> (<em>list</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The datasets to include in the csv, by default [“*”], which includes all datasets</p></li>
+<li><p><strong>crops</strong> (<em>list</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The crops to include in the csv, by default all crops are included. Otherwise, only the crops in the list are included.</p></li>
+<li><p><strong>search_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The search path to use to find the datasets, by default SEARCH_PATH</p></li>
+<li><p><strong>raw_name</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the raw data, by default RAW_NAME</p></li>
+<li><p><strong>crop_name</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the crop, by default CROP_NAME</p></li>
+<li><p><strong>csv_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The path to write the csv file to, by default “datasplit.csv”</p></li>
+<li><p><strong>dry_run</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, do not write the csv file - just return the found datapaths. By default False</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.make_s3_datasplit_csv">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">make_s3_datasplit_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['nuc',</span> <span class="pre">'mito']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_all_classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation_prob</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datasets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['*']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crops</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['*']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">csv_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'datasplit.csv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dry_run</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/datasplit.html#make_s3_datasplit_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.make_s3_datasplit_csv" title="Link to this definition">#</a></dt>
+<dd><p>Make a datasplit csv file for the given classes and datasets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>classes</strong> (<em>list</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The classes to include in the csv, by default [“nuc”, “mito”]</p></li>
+<li><p><strong>force_all_classes</strong> (<em>bool</em><em> | </em><em>str</em><em>, </em><em>optional</em>) – If True, force all classes to be present in the training/validation datasets. If False, as long as at least one requested class is present, a crop will be included. If “train” or “validate”, force all classes to be present in the training or validation datasets, respectively. By default False.</p></li>
+<li><p><strong>validation_prob</strong> (<em>float</em><em>, </em><em>optional</em>) – The probability of a dataset being in the validation set, by default 0.1</p></li>
+<li><p><strong>datasets</strong> (<em>list</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The datasets to include in the csv, by default [“*”], which includes all datasets</p></li>
+<li><p><strong>crops</strong> (<em>list</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The crops to include in the csv, by default all crops are included. Otherwise, only the crops in the list are included.</p></li>
+<li><p><strong>csv_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The path to write the csv file to, by default “datasplit.csv”</p></li>
+<li><p><strong>dry_run</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, do not write the csv file - just return the found datapaths. By default False</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments will be unused. Kept for compatibility with make_datasplit_csv.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 
@@ -1224,7 +1538,32 @@ If <cite>force_safe</cite> is True, raises an error if the script is deemed unsa
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.Config"><code class="docutils literal notranslate"><span class="pre">Config</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils">Module contents</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils">Module contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.CellMapLossWrapper"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.CellMapLossWrapper.forward"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.TestCropRow"><code class="docutils literal notranslate"><span class="pre">TestCropRow</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.TestCropRow.id"><code class="docutils literal notranslate"><span class="pre">TestCropRow.id</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.TestCropRow.dataset"><code class="docutils literal notranslate"><span class="pre">TestCropRow.dataset</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.TestCropRow.class_label"><code class="docutils literal notranslate"><span class="pre">TestCropRow.class_label</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.TestCropRow.voxel_size"><code class="docutils literal notranslate"><span class="pre">TestCropRow.voxel_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.TestCropRow.translation"><code class="docutils literal notranslate"><span class="pre">TestCropRow.translation</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.TestCropRow.shape"><code class="docutils literal notranslate"><span class="pre">TestCropRow.shape</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.TestCropRow.from_csv_row"><code class="docutils literal notranslate"><span class="pre">TestCropRow.from_csv_row()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.analyze_script"><code class="docutils literal notranslate"><span class="pre">analyze_script()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.fetch_crop_manifest"><code class="docutils literal notranslate"><span class="pre">fetch_crop_manifest()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.fetch_test_crop_manifest"><code class="docutils literal notranslate"><span class="pre">fetch_test_crop_manifest()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_class_relations"><code class="docutils literal notranslate"><span class="pre">get_class_relations()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_dataloader"><code class="docutils literal notranslate"><span class="pre">get_dataloader()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_test_crops"><code class="docutils literal notranslate"><span class="pre">get_test_crops()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.load_safe_config"><code class="docutils literal notranslate"><span class="pre">load_safe_config()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.make_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_datasplit_csv()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.make_s3_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_s3_datasplit_csv()</span></code></a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 
