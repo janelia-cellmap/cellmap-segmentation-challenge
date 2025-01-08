@@ -3,6 +3,7 @@ import json
 import pytest
 import shutil
 import os
+from upath import UPath
 
 import numpy as np
 from skimage.measure import label as relabel
@@ -18,7 +19,7 @@ os.environ["CSC_TEST_CROP_MANIFEST_URL"] = (
     "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/test_crop_manifest.csv"
 )
 
-from cellmap_segmentation_challenge import REPO_ROOT, RAW_NAME, CROP_NAME
+from cellmap_segmentation_challenge import RAW_NAME, CROP_NAME
 from cellmap_segmentation_challenge.evaluate import (
     zip_submission,
     save_numpy_class_arrays_to_zarr,
@@ -30,20 +31,43 @@ ERROR_TOLERANCE = 0.1
 # %%
 @pytest.fixture(scope="session")
 def setup_temp_path(tmp_path_factory):
-    temp_dir = tmp_path_factory.mktemp("shared_test_dir")
     # temp_dir = (REPO_ROOT / "tests" / "tmp").absolute()  # For debugging
-    yield temp_dir
+    temp_dir = tmp_path_factory.mktemp("shared_test_dir")
+
+    REPO_ROOT = UPath(temp_dir)
+    os.makedirs(REPO_ROOT / "data", exist_ok=True)
+    BASE_DATA_PATH = REPO_ROOT / "data"
+    SEARCH_PATH = os.path.normpath(
+        str(BASE_DATA_PATH / "{dataset}/{dataset}.zarr/recon-1/{name}")
+    )
+    PREDICTIONS_PATH = os.path.normpath(
+        str(BASE_DATA_PATH / "predictions/{dataset}.zarr/{crop}")
+    )
+    PROCESSED_PATH = os.path.normpath(
+        str(BASE_DATA_PATH / "processed/{dataset}.zarr/{crop}")
+    )
+    SUBMISSION_PATH = os.path.normpath(str(BASE_DATA_PATH / "submission.zarr"))
+
+    yield REPO_ROOT, BASE_DATA_PATH, SEARCH_PATH, PREDICTIONS_PATH, PROCESSED_PATH, SUBMISSION_PATH
 
 
 @pytest.mark.dependency()
 def test_fetch_test_crops(setup_temp_path):
     from cellmap_segmentation_challenge.cli import fetch_data_cli
 
-    os.makedirs(setup_temp_path / "data", exist_ok=True)
+    (
+        REPO_ROOT,
+        BASE_DATA_PATH,
+        SEARCH_PATH,
+        PREDICTIONS_PATH,
+        PROCESSED_PATH,
+        SUBMISSION_PATH,
+    ) = setup_temp_path
+
     fetch_data_cli.callback(
         crops="test",
         raw_padding=2,
-        dest=setup_temp_path / "data",
+        dest=BASE_DATA_PATH.path,
         access_mode="append",
         fetch_all_em_resolutions=False,
         batch_size=256,
@@ -57,11 +81,19 @@ def test_fetch_test_crops(setup_temp_path):
 def test_fetch_data(setup_temp_path):
     from cellmap_segmentation_challenge.cli import fetch_data_cli
 
-    os.makedirs(setup_temp_path / "data", exist_ok=True)
+    (
+        REPO_ROOT,
+        BASE_DATA_PATH,
+        SEARCH_PATH,
+        PREDICTIONS_PATH,
+        PROCESSED_PATH,
+        SUBMISSION_PATH,
+    ) = setup_temp_path
+
     fetch_data_cli.callback(
         crops="116,118",
         raw_padding=0,
-        dest=setup_temp_path / "data",
+        dest=BASE_DATA_PATH.path,
         access_mode="append",
         fetch_all_em_resolutions=False,
         batch_size=256,
@@ -73,27 +105,34 @@ def test_fetch_data(setup_temp_path):
 # %%
 @pytest.mark.dependency(depends=["test_fetch_data"])
 def test_train(setup_temp_path):
+    (
+        REPO_ROOT,
+        BASE_DATA_PATH,
+        SEARCH_PATH,
+        PREDICTIONS_PATH,
+        PROCESSED_PATH,
+        SUBMISSION_PATH,
+    ) = setup_temp_path
+
     download_file(
         "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/train_config.py",
-        setup_temp_path / "train_config.py",
+        REPO_ROOT / "train_config.py",
     )
 
     from cellmap_segmentation_challenge.cli import train_cli
     from cellmap_segmentation_challenge.utils import make_datasplit_csv
 
-    if (setup_temp_path / "datasplit.csv").exists():
-        (setup_temp_path / "datasplit.csv").unlink()
+    if (REPO_ROOT / "datasplit.csv").exists():
+        (REPO_ROOT / "datasplit.csv").unlink()
 
     make_datasplit_csv(
         classes=["mito", "er"],
-        search_path=os.path.join(
-            setup_temp_path, *"data/{dataset}/{dataset}.zarr/recon-1/{name}".split("/")
-        ),
-        csv_path=setup_temp_path / "datasplit.csv",
+        search_path=SEARCH_PATH,
+        csv_path=REPO_ROOT / "datasplit.csv",
         validation_prob=0.5,
     )
 
-    train_cli.callback(setup_temp_path / "train_config.py")
+    train_cli.callback(REPO_ROOT / "train_config.py")
 
 
 # %%
@@ -101,25 +140,27 @@ def test_train(setup_temp_path):
 def test_predict(setup_temp_path):
     from cellmap_segmentation_challenge.cli import predict_cli
 
+    (
+        REPO_ROOT,
+        BASE_DATA_PATH,
+        SEARCH_PATH,
+        PREDICTIONS_PATH,
+        PROCESSED_PATH,
+        SUBMISSION_PATH,
+    ) = setup_temp_path
+
     download_file(
         "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/train_config.py",
-        setup_temp_path / "train_config.py",
-    )
-
-    prediction_path = os.path.join(
-        setup_temp_path, *"data/predictions/{dataset}.zarr/{crop}".split("/")
-    )
-    search_path = os.path.join(
-        setup_temp_path, *"data/{dataset}/{dataset}.zarr/recon-1/{name}".split("/")
+        REPO_ROOT / "train_config.py",
     )
 
     predict_cli.callback(
-        setup_temp_path / "train_config.py",
+        REPO_ROOT / "train_config.py",
         crops="116",
-        output_path=prediction_path,
+        output_path=PREDICTIONS_PATH,
         do_orthoplanes=False,
         overwrite=True,
-        search_path=search_path,
+        search_path=SEARCH_PATH,
         raw_name=RAW_NAME,
         crop_name=CROP_NAME,
     )
@@ -130,25 +171,27 @@ def test_predict(setup_temp_path):
 def test_predict_test_crops(setup_temp_path):
     from cellmap_segmentation_challenge.cli import predict_cli
 
+    (
+        REPO_ROOT,
+        BASE_DATA_PATH,
+        SEARCH_PATH,
+        PREDICTIONS_PATH,
+        PROCESSED_PATH,
+        SUBMISSION_PATH,
+    ) = setup_temp_path
+
     download_file(
         "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/train_config.py",
-        setup_temp_path / "train_config.py",
-    )
-
-    prediction_path = os.path.join(
-        setup_temp_path, *"data/predictions/{dataset}.zarr/{crop}".split("/")
-    )
-    search_path = os.path.join(
-        setup_temp_path, *"data/{dataset}/{dataset}.zarr/recon-1/{name}".split("/")
+        REPO_ROOT / "train_config.py",
     )
 
     predict_cli.callback(
-        setup_temp_path / "train_config.py",
+        REPO_ROOT / "train_config.py",
         crops="test",
-        output_path=prediction_path,
+        output_path=PREDICTIONS_PATH,
         do_orthoplanes=False,
         overwrite=True,
-        search_path=search_path,
+        search_path=SEARCH_PATH,
         raw_name=RAW_NAME,
         crop_name=CROP_NAME,
     )
@@ -159,24 +202,26 @@ def test_predict_test_crops(setup_temp_path):
 def test_process(setup_temp_path):
     from cellmap_segmentation_challenge.cli import process_cli
 
+    (
+        REPO_ROOT,
+        BASE_DATA_PATH,
+        SEARCH_PATH,
+        PREDICTIONS_PATH,
+        PROCESSED_PATH,
+        SUBMISSION_PATH,
+    ) = setup_temp_path
+
     download_file(
         "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/process_config.py",
-        setup_temp_path / "process_config.py",
-    )
-
-    prediction_path = os.path.join(
-        setup_temp_path, *"data/predictions/{dataset}.zarr/{crop}".split("/")
-    )
-    processed_path = os.path.join(
-        setup_temp_path, *"data/processed/{dataset}.zarr/{crop}".split("/")
+        REPO_ROOT / "process_config.py",
     )
 
     process_cli.callback(
-        setup_temp_path / "process_config.py",
+        REPO_ROOT / "process_config.py",
         crops="test",
         overwrite=True,
-        input_path=prediction_path,
-        output_path=processed_path,
+        input_path=PREDICTIONS_PATH,
+        output_path=PROCESSED_PATH,
         device="cpu",
     )
 
@@ -186,13 +231,18 @@ def test_process(setup_temp_path):
 def test_pack_results(setup_temp_path):
     from cellmap_segmentation_challenge.cli import package_submission_cli
 
-    processed_path = os.path.join(
-        setup_temp_path,
-        *"data/{dataset}/{dataset}.zarr/recon-1/labels/groundtruth/{crop}".split("/"),
-    )
-    truth_path = setup_temp_path / "data" / "truth.zarr"
+    (
+        REPO_ROOT,
+        BASE_DATA_PATH,
+        SEARCH_PATH,
+        PREDICTIONS_PATH,
+        PROCESSED_PATH,
+        SUBMISSION_PATH,
+    ) = setup_temp_path
 
-    package_submission_cli.callback(processed_path, str(truth_path), overwrite=True)
+    truth_path = REPO_ROOT / "data" / "truth.zarr"
+
+    package_submission_cli.callback(PROCESSED_PATH, truth_path.path, overwrite=True)
 
 
 # %%
@@ -213,10 +263,19 @@ def test_evaluate(setup_temp_path, scale, iou, accuracy):
     from cellmap_segmentation_challenge.evaluate import INSTANCE_CLASSES
     import zarr
 
-    truth_path = setup_temp_path / "data" / "truth.zarr"
+    (
+        REPO_ROOT,
+        BASE_DATA_PATH,
+        SEARCH_PATH,
+        PREDICTIONS_PATH,
+        PROCESSED_PATH,
+        SUBMISSION_PATH,
+    ) = setup_temp_path
+
+    truth_path = REPO_ROOT / "data" / "truth.zarr"
 
     if any([scale, iou, accuracy]):
-        submission_path = setup_temp_path / "data" / "submission.zarr"
+        submission_path = REPO_ROOT / "data" / "submission.zarr"
         if submission_path.exists():
             # Remove the submission zarr if it already exists
             shutil.rmtree(submission_path)
@@ -262,13 +321,13 @@ def test_evaluate(setup_temp_path, scale, iou, accuracy):
 
     evaluate_cli.callback(
         submission_path.with_suffix(".zip"),
-        result_file=setup_temp_path / "result.json",
+        result_file=REPO_ROOT / "result.json",
         truth_path=truth_path,
         instance_classes=",".join(INSTANCE_CLASSES),
     )
 
     # Check the results:
-    with open(setup_temp_path / "result_submitted_only.json") as f:
+    with open(REPO_ROOT / "result_submitted_only.json") as f:
         results = json.load(f)
 
     if iou is None and accuracy is None:
