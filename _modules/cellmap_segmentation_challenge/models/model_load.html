@@ -29,7 +29,7 @@
   <link href="../../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 <link href="../../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=a3416100" />
     <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=15603566" />
   
@@ -270,18 +270,18 @@
                   
   <h1>Source code for cellmap_segmentation_challenge.models.model_load</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Imports</span>
-<span class="kn">import</span> <span class="nn">glob</span>
-<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">from</span> <span class="nn">tensorboard.backend.event_processing</span> <span class="kn">import</span> <span class="n">event_accumulator</span>
-<span class="kn">from</span> <span class="nn">upath</span> <span class="kn">import</span> <span class="n">UPath</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tensorboard.backend.event_processing</span><span class="w"> </span><span class="kn">import</span> <span class="n">event_accumulator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">upath</span><span class="w"> </span><span class="kn">import</span> <span class="n">UPath</span>
 
 
 <div class="viewcode-block" id="load_latest">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.model_load.load_latest">[docs]</a>
-<span class="k">def</span> <span class="nf">load_latest</span><span class="p">(</span><span class="n">search_path</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_latest</span><span class="p">(</span><span class="n">search_path</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Load the latest checkpoint from a directory into a model (in place).</span>
 
@@ -317,7 +317,7 @@
 
 <div class="viewcode-block" id="load_best_val">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.model_load.load_best_val">[docs]</a>
-<span class="k">def</span> <span class="nf">load_best_val</span><span class="p">(</span><span class="n">logs_save_path</span><span class="p">,</span> <span class="n">model_save_path</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">low_is_best</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_best_val</span><span class="p">(</span><span class="n">logs_save_path</span><span class="p">,</span> <span class="n">model_save_path</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">low_is_best</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Load the model weights with the best validation score from a directory into an existing model object in place.</span>
 

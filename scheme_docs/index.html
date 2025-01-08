@@ -30,7 +30,7 @@
   <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=a3416100" />
     <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=15603566" />
   
@@ -345,8 +345,8 @@
 <section id="example-creating-an-n5-hierarchy-for-neuroglancer">
 <h2>Example: creating an N5 hierarchy for Neuroglancer<a class="headerlink" href="#example-creating-an-n5-hierarchy-for-neuroglancer" title="Link to this heading">#</a></h2>
 <p>In this example, we create an N5 hierarchy that complies with the <a class="reference external" href="https://github.com/google/neuroglancer/issues/176#issuecomment-553027775">Neuroglancer N5 convention</a>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cellmap_schemas.multiscale.neuroglancer_n5</span> <span class="kn">import</span> <span class="n">Group</span><span class="p">,</span> <span class="n">PixelResolution</span><span class="p">,</span> <span class="n">GroupMetadata</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_schemas.multiscale.neuroglancer_n5</span><span class="w"> </span><span class="kn">import</span> <span class="n">Group</span><span class="p">,</span> <span class="n">PixelResolution</span><span class="p">,</span> <span class="n">GroupMetadata</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="c1"># define a toy multiscale image</span>
 <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span>
@@ -423,7 +423,7 @@
 </div>
 <p>The above example did not write out any of the arrays to disk. To do this, you can use the <code class="docutils literal notranslate"><span class="pre">to_zarr</span></code>
 method of <code class="docutils literal notranslate"><span class="pre">Group</span></code> to create a hierarchy in storage, then write the arrays.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">zarr</span> <span class="kn">import</span> <span class="n">N5FSStore</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">zarr</span><span class="w"> </span><span class="kn">import</span> <span class="n">N5FSStore</span>
 <span class="n">store</span> <span class="o">=</span> <span class="n">N5FSStore</span><span class="p">(</span><span class="s1">&#39;path/to/n5/data.n5&#39;</span><span class="p">)</span>
 <span class="n">group</span> <span class="o">=</span> <span class="n">group_model</span><span class="o">.</span><span class="n">to_zarr</span><span class="p">(</span><span class="n">store</span><span class="o">=</span><span class="n">store</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s1">&#39;image&#39;</span><span class="p">)</span>
 <span class="n">group</span><span class="p">[</span><span class="s1">&#39;s0&#39;</span><span class="p">][:]</span> <span class="o">=</span> <span class="n">arrays</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -438,7 +438,7 @@ method of <code class="docutils literal notranslate"><span class="pre">Group</sp
 <h3><code class="docutils literal notranslate"><span class="pre">cellmap-schemas</span> <span class="pre">inspect</span></code><a class="headerlink" href="#cellmap-schemas-inspect" title="Link to this heading">#</a></h3>
 <p>The command <code class="docutils literal notranslate"><span class="pre">cellmap-schemas</span> <span class="pre">inspect</span> <span class="pre">&lt;url&gt;</span></code> will print a summary of a Zarr array or group located at <code class="docutils literal notranslate"><span class="pre">&lt;url&gt;</span></code> to the command line.</p>
 <p>In the following example, we create an array locally, then inspect it:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">zarr</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">zarr</span>
 <span class="n">store</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">NestedDirectoryStore</span><span class="p">(</span><span class="s1">&#39;/tmp/tmp.zarr&#39;</span><span class="p">)</span>
 <span class="n">array</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
 <span class="n">array</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">put</span><span class="p">({</span><span class="s1">&#39;foo&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">})</span>

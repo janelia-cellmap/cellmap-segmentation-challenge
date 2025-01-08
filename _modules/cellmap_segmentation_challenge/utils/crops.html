@@ -29,7 +29,7 @@
   <link href="../../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 <link href="../../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=a3416100" />
     <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=15603566" />
   
@@ -269,13 +269,13 @@
                 <article class="bd-article">
                   
   <h1>Source code for cellmap_segmentation_challenge.utils.crops</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">import</span> <span class="nn">os</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
-<span class="kn">import</span> <span class="nn">fsspec</span>
-<span class="kn">from</span> <span class="nn">upath</span> <span class="kn">import</span> <span class="n">UPath</span>
-<span class="kn">from</span> <span class="nn">typing_extensions</span> <span class="kn">import</span> <span class="n">Self</span>
-<span class="kn">from</span> <span class="nn">yarl</span> <span class="kn">import</span> <span class="n">URL</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">fsspec</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">upath</span><span class="w"> </span><span class="kn">import</span> <span class="n">UPath</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing_extensions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Self</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">yarl</span><span class="w"> </span><span class="kn">import</span> <span class="n">URL</span>
 
 
 <span class="c1"># get constants from environment, falling back to defaults as needed</span>
@@ -297,7 +297,7 @@
 
 <div class="viewcode-block" id="fetch_manifest">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.fetch_manifest">[docs]</a>
-<span class="k">def</span> <span class="nf">fetch_manifest</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fetch_manifest</span><span class="p">(</span>
     <span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">URL</span><span class="p">,</span>
     <span class="n">file_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="nb">object</span><span class="p">:</span> <span class="n">Self</span><span class="p">,</span>
@@ -330,7 +330,7 @@
 <div class="viewcode-block" id="TestCropRow">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.TestCropRow">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">TestCropRow</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TestCropRow</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A dataclass representing a row in the test crop manifest file.&quot;&quot;&quot;</span>
 
     <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>
@@ -343,7 +343,7 @@
 <div class="viewcode-block" id="TestCropRow.from_csv_row">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.TestCropRow.from_csv_row">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_csv_row</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">row</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_csv_row</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">row</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a CropRow object from a CSV row.&quot;&quot;&quot;</span>
         <span class="nb">id</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">class_label</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span> <span class="n">translation</span><span class="p">,</span> <span class="n">shape</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
@@ -360,7 +360,7 @@
 
 <div class="viewcode-block" id="fetch_test_crop_manifest">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.fetch_test_crop_manifest">[docs]</a>
-<span class="k">def</span> <span class="nf">fetch_test_crop_manifest</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fetch_test_crop_manifest</span><span class="p">(</span>
     <span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">URL</span> <span class="o">=</span> <span class="n">TEST_CROP_MANIFEST_URL</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">TestCropRow</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -383,7 +383,7 @@
 <div class="viewcode-block" id="ZipDatasetRow">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.ZipDatasetRow">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">ZipDatasetRow</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ZipDatasetRow</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A dataclass representing a row in the zip dataset manifest file.&quot;&quot;&quot;</span>
 
     <span class="n">all_res</span><span class="p">:</span> <span class="nb">bool</span>
@@ -394,7 +394,7 @@
 <div class="viewcode-block" id="ZipDatasetRow.from_csv_row">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.ZipDatasetRow.from_csv_row">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_csv_row</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">row</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_csv_row</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">row</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a CropRow object from a CSV row.&quot;&quot;&quot;</span>
         <span class="n">all_res</span><span class="p">,</span> <span class="n">padding</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">url</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
         <span class="n">all_res</span> <span class="o">=</span> <span class="n">all_res</span> <span class="o">==</span> <span class="s2">&quot;True&quot;</span>
@@ -406,7 +406,7 @@
 
 <div class="viewcode-block" id="fetch_zip_manifest">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.fetch_zip_manifest">[docs]</a>
-<span class="k">def</span> <span class="nf">fetch_zip_manifest</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">URL</span> <span class="o">=</span> <span class="n">ZIP_MANIFEST_URL</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ZipDatasetRow</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fetch_zip_manifest</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">URL</span> <span class="o">=</span> <span class="n">ZIP_MANIFEST_URL</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ZipDatasetRow</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetch a manifest file from a URL and return a tuple of ZipDatasetRow objects.</span>
 
@@ -427,7 +427,7 @@
 <div class="viewcode-block" id="CropRow">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.CropRow">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">CropRow</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">CropRow</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A dataclass representing a row in the crop manifest file.&quot;&quot;&quot;</span>
 
     <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>
@@ -439,7 +439,7 @@
 <div class="viewcode-block" id="CropRow.from_csv_row">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.CropRow.from_csv_row">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_csv_row</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">row</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_csv_row</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">row</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a CropRow object from a CSV row.&quot;&quot;&quot;</span>
         <span class="nb">id</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">alignment</span><span class="p">,</span> <span class="n">gt_source</span><span class="p">,</span> <span class="n">em_url</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">id</span><span class="p">),</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">alignment</span><span class="p">,</span> <span class="n">URL</span><span class="p">(</span><span class="n">gt_source</span><span class="p">),</span> <span class="n">URL</span><span class="p">(</span><span class="n">em_url</span><span class="p">))</span></div>
@@ -449,7 +449,7 @@
 
 <div class="viewcode-block" id="fetch_crop_manifest">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.fetch_crop_manifest">[docs]</a>
-<span class="k">def</span> <span class="nf">fetch_crop_manifest</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">URL</span> <span class="o">=</span> <span class="n">MANIFEST_URL</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">CropRow</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fetch_crop_manifest</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">URL</span> <span class="o">=</span> <span class="n">MANIFEST_URL</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">CropRow</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetch a manifest file from a URL and return a tuple of CropRow objects.</span>
 
@@ -473,7 +473,7 @@
 
 <div class="viewcode-block" id="get_test_crops">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.get_test_crops">[docs]</a>
-<span class="k">def</span> <span class="nf">get_test_crops</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">CropRow</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_test_crops</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">CropRow</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
     <span class="n">_test_crops</span> <span class="o">=</span> <span class="n">fetch_test_crop_manifest</span><span class="p">()</span>
     <span class="n">dataset_em_meta</span> <span class="o">=</span> <span class="p">{</span>
         <span class="n">crop</span><span class="o">.</span><span class="n">dataset</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;em_url&quot;</span><span class="p">:</span> <span class="n">crop</span><span class="o">.</span><span class="n">em_url</span><span class="p">,</span> <span class="s2">&quot;alignment&quot;</span><span class="p">:</span> <span class="n">crop</span><span class="o">.</span><span class="n">alignment</span><span class="p">}</span>

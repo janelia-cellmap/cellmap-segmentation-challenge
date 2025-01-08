@@ -29,7 +29,7 @@
   <link href="../../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 <link href="../../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=a3416100" />
     <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=15603566" />
   
@@ -269,19 +269,19 @@
                 <article class="bd-article">
                   
   <h1>Source code for cellmap_segmentation_challenge.models.resnet</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">functools</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
 
-<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
 
 <div class="viewcode-block" id="Resnet2D">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.Resnet2D">[docs]</a>
-<span class="k">class</span> <span class="nc">Resnet2D</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Resnet2D</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Resnet that consists of Resnet blocks between a few downsampling/upsampling operations.</span>
 <span class="sd">    We adapt Torch code and idea from Justin Johnson&#39;s neural style transfer project(https://github.com/jcjohnson/fast-neural-style)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_nc</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="n">output_nc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -387,7 +387,7 @@
 
 <div class="viewcode-block" id="Resnet2D.forward">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.Resnet2D.forward">[docs]</a>
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Standard forward&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span></div>
 </div>
@@ -396,10 +396,10 @@
 
 <div class="viewcode-block" id="ResnetBlock2D">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.ResnetBlock2D">[docs]</a>
-<span class="k">class</span> <span class="nc">ResnetBlock2D</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ResnetBlock2D</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Define a Resnet block&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">dim</span><span class="p">,</span>
         <span class="n">padding_type</span><span class="p">,</span>
@@ -422,7 +422,7 @@
 
 <div class="viewcode-block" id="ResnetBlock2D.build_conv_block">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.ResnetBlock2D.build_conv_block">[docs]</a>
-    <span class="k">def</span> <span class="nf">build_conv_block</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">build_conv_block</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">dim</span><span class="p">,</span>
         <span class="n">padding_type</span><span class="p">,</span>
@@ -476,7 +476,7 @@
 
 <div class="viewcode-block" id="ResnetBlock2D.crop">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.ResnetBlock2D.crop">[docs]</a>
-    <span class="k">def</span> <span class="nf">crop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">crop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Center-crop x to match spatial dimensions given by shape.&quot;&quot;&quot;</span>
 
         <span class="n">x_target_size</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">()[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">shape</span>
@@ -493,7 +493,7 @@
 
 <div class="viewcode-block" id="ResnetBlock2D.forward">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.ResnetBlock2D.forward">[docs]</a>
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Forward function (with skip connections)&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding_type</span> <span class="o">==</span> <span class="s2">&quot;valid&quot;</span><span class="p">:</span>  <span class="c1"># crop for valid networks</span>
             <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv_block</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -507,12 +507,12 @@
 
 <div class="viewcode-block" id="Resnet3D">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.Resnet3D">[docs]</a>
-<span class="k">class</span> <span class="nc">Resnet3D</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Resnet3D</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Resnet that consists of Resnet blocks between a few downsampling/upsampling operations.</span>
 <span class="sd">    We adapt Torch code and idea from Justin Johnson&#39;s neural style transfer project(https://github.com/jcjohnson/fast-neural-style)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_nc</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="n">output_nc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -618,7 +618,7 @@
 
 <div class="viewcode-block" id="Resnet3D.forward">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.Resnet3D.forward">[docs]</a>
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Standard forward&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span></div>
 </div>
@@ -627,10 +627,10 @@
 
 <div class="viewcode-block" id="ResnetBlock3D">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.ResnetBlock3D">[docs]</a>
-<span class="k">class</span> <span class="nc">ResnetBlock3D</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ResnetBlock3D</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Define a Resnet block&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">dim</span><span class="p">,</span>
         <span class="n">padding_type</span><span class="p">,</span>
@@ -653,7 +653,7 @@
 
 <div class="viewcode-block" id="ResnetBlock3D.build_conv_block">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.ResnetBlock3D.build_conv_block">[docs]</a>
-    <span class="k">def</span> <span class="nf">build_conv_block</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">build_conv_block</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">dim</span><span class="p">,</span>
         <span class="n">padding_type</span><span class="p">,</span>
@@ -707,7 +707,7 @@
 
 <div class="viewcode-block" id="ResnetBlock3D.crop">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.ResnetBlock3D.crop">[docs]</a>
-    <span class="k">def</span> <span class="nf">crop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">crop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Center-crop x to match spatial dimensions given by shape.&quot;&quot;&quot;</span>
 
         <span class="n">x_target_size</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">()[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="n">shape</span>
@@ -724,7 +724,7 @@
 
 <div class="viewcode-block" id="ResnetBlock3D.forward">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.ResnetBlock3D.forward">[docs]</a>
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Forward function (with skip connections)&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding_type</span> <span class="o">==</span> <span class="s2">&quot;valid&quot;</span><span class="p">:</span>  <span class="c1"># crop for valid networks</span>
             <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv_block</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -738,12 +738,12 @@
 
 <div class="viewcode-block" id="ResNet">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.ResNet">[docs]</a>
-<span class="k">class</span> <span class="nc">ResNet</span><span class="p">(</span><span class="n">Resnet2D</span><span class="p">,</span> <span class="n">Resnet3D</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ResNet</span><span class="p">(</span><span class="n">Resnet2D</span><span class="p">,</span> <span class="n">Resnet3D</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Resnet that consists of Resnet blocks between a few downsampling/upsampling operations.</span>
 <span class="sd">    We adapt Torch code and idea from Justin Johnson&#39;s neural style transfer project(https://github.com/jcjohnson/fast-neural-style)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ndims</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ndims</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Construct a Resnet</span>
 <span class="sd">        Parameters:</span>
 <span class="sd">            input_nc (int)      -- the number of channels in input images</span>

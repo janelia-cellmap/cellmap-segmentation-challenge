@@ -30,7 +30,7 @@
   <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 <link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css?v=15603566" />
   
@@ -382,9 +382,9 @@
 <li><p>Loads the state dictionary into <cite>model</cite> with <cite>strict=False</cite> (allowing mismatched keys if any).</p></li>
 </ul>
 <p><strong>Example</strong>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">from</span> <span class="nn">my_model</span> <span class="kn">import</span> <span class="n">MyModel</span>
-<span class="kn">from</span> <span class="nn">load_pretrained</span> <span class="kn">import</span> <span class="n">load_latest</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">my_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">MyModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">load_pretrained</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_latest</span>
 
 <span class="c1"># Initialize your model</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">()</span>
@@ -410,9 +410,9 @@
 <li><p>Loads that checkpoint into <cite>model</cite>.</p></li>
 </ul>
 <p><strong>Example</strong>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">from</span> <span class="nn">my_model</span> <span class="kn">import</span> <span class="n">MyModel</span>
-<span class="kn">from</span> <span class="nn">load_pretrained</span> <span class="kn">import</span> <span class="n">load_best_val</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">my_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">MyModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">load_pretrained</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_best_val</span>
 
 <span class="n">model</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">()</span>
 
@@ -432,7 +432,7 @@ During training, save your model checkpoints regularly, for example:</p>
 </pre></div>
 </div>
 <p>Also, log validation metrics to TensorBoard so that the <cite>load_best_val</cite> function can analyze them:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">torch.utils.tensorboard</span> <span class="kn">import</span> <span class="n">SummaryWriter</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torch.utils.tensorboard</span><span class="w"> </span><span class="kn">import</span> <span class="n">SummaryWriter</span>
 
 <span class="n">writer</span> <span class="o">=</span> <span class="n">SummaryWriter</span><span class="p">(</span><span class="s2">&quot;logs&quot;</span><span class="p">)</span>
 <span class="c1"># After computing validation_loss at the end of each epoch:</span>
