@@ -765,6 +765,33 @@
 
 
 
+<div class="viewcode-block" id="get_tested_classes">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.datasplit.get_tested_classes">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_tested_classes</span><span class="p">(</span>
+    <span class="n">csv_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;tested_classes.csv&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the classes that will be tested for the challenge.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    csv_path : str, optional</span>
+<span class="sd">        The path to the csv file, by default &quot;tested_classes.csv&quot;</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list[str]</span>
+<span class="sd">        A list of the classes that have been tested.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tested_classes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">csv_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
+            <span class="n">tested_classes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">tested_classes</span></div>
+
+
+
 <div class="viewcode-block" id="get_class_incl_ids">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.datasplit.get_class_incl_ids">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_class_incl_ids</span><span class="p">(</span><span class="n">incl_ids_string</span><span class="p">):</span>

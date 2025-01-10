@@ -362,6 +362,7 @@
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.datasplit.make_s3_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_s3_datasplit_csv()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.datasplit.make_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_datasplit_csv()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.datasplit.get_dataset_counts"><code class="docutils literal notranslate"><span class="pre">get_dataset_counts()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.datasplit.get_tested_classes"><code class="docutils literal notranslate"><span class="pre">get_tested_classes()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.datasplit.get_class_incl_ids"><code class="docutils literal notranslate"><span class="pre">get_class_incl_ids()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.datasplit.get_class_relations"><code class="docutils literal notranslate"><span class="pre">get_class_relations()</span></code></a></li>
 </ul>
@@ -413,6 +414,7 @@
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_class_relations"><code class="docutils literal notranslate"><span class="pre">get_class_relations()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_dataloader"><code class="docutils literal notranslate"><span class="pre">get_dataloader()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_test_crops"><code class="docutils literal notranslate"><span class="pre">get_test_crops()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_tested_classes"><code class="docutils literal notranslate"><span class="pre">get_tested_classes()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.load_safe_config"><code class="docutils literal notranslate"><span class="pre">load_safe_config()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.make_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_datasplit_csv()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.make_s3_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_s3_datasplit_csv()</span></code></a></li>
@@ -939,6 +941,23 @@ For example the dictionary could contain transformations like mirror, transpose,
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.datasplit.get_tested_classes">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.datasplit.</span></span><span class="sig-name descname"><span class="pre">get_tested_classes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csv_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.8/x64/lib/python3.12/site-packages/cellmap_segmentation_challenge/utils/tested_classes.csv'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/datasplit.html#get_tested_classes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.datasplit.get_tested_classes" title="Link to this definition">#</a></dt>
+<dd><p>Get the classes that will be tested for the challenge.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>csv_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The path to the csv file, by default “tested_classes.csv”</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of the classes that have been tested.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.datasplit.get_class_incl_ids">
 <span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.datasplit.</span></span><span class="sig-name descname"><span class="pre">get_class_incl_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">incl_ids_string</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/datasplit.html#get_class_incl_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.datasplit.get_class_incl_ids" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
@@ -1380,6 +1399,23 @@ For example the dictionary could contain transformations like mirror, transpose,
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.get_tested_classes">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">get_tested_classes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csv_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.8/x64/lib/python3.12/site-packages/cellmap_segmentation_challenge/utils/tested_classes.csv'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/datasplit.html#get_tested_classes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.get_tested_classes" title="Link to this definition">#</a></dt>
+<dd><p>Get the classes that will be tested for the challenge.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>csv_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The path to the csv file, by default “tested_classes.csv”</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of the classes that have been tested.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.load_safe_config">
 <span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">load_safe_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_safe</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/security.html#load_safe_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.load_safe_config" title="Link to this definition">#</a></dt>
 <dd><p>Loads the configuration script at <cite>config_path</cite> after verifying its safety.
@@ -1508,6 +1544,7 @@ If <cite>force_safe</cite> is True, raises an error if the script is deemed unsa
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.datasplit.make_s3_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_s3_datasplit_csv()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.datasplit.make_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_datasplit_csv()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.datasplit.get_dataset_counts"><code class="docutils literal notranslate"><span class="pre">get_dataset_counts()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.datasplit.get_tested_classes"><code class="docutils literal notranslate"><span class="pre">get_tested_classes()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.datasplit.get_class_incl_ids"><code class="docutils literal notranslate"><span class="pre">get_class_incl_ids()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.datasplit.get_class_relations"><code class="docutils literal notranslate"><span class="pre">get_class_relations()</span></code></a></li>
 </ul>
@@ -1559,6 +1596,7 @@ If <cite>force_safe</cite> is True, raises an error if the script is deemed unsa
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_class_relations"><code class="docutils literal notranslate"><span class="pre">get_class_relations()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_dataloader"><code class="docutils literal notranslate"><span class="pre">get_dataloader()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_test_crops"><code class="docutils literal notranslate"><span class="pre">get_test_crops()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_tested_classes"><code class="docutils literal notranslate"><span class="pre">get_tested_classes()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.load_safe_config"><code class="docutils literal notranslate"><span class="pre">load_safe_config()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.make_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_datasplit_csv()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.make_s3_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_s3_datasplit_csv()</span></code></a></li>
