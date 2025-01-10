@@ -30,7 +30,7 @@ def train(config_path: str):
         - model_save_path: Path to save the model checkpoints. Default is 'checkpoints/{model_name}_{epoch}.pth'.
         - logs_save_path: Path to save the logs for tensorboard. Default is 'tensorboard/{model_name}'. Training progress may be monitored by running `tensorboard --logdir <logs_save_path>` in the terminal.
         - datasplit_path: Path to the datasplit file that defines the train/val split the dataloader should use. Default is 'datasplit.csv'.
-        - validation_prob: Proportion of the datasets to use for validation. This is used if the datasplit CSV specified by `datasplit_path` does not already exist. Default is 0.3.
+        - validation_prob: Proportion of the datasets to use for validation. This is used if the datasplit CSV specified by `datasplit_path` does not already exist. Default is 0.15.
         - learning_rate: Learning rate for the optimizer. Default is 0.0001.
         - batch_size: Batch size for the dataloader. Default is 8.
         - input_array_info: Dictionary containing the shape and scale of the input data. Default is {'shape': (1, 128, 128), 'scale': (8, 8, 8)}.
@@ -69,7 +69,7 @@ def train(config_path: str):
         config, "logs_save_path", UPath("tensorboard/{model_name}").path
     )
     datasplit_path = getattr(config, "datasplit_path", "datasplit.csv")
-    validation_prob = getattr(config, "validation_prob", 0.3)
+    validation_prob = getattr(config, "validation_prob", 0.15)
     learning_rate = getattr(config, "learning_rate", 0.0001)
     batch_size = getattr(config, "batch_size", 8)
     input_array_info = getattr(
