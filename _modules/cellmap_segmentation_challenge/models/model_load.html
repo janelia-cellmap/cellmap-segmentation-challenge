@@ -333,9 +333,13 @@
 <span class="sd">        Whether a lower validation score is better.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Load the event file</span>
-    <span class="n">event_acc</span> <span class="o">=</span> <span class="n">event_accumulator</span><span class="o">.</span><span class="n">EventAccumulator</span><span class="p">(</span><span class="n">logs_save_path</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Loading events files, may take a minute&quot;</span><span class="p">)</span>
-    <span class="n">event_acc</span><span class="o">.</span><span class="n">Reload</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">event_acc</span> <span class="o">=</span> <span class="n">event_accumulator</span><span class="o">.</span><span class="n">EventAccumulator</span><span class="p">(</span><span class="n">logs_save_path</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Loading events files, may take a minute&quot;</span><span class="p">)</span>
+        <span class="n">event_acc</span><span class="o">.</span><span class="n">Reload</span><span class="p">()</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No events file found, skipping&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
 
     <span class="c1"># Get validation scores</span>
     <span class="n">tags</span> <span class="o">=</span> <span class="n">event_acc</span><span class="o">.</span><span class="n">Tags</span><span class="p">()[</span><span class="s2">&quot;scalars&quot;</span><span class="p">]</span>
