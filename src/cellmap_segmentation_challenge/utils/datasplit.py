@@ -470,6 +470,30 @@ def get_dataset_counts(
     return dataset_class_counts
 
 
+def get_tested_classes(
+    csv_path: str = (UPath(__file__).parent / "tested_classes.csv").path,
+):
+    """
+    Get the classes that will be tested for the challenge.
+
+    Parameters
+    ----------
+    csv_path : str, optional
+        The path to the csv file, by default "tested_classes.csv"
+
+    Returns
+    -------
+    list[str]
+        A list of the classes that have been tested.
+    """
+    tested_classes = []
+    with open(csv_path, "r") as f:
+        reader = csv.reader(f)
+        for row in reader:
+            tested_classes.append(row[0])
+    return tested_classes
+
+
 def get_class_incl_ids(incl_ids_string):
     if incl_ids_string is None or incl_ids_string == "":
         return []

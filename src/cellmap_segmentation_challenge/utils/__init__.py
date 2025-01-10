@@ -18,6 +18,7 @@ __getattr__, __dir__, __all__ = lazy.attach(
             "make_datasplit_csv",
             "make_s3_datasplit_csv",
             "get_class_relations",
+            "get_tested_classes",
         ],
         "loss": ["CellMapLossWrapper"],
         "security": ["analyze_script", "load_safe_config"],
