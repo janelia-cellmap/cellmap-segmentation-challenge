@@ -28,22 +28,22 @@ nucpl,28,,nucleoplasm
 mt_out,30,,microtubule out
 cyto,35,,cytosol
 mt_in,36,,microtubule in
-nuc,37,20/21/22/23/24/25/26/27/28/29,nucleus
-golgi,40,6/7,Golgi
-ves,41,8/9,vesicle
-endo,42,10/11,endosome
-lyso,43,12/13,lysosome
-ld,44,14/15,lipid droplet
-eres,46,18/19,endoplasmic reticulum exit site
+nuc,37,20-21-22-23-24-25-26-27-28-29,nucleus
+golgi,40,6-7,Golgi
+ves,41,8-9,vesicle
+endo,42,10-11,endosome
+lyso,43,12-13,lysosome
+ld,44,14-15,lipid droplet
+eres,46,18-19,endoplasmic reticulum exit site
 perox_mem,47,,peroxisome membrane
 perox_lum,48,,peroxisome lumen
-perox,49,47/48,peroxisome
-mito,50,3/4/5,mitochondria
-er,51,16/17/18/19/20/21/22/23,endoplasmic reticulum
-ne,52,20/21/22/23,nuclear envelope
-np,53,22/23,nuclear pore
-chrom,54,24/25/26/27,chromatin
-mt,55,30/36,microtubule
-cell,60,2/3/4/5/6/7/8/9/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24/25/26/27/28/29/30/31/32/33/34/35/36/38/39/47/48/56/57/58/61/62,cell
-er_mem_all,64,16/18/20,endoplasmic reticulum membrane collective
-ne_mem_all,65,20/22/23,nuclear envelope membrane collective
+perox,49,47-48,peroxisome
+mito,50,3-4-5,mitochondria
+er,51,16-17-18-19-20-21-22-23,endoplasmic reticulum
+ne,52,20-21-22-23,nuclear envelope
+np,53,22-23,nuclear pore
+chrom,54,24-25-26-27,chromatin
+mt,55,30-36,microtubule
+cell,60,2-3-4-5-6-7-8-9-10-11-12-13-14-15-16-17-18-19-20-21-22-23-24-25-26-27-28-29-30-31-32-33-34-35-36-38-39-47-48-56-57-58-61-62,cell
+er_mem_all,64,16-18-20,endoplasmic reticulum membrane collective
+ne_mem_all,65,20-22-23,nuclear envelope membrane collective
