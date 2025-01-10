@@ -57,9 +57,13 @@ def load_best_val(logs_save_path, model_save_path, model, low_is_best=True):
         Whether a lower validation score is better.
     """
     # Load the event file
-    event_acc = event_accumulator.EventAccumulator(logs_save_path)
-    print("Loading events files, may take a minute")
-    event_acc.Reload()
+    try:
+        event_acc = event_accumulator.EventAccumulator(logs_save_path)
+        print("Loading events files, may take a minute")
+        event_acc.Reload()
+    except:
+        print("No events file found, skipping")
+        return
 
     # Get validation scores
     tags = event_acc.Tags()["scalars"]
