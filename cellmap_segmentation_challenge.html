@@ -1120,7 +1120,7 @@ The process function should take an array as input and return an array as output
 - model_save_path: Path to save the model checkpoints. Default is ‘checkpoints/{model_name}_{epoch}.pth’.
 - logs_save_path: Path to save the logs for tensorboard. Default is ‘tensorboard/{model_name}’. Training progress may be monitored by running <cite>tensorboard –logdir &lt;logs_save_path&gt;</cite> in the terminal.
 - datasplit_path: Path to the datasplit file that defines the train/val split the dataloader should use. Default is ‘datasplit.csv’.
-- validation_prob: Proportion of the datasets to use for validation. This is used if the datasplit CSV specified by <cite>datasplit_path</cite> does not already exist. Default is 0.3.
+- validation_prob: Proportion of the datasets to use for validation. This is used if the datasplit CSV specified by <cite>datasplit_path</cite> does not already exist. Default is 0.15.
 - learning_rate: Learning rate for the optimizer. Default is 0.0001.
 - batch_size: Batch size for the dataloader. Default is 8.
 - input_array_info: Dictionary containing the shape and scale of the input data. Default is {‘shape’: (1, 128, 128), ‘scale’: (8, 8, 8)}.
@@ -1400,7 +1400,7 @@ save_numpy_labels_to_zarr(‘submission.zarr’, ‘test_volume’, [‘label1�
 - model_save_path: Path to save the model checkpoints. Default is ‘checkpoints/{model_name}_{epoch}.pth’.
 - logs_save_path: Path to save the logs for tensorboard. Default is ‘tensorboard/{model_name}’. Training progress may be monitored by running <cite>tensorboard –logdir &lt;logs_save_path&gt;</cite> in the terminal.
 - datasplit_path: Path to the datasplit file that defines the train/val split the dataloader should use. Default is ‘datasplit.csv’.
-- validation_prob: Proportion of the datasets to use for validation. This is used if the datasplit CSV specified by <cite>datasplit_path</cite> does not already exist. Default is 0.3.
+- validation_prob: Proportion of the datasets to use for validation. This is used if the datasplit CSV specified by <cite>datasplit_path</cite> does not already exist. Default is 0.15.
 - learning_rate: Learning rate for the optimizer. Default is 0.0001.
 - batch_size: Batch size for the dataloader. Default is 8.
 - input_array_info: Dictionary containing the shape and scale of the input data. Default is {‘shape’: (1, 128, 128), ‘scale’: (8, 8, 8)}.
