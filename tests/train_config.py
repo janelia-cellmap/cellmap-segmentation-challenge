@@ -18,7 +18,6 @@ target_array_info = {
 epochs = 1  # number of epochs to train the model for
 iterations_per_epoch = 3  # number of iterations per epoch
 random_seed = 42  # random seed for reproducibility
-init_model_features = 8  # number of initial features for the model
 
 classes = ["mito", "er"]  # list of classes to segment
 

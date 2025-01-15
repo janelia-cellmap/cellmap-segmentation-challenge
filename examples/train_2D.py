@@ -35,7 +35,6 @@ target_array_info = {
 epochs = 1000  # number of epochs to train the model for
 iterations_per_epoch = 1000  # number of iterations per epoch
 random_seed = 42  # random seed for reproducibility
-init_model_features = 32  # number of initial features for the model
 
 classes = ["nuc", "er"]  # list of classes to segment
 
@@ -71,7 +70,7 @@ spatial_transforms = {  # dictionary of spatial transformations to apply to the 
 # Set a limit to how long the validation can take
 validation_time_limit = 60  # time limit in seconds for the validation step
 
-use_s3 = True
+# use_s3 = True # Use S3 for data loading
 
 if __name__ == "__main__":
     from cellmap_segmentation_challenge import train

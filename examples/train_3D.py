@@ -20,10 +20,11 @@
 from upath import UPath
 
 from cellmap_segmentation_challenge.models import ResNet, UNet_3D, ViTVNet
+from cellmap_segmentation_challenge.utils import get_tested_classes
 
 # %% Set hyperparameters and other configurations
 learning_rate = 0.0001  # learning rate for the optimizer
-batch_size = 3  # batch size for the dataloader
+batch_size = 8  # batch size for the dataloader
 input_array_info = {
     "shape": (128, 128, 128),
     "scale": (8, 8, 8),
@@ -35,26 +36,25 @@ target_array_info = {
 epochs = 1000  # number of epochs to train the model for
 iterations_per_epoch = 1000  # number of iterations per epoch
 random_seed = 42  # random seed for reproducibility
-init_model_features = 32  # number of initial features for the model
 
-classes = ["nuc", "er"]  # list of classes to segment
+# classes = ["nuc", "er"]  # list of classes to segment
+classes = get_tested_classes()  # list of classes to segment
 
-
-# Defining model (comment out all that are not used)
-# 3D UNet
-model_name = "3d_unet"  # name of the model to use
-model_to_load = "3d_unet"  # name of the pre-trained model to load
-model = UNet_3D(1, len(classes))
+# # Defining model (comment out all that are not used)
+# # 3D UNet
+# model_name = "3d_unet"  # name of the model to use
+# model_to_load = "3d_unet"  # name of the pre-trained model to load
+# model = UNet_3D(1, len(classes))
 
 # 3D ResNet
 # model_name = "3d_resnet"  # name of the model to use
 # model_to_load = "3d_resnet"  # name of the pre-trained model to load
 # model = ResNet(ndims=3, output_nc=len(classes))
 
-# # 3D ViT VNet
-# model_name = "3d_vnet"  # name of the model to use
-# model_to_load = "3d_vnet"  # name of the pre-trained model to load
-# model = ViTVNet(len(classes))
+# 3D ViT VNet
+model_name = "3d_vnet"  # name of the model to use
+model_to_load = "3d_vnet"  # name of the pre-trained model to load
+model = ViTVNet(len(classes), img_size=input_array_info["shape"])
 
 load_model = "latest"  # load the latest model or the best validation model
 

@@ -3,7 +3,7 @@ from typing import Any, Mapping, Optional, Sequence
 import torch
 import torchvision.transforms.v2 as T
 from cellmap_data import CellMapDataLoader, CellMapDataSplit
-from cellmap_data.transforms.augment import NaNtoNum, Normalize
+from cellmap_data.transforms.augment import NaNtoNum, Normalize, Binarize
 
 
 def get_dataloader(
@@ -14,7 +14,9 @@ def get_dataloader(
     input_array_info: Optional[Mapping[str, Sequence[int | float]]] = None,
     target_array_info: Optional[Mapping[str, Sequence[int | float]]] = None,
     spatial_transforms: Optional[Mapping[str, Any]] = None,
-    # TODO: Add value transforms
+    target_value_transforms: Optional[T.Transform] = T.Compose(
+        [T.ToDtype(torch.float), Binarize()]
+    ),
     iterations_per_epoch: int = 1000,
     random_validation: bool = False,
     device: Optional[str | torch.device] = None,
@@ -42,28 +44,27 @@ def get_dataloader(
     spatial_transforms : Optional[Mapping[str, any]]
         Dictionary containing the spatial transformations to apply to the data.
         For example the dictionary could contain transformations like mirror, transpose, and rotate.
+        spatial_transforms = {
+            # 3D
 
-    spatial_transforms = {
-          # 3D
+            # Probability of applying mirror for each axis
+            # Values range from 0 (no mirroring) to 1 (will always mirror)
+            "mirror": {"axes": {"x": 0.5, "y": 0.5, "z": 0.5}},
 
-           # Probability of applying mirror for each axis
-           # Values range from 0 (no mirroring) to 1 (will always mirror)
-          "mirror": {"axes": {"x": 0.5, "y": 0.5, "z": 0.5}},
+            # Specifies the axes that will be invovled in the trasposition
+            "transpose": {"axes": ["x", "y", "z"]},
 
-           # Specifies the axes that will be invovled in the trasposition
-          "transpose": {"axes": ["x", "y", "z"]},
+            # Defines rotation range for each axis.
+            # Rotation angle for each axis is randomly chosen within the specified range (-180, 180).
+            "rotate": {"axes": {"x": [-180, 180], "y": [-180, 180], "z": [-180, 180]}},
 
-           # Defines rotation range for each axis.
-           # Rotation angle for each axis is randomly chosen within the specified range (-180, 180).
-          "rotate": {"axes": {"x": [-180, 180], "y": [-180, 180], "z": [-180, 180]}},
-
-          # 2D (used when there is no z axis)
-          # "mirror": {"axes": {"x": 0.5, "y": 0.5}},
-          # "transpose": {"axes": ["x", "y"]},
-          # "rotate": {"axes": {"x": [-180, 180], "y": [-180, 180]}},
-    }
-
-
+            # 2D (used when there is no z axis)
+            # "mirror": {"axes": {"x": 0.5, "y": 0.5}},
+            # "transpose": {"axes": ["x", "y"]},
+            # "rotate": {"axes": {"x": [-180, 180], "y": [-180, 180]}},
+        }
+    target_value_transforms : Optional[torchvision.transforms.v2.Transform]
+        Transform to apply to the target values. Defaults to T.Compose([T.ToDtype(torch.float), Binarize()]) which converts the input masks to float32 and threshold at 0 (turning object ID's into binary masks for use with binary cross entropy loss).
     iterations_per_epoch : int
         Number of iterations per epoch.
     random_validation : bool
@@ -87,7 +88,7 @@ def get_dataloader(
         input_arrays is not None and target_arrays is not None
     ), "No array info provided"
 
-    value_transforms = T.Compose(
+    raw_value_transforms = T.Compose(
         [
             Normalize(),
             T.ToDtype(torch.float, scale=True),
@@ -109,9 +110,9 @@ def get_dataloader(
         classes=classes,
         pad=True,
         csv_path=datasplit_path,
-        train_raw_value_transforms=value_transforms,
-        val_raw_value_transforms=value_transforms,
-        target_value_transforms=T.ToDtype(torch.float),
+        train_raw_value_transforms=raw_value_transforms,
+        val_raw_value_transforms=raw_value_transforms,
+        target_value_transforms=target_value_transforms,
         spatial_transforms=spatial_transforms,
         device=device,
     )
