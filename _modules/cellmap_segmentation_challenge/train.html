@@ -275,7 +275,7 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_data.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_image_dict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_data.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_fig_dict</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tensorboardX</span><span class="w"> </span><span class="kn">import</span> <span class="n">SummaryWriter</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">upath</span><span class="w"> </span><span class="kn">import</span> <span class="n">UPath</span>
@@ -591,7 +591,7 @@
             <span class="n">post_fix_dict</span><span class="p">[</span><span class="s2">&quot;Validation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">val_score</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span>
 
         <span class="c1"># Generate and save figures from the last batch of the validation to appear in tensorboard</span>
-        <span class="n">figs</span> <span class="o">=</span> <span class="n">get_image_dict</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">classes</span><span class="p">)</span>
+        <span class="n">figs</span> <span class="o">=</span> <span class="n">get_fig_dict</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">classes</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">fig</span> <span class="ow">in</span> <span class="n">figs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">writer</span><span class="o">.</span><span class="n">add_figure</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">n_iter</span><span class="p">)</span>
 

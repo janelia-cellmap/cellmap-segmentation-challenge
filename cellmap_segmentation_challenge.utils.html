@@ -393,6 +393,11 @@
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.Config"><code class="docutils literal notranslate"><span class="pre">Config</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils.utils">cellmap_segmentation_challenge.utils.utils module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.format_coordinates"><code class="docutils literal notranslate"><span class="pre">format_coordinates()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.construct_test_crop_manifest"><code class="docutils literal notranslate"><span class="pre">construct_test_crop_manifest()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils">Module contents</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.CellMapLossWrapper"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.CellMapLossWrapper.forward"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper.forward()</span></code></a></li>
@@ -1127,6 +1132,49 @@ If <cite>force_safe</cite> is True, raises an error if the script is deemed unsa
 </dd></dl>
 
 </section>
+<section id="module-cellmap_segmentation_challenge.utils.utils">
+<span id="cellmap-segmentation-challenge-utils-utils-module"></span><h2>cellmap_segmentation_challenge.utils.utils module<a class="headerlink" href="#module-cellmap_segmentation_challenge.utils.utils" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.utils.format_coordinates">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.utils.</span></span><span class="sig-name descname"><span class="pre">format_coordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coordinates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/utils.html#format_coordinates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.utils.format_coordinates" title="Link to this definition">#</a></dt>
+<dd><p>Format the coordinates to a string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>coordinates</strong> (<em>list</em>) – List of coordinates.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Formatted string.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.utils.construct_test_crop_manifest">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.utils.</span></span><span class="sig-name descname"><span class="pre">construct_test_crop_manifest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'{path_root}/{dataset}/groundtruth.zarr/{crop}/{label}'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.8/x64/lib/python3.12/site-packages/cellmap_segmentation_challenge/utils/test_crop_manifest.csv'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/utils.html#construct_test_crop_manifest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.utils.construct_test_crop_manifest" title="Link to this definition">#</a></dt>
+<dd><p>Construct a manifest file for testing crops from a given path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path_root</strong> (<em>str</em>) – Path to the directory containing the datasets. File tree should be as follows:
+path
+├── dataset_1
+│   ├── crop_1
+│   │   ├── label_1
+│   │   │   ├── .zattrs</p></li>
+<li><p><strong>search_path</strong> (<em>str</em><em>, </em><em>optional</em>) – Format string to search for the crops. The default is “{path_root}/{dataset}/groundtruth.zarr/{crop}/{label}”. The function assumes that the keys appear in the file tree in the following order: 1) “path_root”, 2) “dataset”, 3) “crop”, 4) “label”</p></li>
+<li><p><strong>write_path</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 <section id="module-cellmap_segmentation_challenge.utils">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-cellmap_segmentation_challenge.utils" title="Link to this heading">#</a></h2>
 <dl class="py class">
@@ -1515,6 +1563,11 @@ If <cite>force_safe</cite> is True, raises an error if the script is deemed unsa
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.analyze_script"><code class="docutils literal notranslate"><span class="pre">analyze_script()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.load_safe_config"><code class="docutils literal notranslate"><span class="pre">load_safe_config()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.Config"><code class="docutils literal notranslate"><span class="pre">Config</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils.utils">cellmap_segmentation_challenge.utils.utils module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.format_coordinates"><code class="docutils literal notranslate"><span class="pre">format_coordinates()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.construct_test_crop_manifest"><code class="docutils literal notranslate"><span class="pre">construct_test_crop_manifest()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils">Module contents</a><ul class="nav section-nav flex-column">
