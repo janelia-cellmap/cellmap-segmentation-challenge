@@ -4,7 +4,7 @@ import time
 
 import numpy as np
 import torch
-from cellmap_data.utils import get_image_dict
+from cellmap_data.utils import get_fig_dict
 from tensorboardX import SummaryWriter
 from tqdm import tqdm
 from upath import UPath
@@ -318,7 +318,7 @@ def train(config_path: str):
             post_fix_dict["Validation"] = f"{val_score:.4f}"
 
         # Generate and save figures from the last batch of the validation to appear in tensorboard
-        figs = get_image_dict(inputs, targets, outputs, classes)
+        figs = get_fig_dict(inputs, targets, outputs, classes)
         for name, fig in figs.items():
             writer.add_figure(name, fig, n_iter)
 
