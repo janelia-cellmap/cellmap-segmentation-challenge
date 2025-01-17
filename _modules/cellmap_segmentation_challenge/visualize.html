@@ -365,7 +365,7 @@
             <span class="n">viewer_dict</span><span class="p">[</span><span class="n">dataset_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">viewer</span>
 
         <span class="k">for</span> <span class="n">kind</span> <span class="ow">in</span> <span class="n">kinds</span><span class="p">:</span>
-            <span class="n">viewer</span> <span class="o">=</span> <span class="n">add_layers</span><span class="p">(</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="n">add_layers</span><span class="p">(</span>
                 <span class="n">viewer</span><span class="p">,</span>
                 <span class="n">kind</span><span class="p">,</span>
                 <span class="n">dataset_name</span><span class="p">,</span>
@@ -373,8 +373,8 @@
                 <span class="n">classes</span><span class="p">,</span>
             <span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">viewer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">viewer_dict</span><span class="p">[</span><span class="n">dataset_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">viewer</span>
+            <span class="k">if</span> <span class="n">temp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">viewer_dict</span><span class="p">[</span><span class="n">dataset_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">viewer</span> <span class="o">=</span> <span class="n">temp</span>
                 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Added </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2"> layers for </span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
 
     <span class="c1"># Output the viewers URL to open in a browser</span>
