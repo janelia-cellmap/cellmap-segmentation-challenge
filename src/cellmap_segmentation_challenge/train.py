@@ -57,6 +57,8 @@ def train(config_path: str):
     None
 
     """
+    # Pick the fastest algorithm for the hardware
+    torch.backends.cudnn.benchmark = True
 
     # %% Load the configuration file
     config = UPath(config_path).stem
@@ -114,6 +116,9 @@ def train(config_path: str):
             os.makedirs(dirpath, exist_ok=True)
 
     # %% Set the random seed
+
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(random_seed)
     torch.manual_seed(random_seed)
     np.random.seed(random_seed)
     random.seed(random_seed)
