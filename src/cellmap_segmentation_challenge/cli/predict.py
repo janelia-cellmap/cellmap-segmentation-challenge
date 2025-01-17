@@ -31,13 +31,12 @@ from cellmap_segmentation_challenge.config import (
     help=f"Path to save the predicted crops with {'{crop}'} and {'{dataset}'} placeholders for formatting. Default: {PREDICTIONS_PATH}.",
 )
 @click.option(
-    "--do-orthoplanes",
-    "-do",
+    "--skip-orthoplanes",
+    "-so",
     type=click.BOOL,
     is_flag=True,
     required=False,
-    default=True,
-    help="Whether to predict the orthoplanes if the model is 2D. Default: True.",
+    help="Whether to skip predicting the orthoplanes if the model is 2D.",
 )
 @click.option(
     "--overwrite",
@@ -76,7 +75,7 @@ def predict_cli(
     config_path,
     crops,
     output_path,
-    do_orthoplanes,
+    skip_orthoplanes,
     overwrite,
     search_path,
     raw_name,
@@ -93,7 +92,7 @@ def predict_cli(
         config_path=config_path,
         crops=crops,
         output_path=output_path,
-        do_orthoplanes=do_orthoplanes,
+        do_orthoplanes=not skip_orthoplanes,
         overwrite=overwrite,
         search_path=search_path,
         raw_name=raw_name,
