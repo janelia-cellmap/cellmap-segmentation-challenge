@@ -92,7 +92,7 @@ def visualize(
             viewer_dict[dataset_name] = viewer
 
         for kind in kinds:
-            viewer = add_layers(
+            temp = add_layers(
                 viewer,
                 kind,
                 dataset_name,
@@ -100,8 +100,8 @@ def visualize(
                 classes,
             )
 
-            if viewer is not None:
-                viewer_dict[dataset_name] = viewer
+            if temp is not None:
+                viewer_dict[dataset_name] = viewer = temp
                 print(f"Added {kind} layers for {dataset_name}...")
 
     # Output the viewers URL to open in a browser
