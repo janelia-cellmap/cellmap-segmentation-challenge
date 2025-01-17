@@ -67,7 +67,9 @@ def load_safe_config(config_path, force_safe=os.getenv("FORCE_SAFE_CONFIG", True
         for issue in issues:
             print(f" - {issue}")
         if force_safe:
-            raise ValueError("Unsafe script detected; loading aborted.")
+            raise ValueError(
+                "Unsafe script detected; loading aborted. You can set the environment variable FORCE_SAFE_CONFIG=False or pass force_safe=False to override."
+            )
 
     # Load the config module if script is safe
     config_path = UPath(config_path)
@@ -76,6 +78,8 @@ def load_safe_config(config_path, force_safe=os.getenv("FORCE_SAFE_CONFIG", True
     try:
         with open(config_path, "r") as config_file:
             code = config_file.read()
+            if "__file__" in code:
+                code = code.replace("__file__", f'"{config_path}"')
             exec(code, config_namespace)
         # Extract the config object from the namespace
         config = Config(**config_namespace)
