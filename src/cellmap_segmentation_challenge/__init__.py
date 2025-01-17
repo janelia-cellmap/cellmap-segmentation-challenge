@@ -26,6 +26,7 @@ from .config import (
     BASE_DATA_PATH,
     SEARCH_PATH,
     SUBMISSION_PATH,
+    TRUTH_PATH,
 )
 
 from . import utils

@@ -17,7 +17,7 @@ from upath import UPath
 from cellmap_data import CellMapImage
 import zarr.errors
 
-from .config import PROCESSED_PATH, SUBMISSION_PATH, BASE_DATA_PATH
+from .config import PROCESSED_PATH, SUBMISSION_PATH, TRUTH_PATH
 from .utils import TEST_CROPS, TEST_CROPS_DICT
 
 
@@ -38,8 +38,6 @@ INSTANCE_CLASSES = [
 
 
 HAUSDORFF_DISTANCE_MAX = np.inf
-
-TRUTH_PATH = (BASE_DATA_PATH / "ground_truth.zarr").path
 
 
 def unzip_file(zip_path):
