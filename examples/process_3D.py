@@ -1,7 +1,7 @@
 from cellmap_segmentation_challenge.utils import load_safe_config
 
 # Load the configuration file
-config_path = "train_3D.py"
+config_path = __file__.replace("process", "train")
 config = load_safe_config(config_path)
 
 # Bring the required configurations into the global namespace
