@@ -288,7 +288,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_data</span><span class="w"> </span><span class="kn">import</span> <span class="n">CellMapImage</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">zarr.errors</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">PROCESSED_PATH</span><span class="p">,</span> <span class="n">SUBMISSION_PATH</span><span class="p">,</span> <span class="n">BASE_DATA_PATH</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">PROCESSED_PATH</span><span class="p">,</span> <span class="n">SUBMISSION_PATH</span><span class="p">,</span> <span class="n">TRUTH_PATH</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">TEST_CROPS</span><span class="p">,</span> <span class="n">TEST_CROPS_DICT</span>
 
 
@@ -309,8 +309,6 @@
 
 
 <span class="n">HAUSDORFF_DISTANCE_MAX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
-
-<span class="n">TRUTH_PATH</span> <span class="o">=</span> <span class="p">(</span><span class="n">BASE_DATA_PATH</span> <span class="o">/</span> <span class="s2">&quot;ground_truth.zarr&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span>
 
 
 <div class="viewcode-block" id="unzip_file">
