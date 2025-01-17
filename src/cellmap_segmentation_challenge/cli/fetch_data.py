@@ -224,21 +224,19 @@ def fetch_data_cli(
             scheme="file", path=f"/{dest_path_abs.as_posix().lstrip('/')}"
         ).joinpath(f"{crop.dataset}/{crop.dataset}.zarr")
 
-        gt_dest_path = _resolve_gt_dest_path(crop)
-        em_dest_path = _resolve_em_dest_path(crop)
-
-        dest_root_group = zarr.open_group(str(dest_root), mode=mode)
-        # create intermediate groups
-        dest_root_group.require_group(gt_dest_path)
-        dest_crop_group = zarr.open_group(
-            str(dest_root / gt_dest_path).replace("%5C", "\\"), mode=mode
-        )
-
         if gt_source_group is None:
             log.info(
                 f"No GT data found at any of the possible URLs. No GT data will be fetched for this crop."
             )
         else:
+            gt_dest_path = _resolve_gt_dest_path(crop)
+            dest_root_group = zarr.open_group(str(dest_root), mode=mode)
+            # create intermediate groups
+            dest_root_group.require_group(gt_dest_path)
+            dest_crop_group = zarr.open_group(
+                str(dest_root / gt_dest_path).replace("%5C", "\\"), mode=mode
+            )
+
             fs = gt_source_group.store.fs
             store_path = gt_source_group.store.path
 
@@ -268,6 +266,7 @@ def fetch_data_cli(
             continue
         else:
             # model the em group locally
+            em_dest_path = _resolve_em_dest_path(crop)
             dest_em_group = GroupSpec.from_zarr(em_source_group).to_zarr(
                 FSStore(str(dest_root / em_dest_path).replace("%5C", "\\")),
                 path="",
