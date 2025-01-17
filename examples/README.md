@@ -62,7 +62,7 @@ The `validation_time_limit` and `validation_batch_limit` parameters can be set i
 For more detailed information, refer to the [training documentation](../docs/source/dataloader.rst).
 
 ## Predicting on test data
-The `predict_2D.py` and `predict_3D.py` scripts demonstrate how to use a trained model to make predictions on test data. The predictions are saved as Zarr-2 files in the specified output directory. The scripts use a configuration file to define model and other configurations required for making predictions, this file can be the same used for training the model. The scripts call the `predict` function with the path to this configuration file as an argument. For example, to predict on the test data using the 3D model from `train_3D.py`, you can do so directly by running the following command:
+The `predict_2D.py` and `predict_3D.py` scripts demonstrate how to use a trained model to make predictions on test data, and can be used by running `python predict_2D.py` and `python predict_3D.py`, respectively. The predictions are saved as Zarr-2 files in the specified output directory. The scripts use a configuration file to define model and other configurations required for making predictions, this file can be the same used for training the model. The scripts call the `predict` function with the path to this configuration file as an argument. For example, to predict on the test data using the 3D model from `train_3D.py`, you can do so directly by running the following command:
 
 ```bash
 csc predict train_3D.py
