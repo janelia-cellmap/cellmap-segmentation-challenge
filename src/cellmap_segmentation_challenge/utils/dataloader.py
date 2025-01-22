@@ -18,6 +18,20 @@ def get_dataloader(
     target_value_transforms: Optional[T.Transform] = T.Compose(
         [T.ToDtype(torch.float), Binarize()]
     ),
+    train_raw_value_transforms: Optional[T.Transform] = T.Compose(
+        [
+            Normalize(),
+            T.ToDtype(torch.float, scale=True),
+            NaNtoNum({"nan": 0, "posinf": None, "neginf": None}),
+        ],
+    ),
+    val_raw_value_transforms: Optional[T.Transform] = T.Compose(
+        [
+            Normalize(),
+            T.ToDtype(torch.float, scale=True),
+            NaNtoNum({"nan": 0, "posinf": None, "neginf": None}),
+        ],
+    ),
     iterations_per_epoch: int = 1000,
     random_validation: bool = False,
     device: Optional[str | torch.device] = None,
@@ -68,6 +82,10 @@ def get_dataloader(
         }
     target_value_transforms : Optional[torchvision.transforms.v2.Transform]
         Transform to apply to the target values. Defaults to T.Compose([T.ToDtype(torch.float), Binarize()]) which converts the input masks to float32 and threshold at 0 (turning object ID's into binary masks for use with binary cross entropy loss).
+    train_raw_value_transforms : Optional[torchvision.transforms.v2.Transform]
+        Transform to apply to the raw values for training. Defaults to T.Compose([Normalize(), T.ToDtype(torch.float, scale=True), NaNtoNum({"nan": 0, "posinf": None, "neginf": None})]) which normalizes the input data, converts it to float32, and replaces NaNs with 0. This can be used to add augmentations such as random erasing, blur, noise, etc.
+    val_raw_value_transforms : Optional[torchvision.transforms.v2.Transform]
+        Transform to apply to the raw values for validation. Defaults to T.Compose([Normalize(), T.ToDtype(torch.float, scale=True), NaNtoNum({"nan": 0, "posinf": None, "neginf": None})]) which normalizes the input data, converts it to float32, and replaces NaNs with 0.
     iterations_per_epoch : int
         Number of iterations per epoch.
     random_validation : bool
@@ -95,14 +113,6 @@ def get_dataloader(
         input_arrays is not None and target_arrays is not None
     ), "No array info provided"
 
-    raw_value_transforms = T.Compose(
-        [
-            Normalize(),
-            T.ToDtype(torch.float, scale=True),
-            NaNtoNum({"nan": 0, "posinf": None, "neginf": None}),
-        ],
-    )
-
     if device is None:
         if torch.cuda.is_available():
             device = "cuda"
@@ -124,8 +134,8 @@ def get_dataloader(
         classes=classes,
         pad=True,
         csv_path=datasplit_path,
-        train_raw_value_transforms=raw_value_transforms,
-        val_raw_value_transforms=raw_value_transforms,
+        train_raw_value_transforms=train_raw_value_transforms,
+        val_raw_value_transforms=val_raw_value_transforms,
         target_value_transforms=target_value_transforms,
         spatial_transforms=spatial_transforms,
         device=device,

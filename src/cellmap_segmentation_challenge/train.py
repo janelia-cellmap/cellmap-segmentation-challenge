@@ -5,6 +5,8 @@ import time
 import numpy as np
 import torch
 from cellmap_data.utils import get_fig_dict
+import torchvision.transforms.v2 as T
+from cellmap_data.transforms.augment import NaNtoNum, Normalize, Binarize
 from tensorboardX import SummaryWriter
 from tqdm import tqdm
 from upath import UPath
@@ -51,6 +53,12 @@ def train(config_path: str):
         - use_s3: Whether to use the S3 bucket for the datasplit. Default is False.
         - optimizer: PyTorch optimizer to use for training. Default is `torch.optim.RAdam(model.parameters(), lr=learning_rate)`.
         - criterion: PyTorch loss function to use for training. Default is `torch.nn.BCEWithLogitsLoss`.
+        - use_mutual_exclusion: Whether to use mutual exclusion to infer labels for unannotated pixels. Default is False.
+        - weighted_sampler: Whether to use a sampler weighted by class counts for the dataloader. Default is True.
+        - train_raw_value_transforms: Transform to apply to the raw values for training. Defaults to T.Compose([Normalize(), T.ToDtype(torch.float, scale=True), NaNtoNum({"nan": 0, "posinf": None, "neginf": None})]) which normalizes the input data, converts it to float32, and replaces NaNs with 0. This can be used to add augmentations such as random erasing, blur, noise, etc.
+        - val_raw_value_transforms: Transform to apply to the raw values for validation, similar to `train_raw_value_transforms`. Default is the same as `train_raw_value_transforms`.
+        - target_value_transforms: Transform to apply to the target values. Default is T.Compose([T.ToDtype(torch.float), Binarize()]) which converts the input masks to float32 and threshold at 0 (turning object ID's into binary masks for use with binary cross entropy loss). This can be used to specify other targets, such as distance transforms.
+        - max_grad_norm: Maximum gradient norm for clipping. If None, no clipping is performed. Default is None. This can be useful to prevent exploding gradients which would lead to NaNs in the weights.
 
     Returns
     -------
@@ -100,6 +108,36 @@ def train(config_path: str):
     validation_batch_limit = getattr(config, "validation_batch_limit", None)
     device = getattr(config, "device", None)
     use_s3 = getattr(config, "use_s3", False)
+    use_mutual_exclusion = getattr(config, "use_mutual_exclusion", False)
+    weighted_sampler = getattr(config, "weighted_sampler", True)
+    train_raw_value_transforms = getattr(
+        config,
+        "train_raw_value_transforms",
+        T.Compose(
+            [
+                Normalize(),
+                T.ToDtype(torch.float, scale=True),
+                NaNtoNum({"nan": 0, "posinf": None, "neginf": None}),
+            ],
+        ),
+    )
+    val_raw_value_transforms = getattr(
+        config,
+        "val_raw_value_transforms",
+        T.Compose(
+            [
+                Normalize(),
+                T.ToDtype(torch.float, scale=True),
+                NaNtoNum({"nan": 0, "posinf": None, "neginf": None}),
+            ],
+        ),
+    )
+    target_value_transforms = getattr(
+        config,
+        "target_value_transforms",
+        T.Compose([T.ToDtype(torch.float), Binarize()]),
+    )
+    max_grad_norm = getattr(config, "max_grad_norm", None)
 
     # %% Define the optimizer, from the config file or default to RAdam
     optimizer = getattr(
@@ -159,6 +197,11 @@ def train(config_path: str):
         iterations_per_epoch=iterations_per_epoch,
         random_validation=validation_time_limit or validation_batch_limit,
         device=device,
+        weighted_sampler=weighted_sampler,
+        use_mutual_exclusion=use_mutual_exclusion,
+        train_raw_value_transforms=train_raw_value_transforms,
+        val_raw_value_transforms=val_raw_value_transforms,
+        target_value_transforms=target_value_transforms,
     )
 
     # %% If no model is provided, create a new model
@@ -248,6 +291,10 @@ def train(config_path: str):
 
             # Backward pass (compute the gradients)
             loss.backward()
+
+            # Clip the gradients if necessary
+            if max_grad_norm is not None:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
 
             # Update the weights
             optimizer.step()
