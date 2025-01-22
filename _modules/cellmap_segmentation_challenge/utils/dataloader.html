@@ -275,6 +275,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">torchvision.transforms.v2</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">T</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_data</span><span class="w"> </span><span class="kn">import</span> <span class="n">CellMapDataLoader</span><span class="p">,</span> <span class="n">CellMapDataSplit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_data.transforms.augment</span><span class="w"> </span><span class="kn">import</span> <span class="n">NaNtoNum</span><span class="p">,</span> <span class="n">Normalize</span><span class="p">,</span> <span class="n">Binarize</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_segmentation_challenge.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_class_relations</span>
 
 
 <div class="viewcode-block" id="get_dataloader">
@@ -293,6 +294,7 @@
     <span class="n">iterations_per_epoch</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
     <span class="n">random_validation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">device</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">use_mutual_exclusion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">CellMapDataLoader</span><span class="p">,</span> <span class="n">CellMapDataLoader</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get the train and validation dataloaders.</span>
@@ -344,6 +346,8 @@
 <span class="sd">        Whether or not to randomize the validation data draws. Useful if not evaluating on the entire validation set everytime. Defaults to False.</span>
 <span class="sd">    device : Optional[str or torch.device]</span>
 <span class="sd">        Device to use for training. If None, defaults to &quot;cuda&quot; if available, or &quot;mps&quot; if available, or &quot;cpu&quot;.</span>
+<span class="sd">    use_mutual_exclusion : bool | str</span>
+<span class="sd">        Whether to use mutually exclusive class labels to infer non-present labels for the training data. Can optionally use &quot;named_classes&quot; to only do this mutual exclusion for named classes. Defaults to False.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -377,6 +381,13 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cpu&quot;</span>
 
+    <span class="k">if</span> <span class="n">use_mutual_exclusion</span> <span class="o">==</span> <span class="s2">&quot;named_classes&quot;</span><span class="p">:</span>
+        <span class="n">class_relation_dict</span> <span class="o">=</span> <span class="n">get_class_relations</span><span class="p">(</span><span class="n">named_classes</span><span class="o">=</span><span class="n">classes</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">use_mutual_exclusion</span><span class="p">:</span>
+        <span class="n">class_relation_dict</span> <span class="o">=</span> <span class="n">get_class_relations</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">class_relation_dict</span> <span class="o">=</span> <span class="kc">None</span>
+
     <span class="n">datasplit</span> <span class="o">=</span> <span class="n">CellMapDataSplit</span><span class="p">(</span>
         <span class="n">input_arrays</span><span class="o">=</span><span class="n">input_arrays</span><span class="p">,</span>
         <span class="n">target_arrays</span><span class="o">=</span><span class="n">target_arrays</span><span class="p">,</span>
@@ -388,6 +399,7 @@
         <span class="n">target_value_transforms</span><span class="o">=</span><span class="n">target_value_transforms</span><span class="p">,</span>
         <span class="n">spatial_transforms</span><span class="o">=</span><span class="n">spatial_transforms</span><span class="p">,</span>
         <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+        <span class="n">class_relation_dict</span><span class="o">=</span><span class="n">class_relation_dict</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">validation_loader</span> <span class="o">=</span> <span class="n">CellMapDataLoader</span><span class="p">(</span>
