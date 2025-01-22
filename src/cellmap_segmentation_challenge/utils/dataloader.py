@@ -4,6 +4,7 @@ import torch
 import torchvision.transforms.v2 as T
 from cellmap_data import CellMapDataLoader, CellMapDataSplit
 from cellmap_data.transforms.augment import NaNtoNum, Normalize, Binarize
+from cellmap_segmentation_challenge.utils import get_class_relations
 
 
 def get_dataloader(
@@ -20,6 +21,7 @@ def get_dataloader(
     iterations_per_epoch: int = 1000,
     random_validation: bool = False,
     device: Optional[str | torch.device] = None,
+    use_mutual_exclusion: bool | str = False,
 ) -> tuple[CellMapDataLoader, CellMapDataLoader]:
     """
     Get the train and validation dataloaders.
@@ -71,6 +73,8 @@ def get_dataloader(
         Whether or not to randomize the validation data draws. Useful if not evaluating on the entire validation set everytime. Defaults to False.
     device : Optional[str or torch.device]
         Device to use for training. If None, defaults to "cuda" if available, or "mps" if available, or "cpu".
+    use_mutual_exclusion : bool | str
+        Whether to use mutually exclusive class labels to infer non-present labels for the training data. Can optionally use "named_classes" to only do this mutual exclusion for named classes. Defaults to False.
 
     Returns
     -------
@@ -104,6 +108,13 @@ def get_dataloader(
         else:
             device = "cpu"
 
+    if use_mutual_exclusion == "named_classes":
+        class_relation_dict = get_class_relations(named_classes=classes)
+    elif use_mutual_exclusion:
+        class_relation_dict = get_class_relations()
+    else:
+        class_relation_dict = None
+
     datasplit = CellMapDataSplit(
         input_arrays=input_arrays,
         target_arrays=target_arrays,
@@ -115,6 +126,7 @@ def get_dataloader(
         target_value_transforms=target_value_transforms,
         spatial_transforms=spatial_transforms,
         device=device,
+        class_relation_dict=class_relation_dict,
     )
 
     validation_loader = CellMapDataLoader(
