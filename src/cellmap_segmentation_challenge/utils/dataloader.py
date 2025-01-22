@@ -35,7 +35,7 @@ def get_dataloader(
     iterations_per_epoch: int = 1000,
     random_validation: bool = False,
     device: Optional[str | torch.device] = None,
-    use_mutual_exclusion: bool | str = False,
+    use_mutual_exclusion: bool = False,
     weighted_sampler: bool = True,
 ) -> tuple[CellMapDataLoader, CellMapDataLoader]:
     """
@@ -92,8 +92,8 @@ def get_dataloader(
         Whether or not to randomize the validation data draws. Useful if not evaluating on the entire validation set everytime. Defaults to False.
     device : Optional[str or torch.device]
         Device to use for training. If None, defaults to "cuda" if available, or "mps" if available, or "cpu".
-    use_mutual_exclusion : bool | str
-        Whether to use mutually exclusive class labels to infer non-present labels for the training data. Can optionally use "named_classes" to only do this mutual exclusion for named classes. Defaults to False.
+    use_mutual_exclusion : bool
+        Whether to use mutually exclusive class labels to infer non-present labels for the training data. Defaults to False.
     weighted_sampler : bool
         Whether to weight sample draws based on the number of positive labels within a dataset. Defaults to True.
 
@@ -121,10 +121,8 @@ def get_dataloader(
         else:
             device = "cpu"
 
-    if use_mutual_exclusion == "named_classes":
+    if use_mutual_exclusion:
         class_relation_dict = get_class_relations(named_classes=classes)
-    elif use_mutual_exclusion:
-        class_relation_dict = get_class_relations()
     else:
         class_relation_dict = None
 
