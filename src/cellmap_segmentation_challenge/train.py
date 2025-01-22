@@ -51,8 +51,10 @@ def train(config_path: str):
         - validation_batch_limit: Maximum number of validation batches to process. If None, there is no limit. Default is None.
         - device: Device to use for training. If None, will use 'cuda' if available, 'mps' if available, or 'cpu' otherwise. Default is None.
         - use_s3: Whether to use the S3 bucket for the datasplit. Default is False.
-        - optimizer: PyTorch optimizer to use for training. Default is `torch.optim.RAdam(model.parameters(), lr=learning_rate)`.
-        - criterion: PyTorch loss function to use for training. Default is `torch.nn.BCEWithLogitsLoss`.
+        - optimizer: PyTorch optimizer to use for training. Default is `torch.optim.RAdam(model.parameters(), lr=learning_rate, decoupled_weight_decay=True)`.
+        - criterion: Uninstantiated PyTorch loss function to use for training. Default is `torch.nn.BCEWithLogitsLoss`.
+        - criterion_kwargs: Dictionary of keyword arguments to pass to the loss function constructor. Default is {}.
+        - weight_loss: Whether to weight the loss function by class counts found in the datasets. Default is True.
         - use_mutual_exclusion: Whether to use mutual exclusion to infer labels for unannotated pixels. Default is False.
         - weighted_sampler: Whether to use a sampler weighted by class counts for the dataloader. Default is True.
         - train_raw_value_transforms: Transform to apply to the raw values for training. Defaults to T.Compose([Normalize(), T.ToDtype(torch.float, scale=True), NaNtoNum({"nan": 0, "posinf": None, "neginf": None})]) which normalizes the input data, converts it to float32, and replaces NaNs with 0. This can be used to add augmentations such as random erasing, blur, noise, etc.
@@ -88,7 +90,7 @@ def train(config_path: str):
     target_array_info = getattr(config, "target_array_info", input_array_info)
     epochs = getattr(config, "epochs", 1000)
     iterations_per_epoch = getattr(config, "iterations_per_epoch", 1000)
-    random_seed = getattr(config, "random_seed", 42)
+    random_seed = getattr(config, "random_seed", getattr(os.environ, "SEED", 42))
     classes = getattr(config, "classes", ["nuc", "er"])
     model_name = getattr(config, "model_name", "2d_unet")
     model_to_load = getattr(config, "model_to_load", model_name)
@@ -141,11 +143,26 @@ def train(config_path: str):
 
     # %% Define the optimizer, from the config file or default to RAdam
     optimizer = getattr(
-        config, "optimizer", torch.optim.RAdam(model.parameters(), lr=learning_rate)
+        config,
+        "optimizer",
+        torch.optim.RAdam(
+            model.parameters(), lr=learning_rate, decoupled_weight_decay=True
+        ),
     )
 
     # %% Define the loss function, from the config file or default to BCEWithLogitsLoss
     criterion = getattr(config, "criterion", torch.nn.BCEWithLogitsLoss)
+    criterion_kwargs = getattr(config, "criterion_kwargs", {})
+    weight_loss = getattr(config, "weight_loss", True)
+    if weight_loss:
+        pos_weight = list(train_loader.dataset.class_weights.values())
+        pos_weight = torch.tensor(pos_weight, dtype=torch.float32).to(device).flatten()
+
+        # Adjust weight for data dimensions
+        pos_weight = pos_weight[:, None, None]
+        if all([s > 1 for s in target_array_info["shape"]]):
+            pos_weight = pos_weight[..., None]
+        criterion_kwargs["pos_weight"] = pos_weight
 
     # %% Make sure the save path exists
     for path in [model_save_path, logs_save_path, datasplit_path]:
@@ -249,7 +266,7 @@ def train(config_path: str):
     model = model.to(device)
 
     # Use custom loss function wrapper that handles NaN values in the target. This works with any PyTorch loss function
-    criterion = CellMapLossWrapper(criterion)
+    criterion = CellMapLossWrapper(criterion, **criterion_kwargs)
 
     # %% Train the model
     post_fix_dict = {}
