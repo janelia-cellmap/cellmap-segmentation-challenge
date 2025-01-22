@@ -1148,8 +1148,10 @@ The process function should take an array as input and return an array as output
 - validation_batch_limit: Maximum number of validation batches to process. If None, there is no limit. Default is None.
 - device: Device to use for training. If None, will use ‘cuda’ if available, ‘mps’ if available, or ‘cpu’ otherwise. Default is None.
 - use_s3: Whether to use the S3 bucket for the datasplit. Default is False.
-- optimizer: PyTorch optimizer to use for training. Default is <cite>torch.optim.RAdam(model.parameters(), lr=learning_rate)</cite>.
-- criterion: PyTorch loss function to use for training. Default is <cite>torch.nn.BCEWithLogitsLoss</cite>.
+- optimizer: PyTorch optimizer to use for training. Default is <cite>torch.optim.RAdam(model.parameters(), lr=learning_rate, decoupled_weight_decay=True)</cite>.
+- criterion: Uninstantiated PyTorch loss function to use for training. Default is <cite>torch.nn.BCEWithLogitsLoss</cite>.
+- criterion_kwargs: Dictionary of keyword arguments to pass to the loss function constructor. Default is {}.
+- weight_loss: Whether to weight the loss function by class counts found in the datasets. Default is True.
 - use_mutual_exclusion: Whether to use mutual exclusion to infer labels for unannotated pixels. Default is False.
 - weighted_sampler: Whether to use a sampler weighted by class counts for the dataloader. Default is True.
 - train_raw_value_transforms: Transform to apply to the raw values for training. Defaults to T.Compose([Normalize(), T.ToDtype(torch.float, scale=True), NaNtoNum({“nan”: 0, “posinf”: None, “neginf”: None})]) which normalizes the input data, converts it to float32, and replaces NaNs with 0. This can be used to add augmentations such as random erasing, blur, noise, etc.
@@ -1434,8 +1436,10 @@ save_numpy_labels_to_zarr(‘submission.zarr’, ‘test_volume’, [‘label1�
 - validation_batch_limit: Maximum number of validation batches to process. If None, there is no limit. Default is None.
 - device: Device to use for training. If None, will use ‘cuda’ if available, ‘mps’ if available, or ‘cpu’ otherwise. Default is None.
 - use_s3: Whether to use the S3 bucket for the datasplit. Default is False.
-- optimizer: PyTorch optimizer to use for training. Default is <cite>torch.optim.RAdam(model.parameters(), lr=learning_rate)</cite>.
-- criterion: PyTorch loss function to use for training. Default is <cite>torch.nn.BCEWithLogitsLoss</cite>.
+- optimizer: PyTorch optimizer to use for training. Default is <cite>torch.optim.RAdam(model.parameters(), lr=learning_rate, decoupled_weight_decay=True)</cite>.
+- criterion: Uninstantiated PyTorch loss function to use for training. Default is <cite>torch.nn.BCEWithLogitsLoss</cite>.
+- criterion_kwargs: Dictionary of keyword arguments to pass to the loss function constructor. Default is {}.
+- weight_loss: Whether to weight the loss function by class counts found in the datasets. Default is True.
 - use_mutual_exclusion: Whether to use mutual exclusion to infer labels for unannotated pixels. Default is False.
 - weighted_sampler: Whether to use a sampler weighted by class counts for the dataloader. Default is True.
 - train_raw_value_transforms: Transform to apply to the raw values for training. Defaults to T.Compose([Normalize(), T.ToDtype(torch.float, scale=True), NaNtoNum({“nan”: 0, “posinf”: None, “neginf”: None})]) which normalizes the input data, converts it to float32, and replaces NaNs with 0. This can be used to add augmentations such as random erasing, blur, noise, etc.

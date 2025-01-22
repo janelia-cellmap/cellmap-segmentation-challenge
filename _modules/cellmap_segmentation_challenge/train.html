@@ -324,8 +324,10 @@
 <span class="sd">        - validation_batch_limit: Maximum number of validation batches to process. If None, there is no limit. Default is None.</span>
 <span class="sd">        - device: Device to use for training. If None, will use &#39;cuda&#39; if available, &#39;mps&#39; if available, or &#39;cpu&#39; otherwise. Default is None.</span>
 <span class="sd">        - use_s3: Whether to use the S3 bucket for the datasplit. Default is False.</span>
-<span class="sd">        - optimizer: PyTorch optimizer to use for training. Default is `torch.optim.RAdam(model.parameters(), lr=learning_rate)`.</span>
-<span class="sd">        - criterion: PyTorch loss function to use for training. Default is `torch.nn.BCEWithLogitsLoss`.</span>
+<span class="sd">        - optimizer: PyTorch optimizer to use for training. Default is `torch.optim.RAdam(model.parameters(), lr=learning_rate, decoupled_weight_decay=True)`.</span>
+<span class="sd">        - criterion: Uninstantiated PyTorch loss function to use for training. Default is `torch.nn.BCEWithLogitsLoss`.</span>
+<span class="sd">        - criterion_kwargs: Dictionary of keyword arguments to pass to the loss function constructor. Default is {}.</span>
+<span class="sd">        - weight_loss: Whether to weight the loss function by class counts found in the datasets. Default is True.</span>
 <span class="sd">        - use_mutual_exclusion: Whether to use mutual exclusion to infer labels for unannotated pixels. Default is False.</span>
 <span class="sd">        - weighted_sampler: Whether to use a sampler weighted by class counts for the dataloader. Default is True.</span>
 <span class="sd">        - train_raw_value_transforms: Transform to apply to the raw values for training. Defaults to T.Compose([Normalize(), T.ToDtype(torch.float, scale=True), NaNtoNum({&quot;nan&quot;: 0, &quot;posinf&quot;: None, &quot;neginf&quot;: None})]) which normalizes the input data, converts it to float32, and replaces NaNs with 0. This can be used to add augmentations such as random erasing, blur, noise, etc.</span>
@@ -361,7 +363,7 @@
     <span class="n">target_array_info</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;target_array_info&quot;</span><span class="p">,</span> <span class="n">input_array_info</span><span class="p">)</span>
     <span class="n">epochs</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;epochs&quot;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
     <span class="n">iterations_per_epoch</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;iterations_per_epoch&quot;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
-    <span class="n">random_seed</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;random_seed&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">)</span>
+    <span class="n">random_seed</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;random_seed&quot;</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">,</span> <span class="s2">&quot;SEED&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">))</span>
     <span class="n">classes</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;classes&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;nuc&quot;</span><span class="p">,</span> <span class="s2">&quot;er&quot;</span><span class="p">])</span>
     <span class="n">model_name</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;model_name&quot;</span><span class="p">,</span> <span class="s2">&quot;2d_unet&quot;</span><span class="p">)</span>
     <span class="n">model_to_load</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;model_to_load&quot;</span><span class="p">,</span> <span class="n">model_name</span><span class="p">)</span>
@@ -414,11 +416,26 @@
 
     <span class="c1"># %% Define the optimizer, from the config file or default to RAdam</span>
     <span class="n">optimizer</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span>
-        <span class="n">config</span><span class="p">,</span> <span class="s2">&quot;optimizer&quot;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">RAdam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="n">learning_rate</span><span class="p">)</span>
+        <span class="n">config</span><span class="p">,</span>
+        <span class="s2">&quot;optimizer&quot;</span><span class="p">,</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">RAdam</span><span class="p">(</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="n">learning_rate</span><span class="p">,</span> <span class="n">decoupled_weight_decay</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">),</span>
     <span class="p">)</span>
 
     <span class="c1"># %% Define the loss function, from the config file or default to BCEWithLogitsLoss</span>
     <span class="n">criterion</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;criterion&quot;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">BCEWithLogitsLoss</span><span class="p">)</span>
+    <span class="n">criterion_kwargs</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;criterion_kwargs&quot;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">weight_loss</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;weight_loss&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">weight_loss</span><span class="p">:</span>
+        <span class="n">pos_weight</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">train_loader</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">class_weights</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">pos_weight</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">pos_weight</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+        <span class="c1"># Adjust weight for data dimensions</span>
+        <span class="n">pos_weight</span> <span class="o">=</span> <span class="n">pos_weight</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">([</span><span class="n">s</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">target_array_info</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">]]):</span>
+            <span class="n">pos_weight</span> <span class="o">=</span> <span class="n">pos_weight</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">criterion_kwargs</span><span class="p">[</span><span class="s2">&quot;pos_weight&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pos_weight</span>
 
     <span class="c1"># %% Make sure the save path exists</span>
     <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="p">[</span><span class="n">model_save_path</span><span class="p">,</span> <span class="n">logs_save_path</span><span class="p">,</span> <span class="n">datasplit_path</span><span class="p">]:</span>
@@ -522,7 +539,7 @@
     <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
 
     <span class="c1"># Use custom loss function wrapper that handles NaN values in the target. This works with any PyTorch loss function</span>
-    <span class="n">criterion</span> <span class="o">=</span> <span class="n">CellMapLossWrapper</span><span class="p">(</span><span class="n">criterion</span><span class="p">)</span>
+    <span class="n">criterion</span> <span class="o">=</span> <span class="n">CellMapLossWrapper</span><span class="p">(</span><span class="n">criterion</span><span class="p">,</span> <span class="o">**</span><span class="n">criterion_kwargs</span><span class="p">)</span>
 
     <span class="c1"># %% Train the model</span>
     <span class="n">post_fix_dict</span> <span class="o">=</span> <span class="p">{}</span>
