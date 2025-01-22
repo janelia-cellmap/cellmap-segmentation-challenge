@@ -22,6 +22,7 @@ def get_dataloader(
     random_validation: bool = False,
     device: Optional[str | torch.device] = None,
     use_mutual_exclusion: bool | str = False,
+    weighted_sampler: bool = True,
 ) -> tuple[CellMapDataLoader, CellMapDataLoader]:
     """
     Get the train and validation dataloaders.
@@ -75,6 +76,8 @@ def get_dataloader(
         Device to use for training. If None, defaults to "cuda" if available, or "mps" if available, or "cpu".
     use_mutual_exclusion : bool | str
         Whether to use mutually exclusive class labels to infer non-present labels for the training data. Can optionally use "named_classes" to only do this mutual exclusion for named classes. Defaults to False.
+    weighted_sampler : bool
+        Whether to weight sample draws based on the number of positive labels within a dataset. Defaults to True.
 
     Returns
     -------
@@ -142,7 +145,7 @@ def get_dataloader(
         classes=classes,
         batch_size=batch_size,
         sampler=lambda: datasplit.train_datasets_combined.get_subset_random_sampler(
-            iterations_per_epoch * batch_size, weighted=False
+            iterations_per_epoch * batch_size, weighted=weighted_sampler
         ),
         device=device,
     )
