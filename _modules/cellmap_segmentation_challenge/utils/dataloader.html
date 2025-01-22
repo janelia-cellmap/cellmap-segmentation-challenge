@@ -308,7 +308,7 @@
     <span class="n">iterations_per_epoch</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
     <span class="n">random_validation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">device</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">use_mutual_exclusion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">use_mutual_exclusion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">weighted_sampler</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">CellMapDataLoader</span><span class="p">,</span> <span class="n">CellMapDataLoader</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -365,8 +365,8 @@
 <span class="sd">        Whether or not to randomize the validation data draws. Useful if not evaluating on the entire validation set everytime. Defaults to False.</span>
 <span class="sd">    device : Optional[str or torch.device]</span>
 <span class="sd">        Device to use for training. If None, defaults to &quot;cuda&quot; if available, or &quot;mps&quot; if available, or &quot;cpu&quot;.</span>
-<span class="sd">    use_mutual_exclusion : bool | str</span>
-<span class="sd">        Whether to use mutually exclusive class labels to infer non-present labels for the training data. Can optionally use &quot;named_classes&quot; to only do this mutual exclusion for named classes. Defaults to False.</span>
+<span class="sd">    use_mutual_exclusion : bool</span>
+<span class="sd">        Whether to use mutually exclusive class labels to infer non-present labels for the training data. Defaults to False.</span>
 <span class="sd">    weighted_sampler : bool</span>
 <span class="sd">        Whether to weight sample draws based on the number of positive labels within a dataset. Defaults to True.</span>
 
@@ -394,10 +394,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cpu&quot;</span>
 
-    <span class="k">if</span> <span class="n">use_mutual_exclusion</span> <span class="o">==</span> <span class="s2">&quot;named_classes&quot;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">use_mutual_exclusion</span><span class="p">:</span>
         <span class="n">class_relation_dict</span> <span class="o">=</span> <span class="n">get_class_relations</span><span class="p">(</span><span class="n">named_classes</span><span class="o">=</span><span class="n">classes</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">use_mutual_exclusion</span><span class="p">:</span>
-        <span class="n">class_relation_dict</span> <span class="o">=</span> <span class="n">get_class_relations</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">class_relation_dict</span> <span class="o">=</span> <span class="kc">None</span>
 
