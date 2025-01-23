@@ -334,6 +334,7 @@
 <span class="sd">        - val_raw_value_transforms: Transform to apply to the raw values for validation, similar to `train_raw_value_transforms`. Default is the same as `train_raw_value_transforms`.</span>
 <span class="sd">        - target_value_transforms: Transform to apply to the target values. Default is T.Compose([T.ToDtype(torch.float), Binarize()]) which converts the input masks to float32 and threshold at 0 (turning object ID&#39;s into binary masks for use with binary cross entropy loss). This can be used to specify other targets, such as distance transforms.</span>
 <span class="sd">        - max_grad_norm: Maximum gradient norm for clipping. If None, no clipping is performed. Default is None. This can be useful to prevent exploding gradients which would lead to NaNs in the weights.</span>
+<span class="sd">        - force_all_classes: Whether to force all classes to be present in each batch provided by dataloaders. Can either be `True` to force this for both validation and training dataloader, `False` to force for neither, or `train` / `validate` to restrict it to training or validation, respectively. Default is &#39;validate&#39;.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -413,6 +414,7 @@
         <span class="n">T</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span><span class="n">T</span><span class="o">.</span><span class="n">ToDtype</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">),</span> <span class="n">Binarize</span><span class="p">()]),</span>
     <span class="p">)</span>
     <span class="n">max_grad_norm</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;max_grad_norm&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">force_all_classes</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;force_all_classes&quot;</span><span class="p">,</span> <span class="s2">&quot;validate&quot;</span><span class="p">)</span>
 
     <span class="c1"># %% Define the optimizer, from the config file or default to RAdam</span>
     <span class="n">optimizer</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span>
@@ -427,15 +429,6 @@
     <span class="n">criterion</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;criterion&quot;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">BCEWithLogitsLoss</span><span class="p">)</span>
     <span class="n">criterion_kwargs</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;criterion_kwargs&quot;</span><span class="p">,</span> <span class="p">{})</span>
     <span class="n">weight_loss</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;weight_loss&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">weight_loss</span><span class="p">:</span>
-        <span class="n">pos_weight</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">train_loader</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">class_weights</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-        <span class="n">pos_weight</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">pos_weight</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-
-        <span class="c1"># Adjust weight for data dimensions</span>
-        <span class="n">pos_weight</span> <span class="o">=</span> <span class="n">pos_weight</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
-        <span class="k">if</span> <span class="nb">all</span><span class="p">([</span><span class="n">s</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">target_array_info</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">]]):</span>
-            <span class="n">pos_weight</span> <span class="o">=</span> <span class="n">pos_weight</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
-        <span class="n">criterion_kwargs</span><span class="p">[</span><span class="s2">&quot;pos_weight&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pos_weight</span>
 
     <span class="c1"># %% Make sure the save path exists</span>
     <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="p">[</span><span class="n">model_save_path</span><span class="p">,</span> <span class="n">logs_save_path</span><span class="p">,</span> <span class="n">datasplit_path</span><span class="p">]:</span>
@@ -444,7 +437,6 @@
             <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># %% Set the random seed</span>
-
     <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
         <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">manual_seed_all</span><span class="p">(</span><span class="n">random_seed</span><span class="p">)</span>
     <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">random_seed</span><span class="p">)</span>
@@ -468,12 +460,14 @@
                 <span class="n">classes</span><span class="o">=</span><span class="n">classes</span><span class="p">,</span>
                 <span class="n">csv_path</span><span class="o">=</span><span class="n">datasplit_path</span><span class="p">,</span>
                 <span class="n">validation_prob</span><span class="o">=</span><span class="n">validation_prob</span><span class="p">,</span>
+                <span class="n">force_all_classes</span><span class="o">=</span><span class="n">force_all_classes</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">make_datasplit_csv</span><span class="p">(</span>
                 <span class="n">classes</span><span class="o">=</span><span class="n">classes</span><span class="p">,</span>
                 <span class="n">csv_path</span><span class="o">=</span><span class="n">datasplit_path</span><span class="p">,</span>
                 <span class="n">validation_prob</span><span class="o">=</span><span class="n">validation_prob</span><span class="p">,</span>
+                <span class="n">force_all_classes</span><span class="o">=</span><span class="n">force_all_classes</span><span class="p">,</span>
             <span class="p">)</span>
 
     <span class="c1"># %% Download the data and make the dataloader</span>
@@ -539,6 +533,15 @@
     <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
 
     <span class="c1"># Use custom loss function wrapper that handles NaN values in the target. This works with any PyTorch loss function</span>
+    <span class="k">if</span> <span class="n">weight_loss</span><span class="p">:</span>
+        <span class="n">pos_weight</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">train_loader</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">class_weights</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">pos_weight</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">pos_weight</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+        <span class="c1"># Adjust weight for data dimensions</span>
+        <span class="n">pos_weight</span> <span class="o">=</span> <span class="n">pos_weight</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">([</span><span class="n">s</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">target_array_info</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">]]):</span>
+            <span class="n">pos_weight</span> <span class="o">=</span> <span class="n">pos_weight</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">criterion_kwargs</span><span class="p">[</span><span class="s2">&quot;pos_weight&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pos_weight</span>
     <span class="n">criterion</span> <span class="o">=</span> <span class="n">CellMapLossWrapper</span><span class="p">(</span><span class="n">criterion</span><span class="p">,</span> <span class="o">**</span><span class="n">criterion_kwargs</span><span class="p">)</span>
 
     <span class="c1"># %% Train the model</span>
