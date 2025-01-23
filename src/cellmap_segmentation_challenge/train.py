@@ -61,6 +61,7 @@ def train(config_path: str):
         - val_raw_value_transforms: Transform to apply to the raw values for validation, similar to `train_raw_value_transforms`. Default is the same as `train_raw_value_transforms`.
         - target_value_transforms: Transform to apply to the target values. Default is T.Compose([T.ToDtype(torch.float), Binarize()]) which converts the input masks to float32 and threshold at 0 (turning object ID's into binary masks for use with binary cross entropy loss). This can be used to specify other targets, such as distance transforms.
         - max_grad_norm: Maximum gradient norm for clipping. If None, no clipping is performed. Default is None. This can be useful to prevent exploding gradients which would lead to NaNs in the weights.
+        - force_all_classes: Whether to force all classes to be present in each batch provided by dataloaders. Can either be `True` to force this for both validation and training dataloader, `False` to force for neither, or `train` / `validate` to restrict it to training or validation, respectively. Default is 'validate'.
 
     Returns
     -------
@@ -140,6 +141,7 @@ def train(config_path: str):
         T.Compose([T.ToDtype(torch.float), Binarize()]),
     )
     max_grad_norm = getattr(config, "max_grad_norm", None)
+    force_all_classes = getattr(config, "force_all_classes", "validate")
 
     # %% Define the optimizer, from the config file or default to RAdam
     optimizer = getattr(
@@ -154,15 +156,6 @@ def train(config_path: str):
     criterion = getattr(config, "criterion", torch.nn.BCEWithLogitsLoss)
     criterion_kwargs = getattr(config, "criterion_kwargs", {})
     weight_loss = getattr(config, "weight_loss", True)
-    if weight_loss:
-        pos_weight = list(train_loader.dataset.class_weights.values())
-        pos_weight = torch.tensor(pos_weight, dtype=torch.float32).to(device).flatten()
-
-        # Adjust weight for data dimensions
-        pos_weight = pos_weight[:, None, None]
-        if all([s > 1 for s in target_array_info["shape"]]):
-            pos_weight = pos_weight[..., None]
-        criterion_kwargs["pos_weight"] = pos_weight
 
     # %% Make sure the save path exists
     for path in [model_save_path, logs_save_path, datasplit_path]:
@@ -171,7 +164,6 @@ def train(config_path: str):
             os.makedirs(dirpath, exist_ok=True)
 
     # %% Set the random seed
-
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(random_seed)
     torch.manual_seed(random_seed)
@@ -195,12 +187,14 @@ def train(config_path: str):
                 classes=classes,
                 csv_path=datasplit_path,
                 validation_prob=validation_prob,
+                force_all_classes=force_all_classes,
             )
         else:
             make_datasplit_csv(
                 classes=classes,
                 csv_path=datasplit_path,
                 validation_prob=validation_prob,
+                force_all_classes=force_all_classes,
             )
 
     # %% Download the data and make the dataloader
@@ -266,6 +260,15 @@ def train(config_path: str):
     model = model.to(device)
 
     # Use custom loss function wrapper that handles NaN values in the target. This works with any PyTorch loss function
+    if weight_loss:
+        pos_weight = list(train_loader.dataset.class_weights.values())
+        pos_weight = torch.tensor(pos_weight, dtype=torch.float32).to(device).flatten()
+
+        # Adjust weight for data dimensions
+        pos_weight = pos_weight[:, None, None]
+        if all([s > 1 for s in target_array_info["shape"]]):
+            pos_weight = pos_weight[..., None]
+        criterion_kwargs["pos_weight"] = pos_weight
     criterion = CellMapLossWrapper(criterion, **criterion_kwargs)
 
     # %% Train the model
