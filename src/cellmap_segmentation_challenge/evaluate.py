@@ -79,11 +79,9 @@ def unzip_file(zip_path):
         unzip_file('submission.zip')
     """
     saved_path = UPath(zip_path).with_suffix(".zarr").path
-    print(f"Unzipping {zip_path} to {saved_path}")
-    if not UPath(saved_path).exists():
-        with zipfile.ZipFile(zip_path, "r") as zip_ref:
-            zip_ref.extractall(saved_path)
-            print(f"Unzipped {zip_path} to {saved_path}")
+    with zipfile.ZipFile(zip_path, "r") as zip_ref:
+        zip_ref.extractall(saved_path)
+        print(f"Unzipped {zip_path} to {saved_path}")
 
     return UPath(saved_path)
 
