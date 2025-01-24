@@ -903,6 +903,7 @@ def package_submission(
             shape=crop.shape,
             translation=crop.translation,
         )
+        image = image.astype(np.uint8)
         # Save the processed labels to the submission zarr
         label_array = crop_group.create_dataset(
             crop.class_label,
@@ -914,6 +915,7 @@ def package_submission(
         # Add the metadata
         label_array.attrs["voxel_size"] = crop.voxel_size
         label_array.attrs["translation"] = crop.translation
+        label_array.attrs["shape"] = crop.shape
 
     print(f"Saved submission to {output_path}")
 
