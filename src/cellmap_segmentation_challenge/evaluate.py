@@ -11,7 +11,7 @@ from scipy.spatial.distance import dice  # , jaccard
 from skimage.measure import label as relabel
 from skimage.transform import rescale
 from scipy.spatial import cKDTree
-from sklearn.metrics import accuracy_score, jaccard_score
+from sklearn.metrics import accuracy_score, jaccard_score, multilabel_confusion_matrix
 from tqdm import tqdm
 from upath import UPath
 
