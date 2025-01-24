@@ -17,6 +17,9 @@ from upath import UPath
 from cellmap_data import CellMapImage
 import zarr.errors
 
+import functools
+from concurrent.futures import ThreadPoolExecutor
+
 from .config import PROCESSED_PATH, SUBMISSION_PATH, TRUTH_PATH
 from .utils import TEST_CROPS, TEST_CROPS_DICT
 
@@ -38,6 +41,31 @@ INSTANCE_CLASSES = [
 
 
 HAUSDORFF_DISTANCE_MAX = np.inf
+MAX_THREADS = 8
+
+
+def score_label_single(label, pred_volume_path, truth_path, instance_classes):
+    score = score_label(
+        pred_volume_path / label,
+        truth_path=truth_path,
+        instance_classes=instance_classes,
+    )
+    return (label, score)
+
+
+def parallel_score_labels(found_labels, pred_volume_path, truth_path, instance_classes):
+    partial_score_func = functools.partial(
+        score_label_single,
+        pred_volume_path=pred_volume_path,
+        truth_path=truth_path,
+        instance_classes=instance_classes,
+    )
+
+    with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
+        results = executor.map(partial_score_func, found_labels)
+
+    # `results` is an iterator of (label, score) tuples, so convert to dict
+    return dict(results)
 
 
 def unzip_file(zip_path):
@@ -51,9 +79,11 @@ def unzip_file(zip_path):
         unzip_file('submission.zip')
     """
     saved_path = UPath(zip_path).with_suffix(".zarr").path
-    with zipfile.ZipFile(zip_path, "r") as zip_ref:
-        zip_ref.extractall(saved_path)
-        print(f"Unzipped {zip_path} to {saved_path}")
+    print(f"Unzipping {zip_path} to {saved_path}")
+    if not UPath(saved_path).exists():
+        with zipfile.ZipFile(zip_path, "r") as zip_ref:
+            zip_ref.extractall(saved_path)
+            print(f"Unzipped {zip_path} to {saved_path}")
 
     return UPath(saved_path)
 
@@ -480,14 +510,9 @@ def score_volume(
     missing_labels = list(set(truth_labels) - set(pred_labels))
 
     # Score each label
-    scores = {
-        label: score_label(
-            pred_volume_path / label,
-            truth_path=truth_path,
-            instance_classes=instance_classes,
-        )
-        for label in found_labels
-    }
+    scores = parallel_score_labels(
+        found_labels, pred_volume_path, truth_path, instance_classes
+    )
     scores.update(
         {
             label: (
