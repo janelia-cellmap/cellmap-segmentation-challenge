@@ -335,9 +335,11 @@
   <section id="annotation-classes">
 <h1>Annotation Classes<a class="headerlink" href="#annotation-classes" title="Link to this heading">#</a></h1>
 <p>This document provides an overview of the annotation classes used in our dataset. Each zarr crop contains multiple scales for different organelles, if annotated. Additionally, there is a special multiscale named <code class="docutils literal notranslate"><span class="pre">all</span></code> that aggregates all annotated classes.</p>
-<p>Classes are categorized as either <strong>atomic classes</strong> or <strong>group classes</strong>:
-- <strong>Atomic Classes</strong> represent individual organelle components.
-- <strong>Group Classes</strong> are collections of atomic classes grouped under a common category.</p>
+<p>Classes are categorized as either <strong>atomic classes</strong> or <strong>group classes</strong>:</p>
+<ul class="simple">
+<li><p><strong>Atomic Classes</strong> represent individual organelle components.</p></li>
+<li><p><strong>Group Classes</strong>  are sets of atomic classes grouped under a common category.</p></li>
+</ul>
 <p>Group classes reference their constituent atomic classes through the <code class="docutils literal notranslate"><span class="pre">group_id</span></code>.</p>
 <section id="table-of-contents">
 <h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Link to this heading">#</a></h2>
@@ -360,10 +362,10 @@
 </section>
 <section id="class-categories">
 <h2>Class Categories<a class="headerlink" href="#class-categories" title="Link to this heading">#</a></h2>
-<p>### Atomic Classes
-Atomic classes represent the fundamental components of cellular structures. Each atomic class is defined with a unique identifier and descriptive properties.</p>
-<p>### Group Classes
-Group classes aggregate multiple atomic classes into broader categories. They are useful for high-level analysis and visualization.</p>
+<p><strong>Atomic Classes</strong>
+Atomic classes represent the fundamental components of cellular structures. Each atomic class is defined with a unique identifier and descriptive properties.
+<strong>Group Classes</strong>
+Group classes define broader categories by combining multiple atomic classes into a set. They are useful for high-level analysis and visualization.</p>
 </section>
 <section id="detailed-class-descriptions">
 <h2>Detailed Class Descriptions<a class="headerlink" href="#detailed-class-descriptions" title="Link to this heading">#</a></h2>

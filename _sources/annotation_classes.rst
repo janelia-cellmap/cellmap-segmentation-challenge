@@ -5,8 +5,9 @@ Annotation Classes
 This document provides an overview of the annotation classes used in our dataset. Each zarr crop contains multiple scales for different organelles, if annotated. Additionally, there is a special multiscale named ``all`` that aggregates all annotated classes.
 
 Classes are categorized as either **atomic classes** or **group classes**:
+
 - **Atomic Classes** represent individual organelle components.
-- **Group Classes** are collections of atomic classes grouped under a common category.
+- **Group Classes**  are sets of atomic classes grouped under a common category.
 
 Group classes reference their constituent atomic classes through the ``group_id``.
 
@@ -31,11 +32,10 @@ This hierarchical structure facilitates efficient data navigation and retrieval 
 Class Categories
 ----------------
 
-### Atomic Classes
+**Atomic Classes**
 Atomic classes represent the fundamental components of cellular structures. Each atomic class is defined with a unique identifier and descriptive properties.
-
-### Group Classes
-Group classes aggregate multiple atomic classes into broader categories. They are useful for high-level analysis and visualization.
+**Group Classes**
+Group classes define broader categories by combining multiple atomic classes into a set. They are useful for high-level analysis and visualization.
 
 Detailed Class Descriptions
 ---------------------------
