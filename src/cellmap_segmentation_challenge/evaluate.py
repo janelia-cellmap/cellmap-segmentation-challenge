@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+from time import time
 import zipfile
 
 import numpy as np
@@ -41,7 +42,7 @@ INSTANCE_CLASSES = [
 
 
 HAUSDORFF_DISTANCE_MAX = np.inf
-MAX_THREADS = 8
+MAX_THREADS = os.getenv("MAX_THREADS", os.cpu_count() / 2)
 
 
 def score_label_single(label, pred_volume_path, truth_path, instance_classes):
@@ -228,79 +229,79 @@ def resize_array(arr, target_shape, pad_value=0):
     return resized_arr[tuple(slices)]
 
 
-def hausdorff_distance(
-    image0, image1, voxel_size, max_distance=np.inf, method="standard"
+def optimized_hausdorff_distances(
+    truth_label,
+    matched_pred_label,
+    voxel_size,
+    hausdorff_distance_max,
+    method="standard",
 ):
-    """Calculate the Hausdorff distance between nonzero elements of given images.
+    # Get unique truth IDs, excluding the background (0)
+    truth_ids = np.unique(truth_label)
+    truth_ids = truth_ids[truth_ids != 0]  # Exclude background
+    if len(truth_ids) == 0:
+        return []
 
-    Modified from the `scipy.spatial.distance.hausdorff` function by Jeff Rhoades (2024) to handle non-isotropic resolutions.
+    # Precompute binary masks for all truth IDs
+    truth_binary_masks = [(truth_label == tid) for tid in truth_ids]
+    pred_binary_masks = [(matched_pred_label == tid) for tid in truth_ids]
 
-    Parameters
-    ----------
-    image0, image1 : ndarray
-        Arrays where ``True`` represents a point that is included in a
-        set of points. Both arrays must have the same shape.
-    voxel_size : tuple
-        The size of a voxel in each dimension. Assumes the same resolution for both images.
-    max_distance : float, optional
-        The maximum distance to consider. Default is infinity.
-    method : {'standard', 'modified'}, optional, default = 'standard'
-        The method to use for calculating the Hausdorff distance.
-        ``standard`` is the standard Hausdorff distance, while ``modified``
-        is the modified Hausdorff distance.
+    # Initialize list for distances
+    hausdorff_distances = np.empty(len(truth_ids))
 
-    Returns
-    -------
-    distance : float
-        The Hausdorff distance between coordinates of nonzero pixels in
-        ``image0`` and ``image1``, using the Euclidean distance.
+    for i, (truth_mask, pred_mask) in tqdm(
+        enumerate(zip(truth_binary_masks, pred_binary_masks)),
+        desc="Computing Hausdorff distances",
+        total=len(truth_ids),
+        dynamic_ncols=True,
+    ):
+        # Skip if both masks are empty
+        if not np.any(truth_mask) and not np.any(pred_mask):
+            hausdorff_distances[i] = 0
+        else:
+            # Compute Hausdorff distance for the current pair
+            h_dist = compute_hausdorff_distance(
+                truth_mask, pred_mask, voxel_size, hausdorff_distance_max, method
+            )
+            hausdorff_distances[i] = h_dist
 
-    Notes
-    -----
-    The Hausdorff distance [1]_ is the maximum distance between any point on
-    ``image0`` and its nearest point on ``image1``, and vice-versa.
-    The Modified Hausdorff Distance (MHD) has been shown to perform better
-    than the directed Hausdorff Distance (HD) in the following work by
-    Dubuisson et al. [2]_. The function calculates forward and backward
-    mean distances and returns the largest of the two.
+    return hausdorff_distances
 
-    References
-    ----------
-    .. [1] http://en.wikipedia.org/wiki/Hausdorff_distance
-    .. [2] M. P. Dubuisson and A. K. Jain. A Modified Hausdorff distance for object
-       matching. In ICPR94, pages A:566-568, Jerusalem, Israel, 1994.
-       :DOI:`10.1109/ICPR.1994.576361`
-       http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.1.8155
 
+def compute_hausdorff_distance(image0, image1, voxel_size, max_distance, method):
     """
-
-    if method not in ("standard", "modified"):
-        raise ValueError(f"unrecognized method {method}")
-
+    Compute the Hausdorff distance between two binary masks, optimized for pre-vectorized inputs.
+    """
+    # Extract nonzero points
     a_points = np.argwhere(image0)
     b_points = np.argwhere(image1)
 
-    # Handle empty sets properly:
-    # - if both sets are empty, return zero
-    # - if only one set is empty, return infinity
-    if len(a_points) == 0:
-        return 0 if len(b_points) == 0 else np.inf
-    elif len(b_points) == 0:
+    # Handle empty sets
+    if len(a_points) == 0 and len(b_points) == 0:
+        return 0
+    elif len(a_points) == 0 or len(b_points) == 0:
         return np.inf
 
-    # Scale the points by the voxel size
+    # Scale points by voxel size
     a_points = a_points * np.array(voxel_size)
     b_points = b_points * np.array(voxel_size)
 
-    fwd, bwd = (
-        cKDTree(a_points).query(b_points, k=1, distance_upper_bound=max_distance)[0],
-        cKDTree(b_points).query(a_points, k=1, distance_upper_bound=max_distance)[0],
-    )
+    # Build KD-trees once
+    a_tree = cKDTree(a_points)
+    b_tree = cKDTree(b_points)
 
-    if method == "standard":  # standard Hausdorff distance
-        return max(max(fwd), max(bwd))
-    elif method == "modified":  # modified Hausdorff distance
-        return max(np.mean(fwd), np.mean(bwd))
+    # Query distances
+    fwd = a_tree.query(b_points, k=1, distance_upper_bound=max_distance)[0]
+    bwd = b_tree.query(a_points, k=1, distance_upper_bound=max_distance)[0]
+
+    # Replace "inf" with `max_distance` for numerical stability
+    fwd[fwd == np.inf] = max_distance
+    bwd[bwd == np.inf] = max_distance
+
+    if method == "standard":
+        return max(fwd.max(), bwd.max())
+    elif method == "modified":
+        return max(fwd.mean(), bwd.mean())
 
 
 def score_instance(
@@ -321,31 +322,64 @@ def score_instance(
     Example usage:
         scores = score_instance(pred_label, truth_label)
     """
-    # Relabel the predicted instance labels to be consistent with the ground truth instance labels
     print("Scoring instance segmentation...")
+    # Relabel the predicted instance labels to be consistent with the ground truth instance labels
     pred_label = relabel(pred_label, connectivity=len(pred_label.shape))
-    # pred_label = label(pred_label)
 
-    # Construct the cost matrix for Hungarian matching
-    pred_ids = np.unique(pred_label)
+    # Get unique IDs, excluding background (assumed to be 0)
     truth_ids = np.unique(truth_label)
+    truth_ids = truth_ids[truth_ids != 0]
+
+    pred_ids = np.unique(pred_label)
+    pred_ids = pred_ids[pred_ids != 0]
+
+    # Initialize the cost matrix
     cost_matrix = np.zeros((len(truth_ids), len(pred_ids)))
-    bar = tqdm(pred_ids, desc="Computing cost matrix", leave=True, dynamic_ncols=True)
-    for j, pred_id in enumerate(bar):
-        if pred_id == 0:
-            # Don't score the background
+
+    # Flatten the labels for vectorized computation
+    truth_flat = truth_label.flatten()
+    pred_flat = pred_label.flatten()
+
+    # Create binary masks for all `truth_ids` and `pred_ids`
+    truth_binary_masks = np.array(
+        [(truth_flat == tid) for tid in truth_ids], dtype=bool
+    )
+    pred_binary_masks = np.array([(pred_flat == pid) for pid in pred_ids], dtype=bool)
+
+    # Use tqdm for progress tracking
+    bar = tqdm(
+        range(len(pred_binary_masks)),
+        desc="Computing cost matrix",
+        leave=True,
+        dynamic_ncols=True,
+    )
+
+    # Compute the cost matrix
+    for j in bar:
+        pred_mask = pred_binary_masks[j]
+
+        # Find all `truth_ids` that overlap with this prediction mask
+        relevant_truth_masks = truth_binary_masks[:, pred_mask.any(axis=0)]
+
+        if relevant_truth_masks.size == 0:
             continue
-        pred_mask = pred_label == pred_id
-        these_truth_ids = np.unique(truth_label[pred_mask])
-        truth_indices = [
-            np.argmax(truth_ids == truth_id) for truth_id in these_truth_ids
-        ]
-        for i, truth_id in zip(truth_indices, these_truth_ids):
-            if truth_id == 0:
-                # Don't score the background
-                continue
-            truth_mask = truth_label == truth_id
-            cost_matrix[i, j] = jaccard_score(truth_mask.flatten(), pred_mask.flatten())
+
+        # Compute multilabel confusion matrix for relevant truth masks
+        mcm = multilabel_confusion_matrix(
+            relevant_truth_masks.T,  # Ground truth (binary masks for relevant truth IDs)
+            pred_mask,  # Predicted binary mask
+        )
+
+        # Extract true positives, false positives, and false negatives
+        tp = mcm[:, 1, 1]
+        fp = mcm[:, 0, 1]
+        fn = mcm[:, 1, 0]
+
+        # Compute Jaccard scores
+        jaccard_scores = tp / (tp + fp + fn)
+
+        # Fill in the cost matrix for this `j` (prediction)
+        cost_matrix[: len(jaccard_scores), j] = jaccard_scores
 
     # Match the predicted instances to the ground truth instances
     row_inds, col_inds = linear_sum_assignment(cost_matrix, maximize=True)
@@ -361,27 +395,16 @@ def score_instance(
         pred_mask = pred_label == pred_ids[i]
         matched_pred_label[pred_mask] = truth_ids[j]
 
-    hausdorff_distances = []
-    for truth_id in tqdm(
-        truth_ids, desc="Computing Hausdorff distances", dynamic_ncols=True
-    ):
-        if truth_id == 0:
-            # Don't score the background
-            continue
-        h_dist = hausdorff_distance(
-            truth_label == truth_id,
-            matched_pred_label == truth_id,
-            voxel_size,
-        )
-        h_dist = min(h_dist, hausdorff_distance_max)
-        hausdorff_distances.append(h_dist)
+    hausdorff_distances = optimized_hausdorff_distances(
+        truth_label, matched_pred_label, voxel_size, hausdorff_distance_max
+    )
 
     # Compute the scores
     accuracy = accuracy_score(truth_label.flatten(), matched_pred_label.flatten())
-    hausdorff_dist = np.mean(hausdorff_distances) if hausdorff_distances else 0
+    hausdorff_dist = np.mean(hausdorff_distances) if len(hausdorff_distances) > 0 else 0
     normalized_hausdorff_dist = 1.01 ** (
         -hausdorff_dist / np.linalg.norm(voxel_size)
-    )  # normalize Hausdorff distance to [0, 1] using the maximum distance represented by a voxel. 32 is abritrary chosen to have a reasonable range
+    )  # normalize Hausdorff distance to [0, 1] using the maximum distance represented by a voxel. 32 is abitrarily chosen to have a reasonable range
     combined_score = (accuracy * normalized_hausdorff_dist) ** 0.5
     print(f"Accuracy: {accuracy:.4f}")
     print(f"Hausdorff Distance: {hausdorff_dist:.4f}")
@@ -753,6 +776,7 @@ def score_submission(
     }
     """
     print(f"Scoring {submission_path}...")
+    start_time = time()
     # Unzip the submission
     submission_path = unzip_file(submission_path)
 
@@ -826,7 +850,9 @@ def score_submission(
         print(f"Saving scores for only submitted data to {found_result_file}...")
         with open(found_result_file, "w") as f:
             json.dump(found_scores, f)
-
+        print(
+            f"Scores saved to {result_file} and {found_result_file} in {time() - start_time:.2f} seconds"
+        )
     else:
         return all_scores
 
