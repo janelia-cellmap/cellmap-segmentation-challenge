@@ -894,14 +894,8 @@ def package_submission(
         else:
             crop_group = zarr_group[f"crop{crop.id}"]
 
-        # Rescale the processed volumes to match the expected submission resolution if required
-        label_array = crop_group.create_dataset(
-            crop.class_label,
-            overwrite=overwrite,
-            shape=crop.shape,
-        )
         print(f"Scaling {crop_path} to {crop.voxel_size} nm")
-        # Match the resolution of the processed volume to the test volume
+        # Match the resolution, spatial position, and shape of the processed volume to the test volume
         image = match_crop_space(
             path=crop_path.path,
             class_label=crop.class_label,
@@ -910,6 +904,12 @@ def package_submission(
             translation=crop.translation,
         )
         # Save the processed labels to the submission zarr
+        label_array = crop_group.create_dataset(
+            crop.class_label,
+            overwrite=overwrite,
+            shape=crop.shape,
+            dtype=image.dtype,
+        )
         label_array[:] = image
         # Add the metadata
         label_array.attrs["voxel_size"] = crop.voxel_size
