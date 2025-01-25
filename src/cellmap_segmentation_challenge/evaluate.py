@@ -42,7 +42,7 @@ INSTANCE_CLASSES = [
 
 
 HAUSDORFF_DISTANCE_MAX = np.inf
-MAX_THREADS = os.getenv("MAX_THREADS", os.cpu_count() / 2)
+MAX_THREADS = int(os.getenv("MAX_THREADS", os.cpu_count() / 2))
 
 
 def score_label_single(label, pred_volume_path, truth_path, instance_classes):
