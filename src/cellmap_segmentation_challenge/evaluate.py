@@ -51,6 +51,7 @@ class spoof_precomputed:
     def __init__(self, array, ids):
         self.array = array
         self.ids = ids
+        self.index = -1
 
     def __getitem__(self, ids):
         if isinstance(ids, int):
@@ -59,6 +60,13 @@ class spoof_precomputed:
 
     def __len__(self):
         return len(self.ids)
+
+    # def __iter__(self):
+    #     self.index += 1
+    #     try:
+    #         return np.array(self.array == self.ids[self.index], dtype=bool)
+    #     except IndexError:
+    #         return
 
 
 def score_label_single(
@@ -380,18 +388,20 @@ def score_instance(
             [(truth_flat == tid) for tid in truth_ids], dtype=bool
         )
 
-    def get_cost(j, pred_mask):
+    def get_cost(j):
         # Find all `truth_ids` that overlap with this prediction mask
+        pred_mask = pred_flat == pred_ids[j]
         relevant_truth_ids = np.unique(truth_flat[pred_mask])
         relevant_truth_ids = relevant_truth_ids[relevant_truth_ids != 0]
         relevant_truth_indices = np.where(np.isin(truth_ids, relevant_truth_ids))[0]
+        relevant_truth_masks = truth_binary_masks[relevant_truth_indices]
 
         if relevant_truth_indices.size == 0:
             return [], j, []
 
-        tp = truth_binary_masks[relevant_truth_indices, pred_mask].sum(1)
-        fn = (truth_binary_masks[relevant_truth_indices, pred_mask == 0]).sum(1)
-        fp = (truth_binary_masks[relevant_truth_indices, pred_mask] == 0).sum(1)
+        tp = relevant_truth_masks[:, pred_mask].sum(1)
+        fn = (relevant_truth_masks[:, pred_mask == 0]).sum(1)
+        fp = (relevant_truth_masks[:, pred_mask] == 0).sum(1)
 
         # Compute Jaccard scores
         jaccard_scores = tp / (tp + fp + fn)
@@ -399,31 +409,30 @@ def score_instance(
         # Fill in the cost matrix for this `j` (prediction)
         return relevant_truth_indices, j, jaccard_scores
 
-    if executor is None:
-        # Use tqdm for progress tracking
-        bar = tqdm(
-            enumerate(spoof_precomputed(pred_flat, pred_ids)),
-            desc="Computing cost matrix",
-            leave=True,
-            dynamic_ncols=True,
-            total=len(pred_ids),
-        )
+    if len(pred_ids) > 0:
         # Compute the cost matrix
-        for j, pred_mask in bar:
-            relevant_truth_indices, j, jaccard_scores = get_cost(j, pred_mask)
-            cost_matrix[relevant_truth_indices, j] = jaccard_scores
-    else:
-        results = executor.map(
-            get_cost, range(len(pred_ids)), spoof_precomputed(pred_flat, pred_ids)
-        )
-        for relevant_truth_indices, j, jaccard_scores in tqdm(
-            results.as_completed(),
-            desc="Computing cost matrix in parallel",
-            dynamic_ncols=True,
-            total=len(pred_ids),
-            leave=True,
-        ):
-            cost_matrix[relevant_truth_indices, j] = jaccard_scores
+        if executor is None:
+            # Use tqdm for progress tracking
+            bar = tqdm(
+                range(pred_ids),
+                desc="Computing cost matrix",
+                leave=True,
+                dynamic_ncols=True,
+                total=len(pred_ids),
+            )
+            # Compute the cost matrix
+            for j in bar:
+                relevant_truth_indices, j, jaccard_scores = get_cost(j)
+                cost_matrix[relevant_truth_indices, j] = jaccard_scores
+        else:
+            for relevant_truth_indices, j, jaccard_scores in tqdm(
+                executor.map(get_cost, range(len(pred_ids))),
+                desc="Computing cost matrix in parallel",
+                dynamic_ncols=True,
+                total=len(pred_ids),
+                leave=True,
+            ):
+                cost_matrix[relevant_truth_indices, j] = jaccard_scores
 
     # Match the predicted instances to the ground truth instances
     row_inds, col_inds = linear_sum_assignment(cost_matrix, maximize=True)
@@ -541,7 +550,9 @@ def score_label(
 
     # Compute the scores
     if label_name in instance_classes:
-        results = score_instance(pred_label, truth_label, crop.voxel_size, executor)
+        results = score_instance(
+            pred_label, truth_label, crop.voxel_size, executor=executor
+        )
     else:
         results = score_semantic(pred_label, truth_label)
     results["num_voxels"] = int(np.prod(truth_label.shape))
