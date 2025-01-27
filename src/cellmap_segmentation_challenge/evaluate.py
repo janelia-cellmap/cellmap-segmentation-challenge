@@ -11,7 +11,7 @@ from scipy.spatial.distance import dice  # , jaccard
 from skimage.measure import label as relabel
 from skimage.transform import rescale
 from scipy.spatial import cKDTree
-from sklearn.metrics import accuracy_score, jaccard_score, multilabel_confusion_matrix
+from sklearn.metrics import accuracy_score, jaccard_score
 from tqdm import tqdm
 from upath import UPath
 
@@ -42,7 +42,20 @@ INSTANCE_CLASSES = [
 
 
 HAUSDORFF_DISTANCE_MAX = np.inf
-MAX_THREADS = int(os.getenv("MAX_THREADS", os.cpu_count() / 2))
+MAX_THREADS = int(os.getenv("MAX_THREADS", os.cpu_count()))
+DEBUG = os.getenv("DEBUG", False)
+
+
+class spoof_precomputed:
+    def __init__(self, array, ids):
+        self.array = array
+        self.ids = ids
+
+    def __getitem__(self, i):
+        return np.array(self.array == self.ids[i], dtype=bool)
+
+    def __len__(self):
+        return len(self.ids)
 
 
 def score_label_single(label, pred_volume_path, truth_path, instance_classes):
@@ -54,16 +67,19 @@ def score_label_single(label, pred_volume_path, truth_path, instance_classes):
     return (label, score)
 
 
-def parallel_score_labels(found_labels, pred_volume_path, truth_path, instance_classes):
+def parallel_score_labels(
+    found_labels, pred_volume_path, truth_path, instance_classes, executor=None
+):
     partial_score_func = functools.partial(
         score_label_single,
         pred_volume_path=pred_volume_path,
         truth_path=truth_path,
         instance_classes=instance_classes,
     )
-
-    with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
+    if executor is not None:
         results = executor.map(partial_score_func, found_labels)
+    else:
+        results = map(partial_score_func, found_labels)
 
     # `results` is an iterator of (label, score) tuples, so convert to dict
     return dict(results)
@@ -242,9 +258,13 @@ def optimized_hausdorff_distances(
     if len(truth_ids) == 0:
         return []
 
-    # Precompute binary masks for all truth IDs
-    truth_binary_masks = [(truth_label == tid) for tid in truth_ids]
-    pred_binary_masks = [(matched_pred_label == tid) for tid in truth_ids]
+    # Precompute binary masks for all truth IDs, but only for the matched prediction labels, and don't run out of memory
+    if len(truth_label.flatten()) * len(truth_ids) > 2e9:
+        truth_binary_masks = spoof_precomputed(truth_label.flatten(), truth_ids)
+        pred_binary_masks = spoof_precomputed(matched_pred_label.flatten(), truth_ids)
+    else:
+        truth_binary_masks = [(truth_label == tid) for tid in truth_ids]
+        pred_binary_masks = [(matched_pred_label == tid) for tid in truth_ids]
 
     # Initialize list for distances
     hausdorff_distances = np.empty(len(truth_ids))
@@ -340,46 +360,42 @@ def score_instance(
     truth_flat = truth_label.flatten()
     pred_flat = pred_label.flatten()
 
-    # Create binary masks for all `truth_ids` and `pred_ids`
-    truth_binary_masks = np.array(
-        [(truth_flat == tid) for tid in truth_ids], dtype=bool
-    )
-    pred_binary_masks = np.array([(pred_flat == pid) for pid in pred_ids], dtype=bool)
+    # Precompute binary masks for all `truth_ids`
+    if len(truth_flat) * len(truth_ids) > 1e9:
+        truth_binary_masks = spoof_precomputed(truth_flat, truth_ids)
+    else:
+        truth_binary_masks = np.array(
+            [(truth_flat == tid) for tid in truth_ids], dtype=bool
+        )
 
     # Use tqdm for progress tracking
     bar = tqdm(
-        range(len(pred_binary_masks)),
+        enumerate(spoof_precomputed(pred_flat, pred_ids)),
         desc="Computing cost matrix",
         leave=True,
         dynamic_ncols=True,
+        total=len(pred_ids),
     )
-
     # Compute the cost matrix
-    for j in bar:
-        pred_mask = pred_binary_masks[j]
-
+    for j, pred_mask in bar:
         # Find all `truth_ids` that overlap with this prediction mask
-        relevant_truth_masks = truth_binary_masks[:, pred_mask.any(axis=0)]
+        relevant_truth_ids = np.unique(truth_flat[pred_mask])
+        relevant_truth_ids = relevant_truth_ids[relevant_truth_ids != 0]
+        relevant_truth_indices = np.where(np.isin(truth_ids, relevant_truth_ids))[0]
+        relevant_truth_masks = truth_binary_masks[relevant_truth_indices, :]
 
         if relevant_truth_masks.size == 0:
             continue
 
-        # Compute multilabel confusion matrix for relevant truth masks
-        mcm = multilabel_confusion_matrix(
-            relevant_truth_masks.T,  # Ground truth (binary masks for relevant truth IDs)
-            pred_mask,  # Predicted binary mask
-        )
-
-        # Extract true positives, false positives, and false negatives
-        tp = mcm[:, 1, 1]
-        fp = mcm[:, 0, 1]
-        fn = mcm[:, 1, 0]
+        tp = relevant_truth_masks[:, pred_mask].sum(1)
+        fn = (relevant_truth_masks[:, pred_mask == 0]).sum(1)
+        fp = (relevant_truth_masks[:, pred_mask] == 0).sum(1)
 
         # Compute Jaccard scores
         jaccard_scores = tp / (tp + fp + fn)
 
         # Fill in the cost matrix for this `j` (prediction)
-        cost_matrix[: len(jaccard_scores), j] = jaccard_scores
+        cost_matrix[relevant_truth_indices, j] = jaccard_scores
 
     # Match the predicted instances to the ground truth instances
     row_inds, col_inds = linear_sum_assignment(cost_matrix, maximize=True)
@@ -501,7 +517,11 @@ def score_label(
 
 
 def score_volume(
-    pred_volume_path, truth_path=TRUTH_PATH, instance_classes=INSTANCE_CLASSES
+    volume,
+    submission_path,
+    truth_path=TRUTH_PATH,
+    instance_classes=INSTANCE_CLASSES,
+    executor=None,
 ) -> dict[str, dict[str, float]]:
     """
     Score a single volume against the ground truth volume.
@@ -515,8 +535,9 @@ def score_volume(
     Example usage:
         scores = score_volume('pred.zarr/test_volume')
     """
+    submission_path = UPath(submission_path)
+    pred_volume_path = submission_path / volume
     print(f"Scoring {pred_volume_path}...")
-    pred_volume_path = UPath(pred_volume_path)
     truth_path = UPath(truth_path)
 
     # Find labels to score
@@ -532,7 +553,7 @@ def score_volume(
 
     # Score each label
     scores = parallel_score_labels(
-        found_labels, pred_volume_path, truth_path, instance_classes
+        found_labels, pred_volume_path, truth_path, instance_classes, executor
     )
     scores.update(
         {
@@ -576,7 +597,7 @@ def score_volume(
     )
     print(f"Missing labels: {missing_labels}")
 
-    return scores
+    return volume, scores
 
 
 def missing_volume_score(
@@ -803,14 +824,32 @@ def score_submission(
         print("Scoring missing volumes as 0's")
 
     # Score each volume
-    scores = {
-        volume: score_volume(
-            submission_path / volume,
-            truth_path=truth_path,
-            instance_classes=instance_classes,
-        )
-        for volume in found_volumes
-    }
+    if DEBUG:
+        print("Scoring volumes in serial for debugging...")
+        scores = {
+            volume: score_volume(
+                volume=volume,
+                submission_path=UPath(submission_path),
+                truth_path=truth_path,
+                instance_classes=instance_classes,
+                executor=None,
+            )
+            for volume in found_volumes
+        }
+    else:
+        with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
+            results = executor.map(
+                functools.partial(
+                    score_volume,
+                    submission_path=UPath(submission_path),
+                    truth_path=truth_path,
+                    instance_classes=instance_classes,
+                    executor=executor,
+                ),
+                found_volumes,
+            )
+            scores = dict(results)
+
     scores.update(
         {
             volume: missing_volume_score(
