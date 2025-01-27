@@ -43,6 +43,7 @@ INSTANCE_CLASSES = [
 
 HAUSDORFF_DISTANCE_MAX = np.inf
 MAX_THREADS = int(os.getenv("MAX_THREADS", os.cpu_count()))
+PRECOMPUTE_LIMIT = os.getenv("PRECOMPUTE_LIMIT", 2e9)
 DEBUG = os.getenv("DEBUG", False)
 
 
@@ -51,8 +52,10 @@ class spoof_precomputed:
         self.array = array
         self.ids = ids
 
-    def __getitem__(self, i):
-        return np.array(self.array == self.ids[i], dtype=bool)
+    def __getitem__(self, ids):
+        if isinstance(ids, int):
+            return np.array(self.array == self.ids[ids], dtype=bool)
+        return np.array([self.array == self.ids[i] for i in ids], dtype=bool)
 
     def __len__(self):
         return len(self.ids)
@@ -259,7 +262,7 @@ def optimized_hausdorff_distances(
         return []
 
     # Precompute binary masks for all truth IDs, but only for the matched prediction labels, and don't run out of memory
-    if len(truth_label.flatten()) * len(truth_ids) > 2e9:
+    if len(truth_label.flatten()) * len(truth_ids) > PRECOMPUTE_LIMIT:
         truth_binary_masks = spoof_precomputed(truth_label.flatten(), truth_ids)
         pred_binary_masks = spoof_precomputed(matched_pred_label.flatten(), truth_ids)
     else:
@@ -361,7 +364,7 @@ def score_instance(
     pred_flat = pred_label.flatten()
 
     # Precompute binary masks for all `truth_ids`
-    if len(truth_flat) * len(truth_ids) > 1e9:
+    if len(truth_flat) * len(truth_ids) > PRECOMPUTE_LIMIT:
         truth_binary_masks = spoof_precomputed(truth_flat, truth_ids)
     else:
         truth_binary_masks = np.array(
@@ -382,7 +385,7 @@ def score_instance(
         relevant_truth_ids = np.unique(truth_flat[pred_mask])
         relevant_truth_ids = relevant_truth_ids[relevant_truth_ids != 0]
         relevant_truth_indices = np.where(np.isin(truth_ids, relevant_truth_ids))[0]
-        relevant_truth_masks = truth_binary_masks[relevant_truth_indices, :]
+        relevant_truth_masks = truth_binary_masks[relevant_truth_indices]
 
         if relevant_truth_masks.size == 0:
             continue
