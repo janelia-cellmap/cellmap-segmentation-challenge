@@ -42,9 +42,11 @@ INSTANCE_CLASSES = [
 
 
 HAUSDORFF_DISTANCE_MAX = np.inf
-MAX_THREADS = int(os.getenv("MAX_THREADS", os.cpu_count()))
-PRECOMPUTE_LIMIT = os.getenv("PRECOMPUTE_LIMIT", 2e9)
-DEBUG = os.getenv("DEBUG", False)
+MAX_MAIN_THREADS = int(os.getenv("MAX_MAIN_THREADS", 2))
+MAX_LABEL_THREADS = int(os.getenv("MAX_LABEL_THREADS", 2))
+MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 2))
+PRECOMPUTE_LIMIT = int(os.getenv("PRECOMPUTE_LIMIT", 1e9))
+DEBUG = os.getenv("DEBUG", "False") != "False"
 
 
 class spoof_precomputed:
@@ -61,40 +63,28 @@ class spoof_precomputed:
     def __len__(self):
         return len(self.ids)
 
-    # def __iter__(self):
-    #     self.index += 1
-    #     try:
-    #         return np.array(self.array == self.ids[self.index], dtype=bool)
-    #     except IndexError:
-    #         return
 
-
-def score_label_single(
-    label, pred_volume_path, truth_path, instance_classes, executor=None
-):
+def score_label_single(label, pred_volume_path, truth_path, instance_classes):
     score = score_label(
         pred_volume_path / label,
         truth_path=truth_path,
         instance_classes=instance_classes,
-        executor=executor,
     )
     return (label, score)
 
 
-def parallel_score_labels(
-    found_labels, pred_volume_path, truth_path, instance_classes, executor=None
-):
+def parallel_score_labels(found_labels, pred_volume_path, truth_path, instance_classes):
     partial_score_func = functools.partial(
         score_label_single,
         pred_volume_path=pred_volume_path,
         truth_path=truth_path,
         instance_classes=instance_classes,
-        executor=executor,
     )
-    if executor is not None:
-        results = executor.map(partial_score_func, found_labels)
-    else:
+    if DEBUG:
         results = map(partial_score_func, found_labels)
+    else:
+        with ThreadPoolExecutor(max_workers=MAX_LABEL_THREADS) as executor:
+            results = executor.map(partial_score_func, found_labels)
 
     # `results` is an iterator of (label, score) tuples, so convert to dict
     return dict(results)
@@ -273,32 +263,47 @@ def optimized_hausdorff_distances(
     if len(truth_ids) == 0:
         return []
 
-    # Precompute binary masks for all truth IDs, but only for the matched prediction labels, and don't run out of memory
-    if len(truth_label.flatten()) * len(truth_ids) > PRECOMPUTE_LIMIT:
-        truth_binary_masks = spoof_precomputed(truth_label.flatten(), truth_ids)
-        pred_binary_masks = spoof_precomputed(matched_pred_label.flatten(), truth_ids)
-    else:
-        truth_binary_masks = [(truth_label == tid) for tid in truth_ids]
-        pred_binary_masks = [(matched_pred_label == tid) for tid in truth_ids]
+    def get_distance(i):
+        # Skip if both masks are empty
+        truth_mask = truth_label == truth_ids[i]
+        pred_mask = matched_pred_label == truth_ids[i]
+        if not np.any(truth_mask) and not np.any(pred_mask):
+            return 0
+
+        # Compute Hausdorff distance for the current pair
+        h_dist = compute_hausdorff_distance(
+            truth_mask,
+            pred_mask,
+            voxel_size,
+            hausdorff_distance_max,
+            method,
+        )
+        return i, h_dist
 
     # Initialize list for distances
     hausdorff_distances = np.empty(len(truth_ids))
-
-    for i, (truth_mask, pred_mask) in tqdm(
-        enumerate(zip(truth_binary_masks, pred_binary_masks)),
-        desc="Computing Hausdorff distances",
-        total=len(truth_ids),
-        dynamic_ncols=True,
-    ):
-        # Skip if both masks are empty
-        if not np.any(truth_mask) and not np.any(pred_mask):
-            hausdorff_distances[i] = 0
-        else:
-            # Compute Hausdorff distance for the current pair
-            h_dist = compute_hausdorff_distance(
-                truth_mask, pred_mask, voxel_size, hausdorff_distance_max, method
-            )
+    if DEBUG:
+        # Use tqdm for progress tracking
+        bar = tqdm(
+            range(len(truth_ids)),
+            desc="Computing Hausdorff distances",
+            leave=True,
+            dynamic_ncols=True,
+            total=len(truth_ids),
+        )
+        # Compute the cost matrix
+        for i in bar:
+            i, h_dist = get_distance(i)
             hausdorff_distances[i] = h_dist
+    else:
+        with ThreadPoolExecutor(max_workers=MAX_INSTANCE_THREADS) as executor:
+            for i, h_dist in tqdm(
+                executor.map(get_distance, range(len(truth_ids))),
+                desc="Computing Hausdorff distances",
+                total=len(truth_ids),
+                dynamic_ncols=True,
+            ):
+                hausdorff_distances[i] = h_dist
 
     return hausdorff_distances
 
@@ -344,7 +349,6 @@ def score_instance(
     truth_label,
     voxel_size,
     hausdorff_distance_max=HAUSDORFF_DISTANCE_MAX,
-    executor=None,
 ) -> dict[str, float]:
     """
     Score a single instance label volume against the ground truth instance label volume.
@@ -354,7 +358,6 @@ def score_instance(
         truth_label (np.ndarray): The ground truth instance label volume.
         voxel_size (tuple): The size of a voxel in each dimension.
         hausdorff_distance_max (float): The maximum distance to consider for the Hausdorff distance.
-        executor (None | concurrent.futures.Executor): An executor for parallel processing.
 
     Returns:
         dict: A dictionary of scores for the instance label volume.
@@ -411,7 +414,7 @@ def score_instance(
 
     if len(pred_ids) > 0:
         # Compute the cost matrix
-        if executor is None:
+        if DEBUG:
             # Use tqdm for progress tracking
             bar = tqdm(
                 range(pred_ids),
@@ -425,14 +428,15 @@ def score_instance(
                 relevant_truth_indices, j, jaccard_scores = get_cost(j)
                 cost_matrix[relevant_truth_indices, j] = jaccard_scores
         else:
-            for relevant_truth_indices, j, jaccard_scores in tqdm(
-                executor.map(get_cost, range(len(pred_ids))),
-                desc="Computing cost matrix in parallel",
-                dynamic_ncols=True,
-                total=len(pred_ids),
-                leave=True,
-            ):
-                cost_matrix[relevant_truth_indices, j] = jaccard_scores
+            with ThreadPoolExecutor(max_workers=MAX_INSTANCE_THREADS) as executor:
+                for relevant_truth_indices, j, jaccard_scores in tqdm(
+                    executor.map(get_cost, range(len(pred_ids))),
+                    desc="Computing cost matrix in parallel",
+                    dynamic_ncols=True,
+                    total=len(pred_ids),
+                    leave=True,
+                ):
+                    cost_matrix[relevant_truth_indices, j] = jaccard_scores
 
     # Match the predicted instances to the ground truth instances
     row_inds, col_inds = linear_sum_assignment(cost_matrix, maximize=True)
@@ -503,10 +507,7 @@ def score_semantic(pred_label, truth_label) -> dict[str, float]:
 
 
 def score_label(
-    pred_label_path,
-    truth_path=TRUTH_PATH,
-    instance_classes=INSTANCE_CLASSES,
-    executor=None,
+    pred_label_path, truth_path=TRUTH_PATH, instance_classes=INSTANCE_CLASSES
 ) -> dict[str, float]:
     """
     Score a single label volume against the ground truth label volume.
@@ -515,7 +516,6 @@ def score_label(
         pred_label_path (str): The path to the predicted label volume.
         truth_path (str): The path to the ground truth label volume.
         instance_classes (list): A list of instance classes.
-        executor (None | concurrent.futures.Executor): An executor for parallel processing.
 
     Returns:
         dict: A dictionary of scores for the label volume.
@@ -550,9 +550,7 @@ def score_label(
 
     # Compute the scores
     if label_name in instance_classes:
-        results = score_instance(
-            pred_label, truth_label, crop.voxel_size, executor=executor
-        )
+        results = score_instance(pred_label, truth_label, crop.voxel_size)
     else:
         results = score_semantic(pred_label, truth_label)
     results["num_voxels"] = int(np.prod(truth_label.shape))
@@ -566,7 +564,6 @@ def score_volume(
     submission_path,
     truth_path=TRUTH_PATH,
     instance_classes=INSTANCE_CLASSES,
-    executor=None,
 ) -> dict[str, dict[str, float]]:
     """
     Score a single volume against the ground truth volume.
@@ -598,7 +595,7 @@ def score_volume(
 
     # Score each label
     scores = parallel_score_labels(
-        found_labels, pred_volume_path, truth_path, instance_classes, executor
+        found_labels, pred_volume_path, truth_path, instance_classes
     )
     scores.update(
         {
@@ -877,19 +874,17 @@ def score_submission(
                 submission_path=UPath(submission_path),
                 truth_path=truth_path,
                 instance_classes=instance_classes,
-                executor=None,
             )
             for volume in found_volumes
         }
     else:
-        with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
+        with ThreadPoolExecutor(max_workers=MAX_MAIN_THREADS) as executor:
             results = executor.map(
                 functools.partial(
                     score_volume,
                     submission_path=UPath(submission_path),
                     truth_path=truth_path,
                     instance_classes=instance_classes,
-                    executor=executor,
                 ),
                 found_volumes,
             )
