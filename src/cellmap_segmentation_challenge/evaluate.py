@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+from time import time
 import zipfile
 
 import numpy as np
@@ -16,6 +17,9 @@ from upath import UPath
 
 from cellmap_data import CellMapImage
 import zarr.errors
+
+import functools
+from concurrent.futures import ThreadPoolExecutor
 
 from .config import PROCESSED_PATH, SUBMISSION_PATH, TRUTH_PATH
 from .utils import TEST_CROPS, TEST_CROPS_DICT
@@ -38,6 +42,52 @@ INSTANCE_CLASSES = [
 
 
 HAUSDORFF_DISTANCE_MAX = np.inf
+MAX_MAIN_THREADS = int(os.getenv("MAX_MAIN_THREADS", 2))
+MAX_LABEL_THREADS = int(os.getenv("MAX_LABEL_THREADS", 2))
+MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 2))
+PRECOMPUTE_LIMIT = int(os.getenv("PRECOMPUTE_LIMIT", 1e9))
+DEBUG = os.getenv("DEBUG", "False") != "False"
+
+
+class spoof_precomputed:
+    def __init__(self, array, ids):
+        self.array = array
+        self.ids = ids
+        self.index = -1
+
+    def __getitem__(self, ids):
+        if isinstance(ids, int):
+            return np.array(self.array == self.ids[ids], dtype=bool)
+        return np.array([self.array == self.ids[i] for i in ids], dtype=bool)
+
+    def __len__(self):
+        return len(self.ids)
+
+
+def score_label_single(label, pred_volume_path, truth_path, instance_classes):
+    score = score_label(
+        pred_volume_path / label,
+        truth_path=truth_path,
+        instance_classes=instance_classes,
+    )
+    return (label, score)
+
+
+def parallel_score_labels(found_labels, pred_volume_path, truth_path, instance_classes):
+    partial_score_func = functools.partial(
+        score_label_single,
+        pred_volume_path=pred_volume_path,
+        truth_path=truth_path,
+        instance_classes=instance_classes,
+    )
+    if DEBUG:
+        results = map(partial_score_func, found_labels)
+    else:
+        with ThreadPoolExecutor(max_workers=MAX_LABEL_THREADS) as executor:
+            results = executor.map(partial_score_func, found_labels)
+
+    # `results` is an iterator of (label, score) tuples, so convert to dict
+    return dict(results)
 
 
 def unzip_file(zip_path):
@@ -200,83 +250,105 @@ def resize_array(arr, target_shape, pad_value=0):
     return resized_arr[tuple(slices)]
 
 
-def hausdorff_distance(
-    image0, image1, voxel_size, max_distance=np.inf, method="standard"
+def optimized_hausdorff_distances(
+    truth_label,
+    matched_pred_label,
+    voxel_size,
+    hausdorff_distance_max,
+    method="standard",
 ):
-    """Calculate the Hausdorff distance between nonzero elements of given images.
+    # Get unique truth IDs, excluding the background (0)
+    truth_ids = np.unique(truth_label)
+    truth_ids = truth_ids[truth_ids != 0]  # Exclude background
+    if len(truth_ids) == 0:
+        return []
 
-    Modified from the `scipy.spatial.distance.hausdorff` function by Jeff Rhoades (2024) to handle non-isotropic resolutions.
+    def get_distance(i):
+        # Skip if both masks are empty
+        truth_mask = truth_label == truth_ids[i]
+        pred_mask = matched_pred_label == truth_ids[i]
+        if not np.any(truth_mask) and not np.any(pred_mask):
+            return 0
 
-    Parameters
-    ----------
-    image0, image1 : ndarray
-        Arrays where ``True`` represents a point that is included in a
-        set of points. Both arrays must have the same shape.
-    voxel_size : tuple
-        The size of a voxel in each dimension. Assumes the same resolution for both images.
-    max_distance : float, optional
-        The maximum distance to consider. Default is infinity.
-    method : {'standard', 'modified'}, optional, default = 'standard'
-        The method to use for calculating the Hausdorff distance.
-        ``standard`` is the standard Hausdorff distance, while ``modified``
-        is the modified Hausdorff distance.
+        # Compute Hausdorff distance for the current pair
+        h_dist = compute_hausdorff_distance(
+            truth_mask,
+            pred_mask,
+            voxel_size,
+            hausdorff_distance_max,
+            method,
+        )
+        return i, h_dist
 
-    Returns
-    -------
-    distance : float
-        The Hausdorff distance between coordinates of nonzero pixels in
-        ``image0`` and ``image1``, using the Euclidean distance.
+    # Initialize list for distances
+    hausdorff_distances = np.empty(len(truth_ids))
+    if DEBUG:
+        # Use tqdm for progress tracking
+        bar = tqdm(
+            range(len(truth_ids)),
+            desc="Computing Hausdorff distances",
+            leave=True,
+            dynamic_ncols=True,
+            total=len(truth_ids),
+        )
+        # Compute the cost matrix
+        for i in bar:
+            i, h_dist = get_distance(i)
+            hausdorff_distances[i] = h_dist
+    else:
+        with ThreadPoolExecutor(max_workers=MAX_INSTANCE_THREADS) as executor:
+            for i, h_dist in tqdm(
+                executor.map(get_distance, range(len(truth_ids))),
+                desc="Computing Hausdorff distances",
+                total=len(truth_ids),
+                dynamic_ncols=True,
+            ):
+                hausdorff_distances[i] = h_dist
 
-    Notes
-    -----
-    The Hausdorff distance [1]_ is the maximum distance between any point on
-    ``image0`` and its nearest point on ``image1``, and vice-versa.
-    The Modified Hausdorff Distance (MHD) has been shown to perform better
-    than the directed Hausdorff Distance (HD) in the following work by
-    Dubuisson et al. [2]_. The function calculates forward and backward
-    mean distances and returns the largest of the two.
+    return hausdorff_distances
 
-    References
-    ----------
-    .. [1] http://en.wikipedia.org/wiki/Hausdorff_distance
-    .. [2] M. P. Dubuisson and A. K. Jain. A Modified Hausdorff distance for object
-       matching. In ICPR94, pages A:566-568, Jerusalem, Israel, 1994.
-       :DOI:`10.1109/ICPR.1994.576361`
-       http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.1.8155
 
+def compute_hausdorff_distance(image0, image1, voxel_size, max_distance, method):
     """
-
-    if method not in ("standard", "modified"):
-        raise ValueError(f"unrecognized method {method}")
-
+    Compute the Hausdorff distance between two binary masks, optimized for pre-vectorized inputs.
+    """
+    # Extract nonzero points
     a_points = np.argwhere(image0)
     b_points = np.argwhere(image1)
 
-    # Handle empty sets properly:
-    # - if both sets are empty, return zero
-    # - if only one set is empty, return infinity
-    if len(a_points) == 0:
-        return 0 if len(b_points) == 0 else np.inf
-    elif len(b_points) == 0:
+    # Handle empty sets
+    if len(a_points) == 0 and len(b_points) == 0:
+        return 0
+    elif len(a_points) == 0 or len(b_points) == 0:
         return np.inf
 
-    # Scale the points by the voxel size
+    # Scale points by voxel size
     a_points = a_points * np.array(voxel_size)
     b_points = b_points * np.array(voxel_size)
 
-    fwd, bwd = (
-        cKDTree(a_points).query(b_points, k=1, distance_upper_bound=max_distance)[0],
-        cKDTree(b_points).query(a_points, k=1, distance_upper_bound=max_distance)[0],
-    )
+    # Build KD-trees once
+    a_tree = cKDTree(a_points)
+    b_tree = cKDTree(b_points)
 
-    if method == "standard":  # standard Hausdorff distance
-        return max(max(fwd), max(bwd))
-    elif method == "modified":  # modified Hausdorff distance
-        return max(np.mean(fwd), np.mean(bwd))
+    # Query distances
+    fwd = a_tree.query(b_points, k=1, distance_upper_bound=max_distance)[0]
+    bwd = b_tree.query(a_points, k=1, distance_upper_bound=max_distance)[0]
+
+    # Replace "inf" with `max_distance` for numerical stability
+    fwd[fwd == np.inf] = max_distance
+    bwd[bwd == np.inf] = max_distance
+
+    if method == "standard":
+        return max(fwd.max(), bwd.max())
+    elif method == "modified":
+        return max(fwd.mean(), bwd.mean())
 
 
 def score_instance(
-    pred_label, truth_label, voxel_size, hausdorff_distance_max=HAUSDORFF_DISTANCE_MAX
+    pred_label,
+    truth_label,
+    voxel_size,
+    hausdorff_distance_max=HAUSDORFF_DISTANCE_MAX,
 ) -> dict[str, float]:
     """
     Score a single instance label volume against the ground truth instance label volume.
@@ -293,31 +365,78 @@ def score_instance(
     Example usage:
         scores = score_instance(pred_label, truth_label)
     """
-    # Relabel the predicted instance labels to be consistent with the ground truth instance labels
     print("Scoring instance segmentation...")
+    # Relabel the predicted instance labels to be consistent with the ground truth instance labels
     pred_label = relabel(pred_label, connectivity=len(pred_label.shape))
-    # pred_label = label(pred_label)
 
-    # Construct the cost matrix for Hungarian matching
-    pred_ids = np.unique(pred_label)
+    # Get unique IDs, excluding background (assumed to be 0)
     truth_ids = np.unique(truth_label)
+    truth_ids = truth_ids[truth_ids != 0]
+
+    pred_ids = np.unique(pred_label)
+    pred_ids = pred_ids[pred_ids != 0]
+
+    # Initialize the cost matrix
     cost_matrix = np.zeros((len(truth_ids), len(pred_ids)))
-    bar = tqdm(pred_ids, desc="Computing cost matrix", leave=True, dynamic_ncols=True)
-    for j, pred_id in enumerate(bar):
-        if pred_id == 0:
-            # Don't score the background
-            continue
-        pred_mask = pred_label == pred_id
-        these_truth_ids = np.unique(truth_label[pred_mask])
-        truth_indices = [
-            np.argmax(truth_ids == truth_id) for truth_id in these_truth_ids
-        ]
-        for i, truth_id in zip(truth_indices, these_truth_ids):
-            if truth_id == 0:
-                # Don't score the background
-                continue
-            truth_mask = truth_label == truth_id
-            cost_matrix[i, j] = jaccard_score(truth_mask.flatten(), pred_mask.flatten())
+
+    # Flatten the labels for vectorized computation
+    truth_flat = truth_label.flatten()
+    pred_flat = pred_label.flatten()
+
+    # Precompute binary masks for all `truth_ids`
+    if len(truth_flat) * len(truth_ids) > PRECOMPUTE_LIMIT:
+        truth_binary_masks = spoof_precomputed(truth_flat, truth_ids)
+    else:
+        truth_binary_masks = np.array(
+            [(truth_flat == tid) for tid in truth_ids], dtype=bool
+        )
+
+    def get_cost(j):
+        # Find all `truth_ids` that overlap with this prediction mask
+        pred_mask = pred_flat == pred_ids[j]
+        relevant_truth_ids = np.unique(truth_flat[pred_mask])
+        relevant_truth_ids = relevant_truth_ids[relevant_truth_ids != 0]
+        relevant_truth_indices = np.where(np.isin(truth_ids, relevant_truth_ids))[0]
+        relevant_truth_masks = truth_binary_masks[relevant_truth_indices]
+
+        if relevant_truth_indices.size == 0:
+            return [], j, []
+
+        tp = relevant_truth_masks[:, pred_mask].sum(1)
+        fn = (relevant_truth_masks[:, pred_mask == 0]).sum(1)
+        fp = (relevant_truth_masks[:, pred_mask] == 0).sum(1)
+
+        # Compute Jaccard scores
+        jaccard_scores = tp / (tp + fp + fn)
+
+        # Fill in the cost matrix for this `j` (prediction)
+        return relevant_truth_indices, j, jaccard_scores
+
+    if len(pred_ids) > 0:
+        # Compute the cost matrix
+        if DEBUG:
+            # Use tqdm for progress tracking
+            bar = tqdm(
+                range(pred_ids),
+                desc="Computing cost matrix",
+                leave=True,
+                dynamic_ncols=True,
+                total=len(pred_ids),
+            )
+            # Compute the cost matrix
+            for j in bar:
+                relevant_truth_indices, j, jaccard_scores = get_cost(j)
+                cost_matrix[relevant_truth_indices, j] = jaccard_scores
+        else:
+            with ThreadPoolExecutor(max_workers=MAX_INSTANCE_THREADS) as executor:
+                for relevant_truth_indices, j, jaccard_scores in tqdm(
+                    executor.map(get_cost, range(len(pred_ids))),
+                    desc="Computing cost matrix in parallel",
+                    dynamic_ncols=True,
+                    total=len(pred_ids),
+                    leave=True,
+                ):
+                    cost_matrix[relevant_truth_indices, j] = jaccard_scores
 
     # Match the predicted instances to the ground truth instances
     row_inds, col_inds = linear_sum_assignment(cost_matrix, maximize=True)
@@ -333,27 +452,16 @@ def score_instance(
         pred_mask = pred_label == pred_ids[i]
         matched_pred_label[pred_mask] = truth_ids[j]
 
-    hausdorff_distances = []
-    for truth_id in tqdm(
-        truth_ids, desc="Computing Hausdorff distances", dynamic_ncols=True
-    ):
-        if truth_id == 0:
-            # Don't score the background
-            continue
-        h_dist = hausdorff_distance(
-            truth_label == truth_id,
-            matched_pred_label == truth_id,
-            voxel_size,
-        )
-        h_dist = min(h_dist, hausdorff_distance_max)
-        hausdorff_distances.append(h_dist)
+    hausdorff_distances = optimized_hausdorff_distances(
+        truth_label, matched_pred_label, voxel_size, hausdorff_distance_max
+    )
 
     # Compute the scores
     accuracy = accuracy_score(truth_label.flatten(), matched_pred_label.flatten())
-    hausdorff_dist = np.mean(hausdorff_distances) if hausdorff_distances else 0
+    hausdorff_dist = np.mean(hausdorff_distances) if len(hausdorff_distances) > 0 else 0
     normalized_hausdorff_dist = 1.01 ** (
         -hausdorff_dist / np.linalg.norm(voxel_size)
-    )  # normalize Hausdorff distance to [0, 1] using the maximum distance represented by a voxel. 32 is abritrary chosen to have a reasonable range
+    )  # normalize Hausdorff distance to [0, 1] using the maximum distance represented by a voxel. 32 is arbitrarily chosen to have a reasonable range
     combined_score = (accuracy * normalized_hausdorff_dist) ** 0.5
     print(f"Accuracy: {accuracy:.4f}")
     print(f"Hausdorff Distance: {hausdorff_dist:.4f}")
@@ -406,6 +514,8 @@ def score_label(
 
     Args:
         pred_label_path (str): The path to the predicted label volume.
+        truth_path (str): The path to the ground truth label volume.
+        instance_classes (list): A list of instance classes.
 
     Returns:
         dict: A dictionary of scores for the label volume.
@@ -450,7 +560,10 @@ def score_label(
 
 
 def score_volume(
-    pred_volume_path, truth_path=TRUTH_PATH, instance_classes=INSTANCE_CLASSES
+    volume,
+    submission_path,
+    truth_path=TRUTH_PATH,
+    instance_classes=INSTANCE_CLASSES,
 ) -> dict[str, dict[str, float]]:
     """
     Score a single volume against the ground truth volume.
@@ -464,8 +577,9 @@ def score_volume(
     Example usage:
         scores = score_volume('pred.zarr/test_volume')
     """
+    submission_path = UPath(submission_path)
+    pred_volume_path = submission_path / volume
     print(f"Scoring {pred_volume_path}...")
-    pred_volume_path = UPath(pred_volume_path)
     truth_path = UPath(truth_path)
 
     # Find labels to score
@@ -480,14 +594,9 @@ def score_volume(
     missing_labels = list(set(truth_labels) - set(pred_labels))
 
     # Score each label
-    scores = {
-        label: score_label(
-            pred_volume_path / label,
-            truth_path=truth_path,
-            instance_classes=instance_classes,
-        )
-        for label in found_labels
-    }
+    scores = parallel_score_labels(
+        found_labels, pred_volume_path, truth_path, instance_classes
+    )
     scores.update(
         {
             label: (
@@ -530,7 +639,7 @@ def score_volume(
     )
     print(f"Missing labels: {missing_labels}")
 
-    return scores
+    return volume, scores
 
 
 def missing_volume_score(
@@ -730,6 +839,7 @@ def score_submission(
     }
     """
     print(f"Scoring {submission_path}...")
+    start_time = time()
     # Unzip the submission
     submission_path = unzip_file(submission_path)
 
@@ -756,14 +866,30 @@ def score_submission(
         print("Scoring missing volumes as 0's")
 
     # Score each volume
-    scores = {
-        volume: score_volume(
-            submission_path / volume,
-            truth_path=truth_path,
-            instance_classes=instance_classes,
-        )
-        for volume in found_volumes
-    }
+    if DEBUG:
+        print("Scoring volumes in serial for debugging...")
+        scores = {
+            volume: score_volume(
+                volume=volume,
+                submission_path=UPath(submission_path),
+                truth_path=truth_path,
+                instance_classes=instance_classes,
+            )
+            for volume in found_volumes
+        }
+    else:
+        with ThreadPoolExecutor(max_workers=MAX_MAIN_THREADS) as executor:
+            results = executor.map(
+                functools.partial(
+                    score_volume,
+                    submission_path=UPath(submission_path),
+                    truth_path=truth_path,
+                    instance_classes=instance_classes,
+                ),
+                found_volumes,
+            )
+            scores = dict(results)
+
     scores.update(
         {
             volume: missing_volume_score(
@@ -803,7 +929,9 @@ def score_submission(
         print(f"Saving scores for only submitted data to {found_result_file}...")
         with open(found_result_file, "w") as f:
             json.dump(found_scores, f)
-
+        print(
+            f"Scores saved to {result_file} and {found_result_file} in {time() - start_time:.2f} seconds"
+        )
     else:
         return all_scores
 
@@ -845,14 +973,8 @@ def package_submission(
         else:
             crop_group = zarr_group[f"crop{crop.id}"]
 
-        # Rescale the processed volumes to match the expected submission resolution if required
-        label_array = crop_group.create_dataset(
-            crop.class_label,
-            overwrite=overwrite,
-            shape=crop.shape,
-        )
         print(f"Scaling {crop_path} to {crop.voxel_size} nm")
-        # Match the resolution of the processed volume to the test volume
+        # Match the resolution, spatial position, and shape of the processed volume to the test volume
         image = match_crop_space(
             path=crop_path.path,
             class_label=crop.class_label,
@@ -860,11 +982,19 @@ def package_submission(
             shape=crop.shape,
             translation=crop.translation,
         )
+        image = image.astype(np.uint8)
         # Save the processed labels to the submission zarr
+        label_array = crop_group.create_dataset(
+            crop.class_label,
+            overwrite=overwrite,
+            shape=crop.shape,
+            dtype=image.dtype,
+        )
         label_array[:] = image
         # Add the metadata
         label_array.attrs["voxel_size"] = crop.voxel_size
         label_array.attrs["translation"] = crop.translation
+        label_array.attrs["shape"] = crop.shape
 
     print(f"Saved submission to {output_path}")
 
