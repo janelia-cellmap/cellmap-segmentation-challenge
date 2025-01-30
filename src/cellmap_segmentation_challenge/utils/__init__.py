@@ -22,5 +22,6 @@ __getattr__, __dir__, __all__ = lazy.attach(
         ],
         "loss": ["CellMapLossWrapper"],
         "security": ["analyze_script", "load_safe_config"],
+        "utils": ["construct_test_crop_manifest", "construct_truth_dataset"],
     },
 )
