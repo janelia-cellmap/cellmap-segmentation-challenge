@@ -1,6 +1,10 @@
 import click
 import os
+
+from upath import UPath
 from cellmap_segmentation_challenge import SEARCH_PATH, RAW_NAME
+from cellmap_segmentation_challenge.utils import load_safe_config
+from cellmap_data.utils import find_level
 
 
 @click.command
@@ -77,7 +81,15 @@ def visualize_cli(datasets, crops, classes, kinds):
     required=True,
     help="Dataset to view (Example: 'jrc_cos7-1a')",
 )
-def flow(script_path, dataset):
+@click.option(
+    "--level",
+    "-l",
+    type=click.STRING,
+    required=False,
+    default=None,
+    help="(Optional) Scale level to feed to model (Example: 's0'). If not specified, will be inferred from input_array_info in the config script.",
+)
+def flow(script_path, dataset, level):
     """
     Run a cellmap-flow to visualize live predictions using a script defining a model config, visualizing the results in Neuroglancer.
 
@@ -87,8 +99,19 @@ def flow(script_path, dataset):
         Path to the script defining the model config (e.g. `examples/train_2D.py`).
     dataset : str
         Dataset to view (Example: 'jrc_cos7-1a'),
+    level : str
+        (Optional) Scale level to feed to model (Example: 's0'). If not specified, will be inferred from input_array_info in the config script.
     """
 
-    dataset_path = SEARCH_PATH.format(dataset=dataset, name=RAW_NAME)
+    config = load_safe_config(script_path)
 
-    os.system(f"cellmap_flow script -s {script_path} -d {dataset_path}")
+    dataset_path = SEARCH_PATH.format(dataset=dataset, name=RAW_NAME)
+    if level is None:
+        level = find_level(
+            dataset_path,
+            {k: v for k, v in zip("zyx", config.input_array_info["scale"])},
+        )
+
+    os.system(
+        f"cellmap_flow script -s {script_path} -d {(UPath(dataset_path) / level).path}"
+    )
