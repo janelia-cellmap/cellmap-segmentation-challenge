@@ -1,4 +1,5 @@
 import shutil
+import sys
 from tqdm import tqdm
 from cellmap_segmentation_challenge.utils import get_tested_classes
 from cellmap_segmentation_challenge import TRUTH_PATH
@@ -159,8 +160,8 @@ def construct_truth_dataset(
     if UPath(destination).exists():
         print(f"Removing existing ground truth dataset at: {destination}")
         shutil.rmtree(destination)
-    ground_truth = zarr.open_group(destination, mode="w")
-    # ground_truth = zarr.open_group(destination, mode="a")
+    # ground_truth = zarr.open_group(destination, mode="w")
+    ground_truth = zarr.open_group(destination, mode="a")
 
     # Make a pool for parallel processing
     from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -195,6 +196,7 @@ def copy_gt(line, search_path, path_root, write_path, ground_truth):
     zarr_file = zarr.open(path, mode="r")
 
     # Write the dataset to the destination Zarr
+    print(f"Writing {write_path.format(crop=crop_name, label=class_label)}")
     dataset = ground_truth.create_dataset(
         write_path.format(crop=crop_name, label=class_label),
         data=zarr_file["s0"],
@@ -206,3 +208,15 @@ def copy_gt(line, search_path, path_root, write_path, ground_truth):
     dataset.attrs["voxel_size"] = voxel_size
     dataset.attrs["translation"] = translation
     dataset.attrs["shape"] = shape
+
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: python utils.py <path_root>")
+        sys.exit(1)
+    elif len(sys.argv) == 2 or sys.argv[2] == "dataset":
+        construct_truth_dataset(
+            sys.argv[1],
+        )
+    elif sys.argv[2] == "manifest":
+        construct_test_crop_manifest(sys.argv[1], verbose=True)
