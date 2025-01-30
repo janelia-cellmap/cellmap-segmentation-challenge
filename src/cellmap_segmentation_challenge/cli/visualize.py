@@ -1,4 +1,6 @@
 import click
+import os
+from cellmap_segmentation_challenge import SEARCH_PATH, RAW_NAME
 
 
 @click.command
@@ -58,3 +60,35 @@ def visualize_cli(datasets, crops, classes, kinds):
         classes=classes.split(","),
         kinds=kinds.split(","),
     )
+
+
+@click.command
+@click.option(
+    "--script_path",
+    "-s",
+    type=click.STRING,
+    required=True,
+    help="Path to the script to run for live prediction.",
+)
+@click.option(
+    "--dataset",
+    "-d",
+    type=click.STRING,
+    required=True,
+    help="Dataset to view (Example: 'jrc_cos7-1a')",
+)
+def flow(script_path, dataset):
+    """
+    Run a cellmap-flow to visualize live predictions using a script defining a model config, visualizing the results in Neuroglancer.
+
+    Parameters
+    ----------
+    script_path : str
+        Path to the script defining the model config (e.g. `examples/train_2D.py`).
+    dataset : str
+        Dataset to view (Example: 'jrc_cos7-1a'),
+    """
+
+    dataset_path = SEARCH_PATH.format(dataset=dataset, name=RAW_NAME)
+
+    os.system(f"cellmap_flow script -s {script_path} -d {dataset_path}")

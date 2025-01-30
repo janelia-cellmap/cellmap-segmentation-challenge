@@ -21,7 +21,6 @@ SUBMISSION_PATH = os.path.normpath(str(BASE_DATA_PATH / "submission.zarr"))
 TRUTH_PATH = (BASE_DATA_PATH / "ground_truth.zarr").path
 
 # s3 paths
-# GT_S3_BUCKET = "janelia-cellmap-fg5f2y1pl8"
 GT_S3_BUCKET = "janelia-cosem-datasets"
 RAW_S3_BUCKET = "janelia-cosem-datasets"
 S3_SEARCH_PATH = "{dataset}/{dataset}.zarr/recon-1/{name}"
