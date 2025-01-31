@@ -1,5 +1,6 @@
 import shutil
 import sys
+from time import time
 from tqdm import tqdm
 from cellmap_segmentation_challenge.utils import get_tested_classes
 from cellmap_segmentation_challenge import TRUTH_PATH
@@ -153,6 +154,8 @@ def construct_truth_dataset(
     write_path : str, optional
         Format string to write the crops to within the destination Zarr. The default is "{crop}/{label}".
     """
+    start_time = time()
+
     # Get the test crop manifested
     manifest = construct_test_crop_manifest(path_root, search_path, write_path=None)
 
@@ -179,6 +182,7 @@ def construct_truth_dataset(
         future.result()
 
     print(f"Ground truth dataset written to: {destination}")
+    print(f"Done in {start_time - time()}!")
 
 
 def copy_gt(line, search_path, path_root, write_path, ground_truth):
