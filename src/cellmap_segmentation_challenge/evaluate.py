@@ -42,9 +42,10 @@ INSTANCE_CLASSES = [
 
 
 HAUSDORFF_DISTANCE_MAX = np.inf
+CAST_TO_NONE = [np.nan, np.inf, -np.inf]
 MAX_MAIN_THREADS = int(os.getenv("MAX_MAIN_THREADS", 2))
-MAX_LABEL_THREADS = int(os.getenv("MAX_LABEL_THREADS", 2))
-MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 2))
+MAX_LABEL_THREADS = int(os.getenv("MAX_LABEL_THREADS", 4))
+MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 4))
 PRECOMPUTE_LIMIT = int(os.getenv("PRECOMPUTE_LIMIT", 1e9))
 DEBUG = os.getenv("DEBUG", "False") != "False"
 
@@ -64,12 +65,18 @@ class spoof_precomputed:
         return len(self.ids)
 
 
-def score_label_single(label, pred_volume_path, truth_path, instance_classes):
+def score_label_single(
+    label,
+    pred_volume_path,
+    truth_path,
+    instance_classes,
+):
     score = score_label(
         pred_volume_path / label,
         truth_path=truth_path,
         instance_classes=instance_classes,
     )
+
     return (label, score)
 
 
@@ -702,7 +709,7 @@ def combine_scores(
     scores,
     include_missing=True,
     instance_classes=INSTANCE_CLASSES,
-    cast_to_none=[np.nan, np.inf],
+    cast_to_none=CAST_TO_NONE,
 ):
     """
     Combine scores across volumes, normalizing by the number of voxels.
@@ -725,7 +732,7 @@ def combine_scores(
     scores = scores.copy()
     label_scores = {}
     total_volumes = {}
-    for these_scores in scores.values():
+    for ds, these_scores in scores.items():
         for label, this_score in these_scores.items():
             print(this_score)
             if this_score["is_missing"] and not include_missing:
@@ -740,26 +747,17 @@ def combine_scores(
                         "combined_score": 0,
                     }
                     total_volumes[label] = 0
-                label_scores[label]["accuracy"] += this_score["accuracy"] * total_volume
-                label_scores[label]["hausdorff_distance"] += (
-                    this_score["hausdorff_distance"] * total_volume
-                )
-                label_scores[label]["normalized_hausdorff_distance"] += (
-                    this_score["normalized_hausdorff_distance"] * total_volume
-                )
-                label_scores[label]["combined_score"] += (
-                    this_score["combined_score"] * total_volume
-                )
-                total_volumes[label] += total_volume
             else:
                 if label not in label_scores:
                     label_scores[label] = {"iou": 0, "dice_score": 0}
                     total_volumes[label] = 0
-                label_scores[label]["iou"] += this_score["iou"] * total_volume
-                label_scores[label]["dice_score"] += (
-                    this_score["dice_score"] * total_volume
-                )
-                total_volumes[label] += total_volume
+            for key in label_scores[label].keys():
+                if this_score[key] is None:
+                    continue
+                label_scores[label][key] += this_score[key] * total_volume
+                if this_score[key] in cast_to_none:
+                    scores[ds][label][key] = None
+            total_volumes[label] += total_volume
 
     # Normalize back to the total number of voxels
     for label in label_scores:
@@ -773,9 +771,8 @@ def combine_scores(
             label_scores[label]["dice_score"] /= total_volumes[label]
         # Cast to None if the value is in `cast_to_none`
         for key in label_scores[label]:
-            for value in cast_to_none:
-                if np.abs(label_scores[label][key]) == value:
-                    label_scores[label][key] = None
+            if label_scores[label][key] in cast_to_none:
+                label_scores[label][key] = None
     scores["label_scores"] = label_scores
 
     # Compute the overall score
@@ -932,14 +929,14 @@ def score_submission(
     if result_file:
         print(f"Saving collected scores to {result_file}...")
         with open(result_file, "w") as f:
-            json.dump(all_scores, f)
+            json.dump(all_scores, f, indent=4)
 
         found_result_file = str(result_file).replace(
             UPath(result_file).suffix, "_submitted_only" + UPath(result_file).suffix
         )
         print(f"Saving scores for only submitted data to {found_result_file}...")
         with open(found_result_file, "w") as f:
-            json.dump(found_scores, f)
+            json.dump(found_scores, f, indent=4)
         print(
             f"Scores saved to {result_file} and {found_result_file} in {time() - start_time:.2f} seconds"
         )
