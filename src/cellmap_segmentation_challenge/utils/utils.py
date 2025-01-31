@@ -173,7 +173,12 @@ def construct_truth_dataset(
 
     # Copy the ground truth datasets
     futures = []
+    crops_started = set()
     for line in tqdm(manifest[1:], desc="Formatting ground truth..."):
+        crop = line.split(",")[0]
+        if crop not in crops_started:
+            crops_started.add(crop)
+            ground_truth.create_group(crop)
         futures.append(
             pool.submit(copy_gt, line, search_path, path_root, write_path, ground_truth)
         )
@@ -182,7 +187,7 @@ def construct_truth_dataset(
         future.result()
 
     print(f"Ground truth dataset written to: {destination}")
-    print(f"Done in {start_time - time()}!")
+    print(f"Done in {time() - start_time}!")
 
 
 def copy_gt(line, search_path, path_root, write_path, ground_truth):
@@ -208,6 +213,7 @@ def copy_gt(line, search_path, path_root, write_path, ground_truth):
         dtype=zarr_file["s0"].dtype,
         overwrite=True,
         # fill_value=0,
+        dimension_separator="/",
     )
     dataset.attrs["voxel_size"] = voxel_size
     dataset.attrs["translation"] = translation
