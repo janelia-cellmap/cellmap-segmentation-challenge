@@ -271,6 +271,7 @@
   <h1>Source code for cellmap_segmentation_challenge.utils.utils</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">time</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_segmentation_challenge.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_tested_classes</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_segmentation_challenge</span><span class="w"> </span><span class="kn">import</span> <span class="n">TRUTH_PATH</span>
@@ -432,6 +433,8 @@
 <span class="sd">    write_path : str, optional</span>
 <span class="sd">        Format string to write the crops to within the destination Zarr. The default is &quot;{crop}/{label}&quot;.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+
     <span class="c1"># Get the test crop manifested</span>
     <span class="n">manifest</span> <span class="o">=</span> <span class="n">construct_test_crop_manifest</span><span class="p">(</span><span class="n">path_root</span><span class="p">,</span> <span class="n">search_path</span><span class="p">,</span> <span class="n">write_path</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
@@ -457,7 +460,8 @@
     <span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">as_completed</span><span class="p">(</span><span class="n">futures</span><span class="p">),</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">futures</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Copying...&quot;</span><span class="p">):</span>
         <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ground truth dataset written to: </span><span class="si">{</span><span class="n">destination</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ground truth dataset written to: </span><span class="si">{</span><span class="n">destination</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Done in </span><span class="si">{</span><span class="n">start_time</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">time</span><span class="p">()</span><span class="si">}</span><span class="s2">!&quot;</span><span class="p">)</span></div>
 
 
 
