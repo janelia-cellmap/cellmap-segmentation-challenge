@@ -178,7 +178,7 @@ def construct_truth_dataset(
         crop = line.split(",")[0]
         if crop not in crops_started:
             crops_started.add(crop)
-            ground_truth.create_group(crop)
+            ground_truth.create_group(f"crop{crop}")
         futures.append(
             pool.submit(copy_gt, line, search_path, path_root, write_path, ground_truth)
         )
