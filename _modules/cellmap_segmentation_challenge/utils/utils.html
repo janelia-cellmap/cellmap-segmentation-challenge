@@ -457,7 +457,7 @@
         <span class="n">crop</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">crop</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">crops_started</span><span class="p">:</span>
             <span class="n">crops_started</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">crop</span><span class="p">)</span>
-            <span class="n">ground_truth</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="n">crop</span><span class="p">)</span>
+            <span class="n">ground_truth</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">futures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
             <span class="n">pool</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">copy_gt</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">search_path</span><span class="p">,</span> <span class="n">path_root</span><span class="p">,</span> <span class="n">write_path</span><span class="p">,</span> <span class="n">ground_truth</span><span class="p">)</span>
         <span class="p">)</span>
