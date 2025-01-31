@@ -698,7 +698,12 @@ def missing_volume_score(
     return scores
 
 
-def combine_scores(scores, include_missing=True, instance_classes=INSTANCE_CLASSES):
+def combine_scores(
+    scores,
+    include_missing=True,
+    instance_classes=INSTANCE_CLASSES,
+    cast_to_none=[np.nan, np.inf],
+):
     """
     Combine scores across volumes, normalizing by the number of voxels.
 
@@ -706,6 +711,7 @@ def combine_scores(scores, include_missing=True, instance_classes=INSTANCE_CLASS
         scores (dict): A dictionary of scores for each volume, as returned by `score_volume`.
         include_missing (bool): Whether to include missing volumes in the combined scores.
         instance_classes (list): A list of instance classes.
+        cast_to_none (list): A list of values to cast to None in the combined scores.
 
     Returns:
         dict: A dictionary of combined scores across all volumes.
@@ -765,6 +771,11 @@ def combine_scores(scores, include_missing=True, instance_classes=INSTANCE_CLASS
         else:
             label_scores[label]["iou"] /= total_volumes[label]
             label_scores[label]["dice_score"] /= total_volumes[label]
+        # Cast to None if the value is in `cast_to_none`
+        for key in label_scores[label]:
+            for value in cast_to_none:
+                if np.abs(label_scores[label][key]) == value:
+                    label_scores[label][key] = None
     scores["label_scores"] = label_scores
 
     # Compute the overall score
