@@ -452,7 +452,12 @@
 
     <span class="c1"># Copy the ground truth datasets</span>
     <span class="n">futures</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">crops_started</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">manifest</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Formatting ground truth...&quot;</span><span class="p">):</span>
+        <span class="n">crop</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">crop</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">crops_started</span><span class="p">:</span>
+            <span class="n">crops_started</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">crop</span><span class="p">)</span>
+            <span class="n">ground_truth</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="n">crop</span><span class="p">)</span>
         <span class="n">futures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
             <span class="n">pool</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">copy_gt</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">search_path</span><span class="p">,</span> <span class="n">path_root</span><span class="p">,</span> <span class="n">write_path</span><span class="p">,</span> <span class="n">ground_truth</span><span class="p">)</span>
         <span class="p">)</span>
@@ -461,7 +466,7 @@
         <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ground truth dataset written to: </span><span class="si">{</span><span class="n">destination</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Done in </span><span class="si">{</span><span class="n">start_time</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">time</span><span class="p">()</span><span class="si">}</span><span class="s2">!&quot;</span><span class="p">)</span></div>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Done in </span><span class="si">{</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span><span class="si">}</span><span class="s2">!&quot;</span><span class="p">)</span></div>
 
 
 
@@ -490,6 +495,7 @@
         <span class="n">dtype</span><span class="o">=</span><span class="n">zarr_file</span><span class="p">[</span><span class="s2">&quot;s0&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
         <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="c1"># fill_value=0,</span>
+        <span class="n">dimension_separator</span><span class="o">=</span><span class="s2">&quot;/&quot;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">dataset</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">voxel_size</span>
     <span class="n">dataset</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;translation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">translation</span>
