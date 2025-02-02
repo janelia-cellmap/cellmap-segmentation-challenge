@@ -1,3 +1,4 @@
+import os
 import click
 
 from cellmap_segmentation_challenge.config import PREDICTIONS_PATH, PROCESSED_PATH
@@ -50,7 +51,17 @@ from cellmap_segmentation_challenge.config import PREDICTIONS_PATH, PROCESSED_PA
     default=None,
     help="Device to use for processing the data. Default: None.",
 )
-def process_cli(config_path, crops, input_path, output_path, overwrite, device):
+@click.option(
+    "--max-workers",
+    "-w",
+    type=click.INT,
+    required=False,
+    default=os.cpu_count(),
+    help=f"Maximum number of workers to use for processing the data. Defaults to the number of CPUs on the system (currently {os.cpu_count()}).",
+)
+def process_cli(
+    config_path, crops, input_path, output_path, overwrite, device, max_workers
+):
     """
     Process data from a large dataset by splitting it into blocks and processing each block separately.
 
@@ -66,4 +77,5 @@ def process_cli(config_path, crops, input_path, output_path, overwrite, device):
         output_path=output_path,
         overwrite=overwrite,
         device=device,
+        max_workers=max_workers,
     )

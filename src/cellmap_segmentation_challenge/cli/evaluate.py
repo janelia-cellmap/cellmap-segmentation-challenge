@@ -1,3 +1,4 @@
+import os
 import click
 
 from cellmap_segmentation_challenge.evaluate import (
@@ -77,11 +78,18 @@ def evaluate_cli(submission_path, result_file, truth_path, instance_classes):
     is_flag=True,
     help="Whether to overwrite the output submission file if it already exists",
 )
-def package_submission_cli(input_search_path, output_path, overwrite):
+@click.option(
+    "--max_workers",
+    "-w",
+    type=click.INT,
+    default=os.cpu_count(),
+    help=f"The maximum number of workers to use for packaging the submission. Defaults to the number of CPUs on the system (currently {os.cpu_count()}).",
+)
+def package_submission_cli(input_search_path, output_path, overwrite, max_workers):
     """
     Package zarr datasets for submission.
     """
 
     from cellmap_segmentation_challenge.evaluate import package_submission
 
-    package_submission(input_search_path, output_path, overwrite)
+    package_submission(input_search_path, output_path, overwrite, max_workers)
