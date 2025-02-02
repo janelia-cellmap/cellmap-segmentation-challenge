@@ -1,6 +1,8 @@
+from functools import partial
 import os
 from glob import glob
 from typing import Any, Callable, Optional
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from cellmap_data import CellMapDatasetWriter, CellMapImage
 import torch
@@ -49,6 +51,7 @@ def process(
     output_path: str = PROCESSED_PATH,
     overwrite: bool = False,
     device: Optional[str | torch.device] = None,
+    max_workers: int = os.cpu_count(),
 ) -> None:
     """
     Process and save arrays using an arbitrary process function defined in a config python file.
@@ -68,6 +71,9 @@ def process(
         Whether to overwrite the output dataset if it already exists. Default is False.
     device: str | torch.device, optional
         The device to use for processing the data. Default is to use that specified in the config. If not specified, then defaults to "cuda" if available, then "mps", otherwise "cpu".
+    max_workers: int, optional
+        The maximum number of workers to use for processing the data. Default is the number of CPUs on the system.
+
     """
     config = load_safe_config(config_path)
     process_func = config.process_func
@@ -160,5 +166,16 @@ def process(
                 }
             )
 
-    for dataset_writer in dataset_writers:
-        _process(dataset_writer, process_func, batch_size)
+    executor = ThreadPoolExecutor(max_workers)
+
+    partial_process = partial(
+        _process, process_func=process_func, batch_size=batch_size
+    )
+
+    futures = [
+        executor.submit(partial_process, dataset_writer)
+        for dataset_writer in dataset_writers
+    ]
+
+    for future in tqdm(as_completed(futures), total=len(futures), desc="Processing..."):
+        future.result()

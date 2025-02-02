@@ -19,7 +19,7 @@ from cellmap_data import CellMapImage
 import zarr.errors
 
 import functools
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .config import PROCESSED_PATH, SUBMISSION_PATH, TRUTH_PATH
 from .utils import TEST_CROPS, TEST_CROPS_DICT
@@ -948,6 +948,7 @@ def package_submission(
     input_search_path: str | UPath = PROCESSED_PATH,
     output_path: str | UPath = SUBMISSION_PATH,
     overwrite: bool = False,
+    max_workers: int = os.cpu_count(),
 ):
     """
     Package a submission for the CellMap challenge. This will create a zarr file, combining all the processed volumes, and then zip it.
@@ -956,6 +957,7 @@ def package_submission(
         input_search_path (str): The base path to the processed volumes, with placeholders for dataset and crops.
         output_path (str | UPath): The path to save the submission zarr to. (ending with `<filename>.zarr`; `.zarr` will be appended if not present, and replaced with `.zip` when zipped).
         overwrite (bool): Whether to overwrite the submission zarr if it already exists.
+        max_workers (int): The maximum number of workers to use for parallel processing. Defaults to the number of CPUs.
     """
     input_search_path = str(input_search_path)
     output_path = UPath(output_path)
@@ -968,41 +970,20 @@ def package_submission(
     zarr_group = zarr.group(store, overwrite=True)
 
     # Find all the processed test volumes
-    for crop in TEST_CROPS:
-        crop_path = (
-            UPath(input_search_path.format(dataset=crop.dataset, crop=f"crop{crop.id}"))
-            / crop.class_label
-        )
-        if not crop_path.exists():
-            print(f"Skipping {crop_path} as it does not exist.")
-            continue
-        if f"crop{crop.id}" not in zarr_group:
-            crop_group = zarr_group.create_group(f"crop{crop.id}")
-        else:
-            crop_group = zarr_group[f"crop{crop.id}"]
-
-        print(f"Scaling {crop_path} to {crop.voxel_size} nm")
-        # Match the resolution, spatial position, and shape of the processed volume to the test volume
-        image = match_crop_space(
-            path=crop_path.path,
-            class_label=crop.class_label,
-            voxel_size=crop.voxel_size,
-            shape=crop.shape,
-            translation=crop.translation,
-        )
-        image = image.astype(np.uint8)
-        # Save the processed labels to the submission zarr
-        label_array = crop_group.create_dataset(
-            crop.class_label,
-            overwrite=overwrite,
-            shape=crop.shape,
-            dtype=image.dtype,
-        )
-        label_array[:] = image
-        # Add the metadata
-        label_array.attrs["voxel_size"] = crop.voxel_size
-        label_array.attrs["translation"] = crop.translation
-        label_array.attrs["shape"] = crop.shape
+    pool = ThreadPoolExecutor(max_workers)
+    partial_package_crop = partial(
+        package_crop,
+        zarr_group=zarr_group,
+        overwrite=overwrite,
+        input_search_path=input_search_path,
+    )
+    for crop_path in tqdm(
+        pool.map(partial_package_crop, TEST_CROPS),
+        total=len(TEST_CROPS),
+        dynamic_ncols=True,
+        desc="Packaging crops...",
+    ):
+        tqdm.write(f"Packaged {crop_path}")
 
     print(f"Saved submission to {output_path}")
 
@@ -1010,6 +991,44 @@ def package_submission(
     zip_submission(output_path)
 
     print("Done packaging submission")
+
+
+def package_crop(crop, zarr_group, overwrite, input_search_path=PROCESSED_PATH):
+    crop_path = (
+        UPath(input_search_path.format(dataset=crop.dataset, crop=f"crop{crop.id}"))
+        / crop.class_label
+    )
+    if not crop_path.exists():
+        return f"Skipping {crop_path} as it does not exist."
+    if f"crop{crop.id}" not in zarr_group:
+        crop_group = zarr_group.create_group(f"crop{crop.id}")
+    else:
+        crop_group = zarr_group[f"crop{crop.id}"]
+
+    print(f"Scaling {crop_path} to {crop.voxel_size} nm")
+    # Match the resolution, spatial position, and shape of the processed volume to the test volume
+    image = match_crop_space(
+        path=crop_path.path,
+        class_label=crop.class_label,
+        voxel_size=crop.voxel_size,
+        shape=crop.shape,
+        translation=crop.translation,
+    )
+    image = image.astype(np.uint8)
+    # Save the processed labels to the submission zarr
+    label_array = crop_group.create_dataset(
+        crop.class_label,
+        overwrite=overwrite,
+        shape=crop.shape,
+        dtype=image.dtype,
+    )
+    label_array[:] = image
+    # Add the metadata
+    label_array.attrs["voxel_size"] = crop.voxel_size
+    label_array.attrs["translation"] = crop.translation
+    label_array.attrs["shape"] = crop.shape
+
+    return crop_path
 
 
 def match_crop_space(path, class_label, voxel_size, shape, translation) -> np.ndarray:
