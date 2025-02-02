@@ -290,7 +290,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">zarr.errors</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">PROCESSED_PATH</span><span class="p">,</span> <span class="n">SUBMISSION_PATH</span><span class="p">,</span> <span class="n">TRUTH_PATH</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">TEST_CROPS</span><span class="p">,</span> <span class="n">TEST_CROPS_DICT</span>
@@ -1275,6 +1275,7 @@
     <span class="n">input_search_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">UPath</span> <span class="o">=</span> <span class="n">PROCESSED_PATH</span><span class="p">,</span>
     <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">UPath</span> <span class="o">=</span> <span class="n">SUBMISSION_PATH</span><span class="p">,</span>
     <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">max_workers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">(),</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Package a submission for the CellMap challenge. This will create a zarr file, combining all the processed volumes, and then zip it.</span>
@@ -1283,6 +1284,7 @@
 <span class="sd">        input_search_path (str): The base path to the processed volumes, with placeholders for dataset and crops.</span>
 <span class="sd">        output_path (str | UPath): The path to save the submission zarr to. (ending with `&lt;filename&gt;.zarr`; `.zarr` will be appended if not present, and replaced with `.zip` when zipped).</span>
 <span class="sd">        overwrite (bool): Whether to overwrite the submission zarr if it already exists.</span>
+<span class="sd">        max_workers (int): The maximum number of workers to use for parallel processing. Defaults to the number of CPUs.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">input_search_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">input_search_path</span><span class="p">)</span>
     <span class="n">output_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
@@ -1295,41 +1297,20 @@
     <span class="n">zarr_group</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># Find all the processed test volumes</span>
-    <span class="k">for</span> <span class="n">crop</span> <span class="ow">in</span> <span class="n">TEST_CROPS</span><span class="p">:</span>
-        <span class="n">crop_path</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">UPath</span><span class="p">(</span><span class="n">input_search_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="n">crop</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
-            <span class="o">/</span> <span class="n">crop</span><span class="o">.</span><span class="n">class_label</span>
-        <span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">crop_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Skipping </span><span class="si">{</span><span class="n">crop_path</span><span class="si">}</span><span class="s2"> as it does not exist.&quot;</span><span class="p">)</span>
-            <span class="k">continue</span>
-        <span class="k">if</span> <span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">zarr_group</span><span class="p">:</span>
-            <span class="n">crop_group</span> <span class="o">=</span> <span class="n">zarr_group</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">crop_group</span> <span class="o">=</span> <span class="n">zarr_group</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
-
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scaling </span><span class="si">{</span><span class="n">crop_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span><span class="si">}</span><span class="s2"> nm&quot;</span><span class="p">)</span>
-        <span class="c1"># Match the resolution, spatial position, and shape of the processed volume to the test volume</span>
-        <span class="n">image</span> <span class="o">=</span> <span class="n">match_crop_space</span><span class="p">(</span>
-            <span class="n">path</span><span class="o">=</span><span class="n">crop_path</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
-            <span class="n">class_label</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">class_label</span><span class="p">,</span>
-            <span class="n">voxel_size</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">,</span>
-            <span class="n">shape</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
-            <span class="n">translation</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">translation</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
-        <span class="c1"># Save the processed labels to the submission zarr</span>
-        <span class="n">label_array</span> <span class="o">=</span> <span class="n">crop_group</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
-            <span class="n">crop</span><span class="o">.</span><span class="n">class_label</span><span class="p">,</span>
-            <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span>
-            <span class="n">shape</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
-            <span class="n">dtype</span><span class="o">=</span><span class="n">image</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="n">label_array</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">image</span>
-        <span class="c1"># Add the metadata</span>
-        <span class="n">label_array</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span>
-        <span class="n">label_array</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;translation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span><span class="o">.</span><span class="n">translation</span>
-        <span class="n">label_array</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">pool</span> <span class="o">=</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="p">)</span>
+    <span class="n">partial_package_crop</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
+        <span class="n">package_crop</span><span class="p">,</span>
+        <span class="n">zarr_group</span><span class="o">=</span><span class="n">zarr_group</span><span class="p">,</span>
+        <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span>
+        <span class="n">input_search_path</span><span class="o">=</span><span class="n">input_search_path</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">crop_path</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
+        <span class="n">pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">partial_package_crop</span><span class="p">,</span> <span class="n">TEST_CROPS</span><span class="p">),</span>
+        <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">TEST_CROPS</span><span class="p">),</span>
+        <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Packaging crops...&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">tqdm</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Packaged </span><span class="si">{</span><span class="n">crop_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved submission to </span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
@@ -1337,6 +1318,47 @@
     <span class="n">zip_submission</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Done packaging submission&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="package_crop">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.package_crop">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">package_crop</span><span class="p">(</span><span class="n">crop</span><span class="p">,</span> <span class="n">zarr_group</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">,</span> <span class="n">input_search_path</span><span class="o">=</span><span class="n">PROCESSED_PATH</span><span class="p">):</span>
+    <span class="n">crop_path</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">UPath</span><span class="p">(</span><span class="n">input_search_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="n">crop</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
+        <span class="o">/</span> <span class="n">crop</span><span class="o">.</span><span class="n">class_label</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">crop_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Skipping </span><span class="si">{</span><span class="n">crop_path</span><span class="si">}</span><span class="s2"> as it does not exist.&quot;</span>
+    <span class="k">if</span> <span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">zarr_group</span><span class="p">:</span>
+        <span class="n">crop_group</span> <span class="o">=</span> <span class="n">zarr_group</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">crop_group</span> <span class="o">=</span> <span class="n">zarr_group</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scaling </span><span class="si">{</span><span class="n">crop_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span><span class="si">}</span><span class="s2"> nm&quot;</span><span class="p">)</span>
+    <span class="c1"># Match the resolution, spatial position, and shape of the processed volume to the test volume</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">match_crop_space</span><span class="p">(</span>
+        <span class="n">path</span><span class="o">=</span><span class="n">crop_path</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+        <span class="n">class_label</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">class_label</span><span class="p">,</span>
+        <span class="n">voxel_size</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">,</span>
+        <span class="n">shape</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+        <span class="n">translation</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">translation</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+    <span class="c1"># Save the processed labels to the submission zarr</span>
+    <span class="n">label_array</span> <span class="o">=</span> <span class="n">crop_group</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
+        <span class="n">crop</span><span class="o">.</span><span class="n">class_label</span><span class="p">,</span>
+        <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span>
+        <span class="n">shape</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">image</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">label_array</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">image</span>
+    <span class="c1"># Add the metadata</span>
+    <span class="n">label_array</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span>
+    <span class="n">label_array</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;translation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span><span class="o">.</span><span class="n">translation</span>
+    <span class="n">label_array</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="k">return</span> <span class="n">crop_path</span></div>
 
 
 

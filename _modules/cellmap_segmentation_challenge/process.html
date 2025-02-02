@@ -269,9 +269,11 @@
                 <article class="bd-article">
                   
   <h1>Source code for cellmap_segmentation_challenge.process</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">glob</span><span class="w"> </span><span class="kn">import</span> <span class="n">glob</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_data</span><span class="w"> </span><span class="kn">import</span> <span class="n">CellMapDatasetWriter</span><span class="p">,</span> <span class="n">CellMapImage</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
@@ -322,6 +324,7 @@
     <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">PROCESSED_PATH</span><span class="p">,</span>
     <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">device</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">max_workers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">(),</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Process and save arrays using an arbitrary process function defined in a config python file.</span>
@@ -341,6 +344,9 @@
 <span class="sd">        Whether to overwrite the output dataset if it already exists. Default is False.</span>
 <span class="sd">    device: str | torch.device, optional</span>
 <span class="sd">        The device to use for processing the data. Default is to use that specified in the config. If not specified, then defaults to &quot;cuda&quot; if available, then &quot;mps&quot;, otherwise &quot;cpu&quot;.</span>
+<span class="sd">    max_workers: int, optional</span>
+<span class="sd">        The maximum number of workers to use for processing the data. Default is the number of CPUs on the system.</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">config</span> <span class="o">=</span> <span class="n">load_safe_config</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span>
     <span class="n">process_func</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">process_func</span>
@@ -433,8 +439,19 @@
                 <span class="p">}</span>
             <span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">dataset_writer</span> <span class="ow">in</span> <span class="n">dataset_writers</span><span class="p">:</span>
-        <span class="n">_process</span><span class="p">(</span><span class="n">dataset_writer</span><span class="p">,</span> <span class="n">process_func</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span></div>
+    <span class="n">executor</span> <span class="o">=</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="p">)</span>
+
+    <span class="n">partial_process</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
+        <span class="n">_process</span><span class="p">,</span> <span class="n">process_func</span><span class="o">=</span><span class="n">process_func</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span>
+    <span class="p">)</span>
+
+    <span class="n">futures</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">partial_process</span><span class="p">,</span> <span class="n">dataset_writer</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">dataset_writer</span> <span class="ow">in</span> <span class="n">dataset_writers</span>
+    <span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">as_completed</span><span class="p">(</span><span class="n">futures</span><span class="p">),</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">futures</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Processing...&quot;</span><span class="p">):</span>
+        <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span></div>
 
 </pre></div>
 
