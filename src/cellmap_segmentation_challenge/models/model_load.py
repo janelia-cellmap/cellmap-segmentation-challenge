@@ -58,8 +58,8 @@ def load_best_val(logs_save_path, model_save_path, model, low_is_best=True):
     """
     # Load the event file
     try:
-        event_acc = event_accumulator.EventAccumulator(logs_save_path)
         print("Loading events files, may take a minute")
+        event_acc = event_accumulator.EventAccumulator(logs_save_path)
         event_acc.Reload()
     except:
         print("No events file found, skipping")
