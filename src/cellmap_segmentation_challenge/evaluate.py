@@ -994,10 +994,12 @@ def package_submission(
 
 
 def package_crop(crop, zarr_group, overwrite, input_search_path=PROCESSED_PATH):
-    crop_path = (
-        UPath(input_search_path.format(dataset=crop.dataset, crop=f"crop{crop.id}"))
-        / crop.class_label
-    )
+    format_kwargs = {
+        "crop": f"crop{crop.id}",
+    }
+    if "{dataset}" in input_search_path:
+        format_kwargs["dataset"] = crop.dataset
+    crop_path = UPath(input_search_path.format(**format_kwargs)) / crop.class_label
     if not crop_path.exists():
         return f"Skipping {crop_path} as it does not exist."
     if f"crop{crop.id}" not in zarr_group:
