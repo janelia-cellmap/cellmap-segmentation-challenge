@@ -272,10 +272,13 @@
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_segmentation_challenge.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_tested_classes</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_segmentation_challenge</span><span class="w"> </span><span class="kn">import</span> <span class="n">TRUTH_PATH</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">zarr</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">skimage.measure</span><span class="w"> </span><span class="kn">import</span> <span class="n">label</span> <span class="k">as</span> <span class="n">relabel</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">upath</span><span class="w"> </span><span class="kn">import</span> <span class="n">UPath</span>
 
@@ -500,6 +503,105 @@
     <span class="n">dataset</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">voxel_size</span>
     <span class="n">dataset</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;translation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">translation</span>
     <span class="n">dataset</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">shape</span></div>
+
+
+
+<span class="c1"># %%</span>
+
+
+<span class="c1"># Helper functions for simulating predictions</span>
+<div class="viewcode-block" id="simulate_predictions_iou">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.utils.simulate_predictions_iou">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">simulate_predictions_iou</span><span class="p">(</span><span class="n">true_labels</span><span class="p">,</span> <span class="n">iou</span><span class="p">):</span>
+    <span class="c1"># TODO: Add false positives (only makes false negatives currently)</span>
+
+    <span class="n">pred_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">true_labels</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">true_labels</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">pred_labels</span><span class="p">[</span><span class="n">true_labels</span> <span class="o">==</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">true_labels</span> <span class="o">==</span> <span class="n">i</span><span class="p">),</span> <span class="n">p</span><span class="o">=</span><span class="p">[</span><span class="n">iou</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">iou</span><span class="p">]</span>
+        <span class="p">)</span>
+
+    <span class="n">pred_labels</span> <span class="o">=</span> <span class="n">relabel</span><span class="p">(</span><span class="n">pred_labels</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">pred_labels</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">pred_labels</span></div>
+
+
+
+<div class="viewcode-block" id="simulate_predictions_accuracy">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.utils.simulate_predictions_accuracy">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">simulate_predictions_accuracy</span><span class="p">(</span><span class="n">true_labels</span><span class="p">,</span> <span class="n">accuracy</span><span class="p">):</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="n">true_labels</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">true_labels</span> <span class="o">=</span> <span class="n">true_labels</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+    <span class="c1"># Get the total number of labels</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">true_labels</span><span class="p">)</span>
+
+    <span class="c1"># Calculate the number of correct predictions</span>
+    <span class="n">num_correct</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">accuracy</span> <span class="o">*</span> <span class="n">n</span><span class="p">)</span>
+
+    <span class="c1"># Create an array to store the simulated predictions (copy the true labels initially)</span>
+    <span class="n">simulated_predictions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">true_labels</span><span class="p">)</span>
+
+    <span class="c1"># Randomly select indices to be incorrect</span>
+    <span class="n">incorrect_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">n</span> <span class="o">-</span> <span class="n">num_correct</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># Flip the labels at the incorrect indices</span>
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">incorrect_indices</span><span class="p">:</span>
+        <span class="c1"># Assuming binary classification (0 or 1), flip the label</span>
+        <span class="n">simulated_predictions</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">simulated_predictions</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+    <span class="c1"># Relabel the predictions</span>
+    <span class="n">simulated_predictions</span> <span class="o">=</span> <span class="n">simulated_predictions</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">simulated_predictions</span> <span class="o">=</span> <span class="n">relabel</span><span class="p">(</span><span class="n">simulated_predictions</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">simulated_predictions</span></div>
+
+
+
+<div class="viewcode-block" id="download_file">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.utils.download_file">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">download_file</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">dest</span><span class="p">):</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dest</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="format_string">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.utils.format_string">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">format_string</span><span class="p">(</span><span class="n">string</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">format_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convenience function to format a string with only the keys present in both the stringand in the `format_kwargs`. When all keys in the `format_kwargs` are present in `string` (in brackets), the function will return `string.format(**format_kwargs)` exactly. When none of the keys in the `format_kwargs` are present in the string, the function will return the original string, without error.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    string : str</span>
+<span class="sd">        The string to format.</span>
+<span class="sd">    format_kwargs : dict</span>
+<span class="sd">        The dictionary of key-value pairs to format the string with.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        The formatted string</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    format_string(&quot;this/{thing}&quot;, {})  # returns &quot;this/{thing}&quot;</span>
+<span class="sd">    format_string(&quot;this/{thing}&quot;, {&quot;thing&quot;:&quot;that&quot;, &quot;but&quot;:&quot;not this&quot;}) # returns &quot;this/that&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">new_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1"># Find the keys that are present in the string</span>
+    <span class="k">for</span> <span class="n">key_chunk</span> <span class="ow">in</span> <span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;{&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]:</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">key_chunk</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;}&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">format_kwargs</span><span class="p">:</span>
+            <span class="n">new_kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">format_kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;{&quot;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s2">&quot;}&quot;</span>
+    <span class="n">string</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">new_kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">string</span></div>
 
 
 

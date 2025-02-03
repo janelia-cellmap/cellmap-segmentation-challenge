@@ -290,7 +290,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">zarr.errors</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">PROCESSED_PATH</span><span class="p">,</span> <span class="n">SUBMISSION_PATH</span><span class="p">,</span> <span class="n">TRUTH_PATH</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">TEST_CROPS</span><span class="p">,</span> <span class="n">TEST_CROPS_DICT</span>
@@ -1184,9 +1184,7 @@
     <span class="n">truth_volumes</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">truth_path</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()]</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Truth volumes: </span><span class="si">{</span><span class="n">truth_volumes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-    <span class="n">found_volumes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
-        <span class="nb">set</span><span class="p">(</span><span class="n">pred_volumes</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">truth_volumes</span><span class="p">)</span>
-    <span class="p">)</span>  <span class="c1"># TODO: Score all volumes, and just return 0 scores for missing volumes</span>
+    <span class="n">found_volumes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">pred_volumes</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">truth_volumes</span><span class="p">))</span>
     <span class="n">missing_volumes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">truth_volumes</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">pred_volumes</span><span class="p">))</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">found_volumes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -1298,7 +1296,7 @@
 
     <span class="c1"># Find all the processed test volumes</span>
     <span class="n">pool</span> <span class="o">=</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="p">)</span>
-    <span class="n">partial_package_crop</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
+    <span class="n">partial_package_crop</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
         <span class="n">package_crop</span><span class="p">,</span>
         <span class="n">zarr_group</span><span class="o">=</span><span class="n">zarr_group</span><span class="p">,</span>
         <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span>
