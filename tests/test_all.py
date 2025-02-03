@@ -6,9 +6,12 @@ import os
 from upath import UPath
 
 import numpy as np
-from skimage.measure import label as relabel
 from skimage.transform import rescale
-import requests
+from cellmap_segmentation_challenge.utils import (
+    simulate_predictions_accuracy,
+    simulate_predictions_iou,
+    download_file,
+)
 
 print(
     "Setting manifest URL for test crops for testing purposes only. This will overwrite your local test_crop_manifest.csv. Make sure you are connected to the internet next time you run an operation that uses fetch_test_crop_manifest()."
@@ -345,57 +348,3 @@ def test_evaluate(setup_temp_path, scale, iou, accuracy):
                 assert (
                     np.abs((iou or 1) - scores["iou"]) < ERROR_TOLERANCE
                 ), f"IoU score for {label} should be {(iou or 1)} but is: {scores['iou']}"
-
-
-# %%
-
-
-# Helper functions for simulating predictions
-def simulate_predictions_iou(true_labels, iou):
-    # TODO: Add false positives (only makes false negatives currently)
-
-    pred_labels = np.zeros_like(true_labels)
-    for i in np.unique(true_labels):
-        if i == 0:
-            continue
-        pred_labels[true_labels == i] = np.random.choice(
-            [i, 0], np.sum(true_labels == i), p=[iou, 1 - iou]
-        )
-
-    pred_labels = relabel(pred_labels, connectivity=len(pred_labels.shape))
-    return pred_labels
-
-
-def simulate_predictions_accuracy(true_labels, accuracy):
-    shape = true_labels.shape
-    true_labels = true_labels.flatten()
-
-    # Get the total number of labels
-    n = len(true_labels)
-
-    # Calculate the number of correct predictions
-    num_correct = int(accuracy * n)
-
-    # Create an array to store the simulated predictions (copy the true labels initially)
-    simulated_predictions = np.copy(true_labels)
-
-    # Randomly select indices to be incorrect
-    incorrect_indices = np.random.choice(n, size=n - num_correct, replace=False)
-
-    # Flip the labels at the incorrect indices
-    for idx in incorrect_indices:
-        # Assuming binary classification (0 or 1), flip the label
-        simulated_predictions[idx] = 1 - simulated_predictions[idx]
-
-    # Relabel the predictions
-    simulated_predictions = simulated_predictions.reshape(shape)
-    simulated_predictions = relabel(simulated_predictions, connectivity=len(shape))
-
-    return simulated_predictions
-
-
-def download_file(url, dest):
-    response = requests.get(url)
-    response.raise_for_status()
-    with open(dest, "wb") as f:
-        f.write(response.content)

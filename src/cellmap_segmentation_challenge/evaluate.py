@@ -19,7 +19,7 @@ from cellmap_data import CellMapImage
 import zarr.errors
 
 import functools
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 
 from .config import PROCESSED_PATH, SUBMISSION_PATH, TRUTH_PATH
 from .utils import TEST_CROPS, TEST_CROPS_DICT
@@ -860,9 +860,7 @@ def score_submission(
     truth_volumes = [d.name for d in truth_path.glob("*") if d.is_dir()]
     print(f"Truth volumes: {truth_volumes}")
 
-    found_volumes = list(
-        set(pred_volumes) & set(truth_volumes)
-    )  # TODO: Score all volumes, and just return 0 scores for missing volumes
+    found_volumes = list(set(pred_volumes) & set(truth_volumes))
     missing_volumes = list(set(truth_volumes) - set(pred_volumes))
     if len(found_volumes) == 0:
         raise ValueError(
@@ -971,7 +969,7 @@ def package_submission(
 
     # Find all the processed test volumes
     pool = ThreadPoolExecutor(max_workers)
-    partial_package_crop = partial(
+    partial_package_crop = functools.partial(
         package_crop,
         zarr_group=zarr_group,
         overwrite=overwrite,

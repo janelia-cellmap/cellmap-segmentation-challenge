@@ -1,10 +1,13 @@
 import shutil
 import sys
 from time import time
+import numpy as np
+import requests
 from tqdm import tqdm
 from cellmap_segmentation_challenge.utils import get_tested_classes
 from cellmap_segmentation_challenge import TRUTH_PATH
 import zarr
+from skimage.measure import label as relabel
 
 from upath import UPath
 
@@ -218,6 +221,93 @@ def copy_gt(line, search_path, path_root, write_path, ground_truth):
     dataset.attrs["voxel_size"] = voxel_size
     dataset.attrs["translation"] = translation
     dataset.attrs["shape"] = shape
+
+
+# %%
+
+
+# Helper functions for simulating predictions
+def simulate_predictions_iou(true_labels, iou):
+    # TODO: Add false positives (only makes false negatives currently)
+
+    pred_labels = np.zeros_like(true_labels)
+    for i in np.unique(true_labels):
+        if i == 0:
+            continue
+        pred_labels[true_labels == i] = np.random.choice(
+            [i, 0], np.sum(true_labels == i), p=[iou, 1 - iou]
+        )
+
+    pred_labels = relabel(pred_labels, connectivity=len(pred_labels.shape))
+    return pred_labels
+
+
+def simulate_predictions_accuracy(true_labels, accuracy):
+    shape = true_labels.shape
+    true_labels = true_labels.flatten()
+
+    # Get the total number of labels
+    n = len(true_labels)
+
+    # Calculate the number of correct predictions
+    num_correct = int(accuracy * n)
+
+    # Create an array to store the simulated predictions (copy the true labels initially)
+    simulated_predictions = np.copy(true_labels)
+
+    # Randomly select indices to be incorrect
+    incorrect_indices = np.random.choice(n, size=n - num_correct, replace=False)
+
+    # Flip the labels at the incorrect indices
+    for idx in incorrect_indices:
+        # Assuming binary classification (0 or 1), flip the label
+        simulated_predictions[idx] = 1 - simulated_predictions[idx]
+
+    # Relabel the predictions
+    simulated_predictions = simulated_predictions.reshape(shape)
+    simulated_predictions = relabel(simulated_predictions, connectivity=len(shape))
+
+    return simulated_predictions
+
+
+def download_file(url, dest):
+    response = requests.get(url)
+    response.raise_for_status()
+    with open(dest, "wb") as f:
+        f.write(response.content)
+
+
+def format_string(string: str, format_kwargs: dict) -> str:
+    """
+    Convenience function to format a string with only the keys present in both the stringand in the `format_kwargs`. When all keys in the `format_kwargs` are present in `string` (in brackets), the function will return `string.format(**format_kwargs)` exactly. When none of the keys in the `format_kwargs` are present in the string, the function will return the original string, without error.
+
+    Parameters
+    ----------
+    string : str
+        The string to format.
+    format_kwargs : dict
+        The dictionary of key-value pairs to format the string with.
+
+    Returns
+    -------
+    str
+        The formatted string
+
+    Examples
+    --------
+    format_string("this/{thing}", {})  # returns "this/{thing}"
+    format_string("this/{thing}", {"thing":"that", "but":"not this"}) # returns "this/that"
+    """
+    new_kwargs = {}
+    # Find the keys that are present in the string
+    for key_chunk in string.split("{")[1:]:
+        key = key_chunk.split("}")[0]
+        if key in format_kwargs:
+            new_kwargs[key] = format_kwargs[key]
+        else:
+            new_kwargs[key] = "{" + key + "}"
+    string = string.format(**new_kwargs)
+    return string
 
 
 if __name__ == "__main__":
