@@ -6,7 +6,7 @@ from .fetch_data import fetch_data_cli
 from .predict import predict_cli
 from .process import process_cli
 from .train import train_cli
-from .visualize import visualize_cli
+from .visualize import visualize_cli, flow
 from .speedtest import speedtest_cli
 
 
@@ -31,3 +31,4 @@ run.add_command(get_dataset_counts_cli, name="get-counts")
 run.add_command(visualize_cli, name="visualize")
 run.add_command(package_submission_cli, name="pack-results")
 run.add_command(speedtest_cli, name="speedtest")
+run.add_command(flow, name="flow")
