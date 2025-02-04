@@ -22,7 +22,7 @@ import functools
 from concurrent.futures import ThreadPoolExecutor
 
 from .config import PROCESSED_PATH, SUBMISSION_PATH, TRUTH_PATH
-from .utils import TEST_CROPS, TEST_CROPS_DICT
+from .utils import TEST_CROPS, TEST_CROPS_DICT, format_string
 
 
 INSTANCE_CLASSES = [
@@ -967,6 +967,11 @@ def package_submission(
     store = zarr.DirectoryStore(output_path)
     zarr_group = zarr.group(store, overwrite=True)
 
+    # Make groups for each test volume
+    for crop in TEST_CROPS:
+        if f"crop{crop.id}" not in zarr_group:
+            crop_group = zarr_group.create_group(f"crop{crop.id}")
+
     # Find all the processed test volumes
     pool = ThreadPoolExecutor(max_workers)
     partial_package_crop = functools.partial(
@@ -992,12 +997,14 @@ def package_submission(
 
 
 def package_crop(crop, zarr_group, overwrite, input_search_path=PROCESSED_PATH):
-    format_kwargs = {
-        "crop": f"crop{crop.id}",
-    }
-    if "{dataset}" in input_search_path:
-        format_kwargs["dataset"] = crop.dataset
-    crop_path = UPath(input_search_path.format(**format_kwargs)) / crop.class_label
+    crop_path = (
+        UPath(
+            format_string(
+                input_search_path, {"crop": f"crop{crop.id}", "dataset": crop.dataset}
+            )
+        )
+        / crop.class_label
+    )
     if not crop_path.exists():
         return f"Skipping {crop_path} as it does not exist."
     if f"crop{crop.id}" not in zarr_group:
