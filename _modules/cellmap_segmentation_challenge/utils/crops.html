@@ -482,31 +482,24 @@
     <span class="n">test_crops</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">test_crop_meta_by_id</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">test_crop</span> <span class="ow">in</span> <span class="n">_test_crops</span><span class="p">:</span>
-        <span class="n">crop</span> <span class="o">=</span> <span class="n">CropRow</span><span class="p">(</span>
-            <span class="n">test_crop</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-            <span class="n">test_crop</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span>
-            <span class="n">dataset_em_meta</span><span class="p">[</span><span class="n">test_crop</span><span class="o">.</span><span class="n">dataset</span><span class="p">][</span><span class="s2">&quot;alignment&quot;</span><span class="p">],</span>
-            <span class="n">test_crop</span><span class="p">,</span>
-            <span class="n">dataset_em_meta</span><span class="p">[</span><span class="n">test_crop</span><span class="o">.</span><span class="n">dataset</span><span class="p">][</span><span class="s2">&quot;em_url&quot;</span><span class="p">],</span>
-        <span class="p">)</span>
         <span class="k">if</span> <span class="n">test_crop</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">test_crop_meta_by_id</span><span class="p">:</span>
             <span class="c1"># Make sure metadata for highest resolution, smallest offset, and largest shape is kept</span>
             <span class="n">listed</span> <span class="o">=</span> <span class="n">test_crop_meta_by_id</span><span class="p">[</span><span class="n">test_crop</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
             <span class="n">new_voxel_size</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="nb">min</span><span class="p">(</span><span class="n">l_vs</span><span class="p">,</span> <span class="n">t_vs</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">l_vs</span><span class="p">,</span> <span class="n">t_vs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">test_crop</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">,</span> <span class="n">listed</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">l_vs</span><span class="p">,</span> <span class="n">t_vs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">listed</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">,</span> <span class="n">test_crop</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">)</span>
             <span class="p">)</span>
             <span class="n">new_translation</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="nb">min</span><span class="p">(</span><span class="n">l_trans</span><span class="p">,</span> <span class="n">t_trans</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">l_trans</span><span class="p">,</span> <span class="n">t_trans</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">test_crop</span><span class="o">.</span><span class="n">translation</span><span class="p">,</span> <span class="n">listed</span><span class="o">.</span><span class="n">translation</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">l_trans</span><span class="p">,</span> <span class="n">t_trans</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">listed</span><span class="o">.</span><span class="n">translation</span><span class="p">,</span> <span class="n">test_crop</span><span class="o">.</span><span class="n">translation</span><span class="p">)</span>
             <span class="p">)</span>
             <span class="n">new_shape</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="nb">max</span><span class="p">(</span><span class="n">l_shape</span><span class="p">,</span> <span class="n">t_shape</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">l_shape</span><span class="p">,</span> <span class="n">t_shape</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">test_crop</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">listed</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">l_shape</span><span class="p">,</span> <span class="n">t_shape</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">listed</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">test_crop</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
             <span class="p">)</span>
             <span class="n">new_test_crop</span> <span class="o">=</span> <span class="n">TestCropRow</span><span class="p">(</span>
-                <span class="n">crop</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-                <span class="n">crop</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span>
+                <span class="n">test_crop</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="n">test_crop</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span>
                 <span class="s2">&quot;test&quot;</span><span class="p">,</span>
                 <span class="nb">tuple</span><span class="p">(</span><span class="n">new_voxel_size</span><span class="p">),</span>
                 <span class="nb">tuple</span><span class="p">(</span><span class="n">new_translation</span><span class="p">),</span>
