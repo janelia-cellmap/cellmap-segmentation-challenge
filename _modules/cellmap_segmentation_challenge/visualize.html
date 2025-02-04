@@ -275,12 +275,11 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">neuroglancer</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">tensorstore</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">xarray_tensorstore</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">xt</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">zarr</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">upath</span><span class="w"> </span><span class="kn">import</span> <span class="n">UPath</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_flow.utils.scale_pyramid</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScalePyramid</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_flow.utils.ds</span><span class="w"> </span><span class="kn">import</span> <span class="n">open_ds_tensorstore</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">CROP_NAME</span><span class="p">,</span>
@@ -361,8 +360,8 @@
 
         <span class="c1"># Add the raw dataset</span>
         <span class="k">with</span> <span class="n">viewer</span><span class="o">.</span><span class="n">txn</span><span class="p">()</span> <span class="k">as</span> <span class="n">s</span><span class="p">:</span>
-            <span class="n">s</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="s2">&quot;fibsem&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_layer</span><span class="p">(</span><span class="n">get_raw_path</span><span class="p">(</span><span class="n">dataset_path</span><span class="p">),</span> <span class="s2">&quot;image&quot;</span><span class="p">)</span>
             <span class="c1"># print(f&quot;Found raw data at {get_raw_path(dataset_path)}...&quot;)</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="s2">&quot;fibsem&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_layer</span><span class="p">(</span><span class="n">get_raw_path</span><span class="p">(</span><span class="n">dataset_path</span><span class="p">),</span> <span class="s2">&quot;image&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">force_em</span><span class="p">:</span>
             <span class="n">viewer_dict</span><span class="p">[</span><span class="n">dataset_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">viewer</span>
@@ -493,7 +492,8 @@
         <span class="n">scales</span><span class="p">,</span> <span class="n">metadata</span> <span class="o">=</span> <span class="n">parse_multiscale_metadata</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">scale</span> <span class="ow">in</span> <span class="n">scales</span><span class="p">:</span>
             <span class="n">this_path</span> <span class="o">=</span> <span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">scale</span><span class="p">)</span><span class="o">.</span><span class="n">path</span>
-            <span class="n">image</span> <span class="o">=</span> <span class="n">get_image</span><span class="p">(</span><span class="n">this_path</span><span class="p">)</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">open_ds_tensorstore</span><span class="p">(</span><span class="n">this_path</span><span class="p">)</span>
+            <span class="c1"># image = get_image(this_path)</span>
 
             <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                 <span class="n">neuroglancer</span><span class="o">.</span><span class="n">LocalVolume</span><span class="p">(</span>
@@ -531,7 +531,8 @@
 
         <span class="n">voxel_offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">translation</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">)</span>
 
-        <span class="n">image</span> <span class="o">=</span> <span class="n">get_image</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">open_ds_tensorstore</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
+        <span class="c1"># image = get_image(data_path)</span>
 
         <span class="n">volume</span> <span class="o">=</span> <span class="n">neuroglancer</span><span class="o">.</span><span class="n">LocalVolume</span><span class="p">(</span>
             <span class="n">data</span><span class="o">=</span><span class="n">image</span><span class="p">,</span>
@@ -553,17 +554,23 @@
 <div class="viewcode-block" id="get_image">
 <a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.visualize.get_image">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_image</span><span class="p">(</span><span class="n">data_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-    <span class="n">spec</span> <span class="o">=</span> <span class="n">xt</span><span class="o">.</span><span class="n">_zarr_spec_from_path</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
-    <span class="n">array_future</span> <span class="o">=</span> <span class="n">tensorstore</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">read</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">write</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">xarray_tensorstore</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">xt</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">tensorstore</span>
+
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">array</span> <span class="o">=</span> <span class="n">array_future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">open_ds_tensorstore</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="ne">Warning</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
-        <span class="ne">UserWarning</span><span class="p">(</span><span class="s2">&quot;Falling back to zarr3 driver&quot;</span><span class="p">)</span>
-        <span class="n">spec</span><span class="p">[</span><span class="s2">&quot;driver&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;zarr3&quot;</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">xt</span><span class="o">.</span><span class="n">_zarr_spec_from_path</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
         <span class="n">array_future</span> <span class="o">=</span> <span class="n">tensorstore</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">read</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">write</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="n">array</span> <span class="o">=</span> <span class="n">array_future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">array</span></div>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="n">array_future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="ne">Warning</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="ne">UserWarning</span><span class="p">(</span><span class="s2">&quot;Falling back to zarr3 driver&quot;</span><span class="p">)</span>
+            <span class="n">spec</span><span class="p">[</span><span class="s2">&quot;driver&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;zarr3&quot;</span>
+            <span class="n">array_future</span> <span class="o">=</span> <span class="n">tensorstore</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">read</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">write</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="n">array_future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">array</span></div>
 
 
 
