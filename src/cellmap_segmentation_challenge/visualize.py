@@ -9,6 +9,8 @@ import xarray_tensorstore as xt
 import zarr
 from upath import UPath
 
+from cellmap_flow.utils.scale_pyramid import ScalePyramid
+
 from .config import (
     CROP_NAME,
     PREDICTIONS_PATH,
@@ -19,11 +21,11 @@ from .config import (
 from .utils import TEST_CROPS
 from .utils.datasplit import get_dataset_name, get_formatted_fields, get_raw_path
 
-search_paths = {
+SEARCH_PATHS = {
     "gt": SEARCH_PATH.format(dataset="{dataset}", name=CROP_NAME),
     "predictions": (UPath(PREDICTIONS_PATH) / "{label}").path,
     "processed": (UPath(PROCESSED_PATH) / "{label}").path,
-    "submission": (UPath(SUBMISSION_PATH) / "{crop}" / "{label}").path,
+    # "submission": (UPath(SUBMISSION_PATH) / "{crop}" / "{label}").path,
 }
 
 
@@ -31,7 +33,7 @@ def visualize(
     datasets: str | Sequence[str] = "*",
     crops: int | list = ["*"],
     classes: str | Sequence[str] = "*",
-    kinds: Sequence[str] = list(search_paths.keys()),
+    kinds: Sequence[str] = list(SEARCH_PATHS.keys()),
 ):
     """
     Visualize datasets and crops in Neuroglancer.
@@ -87,6 +89,7 @@ def visualize(
         # Add the raw dataset
         with viewer.txn() as s:
             s.layers["fibsem"] = get_layer(get_raw_path(dataset_path), "image")
+            # print(f"Found raw data at {get_raw_path(dataset_path)}...")
 
         if force_em:
             viewer_dict[dataset_name] = viewer
@@ -98,15 +101,16 @@ def visualize(
                 dataset_name,
                 crops,
                 classes,
+                search_paths=SEARCH_PATHS,
             )
 
             if temp is not None:
                 viewer_dict[dataset_name] = viewer = temp
                 print(f"Added {kind} layers for {dataset_name}...")
+                webbrowser.open(viewer.get_viewer_url())
 
     # Output the viewers URL to open in a browser
     for dataset, viewer in viewer_dict.items():
-        webbrowser.open(viewer.get_viewer_url())
         print(f"{dataset} viewer running at:\n\t{viewer}")
 
     input("Press Enter to close the viewers...")
@@ -118,6 +122,8 @@ def add_layers(
     dataset_name: str,
     crops: Sequence,
     classes: Sequence[str],
+    search_paths=SEARCH_PATHS,
+    visible: bool = False,
 ) -> neuroglancer.Viewer | None:
     """
     Add layers to a Neuroglancer viewer.
@@ -134,6 +140,10 @@ def add_layers(
         The crops to add layers for.
     classes : Sequence[str]
         The class(es) to add layers for.
+    search_paths : dict, optional
+        The search paths to use for finding the data. Default is SEARCH_PATHS.
+    visible : bool, optional
+        Whether the layers should be visible. Default is False.
     """
     if kind not in search_paths:
         raise ValueError(f"Type must be one of {list(search_paths.keys())}")
@@ -167,6 +177,7 @@ def add_layers(
             s.layers[layer_name] = get_layer(
                 crop_path, layer_type, multiscale=kind != "submission"
             )
+            s.layers[layer_name].visible = visible
 
     if len(crop_paths) == 0:
         return None
@@ -174,7 +185,9 @@ def add_layers(
 
 
 def get_layer(
-    data_path: str, layer_type: str = "image", multiscale: bool = True
+    data_path: str,
+    layer_type: str = "image",
+    multiscale: bool = True,
 ) -> neuroglancer.Layer:
     """
     Get a Neuroglancer layer from a zarr data path for a LocalVolume.
@@ -196,46 +209,28 @@ def get_layer(
     # Construct an xarray with Tensorstore backend
     # Get metadata
     if multiscale:
-        # TODO: Make this work with multiscale properly
-        # Find highest resolution that has data
-        i = 0
-        while (UPath(data_path) / f"s{i}").exists():
-            # Does level s{i} have directories in it?
-            if len(glob(f"{data_path}/s{i}/*")) > 0:
-                break
-            i += 1
-        if not (UPath(data_path) / f"s{i}").exists():
-            if i == 0:
-                raise ValueError(f"No data found in {data_path}")
-            else:
-                i -= 1
-        spec = xt._zarr_spec_from_path((UPath(data_path) / f"s{i}").path)
-        metadata = zarr.open(data_path, mode="r").attrs.asdict()["multiscales"][0]
-        names = []
-        units = []
-        voxel_size = []
-        translation = []
-        for axis in metadata["axes"]:
-            if axis["name"] == "c":
-                names.append("c^")
-                voxel_size.append(1)
-                translation.append(0)
-                units.append("")
-            else:
-                names.append(axis["name"])
-                units.append("nm")
+        # Add all scales
+        layers = []
+        scales, metadata = parse_multiscale_metadata(data_path)
+        for scale in scales:
+            this_path = (UPath(data_path) / scale).path
+            image = get_image(this_path)
 
-        for ds in metadata["datasets"]:
-            if ds["path"] == f"s{i}":
-                for transform in ds["coordinateTransformations"]:
-                    if transform["type"] == "scale":
-                        voxel_size.extend(transform["scale"])
-                    elif transform["type"] == "translation":
-                        translation.extend(transform["translation"])
-                break
+            layers.append(
+                neuroglancer.LocalVolume(
+                    data=image,
+                    dimensions=neuroglancer.CoordinateSpace(
+                        scales=metadata[scale]["voxel_size"],
+                        units=metadata[scale]["units"],
+                        names=metadata[scale]["names"],
+                    ),
+                    voxel_offset=metadata[scale]["voxel_offset"],
+                )
+            )
+        volume = ScalePyramid(layers)
+
     else:
         # Handle single scale zarr files
-        spec = xt._zarr_spec_from_path(data_path)
         names = ["z", "y", "x"]
         units = ["nm", "nm", "nm"]
         attrs = zarr.open(data_path, mode="r").attrs.asdict()
@@ -255,8 +250,28 @@ def get_layer(
         else:
             translation = [0, 0, 0]
 
-    voxel_offset = np.array(translation) / np.array(voxel_size)
+        voxel_offset = np.array(translation) / np.array(voxel_size)
 
+        image = get_image(data_path)
+
+        volume = neuroglancer.LocalVolume(
+            data=image,
+            dimensions=neuroglancer.CoordinateSpace(
+                scales=voxel_size,
+                units=units,
+                names=names,
+            ),
+            voxel_offset=voxel_offset,
+        )
+
+    if layer_type == "segmentation":
+        return neuroglancer.SegmentationLayer(source=volume)
+    else:
+        return neuroglancer.ImageLayer(source=volume)
+
+
+def get_image(data_path: str):
+    spec = xt._zarr_spec_from_path(data_path)
     array_future = tensorstore.open(spec, read=True, write=False)
     try:
         array = array_future.result()
@@ -266,17 +281,43 @@ def get_layer(
         spec["driver"] = "zarr3"
         array_future = tensorstore.open(spec, read=True, write=False)
         array = array_future.result()
+    return array
 
-    volume = neuroglancer.LocalVolume(
-        data=array,
-        dimensions=neuroglancer.CoordinateSpace(
-            scales=voxel_size,
-            units=units,
-            names=names,
-        ),
-        voxel_offset=voxel_offset,
-    )
-    if layer_type == "segmentation":
-        return neuroglancer.SegmentationLayer(source=volume)
-    else:
-        return neuroglancer.ImageLayer(source=volume)
+
+def parse_multiscale_metadata(data_path: str):
+    metadata = zarr.open(data_path, mode="r").attrs.asdict()["multiscales"][0]
+    scales = []
+    parsed = {}
+    for ds in metadata["datasets"]:
+        scales.append(ds["path"])
+
+        names = []
+        units = []
+        translation = []
+        voxel_size = []
+
+        for axis in metadata["axes"]:
+            if axis["name"] == "c":
+                names.append("c^")
+                voxel_size.append(1)
+                translation.append(0)
+                units.append("")
+            else:
+                names.append(axis["name"])
+                units.append("nm")
+
+        for transform in ds["coordinateTransformations"]:
+            if transform["type"] == "scale":
+                voxel_size.extend(transform["scale"])
+            elif transform["type"] == "translation":
+                translation.extend(transform["translation"])
+
+        parsed[ds["path"]] = {
+            "names": names,
+            "units": units,
+            "voxel_size": voxel_size,
+            "translation": translation,
+            "voxel_offset": np.array(translation) / np.array(voxel_size),
+        }
+    scales.sort(key=lambda x: int(x[1:]))
+    return scales, parsed
