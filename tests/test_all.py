@@ -13,14 +13,6 @@ from cellmap_segmentation_challenge.utils import (
     download_file,
 )
 
-print(
-    "Setting manifest URL for test crops for testing purposes only. This will overwrite your local test_crop_manifest.csv. Make sure you are connected to the internet next time you run an operation that uses fetch_test_crop_manifest()."
-)
-
-# Set the manifest URL for the test crops
-os.environ["CSC_TEST_CROP_MANIFEST_URL"] = (
-    "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/test_crop_manifest.csv"
-)
 
 from cellmap_segmentation_challenge import RAW_NAME, CROP_NAME
 from cellmap_segmentation_challenge.evaluate import (
@@ -29,6 +21,18 @@ from cellmap_segmentation_challenge.evaluate import (
 )
 
 ERROR_TOLERANCE = 0.1
+
+
+@pytest.fixture(autouse=True)
+def reset_env():
+    original_env = os.environ.copy()
+    # Set the manifest URL for the test crops
+    os.environ["CSC_TEST_CROP_MANIFEST_URL"] = (
+        "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/test_crop_manifest.csv"
+    )
+    yield
+    os.environ.clear()
+    os.environ.update(original_env)
 
 
 # %%
@@ -226,6 +230,7 @@ def test_process(setup_temp_path):
         input_path=PREDICTIONS_PATH,
         output_path=PROCESSED_PATH,
         device="cpu",
+        max_workers=os.cpu_count(),
     )
 
 
@@ -245,7 +250,9 @@ def test_pack_results(setup_temp_path):
 
     truth_path = REPO_ROOT / "data" / "truth.zarr"
 
-    package_submission_cli.callback(PROCESSED_PATH, truth_path.path, overwrite=True)
+    package_submission_cli.callback(
+        PROCESSED_PATH, truth_path.path, overwrite=True, max_workers=os.cpu_count()
+    )
 
 
 # %%
