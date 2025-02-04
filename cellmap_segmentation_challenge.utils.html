@@ -398,8 +398,10 @@
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.construct_test_crop_manifest"><code class="docutils literal notranslate"><span class="pre">construct_test_crop_manifest()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.construct_truth_dataset"><code class="docutils literal notranslate"><span class="pre">construct_truth_dataset()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.copy_gt"><code class="docutils literal notranslate"><span class="pre">copy_gt()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.simulate_predictions_iou_binary"><code class="docutils literal notranslate"><span class="pre">simulate_predictions_iou_binary()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.simulate_predictions_iou"><code class="docutils literal notranslate"><span class="pre">simulate_predictions_iou()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.simulate_predictions_accuracy"><code class="docutils literal notranslate"><span class="pre">simulate_predictions_accuracy()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.perturb_instance_mask"><code class="docutils literal notranslate"><span class="pre">perturb_instance_mask()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.download_file"><code class="docutils literal notranslate"><span class="pre">download_file()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.format_string"><code class="docutils literal notranslate"><span class="pre">format_string()</span></code></a></li>
 </ul>
@@ -433,8 +435,10 @@
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.load_safe_config"><code class="docutils literal notranslate"><span class="pre">load_safe_config()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.make_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_datasplit_csv()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.make_s3_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_s3_datasplit_csv()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.perturb_instance_mask"><code class="docutils literal notranslate"><span class="pre">perturb_instance_mask()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.simulate_predictions_accuracy"><code class="docutils literal notranslate"><span class="pre">simulate_predictions_accuracy()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.simulate_predictions_iou"><code class="docutils literal notranslate"><span class="pre">simulate_predictions_iou()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.simulate_predictions_iou_binary"><code class="docutils literal notranslate"><span class="pre">simulate_predictions_iou_binary()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -1208,6 +1212,11 @@ If <cite>force_safe</cite> is True, raises an error if the script is deemed unsa
 <dd></dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.utils.simulate_predictions_iou_binary">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.utils.</span></span><span class="sig-name descname"><span class="pre">simulate_predictions_iou_binary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iou</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/utils.html#simulate_predictions_iou_binary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.utils.simulate_predictions_iou_binary" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.utils.simulate_predictions_iou">
 <span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.utils.</span></span><span class="sig-name descname"><span class="pre">simulate_predictions_iou</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">true_labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iou</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/utils.html#simulate_predictions_iou"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.utils.simulate_predictions_iou" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
@@ -1216,6 +1225,34 @@ If <cite>force_safe</cite> is True, raises an error if the script is deemed unsa
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.utils.simulate_predictions_accuracy">
 <span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.utils.</span></span><span class="sig-name descname"><span class="pre">simulate_predictions_accuracy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">true_labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accuracy</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/utils.html#simulate_predictions_accuracy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.utils.simulate_predictions_accuracy" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.utils.perturb_instance_mask">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.utils.</span></span><span class="sig-name descname"><span class="pre">perturb_instance_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">true_labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hd_target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accuracy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/utils.html#perturb_instance_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.utils.perturb_instance_mask" title="Link to this definition">#</a></dt>
+<dd><p>Simulate a predicted instance segmentation mask with an approximate Hausdorff distance.</p>
+<p>Parameters:
+- true_labels: np.ndarray</p>
+<blockquote>
+<div><p>Ground-truth instance segmentation mask.</p>
+</div></blockquote>
+<ul class="simple">
+<li><dl class="simple">
+<dt>hd_target: float | None</dt><dd><p>Desired approximate Hausdorff distance. If None, it will be calculated from the accuracy.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>accuracy: float</dt><dd><p>Desired accuracy of the perturbed mask.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p>Returns:
+- np.ndarray</p>
+<blockquote>
+<div><p>Perturbed instance segmentation mask.</p>
+</div></blockquote>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.utils.download_file">
@@ -1593,6 +1630,34 @@ If <cite>force_safe</cite> is True, raises an error if the script is deemed unsa
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.perturb_instance_mask">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">perturb_instance_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">true_labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hd_target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accuracy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/utils.html#perturb_instance_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.perturb_instance_mask" title="Link to this definition">#</a></dt>
+<dd><p>Simulate a predicted instance segmentation mask with an approximate Hausdorff distance.</p>
+<p>Parameters:
+- true_labels: np.ndarray</p>
+<blockquote>
+<div><p>Ground-truth instance segmentation mask.</p>
+</div></blockquote>
+<ul class="simple">
+<li><dl class="simple">
+<dt>hd_target: float | None</dt><dd><p>Desired approximate Hausdorff distance. If None, it will be calculated from the accuracy.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>accuracy: float</dt><dd><p>Desired accuracy of the perturbed mask.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p>Returns:
+- np.ndarray</p>
+<blockquote>
+<div><p>Perturbed instance segmentation mask.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.simulate_predictions_accuracy">
 <span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">simulate_predictions_accuracy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">true_labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accuracy</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/utils.html#simulate_predictions_accuracy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.simulate_predictions_accuracy" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
@@ -1600,6 +1665,11 @@ If <cite>force_safe</cite> is True, raises an error if the script is deemed unsa
 <dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.simulate_predictions_iou">
 <span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">simulate_predictions_iou</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">true_labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iou</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/utils.html#simulate_predictions_iou"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.simulate_predictions_iou" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.simulate_predictions_iou_binary">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">simulate_predictions_iou_binary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iou</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/utils.html#simulate_predictions_iou_binary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.simulate_predictions_iou_binary" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 </section>
@@ -1718,8 +1788,10 @@ If <cite>force_safe</cite> is True, raises an error if the script is deemed unsa
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.construct_test_crop_manifest"><code class="docutils literal notranslate"><span class="pre">construct_test_crop_manifest()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.construct_truth_dataset"><code class="docutils literal notranslate"><span class="pre">construct_truth_dataset()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.copy_gt"><code class="docutils literal notranslate"><span class="pre">copy_gt()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.simulate_predictions_iou_binary"><code class="docutils literal notranslate"><span class="pre">simulate_predictions_iou_binary()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.simulate_predictions_iou"><code class="docutils literal notranslate"><span class="pre">simulate_predictions_iou()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.simulate_predictions_accuracy"><code class="docutils literal notranslate"><span class="pre">simulate_predictions_accuracy()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.perturb_instance_mask"><code class="docutils literal notranslate"><span class="pre">perturb_instance_mask()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.download_file"><code class="docutils literal notranslate"><span class="pre">download_file()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.format_string"><code class="docutils literal notranslate"><span class="pre">format_string()</span></code></a></li>
 </ul>
@@ -1753,8 +1825,10 @@ If <cite>force_safe</cite> is True, raises an error if the script is deemed unsa
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.load_safe_config"><code class="docutils literal notranslate"><span class="pre">load_safe_config()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.make_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_datasplit_csv()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.make_s3_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_s3_datasplit_csv()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.perturb_instance_mask"><code class="docutils literal notranslate"><span class="pre">perturb_instance_mask()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.simulate_predictions_accuracy"><code class="docutils literal notranslate"><span class="pre">simulate_predictions_accuracy()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.simulate_predictions_iou"><code class="docutils literal notranslate"><span class="pre">simulate_predictions_iou()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.simulate_predictions_iou_binary"><code class="docutils literal notranslate"><span class="pre">simulate_predictions_iou_binary()</span></code></a></li>
 </ul>
 </li>
 </ul>
