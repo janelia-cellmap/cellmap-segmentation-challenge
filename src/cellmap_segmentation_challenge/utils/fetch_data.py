@@ -105,7 +105,9 @@ def read_group(path: str, **kwargs) -> zarr.Group:
     return zarr.open_group(path, mode="r", **kwargs)
 
 
-def subset_to_slice(outer_array, inner_array) -> tuple[slice, ...]:
+def subset_to_slice(
+    outer_array, inner_array, force_nonempty=False
+) -> tuple[slice, ...]:
     coords_bounds = {k: c[[0, -1]] for k, c in inner_array.coords.items()}
     subregion = outer_array.sel(coords_bounds, "nearest")
     out = ()
@@ -113,6 +115,13 @@ def subset_to_slice(outer_array, inner_array) -> tuple[slice, ...]:
         start = np.where(value == subregion.coords[dim][0])[0].take(0)
         stop = np.where(value == subregion.coords[dim][-1])[0].take(0)
         step = 1
+        if force_nonempty and start == stop:
+            start = max(0, stop - step)
+            stop = min(len(value), start + step + 1)
+            if start == stop:
+                raise ValueError(
+                    "Empty slice. Cannot force nonempty - outer_array is too small."
+                )
         out += (slice(start, stop, step),)
     return out
 

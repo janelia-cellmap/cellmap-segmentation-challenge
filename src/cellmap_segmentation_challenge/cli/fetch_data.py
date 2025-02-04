@@ -194,7 +194,10 @@ def fetch_data_cli(
             log = log.bind(crop_id=crop.id, dataset=crop.dataset)
             em_source_url = crop.em_url
 
-            gt_source_group: None | zarr.Group = None
+            dest_root = URL.build(
+                scheme="file", path=f"/{dest_path_abs.as_posix().lstrip('/')}"
+            ).joinpath(f"{crop.dataset}/{crop.dataset}.zarr")
+
             if not isinstance(crop.gt_source, TestCropRow):
                 gt_source_url = crop.gt_source
                 log.info(f"Fetching GT data for crop {crop.id} from {gt_source_url}")
@@ -203,73 +206,54 @@ def fetch_data_cli(
                         str(gt_source_url), storage_options={"anon": True}
                     )
                     log.info(f"Found GT data at {gt_source_url}.")
+                    gt_dest_path = _resolve_gt_dest_path(crop)
+                    dest_root_group = zarr.open_group(str(dest_root), mode=mode)
+                    # create intermediate groups
+                    dest_root_group.require_group(gt_dest_path)
+                    dest_crop_group = zarr.open_group(
+                        str(dest_root / gt_dest_path).replace("%5C", "\\"), mode=mode
+                    )
+
+                    fs = gt_source_group.store.fs
+                    store_path = gt_source_group.store.path
+
+                    # Using fs.find here is a performance hack until we fix the slowness of traversing the
+                    # zarr hierarchy to build the list of files
+
+                    gt_files = fs.find(store_path)
+                    crop_group_inventory = tuple(
+                        fn.split(store_path)[-1] for fn in gt_files
+                    )
+                    log.info(
+                        f"Preparing to fetch {len(crop_group_inventory)} files from {gt_source_url}."
+                    )
+
+                    futures.extend(
+                        partition_copy_store(
+                            keys=crop_group_inventory,
+                            source_store=gt_source_group.store,
+                            dest_store=dest_crop_group.store,
+                            batch_size=batch_size,
+                            pool=pool,
+                        )
+                    )
+
                 except zarr.errors.GroupNotFoundError:
                     log.info(
                         f"No Zarr group was found at {gt_source_url}. This crop will be skipped."
                     )
                     continue
             else:
-                gt_source_group = None
-                log.info(f"Test crop {crop.id} does not have GT data.")
+                log.info(
+                    f"Test crop {crop.id} does not have GT data. Fetching em data only."
+                )
 
-            em_source_group: None | zarr.Group = None
             try:
                 em_source_group = read_group(
                     str(em_source_url), storage_options={"anon": True}
                 )
                 log.info(f"Found EM data at {em_source_url}.")
-            except zarr.errors.GroupNotFoundError:
-                log.info(
-                    f"No EM data was found at {em_source_url}. Saving EM data will be skipped."
-                )
 
-            dest_root = URL.build(
-                scheme="file", path=f"/{dest_path_abs.as_posix().lstrip('/')}"
-            ).joinpath(f"{crop.dataset}/{crop.dataset}.zarr")
-
-            if gt_source_group is None:
-                log.info(
-                    f"No GT data found at any of the possible URLs. No GT data will be fetched for this crop."
-                )
-            else:
-                gt_dest_path = _resolve_gt_dest_path(crop)
-                dest_root_group = zarr.open_group(str(dest_root), mode=mode)
-                # create intermediate groups
-                dest_root_group.require_group(gt_dest_path)
-                dest_crop_group = zarr.open_group(
-                    str(dest_root / gt_dest_path).replace("%5C", "\\"), mode=mode
-                )
-
-                fs = gt_source_group.store.fs
-                store_path = gt_source_group.store.path
-
-                # Using fs.find here is a performance hack until we fix the slowness of traversing the
-                # zarr hierarchy to build the list of files
-
-                gt_files = fs.find(store_path)
-                crop_group_inventory = tuple(
-                    fn.split(store_path)[-1] for fn in gt_files
-                )
-                log.info(
-                    f"Preparing to fetch {len(crop_group_inventory)} files from {gt_source_url}."
-                )
-
-                futures.extend(
-                    partition_copy_store(
-                        keys=crop_group_inventory,
-                        source_store=gt_source_group.store,
-                        dest_store=dest_crop_group.store,
-                        batch_size=batch_size,
-                        pool=pool,
-                    )
-                )
-
-            if em_source_group is None:
-                log.info(
-                    f"No EM data found at any of the possible URLs. No EM data will be fetched for this crop."
-                )
-                continue
-            else:
                 # model the em group locally
                 em_dest_path = _resolve_em_dest_path(crop)
                 dest_em_group = GroupSpec.from_zarr(em_source_group).to_zarr(
@@ -292,11 +276,10 @@ def fetch_data_cli(
                     key=lambda kv: np.prod(kv[1].shape),
                     reverse=True,
                 )
+                crop_multiscale_group: dict[str, DataArray] | None = None
                 if isinstance(crop.gt_source, TestCropRow):
-                    crop_multiscale_group: dict[str, DataArray] | None = None
                     base_gt_scale = VectorScale(scale=crop.gt_source.voxel_size)
                 else:
-                    crop_multiscale_group: dict[str, DataArray] | None = None
                     for _, group in gt_source_group.groups():
                         try:
                             crop_multiscale_group = read_multiscale_group(
@@ -324,6 +307,12 @@ def fetch_data_cli(
                         gt_source_arrays_sorted[0][1].coords, transform_precision=4
                     )
 
+                if fetch_all_em_resolutions:
+                    ratio_threshold = 0
+                else:
+                    ratio_threshold = 0.8
+
+                none_yet = True
                 for key, array in em_source_arrays_sorted:
                     if any(len(coord) <= 1 for coord in array.coords.values()):
                         log.info(
@@ -333,10 +322,6 @@ def fetch_data_cli(
                     _, (current_scale, _) = transforms_from_coords(
                         array.coords, transform_precision=4
                     )
-                    if fetch_all_em_resolutions:
-                        ratio_threshold = 0
-                    else:
-                        ratio_threshold = 0.9
                     scale_ratios = tuple(
                         s_current / s_gt
                         for s_current, s_gt in zip(
@@ -344,7 +329,6 @@ def fetch_data_cli(
                         )
                     )
                     if all(tuple(x > ratio_threshold for x in scale_ratios)):
-
                         # # Relative padding based on the scale of the current resolution:
                         # relative_scale = base_em_scale.scale[0] / current_scale.scale[0]
                         # current_pad = int(padding * relative_scale) # Padding relative to the current scale
@@ -353,6 +337,10 @@ def fetch_data_cli(
                         current_pad = padding
                         if isinstance(crop.gt_source, TestCropRow):
                             starts = crop.gt_source.translation
+                            starts = tuple(
+                                (s // vs) * vs
+                                for s, vs in zip(starts, crop.gt_source.voxel_size)
+                            )
                             stops = tuple(
                                 start + size * vs
                                 for start, size, vs in zip(
@@ -372,9 +360,14 @@ def fetch_data_cli(
                                     dims=array.dims,
                                     coords=coords,
                                 ),
+                                force_nonempty=none_yet,
                             )
                         else:
-                            slices = subset_to_slice(array, crop_multiscale_group["s0"])
+                            slices = subset_to_slice(
+                                array,
+                                crop_multiscale_group["s0"],
+                                force_nonempty=none_yet,
+                            )
                         slices_padded = tuple(
                             slice(
                                 max(sl.start - current_pad, 0),
@@ -392,6 +385,7 @@ def fetch_data_cli(
                         log.debug(
                             f"Gathering {len(new_chunks)} chunks from level {key}."
                         )
+                        none_yet = none_yet and len(new_chunks) == 0
                         em_group_inventory += new_chunks
                     else:
                         log.info(
@@ -399,6 +393,7 @@ def fetch_data_cli(
                         )
                     em_group_inventory += (f"{key}/.zarray",)
                 # em_group_inventory += (".zattrs",)
+                assert not none_yet, "No EM data was found for any resolution level."
                 log.info(
                     f"Preparing to fetch {len(em_group_inventory)} files from {em_source_url}."
                 )
@@ -411,6 +406,11 @@ def fetch_data_cli(
                         pool=pool,
                     )
                 )
+            except zarr.errors.GroupNotFoundError:
+                log.info(
+                    f"No EM data was found at {em_source_url}. Saving EM data will be skipped."
+                )
+                continue
 
         log = log.unbind("crop_id", "dataset")
         log = log.bind(save_location=dest_path_abs.path)
