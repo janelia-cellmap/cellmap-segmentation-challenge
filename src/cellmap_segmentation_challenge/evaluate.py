@@ -40,7 +40,7 @@ INSTANCE_CLASSES = [
     "instance",
 ]
 
-
+INSTANCE_RATIO_CUTOFF = 100  # submitted_# of instances / ground_truth_# of instances
 HAUSDORFF_DISTANCE_MAX = np.inf
 CAST_TO_NONE = [np.nan, np.inf, -np.inf]
 MAX_MAIN_THREADS = int(os.getenv("MAX_MAIN_THREADS", 2))
@@ -382,6 +382,18 @@ def score_instance(
 
     pred_ids = np.unique(pred_label)
     pred_ids = pred_ids[pred_ids != 0]
+
+    # Skip if the submission has way too many instances
+    if len(pred_ids) / len(truth_ids) > INSTANCE_RATIO_CUTOFF:
+        print(
+            f"Skipping {len(pred_ids)} instances in submission, {len(truth_ids)} in ground truth"
+        )
+        return {
+            "accuracy": 0,
+            "hausdorff_distance": np.inf,
+            "normalized_hausdorff_distance": 0,
+            "combined_score": 0,
+        }
 
     # Initialize the cost matrix
     cost_matrix = np.zeros((len(truth_ids), len(pred_ids)))
