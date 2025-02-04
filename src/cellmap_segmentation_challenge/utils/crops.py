@@ -179,31 +179,24 @@ def get_test_crops() -> tuple[CropRow, ...]:
     test_crops = []
     test_crop_meta_by_id = {}
     for test_crop in _test_crops:
-        crop = CropRow(
-            test_crop.id,
-            test_crop.dataset,
-            dataset_em_meta[test_crop.dataset]["alignment"],
-            test_crop,
-            dataset_em_meta[test_crop.dataset]["em_url"],
-        )
         if test_crop.id in test_crop_meta_by_id:
             # Make sure metadata for highest resolution, smallest offset, and largest shape is kept
             listed = test_crop_meta_by_id[test_crop.id]
             new_voxel_size = (
                 min(l_vs, t_vs)
-                for l_vs, t_vs in zip(test_crop.voxel_size, listed.voxel_size)
+                for l_vs, t_vs in zip(listed.voxel_size, test_crop.voxel_size)
             )
             new_translation = (
                 min(l_trans, t_trans)
-                for l_trans, t_trans in zip(test_crop.translation, listed.translation)
+                for l_trans, t_trans in zip(listed.translation, test_crop.translation)
             )
             new_shape = (
                 max(l_shape, t_shape)
-                for l_shape, t_shape in zip(test_crop.shape, listed.shape)
+                for l_shape, t_shape in zip(listed.shape, test_crop.shape)
             )
             new_test_crop = TestCropRow(
-                crop.id,
-                crop.dataset,
+                test_crop.id,
+                test_crop.dataset,
                 "test",
                 tuple(new_voxel_size),
                 tuple(new_translation),
