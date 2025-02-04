@@ -227,6 +227,19 @@ def copy_gt(line, search_path, path_root, write_path, ground_truth):
 
 
 # Helper functions for simulating predictions
+def simulate_predictions_iou_binary(labels, iou):
+    # TODO: Add false positives (only makes false negatives currently)
+    print(f"Simulating predictions with IOU: {iou}")
+
+    shape = labels.shape
+    labels = labels.flatten() > 0
+    n_positive = np.sum(labels)
+    labels[labels > 0] = np.random.choice([1, 0], n_positive, p=[iou, 1 - iou])
+
+    labels = labels.reshape(shape)
+    return labels
+
+
 def simulate_predictions_iou(true_labels, iou):
     # TODO: Add false positives (only makes false negatives currently)
 
@@ -249,25 +262,65 @@ def simulate_predictions_accuracy(true_labels, accuracy):
     # Get the total number of labels
     n = len(true_labels)
 
-    # Calculate the number of correct predictions
-    num_correct = int(accuracy * n)
-
     # Create an array to store the simulated predictions (copy the true labels initially)
     simulated_predictions = np.copy(true_labels)
 
     # Randomly select indices to be incorrect
-    incorrect_indices = np.random.choice(n, size=n - num_correct, replace=False)
+    incorrect_indices = np.random.choice(n, size=n - int(accuracy * n), replace=False)
 
-    # Flip the labels at the incorrect indices
-    for idx in incorrect_indices:
-        # Assuming binary classification (0 or 1), flip the label
-        simulated_predictions[idx] = 1 - simulated_predictions[idx]
+    simulated_predictions[incorrect_indices] = (
+        1 - simulated_predictions[incorrect_indices]
+    )
 
-    # Relabel the predictions
+    # Reshape and relabel the predictions
     simulated_predictions = simulated_predictions.reshape(shape)
     simulated_predictions = relabel(simulated_predictions, connectivity=len(shape))
 
     return simulated_predictions
+
+
+def perturb_instance_mask(true_labels, hd_target=None, accuracy=0.8):
+    """
+    Simulate a predicted instance segmentation mask with an approximate Hausdorff distance.
+
+    Parameters:
+    - true_labels: np.ndarray
+        Ground-truth instance segmentation mask.
+    - hd_target: float | None
+        Desired approximate Hausdorff distance. If None, it will be calculated from the accuracy.
+    - accuracy: float
+        Desired accuracy of the perturbed mask.
+
+    Returns:
+    - np.ndarray
+        Perturbed instance segmentation mask.
+    """
+    if hd_target is None:
+        hd_target = -(np.log(accuracy) / np.log(1.01))
+    perturbed = np.copy(true_labels)
+    unique_instances = np.unique(true_labels)[1:]  # Exclude background (0)
+
+    for instance in unique_instances:
+        # print("Shifting...")
+        # Randomly shift the mask
+        indices = np.where(perturbed == instance)
+        perturbed[indices] = 0  # Remove the original instance
+        indices = list(indices)
+        for i in range(3):
+            shift = np.random.randint(-hd_target, hd_target + 1)
+            shift = np.clip(
+                shift,
+                -indices[i].min(),
+                true_labels.shape[i] - (indices[i].max() + 1),
+            )
+
+            indices[i] += shift
+        indices = tuple(indices)
+        perturbed[indices] = instance
+
+    perturbed = simulate_predictions_accuracy(perturbed, accuracy)
+
+    return perturbed
 
 
 def download_file(url, dest):

@@ -17,8 +17,8 @@ from cellmap_segmentation_challenge.config import (
 )
 from cellmap_segmentation_challenge.utils import (
     TEST_CROPS,
-    simulate_predictions_accuracy,
-    simulate_predictions_iou,
+    perturb_instance_mask,
+    simulate_predictions_iou_binary,
     format_string,
 )
 from cellmap_segmentation_challenge.evaluate import (
@@ -27,8 +27,8 @@ from cellmap_segmentation_challenge.evaluate import (
     match_crop_space,
 )
 
-CONFIGURED_ACCURACY = 0.6
-CONFIGURED_IOU = 0.6
+CONFIGURED_ACCURACY = 0.8
+CONFIGURED_IOU = 0.8
 
 
 def mock_submission(
@@ -47,8 +47,8 @@ def mock_submission(
         output_path (str | UPath): The path to save the submission zarr to. (ending with `<filename>.zarr`; `.zarr` will be appended if not present, and replaced with `.zip` when zipped).
         overwrite (bool): Whether to overwrite the submission zarr if it already exists.
         max_workers (int): The maximum number of workers to use for parallel processing. Defaults to the number of CPUs.
-        configured_accuracy (float): The configured accuracy to simulate errors with. Defaults to 0.6.
-        configured_iou (float): The configured IOU to simulate errors with. Defaults to 0.6.
+        configured_accuracy (float): The configured accuracy to simulate errors with. Defaults to 0.8.
+        configured_iou (float): The configured IOU to simulate errors with. Defaults to 0.8.
     """
     input_search_path = str(input_search_path)
     output_path = UPath(output_path)
@@ -129,12 +129,13 @@ def mock_crop(
     # Add errors to the ground truth to simulate a submission
     if crop.class_label in INSTANCE_CLASSES:
         # Add errors to the instance segmentation
-        image = simulate_predictions_accuracy(image, configured_accuracy)
+        image = perturb_instance_mask(image, configured_accuracy)
     else:
         # Add errors to the semantic segmentation
-        image = simulate_predictions_iou(image, configured_iou)
+        image = simulate_predictions_iou_binary(image, configured_iou)
 
     label_array[:] = image
+
     # Add the metadata
     label_array.attrs["voxel_size"] = crop.voxel_size
     label_array.attrs["translation"] = crop.translation

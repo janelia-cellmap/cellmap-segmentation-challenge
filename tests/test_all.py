@@ -9,7 +9,7 @@ import numpy as np
 from skimage.transform import rescale
 from cellmap_segmentation_challenge.utils import (
     simulate_predictions_accuracy,
-    simulate_predictions_iou,
+    simulate_predictions_iou_binary,
     download_file,
 )
 
@@ -294,7 +294,7 @@ def test_evaluate(setup_temp_path, scale, iou, accuracy):
                 pred = truth.copy()
 
                 if iou is not None and label not in INSTANCE_CLASSES:
-                    pred = simulate_predictions_iou(pred, iou)
+                    pred = simulate_predictions_iou_binary(pred, iou)
                 if accuracy is not None and label in INSTANCE_CLASSES:
                     pred = simulate_predictions_accuracy(pred, accuracy)
 

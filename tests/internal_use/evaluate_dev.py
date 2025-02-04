@@ -4,19 +4,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 from skimage.measure import label
 
-from benchmark.pipeline import (
-    random_source_pipeline,
+from pipeline import random_source_pipeline
+from cellmap_segmentation_challenge.utils import (
     simulate_predictions_accuracy,
-    simulate_predictions_iou,
+    simulate_predictions_iou_binary,
 )
-from cellmap_segmentation_challenge.evaluate import *
+
+from cellmap_segmentation_challenge.evaluate import score_instance, score_semantic
 
 show = True
 
 # %% First make a GT array
 
 # SET SHAPE, NUMBER OF POINTS, ETC. HERE
-size = 256  # size of the volume
+size = 128  # size of the volume
 shape = (size, size, size)  # (z, y, x) shape of the volume
 num_points = [
     shape[0] // 10,
@@ -48,9 +49,23 @@ print(
     f"Shape of volume: {truth_label.shape}\nNumber of IDs: {len(np.unique(truth_label))}"
 )
 
+
 # %%
 # Make a prediction array for iou testing
-pred_iou_label = simulate_predictions_iou(truth_label, configured_iou)
+def simulate_predictions_iou_binary(labels, iou):
+    # TODO: Add false positives
+    print(f"Simulating predictions with IOU: {iou}")
+
+    shape = labels.shape
+    labels = labels.flatten() > 0
+    n_positive = np.sum(labels)
+    labels[labels > 0] = np.random.choice([1, 0], n_positive, p=[iou, 1 - iou])
+
+    labels = labels.reshape(shape)
+    return labels
+
+
+pred_iou_label = simulate_predictions_iou_binary(truth_label, configured_iou)
 
 # Plot the prediction array
 if show:
@@ -79,7 +94,79 @@ print(f"Configured IOU: {configured_iou}")
 
 # %%
 # Make a prediction array for accuracy testing
-pred_accuracy_label = simulate_predictions_accuracy(truth_label, configured_accuracy)
+import os
+from skimage.measure import label as relabel
+
+
+def simulate_predictions_accuracy(true_labels, accuracy):
+    shape = true_labels.shape
+    true_labels = true_labels.flatten()
+
+    # Get the total number of labels
+    n = len(true_labels)
+
+    # Create an array to store the simulated predictions (copy the true labels initially)
+    simulated_predictions = np.copy(true_labels)
+
+    # Randomly select indices to be incorrect
+    incorrect_indices = np.random.choice(n, size=n - int(accuracy * n), replace=False)
+
+    simulated_predictions[incorrect_indices] = (
+        1 - simulated_predictions[incorrect_indices]
+    )
+
+    # Reshape and relabel the predictions
+    simulated_predictions = simulated_predictions.reshape(shape)
+    simulated_predictions = relabel(simulated_predictions, connectivity=len(shape))
+
+    return simulated_predictions
+
+
+def perturb_instance_mask(true_labels, hd_target=None, accuracy=0.8):
+    """
+    Simulate a predicted instance segmentation mask with an approximate Hausdorff distance.
+
+    Parameters:
+    - true_labels: np.ndarray
+        Ground-truth instance segmentation mask.
+    - hd_target: float
+        Desired approximate Hausdorff distance.
+    - accuracy: float
+        Desired accuracy of the perturbed mask.
+
+    Returns:
+    - np.ndarray
+        Perturbed instance segmentation mask.
+    """
+    if hd_target is None:
+        hd_target = -(np.log(accuracy) / np.log(1.01))
+    perturbed = np.copy(true_labels)
+    unique_instances = np.unique(true_labels)[1:]  # Exclude background (0)
+
+    for instance in unique_instances:
+        # print("Shifting...")
+        # Randomly shift the mask
+        indices = np.where(perturbed == instance)
+        perturbed[indices] = 0  # Remove the original instance
+        indices = list(indices)
+        for i in range(3):
+            shift = np.random.randint(-hd_target, hd_target + 1)
+            shift = np.clip(
+                shift,
+                -indices[i].min(),
+                true_labels.shape[i] - (indices[i].max() + 1),
+            )
+
+            indices[i] += shift
+        indices = tuple(indices)
+        perturbed[indices] = instance
+
+    perturbed = simulate_predictions_accuracy(perturbed, accuracy)
+
+    return perturbed
+
+
+pred_accuracy_label = perturb_instance_mask(truth_label, accuracy=configured_accuracy)
 
 # Plot the prediction array
 if show:
@@ -95,7 +182,7 @@ print(
 
 # %%
 print("Instance scoring:")
-instance_score = score_instance(pred_accuracy_label, truth_label)
+instance_score = score_instance(pred_accuracy_label, truth_label, (1, 1, 1))
 print(instance_score)
 print(f"Configured accuracy: {configured_accuracy}")
 
