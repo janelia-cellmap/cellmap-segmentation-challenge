@@ -58,7 +58,13 @@ def mock_submission(
     if not output_path.exists():
         os.makedirs(output_path.parent, exist_ok=True)
     store = zarr.DirectoryStore(output_path)
-    zarr_group = zarr.group(store, overwrite=True)
+    zarr_group = zarr.group(store, overwrite=overwrite)
+
+    for crop in TEST_CROPS:
+        if f"crop{crop.id}" not in zarr_group:
+            crop_group = zarr_group.create_group(f"crop{crop.id}", overwrite=overwrite)
+        else:
+            crop_group = zarr_group[f"crop{crop.id}"]
 
     # Find all the processed test volumes
     pool = ThreadPoolExecutor(max_workers)
