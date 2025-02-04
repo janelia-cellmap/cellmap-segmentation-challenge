@@ -280,6 +280,8 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">zarr</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">upath</span><span class="w"> </span><span class="kn">import</span> <span class="n">UPath</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_flow.utils.scale_pyramid</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScalePyramid</span>
+
 <span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">CROP_NAME</span><span class="p">,</span>
     <span class="n">PREDICTIONS_PATH</span><span class="p">,</span>
@@ -290,11 +292,11 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">TEST_CROPS</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.utils.datasplit</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_dataset_name</span><span class="p">,</span> <span class="n">get_formatted_fields</span><span class="p">,</span> <span class="n">get_raw_path</span>
 
-<span class="n">search_paths</span> <span class="o">=</span> <span class="p">{</span>
+<span class="n">SEARCH_PATHS</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;gt&quot;</span><span class="p">:</span> <span class="n">SEARCH_PATH</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{dataset}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">CROP_NAME</span><span class="p">),</span>
     <span class="s2">&quot;predictions&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">PREDICTIONS_PATH</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;</span><span class="si">{label}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
     <span class="s2">&quot;processed&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">PROCESSED_PATH</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;</span><span class="si">{label}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
-    <span class="s2">&quot;submission&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">SUBMISSION_PATH</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;</span><span class="si">{crop}</span><span class="s2">&quot;</span> <span class="o">/</span> <span class="s2">&quot;</span><span class="si">{label}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+    <span class="c1"># &quot;submission&quot;: (UPath(SUBMISSION_PATH) / &quot;{crop}&quot; / &quot;{label}&quot;).path,</span>
 <span class="p">}</span>
 
 
@@ -304,7 +306,7 @@
     <span class="n">datasets</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;*&quot;</span><span class="p">,</span>
     <span class="n">crops</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;*&quot;</span><span class="p">],</span>
     <span class="n">classes</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;*&quot;</span><span class="p">,</span>
-    <span class="n">kinds</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">search_paths</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+    <span class="n">kinds</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">SEARCH_PATHS</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Visualize datasets and crops in Neuroglancer.</span>
@@ -360,6 +362,7 @@
         <span class="c1"># Add the raw dataset</span>
         <span class="k">with</span> <span class="n">viewer</span><span class="o">.</span><span class="n">txn</span><span class="p">()</span> <span class="k">as</span> <span class="n">s</span><span class="p">:</span>
             <span class="n">s</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="s2">&quot;fibsem&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_layer</span><span class="p">(</span><span class="n">get_raw_path</span><span class="p">(</span><span class="n">dataset_path</span><span class="p">),</span> <span class="s2">&quot;image&quot;</span><span class="p">)</span>
+            <span class="c1"># print(f&quot;Found raw data at {get_raw_path(dataset_path)}...&quot;)</span>
 
         <span class="k">if</span> <span class="n">force_em</span><span class="p">:</span>
             <span class="n">viewer_dict</span><span class="p">[</span><span class="n">dataset_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">viewer</span>
@@ -371,15 +374,16 @@
                 <span class="n">dataset_name</span><span class="p">,</span>
                 <span class="n">crops</span><span class="p">,</span>
                 <span class="n">classes</span><span class="p">,</span>
+                <span class="n">search_paths</span><span class="o">=</span><span class="n">SEARCH_PATHS</span><span class="p">,</span>
             <span class="p">)</span>
 
             <span class="k">if</span> <span class="n">temp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">viewer_dict</span><span class="p">[</span><span class="n">dataset_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">viewer</span> <span class="o">=</span> <span class="n">temp</span>
                 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Added </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2"> layers for </span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+                <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">viewer</span><span class="o">.</span><span class="n">get_viewer_url</span><span class="p">())</span>
 
     <span class="c1"># Output the viewers URL to open in a browser</span>
     <span class="k">for</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">viewer</span> <span class="ow">in</span> <span class="n">viewer_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">viewer</span><span class="o">.</span><span class="n">get_viewer_url</span><span class="p">())</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dataset</span><span class="si">}</span><span class="s2"> viewer running at:</span><span class="se">\n\t</span><span class="si">{</span><span class="n">viewer</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Press Enter to close the viewers...&quot;</span><span class="p">)</span></div>
@@ -394,6 +398,8 @@
     <span class="n">dataset_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">crops</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">,</span>
     <span class="n">classes</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">search_paths</span><span class="o">=</span><span class="n">SEARCH_PATHS</span><span class="p">,</span>
+    <span class="n">visible</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">neuroglancer</span><span class="o">.</span><span class="n">Viewer</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Add layers to a Neuroglancer viewer.</span>
@@ -410,6 +416,10 @@
 <span class="sd">        The crops to add layers for.</span>
 <span class="sd">    classes : Sequence[str]</span>
 <span class="sd">        The class(es) to add layers for.</span>
+<span class="sd">    search_paths : dict, optional</span>
+<span class="sd">        The search paths to use for finding the data. Default is SEARCH_PATHS.</span>
+<span class="sd">    visible : bool, optional</span>
+<span class="sd">        Whether the layers should be visible. Default is False.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">search_paths</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Type must be one of </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">search_paths</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -443,6 +453,7 @@
             <span class="n">s</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">layer_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_layer</span><span class="p">(</span>
                 <span class="n">crop_path</span><span class="p">,</span> <span class="n">layer_type</span><span class="p">,</span> <span class="n">multiscale</span><span class="o">=</span><span class="n">kind</span> <span class="o">!=</span> <span class="s2">&quot;submission&quot;</span>
             <span class="p">)</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">layer_name</span><span class="p">]</span><span class="o">.</span><span class="n">visible</span> <span class="o">=</span> <span class="n">visible</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">crop_paths</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
@@ -453,7 +464,9 @@
 <div class="viewcode-block" id="get_layer">
 <a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.visualize.get_layer">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_layer</span><span class="p">(</span>
-    <span class="n">data_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">layer_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="n">multiscale</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">data_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">layer_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;image&quot;</span><span class="p">,</span>
+    <span class="n">multiscale</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">neuroglancer</span><span class="o">.</span><span class="n">Layer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get a Neuroglancer layer from a zarr data path for a LocalVolume.</span>
@@ -475,46 +488,28 @@
     <span class="c1"># Construct an xarray with Tensorstore backend</span>
     <span class="c1"># Get metadata</span>
     <span class="k">if</span> <span class="n">multiscale</span><span class="p">:</span>
-        <span class="c1"># TODO: Make this work with multiscale properly</span>
-        <span class="c1"># Find highest resolution that has data</span>
-        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">while</span> <span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;s</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-            <span class="c1"># Does level s{i} have directories in it?</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">data_path</span><span class="si">}</span><span class="s2">/s</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">/*&quot;</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">break</span>
-            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;s</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No data found in </span><span class="si">{</span><span class="n">data_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">i</span> <span class="o">-=</span> <span class="mi">1</span>
-        <span class="n">spec</span> <span class="o">=</span> <span class="n">xt</span><span class="o">.</span><span class="n">_zarr_spec_from_path</span><span class="p">((</span><span class="n">UPath</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;s</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
-        <span class="n">metadata</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">asdict</span><span class="p">()[</span><span class="s2">&quot;multiscales&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">units</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">voxel_size</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">translation</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;axes&quot;</span><span class="p">]:</span>
-            <span class="k">if</span> <span class="n">axis</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;c&quot;</span><span class="p">:</span>
-                <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;c^&quot;</span><span class="p">)</span>
-                <span class="n">voxel_size</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-                <span class="n">translation</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-                <span class="n">units</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">axis</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">])</span>
-                <span class="n">units</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;nm&quot;</span><span class="p">)</span>
+        <span class="c1"># Add all scales</span>
+        <span class="n">layers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">scales</span><span class="p">,</span> <span class="n">metadata</span> <span class="o">=</span> <span class="n">parse_multiscale_metadata</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">scale</span> <span class="ow">in</span> <span class="n">scales</span><span class="p">:</span>
+            <span class="n">this_path</span> <span class="o">=</span> <span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">scale</span><span class="p">)</span><span class="o">.</span><span class="n">path</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">get_image</span><span class="p">(</span><span class="n">this_path</span><span class="p">)</span>
 
-        <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;datasets&quot;</span><span class="p">]:</span>
-            <span class="k">if</span> <span class="n">ds</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="sa">f</span><span class="s2">&quot;s</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">transform</span> <span class="ow">in</span> <span class="n">ds</span><span class="p">[</span><span class="s2">&quot;coordinateTransformations&quot;</span><span class="p">]:</span>
-                    <span class="k">if</span> <span class="n">transform</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;scale&quot;</span><span class="p">:</span>
-                        <span class="n">voxel_size</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">transform</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">])</span>
-                    <span class="k">elif</span> <span class="n">transform</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;translation&quot;</span><span class="p">:</span>
-                        <span class="n">translation</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">transform</span><span class="p">[</span><span class="s2">&quot;translation&quot;</span><span class="p">])</span>
-                <span class="k">break</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">neuroglancer</span><span class="o">.</span><span class="n">LocalVolume</span><span class="p">(</span>
+                    <span class="n">data</span><span class="o">=</span><span class="n">image</span><span class="p">,</span>
+                    <span class="n">dimensions</span><span class="o">=</span><span class="n">neuroglancer</span><span class="o">.</span><span class="n">CoordinateSpace</span><span class="p">(</span>
+                        <span class="n">scales</span><span class="o">=</span><span class="n">metadata</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">],</span>
+                        <span class="n">units</span><span class="o">=</span><span class="n">metadata</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;units&quot;</span><span class="p">],</span>
+                        <span class="n">names</span><span class="o">=</span><span class="n">metadata</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;names&quot;</span><span class="p">],</span>
+                    <span class="p">),</span>
+                    <span class="n">voxel_offset</span><span class="o">=</span><span class="n">metadata</span><span class="p">[</span><span class="n">scale</span><span class="p">][</span><span class="s2">&quot;voxel_offset&quot;</span><span class="p">],</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">volume</span> <span class="o">=</span> <span class="n">ScalePyramid</span><span class="p">(</span><span class="n">layers</span><span class="p">)</span>
+
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># Handle single scale zarr files</span>
-        <span class="n">spec</span> <span class="o">=</span> <span class="n">xt</span><span class="o">.</span><span class="n">_zarr_spec_from_path</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
         <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">]</span>
         <span class="n">units</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;nm&quot;</span><span class="p">,</span> <span class="s2">&quot;nm&quot;</span><span class="p">,</span> <span class="s2">&quot;nm&quot;</span><span class="p">]</span>
         <span class="n">attrs</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">asdict</span><span class="p">()</span>
@@ -534,8 +529,31 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">translation</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
 
-    <span class="n">voxel_offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">translation</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">)</span>
+        <span class="n">voxel_offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">translation</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">)</span>
 
+        <span class="n">image</span> <span class="o">=</span> <span class="n">get_image</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
+
+        <span class="n">volume</span> <span class="o">=</span> <span class="n">neuroglancer</span><span class="o">.</span><span class="n">LocalVolume</span><span class="p">(</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">image</span><span class="p">,</span>
+            <span class="n">dimensions</span><span class="o">=</span><span class="n">neuroglancer</span><span class="o">.</span><span class="n">CoordinateSpace</span><span class="p">(</span>
+                <span class="n">scales</span><span class="o">=</span><span class="n">voxel_size</span><span class="p">,</span>
+                <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span>
+                <span class="n">names</span><span class="o">=</span><span class="n">names</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">voxel_offset</span><span class="o">=</span><span class="n">voxel_offset</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;segmentation&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">neuroglancer</span><span class="o">.</span><span class="n">SegmentationLayer</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">volume</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">neuroglancer</span><span class="o">.</span><span class="n">ImageLayer</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">volume</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_image">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.visualize.get_image">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_image</span><span class="p">(</span><span class="n">data_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="n">spec</span> <span class="o">=</span> <span class="n">xt</span><span class="o">.</span><span class="n">_zarr_spec_from_path</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
     <span class="n">array_future</span> <span class="o">=</span> <span class="n">tensorstore</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">read</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">write</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">array</span> <span class="o">=</span> <span class="n">array_future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
@@ -545,20 +563,49 @@
         <span class="n">spec</span><span class="p">[</span><span class="s2">&quot;driver&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;zarr3&quot;</span>
         <span class="n">array_future</span> <span class="o">=</span> <span class="n">tensorstore</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">read</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">write</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">array</span> <span class="o">=</span> <span class="n">array_future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">array</span></div>
 
-    <span class="n">volume</span> <span class="o">=</span> <span class="n">neuroglancer</span><span class="o">.</span><span class="n">LocalVolume</span><span class="p">(</span>
-        <span class="n">data</span><span class="o">=</span><span class="n">array</span><span class="p">,</span>
-        <span class="n">dimensions</span><span class="o">=</span><span class="n">neuroglancer</span><span class="o">.</span><span class="n">CoordinateSpace</span><span class="p">(</span>
-            <span class="n">scales</span><span class="o">=</span><span class="n">voxel_size</span><span class="p">,</span>
-            <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span>
-            <span class="n">names</span><span class="o">=</span><span class="n">names</span><span class="p">,</span>
-        <span class="p">),</span>
-        <span class="n">voxel_offset</span><span class="o">=</span><span class="n">voxel_offset</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="k">if</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;segmentation&quot;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">neuroglancer</span><span class="o">.</span><span class="n">SegmentationLayer</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">volume</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">neuroglancer</span><span class="o">.</span><span class="n">ImageLayer</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">volume</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="parse_multiscale_metadata">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.visualize.parse_multiscale_metadata">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_multiscale_metadata</span><span class="p">(</span><span class="n">data_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">asdict</span><span class="p">()[</span><span class="s2">&quot;multiscales&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">scales</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">parsed</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;datasets&quot;</span><span class="p">]:</span>
+        <span class="n">scales</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ds</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">])</span>
+
+        <span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">translation</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">voxel_size</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;axes&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">axis</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;c&quot;</span><span class="p">:</span>
+                <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;c^&quot;</span><span class="p">)</span>
+                <span class="n">voxel_size</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">translation</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">units</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">axis</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">])</span>
+                <span class="n">units</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;nm&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">transform</span> <span class="ow">in</span> <span class="n">ds</span><span class="p">[</span><span class="s2">&quot;coordinateTransformations&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">transform</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;scale&quot;</span><span class="p">:</span>
+                <span class="n">voxel_size</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">transform</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">transform</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;translation&quot;</span><span class="p">:</span>
+                <span class="n">translation</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">transform</span><span class="p">[</span><span class="s2">&quot;translation&quot;</span><span class="p">])</span>
+
+        <span class="n">parsed</span><span class="p">[</span><span class="n">ds</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;names&quot;</span><span class="p">:</span> <span class="n">names</span><span class="p">,</span>
+            <span class="s2">&quot;units&quot;</span><span class="p">:</span> <span class="n">units</span><span class="p">,</span>
+            <span class="s2">&quot;voxel_size&quot;</span><span class="p">:</span> <span class="n">voxel_size</span><span class="p">,</span>
+            <span class="s2">&quot;translation&quot;</span><span class="p">:</span> <span class="n">translation</span><span class="p">,</span>
+            <span class="s2">&quot;voxel_offset&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">translation</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">),</span>
+        <span class="p">}</span>
+    <span class="n">scales</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+    <span class="k">return</span> <span class="n">scales</span><span class="p">,</span> <span class="n">parsed</span></div>
 
 </pre></div>
 
