@@ -311,7 +311,7 @@
     <span class="s2">&quot;instance&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
-
+<span class="n">INSTANCE_RATIO_CUTOFF</span> <span class="o">=</span> <span class="mi">100</span>  <span class="c1"># submitted_# of instances / ground_truth_# of instances</span>
 <span class="n">HAUSDORFF_DISTANCE_MAX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
 <span class="n">CAST_TO_NONE</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span>
 <span class="n">MAX_MAIN_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_MAIN_THREADS&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
@@ -688,6 +688,18 @@
 
     <span class="n">pred_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">pred_label</span><span class="p">)</span>
     <span class="n">pred_ids</span> <span class="o">=</span> <span class="n">pred_ids</span><span class="p">[</span><span class="n">pred_ids</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># Skip if the submission has way too many instances</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">INSTANCE_RATIO_CUTOFF</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Skipping </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> instances in submission, </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> in ground truth&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+            <span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;combined_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">}</span>
 
     <span class="c1"># Initialize the cost matrix</span>
     <span class="n">cost_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">)))</span>
