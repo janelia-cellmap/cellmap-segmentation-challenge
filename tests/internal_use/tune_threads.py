@@ -9,6 +9,7 @@ from tqdm import tqdm
 from cellmap_segmentation_challenge.utils import TEST_CROPS
 from cellmap_segmentation_challenge.evaluate import INSTANCE_CLASSES
 
+# THESE ARE MADE UP VALUES AND MAY NEED ADJUSTING TO ACCURATELY REFLECT THE COMPUTATIONAL COSTS
 match_time_ratio = 1e-90  # s/voxel
 cost_time_ratio = 1e-50  # s/voxel
 dist_time_ratio = 1e-70  # s/voxel
@@ -78,6 +79,7 @@ def time_submission(
 # %timeit time_submission(4, 4, 4, 1e6)
 
 # %%
+# TUNE THREADS
 main_threads = [1, 2, 4, 8]
 label_threads = [1, 2, 4, 8]
 instance_threads = [1, 2, 4, 8]
