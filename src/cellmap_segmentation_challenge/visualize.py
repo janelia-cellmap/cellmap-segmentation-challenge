@@ -4,12 +4,11 @@ from typing import Sequence
 
 import neuroglancer
 import numpy as np
-import tensorstore
-import xarray_tensorstore as xt
 import zarr
 from upath import UPath
 
 from cellmap_flow.utils.scale_pyramid import ScalePyramid
+from cellmap_flow.utils.ds import open_ds_tensorstore
 
 from .config import (
     CROP_NAME,
@@ -88,8 +87,8 @@ def visualize(
 
         # Add the raw dataset
         with viewer.txn() as s:
-            s.layers["fibsem"] = get_layer(get_raw_path(dataset_path), "image")
             # print(f"Found raw data at {get_raw_path(dataset_path)}...")
+            s.layers["fibsem"] = get_layer(get_raw_path(dataset_path), "image")
 
         if force_em:
             viewer_dict[dataset_name] = viewer
@@ -214,7 +213,8 @@ def get_layer(
         scales, metadata = parse_multiscale_metadata(data_path)
         for scale in scales:
             this_path = (UPath(data_path) / scale).path
-            image = get_image(this_path)
+            image = open_ds_tensorstore(this_path)
+            # image = get_image(this_path)
 
             layers.append(
                 neuroglancer.LocalVolume(
@@ -252,7 +252,8 @@ def get_layer(
 
         voxel_offset = np.array(translation) / np.array(voxel_size)
 
-        image = get_image(data_path)
+        image = open_ds_tensorstore(data_path)
+        # image = get_image(data_path)
 
         volume = neuroglancer.LocalVolume(
             data=image,
@@ -271,17 +272,23 @@ def get_layer(
 
 
 def get_image(data_path: str):
-    spec = xt._zarr_spec_from_path(data_path)
-    array_future = tensorstore.open(spec, read=True, write=False)
+    import xarray_tensorstore as xt
+    import tensorstore
+
     try:
-        array = array_future.result()
+        return open_ds_tensorstore(data_path)
     except ValueError as e:
-        Warning(e)
-        UserWarning("Falling back to zarr3 driver")
-        spec["driver"] = "zarr3"
+        spec = xt._zarr_spec_from_path(data_path)
         array_future = tensorstore.open(spec, read=True, write=False)
-        array = array_future.result()
-    return array
+        try:
+            array = array_future.result()
+        except ValueError as e:
+            Warning(e)
+            UserWarning("Falling back to zarr3 driver")
+            spec["driver"] = "zarr3"
+            array_future = tensorstore.open(spec, read=True, write=False)
+            array = array_future.result()
+        return array
 
 
 def parse_multiscale_metadata(data_path: str):
