@@ -42,4 +42,4 @@ cd ..
 zip -r "$ZIP_NAME" "$DATA_DIR"
 
 # Remove the data folder after zipping
-rm -rf "$DATA_DIR"
+# rm -rf "$DATA_DIR"
