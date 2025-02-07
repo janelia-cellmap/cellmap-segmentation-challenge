@@ -337,10 +337,10 @@ def fetch_data_cli(
                         current_pad = padding
                         if isinstance(crop.gt_source, TestCropRow):
                             starts = crop.gt_source.translation
-                            starts = tuple(
-                                (s // vs) * vs
-                                for s, vs in zip(starts, crop.gt_source.voxel_size)
-                            )
+                            # starts = tuple(
+                            #     (s // vs) * vs
+                            #     for s, vs in zip(starts, crop.gt_source.voxel_size)
+                            # )
                             stops = tuple(
                                 start + size * vs
                                 for start, size, vs in zip(
@@ -360,13 +360,13 @@ def fetch_data_cli(
                                     dims=array.dims,
                                     coords=coords,
                                 ),
-                                force_nonempty=none_yet,
+                                # force_nonempty=none_yet,
                             )
                         else:
                             slices = subset_to_slice(
                                 array,
                                 crop_multiscale_group["s0"],
-                                force_nonempty=none_yet,
+                                # force_nonempty=none_yet,
                             )
                         slices_padded = tuple(
                             slice(
@@ -393,7 +393,7 @@ def fetch_data_cli(
                         )
                     em_group_inventory += (f"{key}/.zarray",)
                 # em_group_inventory += (".zattrs",)
-                assert not none_yet, "No EM data was found for any resolution level."
+                # assert not none_yet, "No EM data was found for any resolution level."
                 log.info(
                     f"Preparing to fetch {len(em_group_inventory)} files from {em_source_url}."
                 )
