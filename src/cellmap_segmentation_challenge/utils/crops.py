@@ -216,3 +216,12 @@ def get_test_crops() -> tuple[CropRow, ...]:
         )
         test_crops.append(new_crop)
     return tuple(test_crops)
+
+
+if __name__ == "__main__":
+    sizes = {}
+    for crop in TEST_CROPS:
+        if crop.id not in sizes:
+            sizes[crop.id] = np.prod(crop.shape)
+    total_size = np.sum(list(sizes.values())) / 1e9
+    print(f"Rough total size of raw data for test crops is {total_size} GB")
