@@ -520,6 +520,15 @@
         <span class="n">test_crops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_crop</span><span class="p">)</span>
     <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">test_crops</span><span class="p">)</span></div>
 
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">sizes</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">crop</span> <span class="ow">in</span> <span class="n">TEST_CROPS</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">crop</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sizes</span><span class="p">:</span>
+            <span class="n">sizes</span><span class="p">[</span><span class="n">crop</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">crop</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">total_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">sizes</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span> <span class="o">/</span> <span class="mf">1e9</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Rough total size of raw data for test crops is </span><span class="si">{</span><span class="n">total_size</span><span class="si">}</span><span class="s2"> GB&quot;</span><span class="p">)</span>
 </pre></div>
 
                 </article>
