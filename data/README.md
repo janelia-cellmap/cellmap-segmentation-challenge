@@ -21,6 +21,7 @@ The data will be stored in the following structure:
 │                       ├── <label class 2>
 │                       ├── ...
 │                       └── all <-- All labels combined
+├── ...
 └── README.md
 ```
 
