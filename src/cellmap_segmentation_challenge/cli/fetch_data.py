@@ -314,6 +314,7 @@ def fetch_data_cli(
 
                 none_yet = True
                 for key, array in em_source_arrays_sorted:
+                    em_group_inventory += (f"{key}/.zarray",)
                     if any(len(coord) <= 1 for coord in array.coords.values()):
                         log.info(
                             f"Skipping scale level {key} because it has no spatial dimensions"
@@ -351,7 +352,7 @@ def fetch_data_cli(
                             )
                             coords = array.coords.copy()
                             for k, v in zip(
-                                array.coords.keys(), np.array((starts, stops))
+                                array.coords.keys(), np.array((starts, stops)).T
                             ):
                                 coords[k] = v
                             slices = subset_to_slice(
@@ -391,7 +392,6 @@ def fetch_data_cli(
                         log.info(
                             f"Skipping scale level {key} because it is sampled more densely than the groundtruth data"
                         )
-                    em_group_inventory += (f"{key}/.zarray",)
                 # em_group_inventory += (".zattrs",)
                 # assert not none_yet, "No EM data was found for any resolution level."
                 log.info(
