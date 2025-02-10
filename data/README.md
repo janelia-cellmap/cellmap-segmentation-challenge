@@ -13,11 +13,16 @@ The data will be stored in the following structure:
 │           │       ├── s0 <-- Highest resolution scale level
 │           │       ├── s1
 │           │       └── ...
+│           │       └── .zattrs <-- Contains metadata about all of the scale levels, including spatial locations
+│           │       └── .zgroup
 │           └── labels
 │               └── groundtruth
 │                   └── crop<number>
 │                       ├── <label class 1>
 │                       │   └── s0 <-- Highest resolution
+│                       │   └── ...
+│                       │   └── .zattrs <-- Contains metadata about all of the scale levels, including spatial locations
+│                       │   └── .zgroup
 │                       ├── <label class 2>
 │                       ├── ...
 │                       └── all <-- All labels combined
