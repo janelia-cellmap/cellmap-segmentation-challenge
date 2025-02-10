@@ -351,7 +351,7 @@ def fetch_data_cli(
                             )
                             coords = array.coords.copy()
                             for k, v in zip(
-                                array.coords.keys(), np.array((starts, stops))
+                                array.coords.keys(), np.array((starts, stops)).T
                             ):
                                 coords[k] = v
                             slices = subset_to_slice(
