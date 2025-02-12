@@ -328,7 +328,7 @@
 
 <div class="viewcode-block" id="load_safe_config">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.security.load_safe_config">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">load_safe_config</span><span class="p">(</span><span class="n">config_path</span><span class="p">,</span> <span class="n">force_safe</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;FORCE_SAFE_CONFIG&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_safe_config</span><span class="p">(</span><span class="n">config_path</span><span class="p">,</span> <span class="n">force_safe</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;FORCE_SAFE_CONFIG&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Loads the configuration script at `config_path` after verifying its safety.</span>
 <span class="sd">    If `force_safe` is True, raises an error if the script is deemed unsafe.</span>
