@@ -62,6 +62,8 @@ def train(config_path: str):
         - target_value_transforms: Transform to apply to the target values. Default is T.Compose([T.ToDtype(torch.float), Binarize()]) which converts the input masks to float32 and threshold at 0 (turning object ID's into binary masks for use with binary cross entropy loss). This can be used to specify other targets, such as distance transforms.
         - max_grad_norm: Maximum gradient norm for clipping. If None, no clipping is performed. Default is None. This can be useful to prevent exploding gradients which would lead to NaNs in the weights.
         - force_all_classes: Whether to force all classes to be present in each batch provided by dataloaders. Can either be `True` to force this for both validation and training dataloader, `False` to force for neither, or `train` / `validate` to restrict it to training or validation, respectively. Default is 'validate'.
+        - scheduler: PyTorch learning rate scheduler (or uninstantiated class) to use for training. Default is None. If provided, the scheduler will be called at the end of each epoch.
+        - scheduler_kwargs: Dictionary of keyword arguments to pass to the scheduler constructor. Default is {}. If `scheduler` instantiation is provided, this will be ignored.
 
     Returns
     -------
@@ -151,6 +153,15 @@ def train(config_path: str):
             model.parameters(), lr=learning_rate, decoupled_weight_decay=True
         ),
     )
+
+    # %% Define the scheduler, from the config file or default to None
+    if "scheduler" in config:
+        scheduler = getattr(config, "scheduler")
+        if isinstance(scheduler, type):
+            scheduler_kwargs = getattr(config, "scheduler_kwargs", {})
+            scheduler = scheduler(optimizer, **scheduler_kwargs)
+    else:
+        scheduler = None
 
     # %% Define the loss function, from the config file or default to BCEWithLogitsLoss
     criterion = getattr(config, "criterion", torch.nn.BCEWithLogitsLoss)
@@ -325,6 +336,11 @@ def train(config_path: str):
 
             # Log the loss using tensorboard
             writer.add_scalar("loss", loss.item(), n_iter)
+
+        if scheduler is not None:
+            # Step the scheduler at the end of each epoch
+            scheduler.step()
+            writer.add_scalar("lr", scheduler.get_last_lr()[0], n_iter)
 
         # Save the model
         torch.save(
