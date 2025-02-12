@@ -310,6 +310,7 @@
     <span class="n">device</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">use_mutual_exclusion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">weighted_sampler</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">CellMapDataLoader</span><span class="p">,</span> <span class="n">CellMapDataLoader</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get the train and validation dataloaders.</span>
@@ -369,6 +370,8 @@
 <span class="sd">        Whether to use mutually exclusive class labels to infer non-present labels for the training data. Defaults to False.</span>
 <span class="sd">    weighted_sampler : bool</span>
 <span class="sd">        Whether to weight sample draws based on the number of positive labels within a dataset. Defaults to True.</span>
+<span class="sd">    **kwargs : Any</span>
+<span class="sd">        Additional keyword arguments to pass to the CellMapDataLoader.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -419,6 +422,7 @@
         <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
         <span class="n">is_train</span><span class="o">=</span><span class="n">random_validation</span><span class="p">,</span>
         <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">train_loader</span> <span class="o">=</span> <span class="n">CellMapDataLoader</span><span class="p">(</span>
@@ -429,6 +433,8 @@
             <span class="n">iterations_per_epoch</span> <span class="o">*</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">weighted</span><span class="o">=</span><span class="n">weighted_sampler</span>
         <span class="p">),</span>
         <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+        <span class="n">is_train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">train_loader</span><span class="p">,</span> <span class="n">validation_loader</span>  <span class="c1"># type: ignore</span></div>
