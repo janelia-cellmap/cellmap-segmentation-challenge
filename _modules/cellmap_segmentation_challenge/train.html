@@ -335,6 +335,8 @@
 <span class="sd">        - target_value_transforms: Transform to apply to the target values. Default is T.Compose([T.ToDtype(torch.float), Binarize()]) which converts the input masks to float32 and threshold at 0 (turning object ID&#39;s into binary masks for use with binary cross entropy loss). This can be used to specify other targets, such as distance transforms.</span>
 <span class="sd">        - max_grad_norm: Maximum gradient norm for clipping. If None, no clipping is performed. Default is None. This can be useful to prevent exploding gradients which would lead to NaNs in the weights.</span>
 <span class="sd">        - force_all_classes: Whether to force all classes to be present in each batch provided by dataloaders. Can either be `True` to force this for both validation and training dataloader, `False` to force for neither, or `train` / `validate` to restrict it to training or validation, respectively. Default is &#39;validate&#39;.</span>
+<span class="sd">        - scheduler: PyTorch learning rate scheduler (or uninstantiated class) to use for training. Default is None. If provided, the scheduler will be called at the end of each epoch.</span>
+<span class="sd">        - scheduler_kwargs: Dictionary of keyword arguments to pass to the scheduler constructor. Default is {}. If `scheduler` instantiation is provided, this will be ignored.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -424,6 +426,15 @@
             <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="n">learning_rate</span><span class="p">,</span> <span class="n">decoupled_weight_decay</span><span class="o">=</span><span class="kc">True</span>
         <span class="p">),</span>
     <span class="p">)</span>
+
+    <span class="c1"># %% Define the scheduler, from the config file or default to None</span>
+    <span class="k">if</span> <span class="s2">&quot;scheduler&quot;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+        <span class="n">scheduler</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;scheduler&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scheduler</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
+            <span class="n">scheduler_kwargs</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;scheduler_kwargs&quot;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="n">scheduler</span> <span class="o">=</span> <span class="n">scheduler</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="o">**</span><span class="n">scheduler_kwargs</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">scheduler</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="c1"># %% Define the loss function, from the config file or default to BCEWithLogitsLoss</span>
     <span class="n">criterion</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;criterion&quot;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">BCEWithLogitsLoss</span><span class="p">)</span>
@@ -598,6 +609,11 @@
 
             <span class="c1"># Log the loss using tensorboard</span>
             <span class="n">writer</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="s2">&quot;loss&quot;</span><span class="p">,</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="n">n_iter</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">scheduler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Step the scheduler at the end of each epoch</span>
+            <span class="n">scheduler</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="s2">&quot;lr&quot;</span><span class="p">,</span> <span class="n">scheduler</span><span class="o">.</span><span class="n">get_last_lr</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span> <span class="n">n_iter</span><span class="p">)</span>
 
         <span class="c1"># Save the model</span>
         <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
