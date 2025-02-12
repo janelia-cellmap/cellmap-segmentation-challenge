@@ -311,12 +311,14 @@
     <span class="s2">&quot;instance&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
-<span class="n">INSTANCE_RATIO_CUTOFF</span> <span class="o">=</span> <span class="mi">100</span>  <span class="c1"># submitted_# of instances / ground_truth_# of instances</span>
 <span class="n">HAUSDORFF_DISTANCE_MAX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
 <span class="n">CAST_TO_NONE</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span>
 <span class="n">MAX_MAIN_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_MAIN_THREADS&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
 <span class="n">MAX_LABEL_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_LABEL_THREADS&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
 <span class="n">MAX_INSTANCE_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_INSTANCE_THREADS&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="n">INSTANCE_RATIO_CUTOFF</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;INSTANCE_RATIO_CUTOFF&quot;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="p">)</span>  <span class="c1"># submitted_# of instances / ground_truth_# of instances</span>
 <span class="n">PRECOMPUTE_LIMIT</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;PRECOMPUTE_LIMIT&quot;</span><span class="p">,</span> <span class="mf">1e9</span><span class="p">))</span>
 <span class="n">DEBUG</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">,</span> <span class="s2">&quot;False&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">&quot;False&quot;</span>
 
@@ -690,7 +692,7 @@
     <span class="n">pred_ids</span> <span class="o">=</span> <span class="n">pred_ids</span><span class="p">[</span><span class="n">pred_ids</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span>
 
     <span class="c1"># Skip if the submission has way too many instances</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">INSTANCE_RATIO_CUTOFF</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">INSTANCE_RATIO_CUTOFF</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;Skipping </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> instances in submission, </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> in ground truth&quot;</span>
         <span class="p">)</span>
@@ -1182,6 +1184,10 @@
 <span class="sd">        &quot;overall_score&quot;: (the mean of the combined scores across all classes),</span>
 <span class="sd">    }</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">tracemalloc</span>
+
+    <span class="n">tracemalloc</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scoring </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
     <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
     <span class="c1"># Unzip the submission</span>
@@ -1258,6 +1264,12 @@
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Overall Instance Score: </span><span class="si">{</span><span class="n">found_scores</span><span class="p">[</span><span class="s1">&#39;overall_instance_score&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Overall Semantic Score: </span><span class="si">{</span><span class="n">found_scores</span><span class="p">[</span><span class="s1">&#39;overall_semantic_score&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Overall Score: </span><span class="si">{</span><span class="n">found_scores</span><span class="p">[</span><span class="s1">&#39;overall_score&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">current</span><span class="p">,</span> <span class="n">peak</span> <span class="o">=</span> <span class="n">tracemalloc</span><span class="o">.</span><span class="n">get_traced_memory</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current memory usage: </span><span class="si">{</span><span class="n">current</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Peak memory usage: </span><span class="si">{</span><span class="n">peak</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+
+    <span class="n">tracemalloc</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
 
     <span class="c1"># Save the scores</span>
     <span class="k">if</span> <span class="n">result_file</span><span class="p">:</span>
