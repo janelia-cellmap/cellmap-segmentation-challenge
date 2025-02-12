@@ -40,12 +40,14 @@ INSTANCE_CLASSES = [
     "instance",
 ]
 
-INSTANCE_RATIO_CUTOFF = 100  # submitted_# of instances / ground_truth_# of instances
 HAUSDORFF_DISTANCE_MAX = np.inf
 CAST_TO_NONE = [np.nan, np.inf, -np.inf]
 MAX_MAIN_THREADS = int(os.getenv("MAX_MAIN_THREADS", 2))
 MAX_LABEL_THREADS = int(os.getenv("MAX_LABEL_THREADS", 4))
 MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 4))
+INSTANCE_RATIO_CUTOFF = float(
+    os.getenv("INSTANCE_RATIO_CUTOFF", 1000)
+)  # submitted_# of instances / ground_truth_# of instances
 PRECOMPUTE_LIMIT = int(os.getenv("PRECOMPUTE_LIMIT", 1e9))
 DEBUG = os.getenv("DEBUG", "False") != "False"
 
@@ -384,7 +386,7 @@ def score_instance(
     pred_ids = pred_ids[pred_ids != 0]
 
     # Skip if the submission has way too many instances
-    if len(pred_ids) / len(truth_ids) > INSTANCE_RATIO_CUTOFF:
+    if len(truth_ids) > 0 and len(pred_ids) / len(truth_ids) > INSTANCE_RATIO_CUTOFF:
         print(
             f"Skipping {len(pred_ids)} instances in submission, {len(truth_ids)} in ground truth"
         )
@@ -858,6 +860,10 @@ def score_submission(
         "overall_score": (the mean of the combined scores across all classes),
     }
     """
+    import tracemalloc
+
+    tracemalloc.start()
+
     print(f"Scoring {submission_path}...")
     start_time = time()
     # Unzip the submission
@@ -934,6 +940,12 @@ def score_submission(
     print(f"\tOverall Instance Score: {found_scores['overall_instance_score']:.4f}")
     print(f"\tOverall Semantic Score: {found_scores['overall_semantic_score']:.4f}")
     print(f"\tOverall Score: {found_scores['overall_score']:.4f}")
+
+    current, peak = tracemalloc.get_traced_memory()
+    print(f"Current memory usage: {current / 1024**2:.2f} MB")
+    print(f"Peak memory usage: {peak / 1024**2:.2f} MB")
+
+    tracemalloc.stop()
 
     # Save the scores
     if result_file:
