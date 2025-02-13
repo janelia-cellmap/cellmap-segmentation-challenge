@@ -37,6 +37,7 @@ def get_dataloader(
     device: Optional[str | torch.device] = None,
     use_mutual_exclusion: bool = False,
     weighted_sampler: bool = True,
+    **kwargs: Any,
 ) -> tuple[CellMapDataLoader, CellMapDataLoader]:
     """
     Get the train and validation dataloaders.
@@ -146,6 +147,7 @@ def get_dataloader(
         batch_size=batch_size,
         is_train=random_validation,
         device=device,
+        **kwargs,
     )
 
     train_loader = CellMapDataLoader(
@@ -156,6 +158,7 @@ def get_dataloader(
             iterations_per_epoch * batch_size, weighted=weighted_sampler
         ),
         device=device,
+        **kwargs,
     )
 
     return train_loader, validation_loader  # type: ignore
