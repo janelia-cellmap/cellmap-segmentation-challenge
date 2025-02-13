@@ -3,6 +3,7 @@ import json
 import os
 from time import time
 import zipfile
+import threading
 
 import numpy as np
 import zarr
@@ -42,18 +43,19 @@ INSTANCE_CLASSES = [
 
 HAUSDORFF_DISTANCE_MAX = np.inf
 CAST_TO_NONE = [np.nan, np.inf, -np.inf]
-MAX_MAIN_THREADS = int(os.getenv("MAX_MAIN_THREADS", 4))
-MAX_LABEL_THREADS = int(os.getenv("MAX_LABEL_THREADS", 4))
-MAX_CONCURRENT_INSTANCE_EVALS = int(os.getenv("MAX_CONCURRENT_INSTANCE_EVALS", 2))
-MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 4))
-INSTANCE_RATIO_CUTOFF = float(
-    os.getenv("INSTANCE_RATIO_CUTOFF", 100)
-)  # submitted_# of instances / ground_truth_# of instances
+
+MAX_MAIN_THREADS = int(os.getenv("MAX_MAIN_THREADS", 8))
+MAX_LABEL_THREADS = int(os.getenv("MAX_LABEL_THREADS", 8))
+MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 8))
+MAX_CONCURRENT_INSTANCE_EVALS = int(os.getenv("MAX_CONCURRENT_INSTANCE_EVALS", 1))
+
+# submitted_# of instances / ground_truth_# of instances
+INSTANCE_RATIO_CUTOFF = float(os.getenv("INSTANCE_RATIO_CUTOFF", 100))
 PRECOMPUTE_LIMIT = int(os.getenv("PRECOMPUTE_LIMIT", 0))
 DEBUG = os.getenv("DEBUG", "False") != "False"
 
-os.environ["CURRENT_INSTANCE_EVALS"] = 0
-
+CURRENT_INSTANCE_EVALS = 0
+lock = threading.Lock()
 
 class spoof_precomputed:
     def __init__(self, array, ids):
@@ -574,13 +576,16 @@ def score_label(
 
     # Compute the scores
     if label_name in instance_classes:
-        if os.environ["CURRENT_INSTANCE_EVALS"] >= MAX_CONCURRENT_INSTANCE_EVALS:
+        global CURRENT_INSTANCE_EVALS
+        if CURRENT_INSTANCE_EVALS >= MAX_CONCURRENT_INSTANCE_EVALS:
             print("Waiting for other instance evaluations to finish...")
-            while os.environ["CURRENT_INSTANCE_EVALS"] >= MAX_CONCURRENT_INSTANCE_EVALS:
+            while CURRENT_INSTANCE_EVALS >= MAX_CONCURRENT_INSTANCE_EVALS:
                 sleep(1)
-        os.environ["CURRENT_INSTANCE_EVALS"] += 1
+        with lock:
+            CURRENT_INSTANCE_EVALS += 1
         results = score_instance(pred_label, truth_label, crop.voxel_size)
-        os.environ["CURRENT_INSTANCE_EVALS"] -= 1
+        with lock:
+            CURRENT_INSTANCE_EVALS -= 1
     else:
         results = score_semantic(pred_label, truth_label)
     results["num_voxels"] = int(np.prod(truth_label.shape))
