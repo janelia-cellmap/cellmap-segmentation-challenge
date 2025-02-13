@@ -155,13 +155,10 @@ def train(config_path: str):
     )
 
     # %% Define the scheduler, from the config file or default to None
-    if "scheduler" in config:
-        scheduler = getattr(config, "scheduler")
-        if isinstance(scheduler, type):
-            scheduler_kwargs = getattr(config, "scheduler_kwargs", {})
-            scheduler = scheduler(optimizer, **scheduler_kwargs)
-    else:
-        scheduler = None
+    scheduler = getattr(config, "scheduler", None)
+    if isinstance(scheduler, type):
+        scheduler_kwargs = getattr(config, "scheduler_kwargs", {})
+        scheduler = scheduler(optimizer, **scheduler_kwargs)
 
     # %% Define the loss function, from the config file or default to BCEWithLogitsLoss
     criterion = getattr(config, "criterion", torch.nn.BCEWithLogitsLoss)
@@ -302,8 +299,16 @@ def train(config_path: str):
         # Refresh the train loader to shuffle the data yielded by the dataloader
         train_loader.refresh()
 
-        epoch_bar = tqdm(train_loader.loader, desc="Training", dynamic_ncols=True)
-        for batch in epoch_bar:
+        # epoch_bar = tqdm(train_loader.loader, desc="Training", dynamic_ncols=True)
+        # for batch in epoch_bar:
+        loader = iter(train_loader.loader)
+        epoch_bar = tqdm(
+            range(iterations_per_epoch), desc="Training", dynamic_ncols=True
+        )
+        for _ in epoch_bar:
+            # for some reason this seems to be faster...
+            batch = next(loader)
+
             # Increment the training iteration
             n_iter += 1
 
