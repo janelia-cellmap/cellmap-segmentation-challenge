@@ -52,7 +52,7 @@ INSTANCE_RATIO_CUTOFF = float(
 PRECOMPUTE_LIMIT = int(os.getenv("PRECOMPUTE_LIMIT", 0))
 DEBUG = os.getenv("DEBUG", "False") != "False"
 
-CURRENT_INSTANCE_EVALS = 0
+os.environ["CURRENT_INSTANCE_EVALS"] = 0
 
 
 class spoof_precomputed:
@@ -574,13 +574,13 @@ def score_label(
 
     # Compute the scores
     if label_name in instance_classes:
-        if CURRENT_INSTANCE_EVALS >= MAX_CONCURRENT_INSTANCE_EVALS:
+        if os.environ["CURRENT_INSTANCE_EVALS"] >= MAX_CONCURRENT_INSTANCE_EVALS:
             print("Waiting for other instance evaluations to finish...")
-            while CURRENT_INSTANCE_EVALS >= MAX_CONCURRENT_INSTANCE_EVALS:
+            while os.environ["CURRENT_INSTANCE_EVALS"] >= MAX_CONCURRENT_INSTANCE_EVALS:
                 sleep(1)
-        CURRENT_INSTANCE_EVALS += 1
+        os.environ["CURRENT_INSTANCE_EVALS"] += 1
         results = score_instance(pred_label, truth_label, crop.voxel_size)
-        CURRENT_INSTANCE_EVALS -= 1
+        os.environ["CURRENT_INSTANCE_EVALS"] -= 1
     else:
         results = score_semantic(pred_label, truth_label)
     results["num_voxels"] = int(np.prod(truth_label.shape))
