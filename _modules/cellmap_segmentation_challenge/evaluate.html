@@ -294,6 +294,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">multiprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pool</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">multiprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pool</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">PROCESSED_PATH</span><span class="p">,</span> <span class="n">SUBMISSION_PATH</span><span class="p">,</span> <span class="n">TRUTH_PATH</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">TEST_CROPS</span><span class="p">,</span> <span class="n">TEST_CROPS_DICT</span><span class="p">,</span> <span class="n">format_string</span>
@@ -908,25 +909,25 @@
     <span class="c1"># Compute the scores</span>
     <span class="k">if</span> <span class="n">label_name</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
         <span class="k">global</span> <span class="n">CURRENT_INSTANCE_EVALS</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">infoed</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">printed</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="n">CURRENT_INSTANCE_EVALS</span> <span class="o">&gt;=</span> <span class="n">MAX_CONCURRENT_INSTANCE_EVALS</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">logging</span><span class="o">.</span><span class="n">infoed</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">printed</span><span class="p">:</span>
                 <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Waiting for other instance evaluations to finish...&quot;</span><span class="p">)</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">infoed</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">printed</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="k">while</span> <span class="n">CURRENT_INSTANCE_EVALS</span> <span class="o">&gt;=</span> <span class="n">MAX_CONCURRENT_INSTANCE_EVALS</span><span class="p">:</span>
                 <span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">with</span> <span class="n">lock</span><span class="p">:</span>
             <span class="n">CURRENT_INSTANCE_EVALS</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Starting an instance evaluation for </span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">crop_name</span><span class="si">}</span><span class="s2"> (total of </span><span class="si">{</span><span class="n">CURRENT_INSTANCE_EVALS</span><span class="si">}</span><span class="s2"> instance evals running)...&quot;</span>
-            <span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Starting an instance evaluation for </span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">crop_name</span><span class="si">}</span><span class="s2"> (total of </span><span class="si">{</span><span class="n">CURRENT_INSTANCE_EVALS</span><span class="si">}</span><span class="s2"> instance evals running)...&quot;</span>
+        <span class="p">)</span>
         <span class="n">timer</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
         <span class="n">results</span> <span class="o">=</span> <span class="n">score_instance</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">truth_label</span><span class="p">,</span> <span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">)</span>
         <span class="k">with</span> <span class="n">lock</span><span class="p">:</span>
             <span class="n">CURRENT_INSTANCE_EVALS</span> <span class="o">-=</span> <span class="mi">1</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Finished instance evaluation for </span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">crop_name</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">timer</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds (total of </span><span class="si">{</span><span class="n">CURRENT_INSTANCE_EVALS</span><span class="si">}</span><span class="s2"> instance evals now running)...&quot;</span>
-            <span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Finished instance evaluation for </span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">crop_name</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">timer</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds (total of </span><span class="si">{</span><span class="n">CURRENT_INSTANCE_EVALS</span><span class="si">}</span><span class="s2"> instance evals now running)...&quot;</span>
+        <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">results</span> <span class="o">=</span> <span class="n">score_semantic</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">truth_label</span><span class="p">)</span>
     <span class="n">results</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">truth_label</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
@@ -1268,7 +1269,8 @@
             <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="n">found_volumes</span>
         <span class="p">}</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">MAX_MAIN_THREADS</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+        <span class="c1"># with ThreadPoolExecutor(max_workers=MAX_MAIN_THREADS) as executor:</span>
+        <span class="k">with</span> <span class="n">Pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">MAX_MAIN_THREADS</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
             <span class="n">results</span> <span class="o">=</span> <span class="n">executor</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
                 <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
                     <span class="n">score_volume</span><span class="p">,</span>
