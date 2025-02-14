@@ -23,6 +23,7 @@ import zarr.errors
 import functools
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Pool
+from multiprocessing import Pool
 
 from .config import PROCESSED_PATH, SUBMISSION_PATH, TRUTH_PATH
 from .utils import TEST_CROPS, TEST_CROPS_DICT, format_string
@@ -596,25 +597,25 @@ def score_label(
     # Compute the scores
     if label_name in instance_classes:
         global CURRENT_INSTANCE_EVALS
-        logging.infoed = False
+        printed = False
         if CURRENT_INSTANCE_EVALS >= MAX_CONCURRENT_INSTANCE_EVALS:
-            if not logging.infoed:
+            if not printed:
                 logging.info("Waiting for other instance evaluations to finish...")
-                logging.infoed = True
+                printed = True
             while CURRENT_INSTANCE_EVALS >= MAX_CONCURRENT_INSTANCE_EVALS:
                 sleep(1)
         with lock:
             CURRENT_INSTANCE_EVALS += 1
-            logging.info(
-                f"Starting an instance evaluation for {label_name} in {crop_name} (total of {CURRENT_INSTANCE_EVALS} instance evals running)..."
-            )
+        logging.info(
+            f"Starting an instance evaluation for {label_name} in {crop_name} (total of {CURRENT_INSTANCE_EVALS} instance evals running)..."
+        )
         timer = time()
         results = score_instance(pred_label, truth_label, crop.voxel_size)
         with lock:
             CURRENT_INSTANCE_EVALS -= 1
-            logging.info(
-                f"Finished instance evaluation for {label_name} in {crop_name} in {time() - timer:.2f} seconds (total of {CURRENT_INSTANCE_EVALS} instance evals now running)..."
-            )
+        logging.info(
+            f"Finished instance evaluation for {label_name} in {crop_name} in {time() - timer:.2f} seconds (total of {CURRENT_INSTANCE_EVALS} instance evals now running)..."
+        )
     else:
         results = score_semantic(pred_label, truth_label)
     results["num_voxels"] = int(np.prod(truth_label.shape))
@@ -944,7 +945,8 @@ def score_submission(
             for volume in found_volumes
         }
     else:
-        with ThreadPoolExecutor(max_workers=MAX_MAIN_THREADS) as executor:
+        # with ThreadPoolExecutor(max_workers=MAX_MAIN_THREADS) as executor:
+        with Pool(processes=MAX_MAIN_THREADS) as executor:
             results = executor.map(
                 functools.partial(
                     score_volume,
