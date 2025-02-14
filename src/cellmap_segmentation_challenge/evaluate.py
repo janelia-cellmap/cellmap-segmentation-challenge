@@ -1,3 +1,4 @@
+# import tracemalloc
 import argparse
 import json
 import os
@@ -47,15 +48,16 @@ CAST_TO_NONE = [np.nan, np.inf, -np.inf]
 MAX_MAIN_THREADS = int(os.getenv("MAX_MAIN_THREADS", 8))
 MAX_LABEL_THREADS = int(os.getenv("MAX_LABEL_THREADS", 8))
 MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 8))
-MAX_CONCURRENT_INSTANCE_EVALS = int(os.getenv("MAX_CONCURRENT_INSTANCE_EVALS", 1))
+MAX_CONCURRENT_INSTANCE_EVALS = int(os.getenv("MAX_CONCURRENT_INSTANCE_EVALS", 2))
 
 # submitted_# of instances / ground_truth_# of instances
 INSTANCE_RATIO_CUTOFF = float(os.getenv("INSTANCE_RATIO_CUTOFF", 100))
-PRECOMPUTE_LIMIT = int(os.getenv("PRECOMPUTE_LIMIT", 0))
+PRECOMPUTE_LIMIT = int(os.getenv("PRECOMPUTE_LIMIT", 1e9))
 DEBUG = os.getenv("DEBUG", "False") != "False"
 
 CURRENT_INSTANCE_EVALS = 0
 lock = threading.Lock()
+
 
 class spoof_precomputed:
     def __init__(self, array, ids):
@@ -381,6 +383,7 @@ def score_instance(
     """
     print("Scoring instance segmentation...")
     # Relabel the predicted instance labels to be consistent with the ground truth instance labels
+    print("Relabeling predicted instance labels...")
     pred_label = relabel(pred_label, connectivity=len(pred_label.shape))
 
     # Get unique IDs, excluding background (assumed to be 0)
@@ -403,6 +406,9 @@ def score_instance(
         }
 
     # Initialize the cost matrix
+    print(
+        f"Initializing cost matrix of {len(truth_ids)} x {len(pred_ids)} (true x pred)..."
+    )
     cost_matrix = np.zeros((len(truth_ids), len(pred_ids)))
 
     # Flatten the labels for vectorized computation
@@ -410,9 +416,10 @@ def score_instance(
     pred_flat = pred_label.flatten()
 
     # Precompute binary masks for all `truth_ids`
-    if len(truth_flat) * len(truth_ids) > PRECOMPUTE_LIMIT:
+    if len(truth_flat) * len(truth_ids) > PRECOMPUTE_LIMIT:")
         truth_binary_masks = spoof_precomputed(truth_flat, truth_ids)
     else:
+        print("Precomputing binary masks for all `truth_ids`...")
         truth_binary_masks = np.array(
             [(truth_flat == tid) for tid in truth_ids], dtype=bool
         )
@@ -470,7 +477,7 @@ def score_instance(
     # Contruct the volume for the matched instances
     matched_pred_label = np.zeros_like(pred_label)
     for i, j in tqdm(
-        zip(col_inds, row_inds), desc="Relabeled matched instances", dynamic_ncols=True
+        zip(col_inds, row_inds), desc="Relabeling matched instances", dynamic_ncols=True
     ):
         if pred_ids[i] == 0 or truth_ids[j] == 0:
             # Don't score the background
@@ -577,15 +584,21 @@ def score_label(
     # Compute the scores
     if label_name in instance_classes:
         global CURRENT_INSTANCE_EVALS
+        printed = False
         if CURRENT_INSTANCE_EVALS >= MAX_CONCURRENT_INSTANCE_EVALS:
-            print("Waiting for other instance evaluations to finish...")
+            if not printed:
+                print("Waiting for other instance evaluations to finish...")
+                printed = True
             while CURRENT_INSTANCE_EVALS >= MAX_CONCURRENT_INSTANCE_EVALS:
                 sleep(1)
         with lock:
             CURRENT_INSTANCE_EVALS += 1
+            print(f"Starting an instance evaluation for {label_name} in {crop_name} (total of {CURRENT_INSTANCE_EVALS} instance evals running)...")
+        timer = time()
         results = score_instance(pred_label, truth_label, crop.voxel_size)
         with lock:
             CURRENT_INSTANCE_EVALS -= 1
+            print(f"Finished instance evaluation for {label_name} in {crop_name} in {time() - timer:.2f} seconds (total of {CURRENT_INSTANCE_EVALS} instance evals now running)...")
     else:
         results = score_semantic(pred_label, truth_label)
     results["num_voxels"] = int(np.prod(truth_label.shape))
@@ -874,9 +887,8 @@ def score_submission(
         "overall_score": (the mean of the combined scores across all classes),
     }
     """
-    import tracemalloc
 
-    tracemalloc.start()
+    # tracemalloc.start()
 
     print(f"Scoring {submission_path}...")
     start_time = time()
@@ -955,11 +967,11 @@ def score_submission(
     print(f"\tOverall Semantic Score: {found_scores['overall_semantic_score']:.4f}")
     print(f"\tOverall Score: {found_scores['overall_score']:.4f}")
 
-    current, peak = tracemalloc.get_traced_memory()
-    print(f"Current memory usage: {current / 1024**2:.2f} MB")
-    print(f"Peak memory usage: {peak / 1024**2:.2f} MB")
+    # current, peak = tracemalloc.get_traced_memory()
+    # print(f"Current memory usage: {current / 1024**2:.2f} MB")
+    # print(f"Peak memory usage: {peak / 1024**2:.2f} MB")
 
-    tracemalloc.stop()
+    # tracemalloc.stop()
 
     # Save the scores
     if result_file:
