@@ -22,17 +22,19 @@ import zarr.errors
 
 import functools
 from concurrent.futures import ThreadPoolExecutor
+from multiprocessing import Pool
 
 from .config import PROCESSED_PATH, SUBMISSION_PATH, TRUTH_PATH
 from .utils import TEST_CROPS, TEST_CROPS_DICT, format_string
 
 
 import logging
+
 logging.basicConfig(
     level=logging.INFO,
     # format="%(asctime)s - %(levelname)s - %(message)s",
     format="%(asctime)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 
 INSTANCE_CLASSES = [
@@ -54,7 +56,7 @@ HAUSDORFF_DISTANCE_MAX = np.inf
 CAST_TO_NONE = [np.nan, np.inf, -np.inf]
 
 MAX_MAIN_THREADS = int(os.getenv("MAX_MAIN_THREADS", 8))
-MAX_LABEL_THREADS = int(os.getenv("MAX_LABEL_THREADS", 8))
+MAX_LABEL_THREADS = int(os.getenv("MAX_LABEL_THREADS", 13))
 MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 8))
 MAX_CONCURRENT_INSTANCE_EVALS = int(os.getenv("MAX_CONCURRENT_INSTANCE_EVALS", 2))
 
@@ -424,7 +426,7 @@ def score_instance(
     pred_flat = pred_label.flatten()
 
     # Precompute binary masks for all `truth_ids`
-    if len(truth_flat) * len(truth_ids) > PRECOMPUTE_LIMIT:")
+    if len(truth_flat) * len(truth_ids) > PRECOMPUTE_LIMIT:
         truth_binary_masks = spoof_precomputed(truth_flat, truth_ids)
     else:
         logging.info("Precomputing binary masks for all `truth_ids`...")
@@ -480,6 +482,7 @@ def score_instance(
                     cost_matrix[relevant_truth_indices, j] = jaccard_scores
 
     # Match the predicted instances to the ground truth instances
+    logging.info("Calculating linear sum assignment...")
     row_inds, col_inds = linear_sum_assignment(cost_matrix, maximize=True)
 
     # Contruct the volume for the matched instances
@@ -498,6 +501,7 @@ def score_instance(
     )
 
     # Compute the scores
+    logging.info("Computing accuracy score...")
     accuracy = accuracy_score(truth_label.flatten(), matched_pred_label.flatten())
     hausdorff_dist = np.mean(hausdorff_distances) if len(hausdorff_distances) > 0 else 0
     normalized_hausdorff_dist = 1.01 ** (
@@ -601,12 +605,16 @@ def score_label(
                 sleep(1)
         with lock:
             CURRENT_INSTANCE_EVALS += 1
-            logging.info(f"Starting an instance evaluation for {label_name} in {crop_name} (total of {CURRENT_INSTANCE_EVALS} instance evals running)...")
+            logging.info(
+                f"Starting an instance evaluation for {label_name} in {crop_name} (total of {CURRENT_INSTANCE_EVALS} instance evals running)..."
+            )
         timer = time()
         results = score_instance(pred_label, truth_label, crop.voxel_size)
         with lock:
             CURRENT_INSTANCE_EVALS -= 1
-            logging.info(f"Finished instance evaluation for {label_name} in {crop_name} in {time() - timer:.2f} seconds (total of {CURRENT_INSTANCE_EVALS} instance evals now running)...")
+            logging.info(
+                f"Finished instance evaluation for {label_name} in {crop_name} in {time() - timer:.2f} seconds (total of {CURRENT_INSTANCE_EVALS} instance evals now running)..."
+            )
     else:
         results = score_semantic(pred_label, truth_label)
     results["num_voxels"] = int(np.prod(truth_label.shape))
@@ -966,13 +974,21 @@ def score_submission(
     )
 
     logging.info("Scores combined across all test volumes:")
-    logging.info(f"\tOverall Instance Score: {all_scores['overall_instance_score']:.4f}")
-    logging.info(f"\tOverall Semantic Score: {all_scores['overall_semantic_score']:.4f}")
+    logging.info(
+        f"\tOverall Instance Score: {all_scores['overall_instance_score']:.4f}"
+    )
+    logging.info(
+        f"\tOverall Semantic Score: {all_scores['overall_semantic_score']:.4f}"
+    )
     logging.info(f"\tOverall Score: {all_scores['overall_score']:.4f}")
 
     logging.info("Scores combined across test volumes with data submitted:")
-    logging.info(f"\tOverall Instance Score: {found_scores['overall_instance_score']:.4f}")
-    logging.info(f"\tOverall Semantic Score: {found_scores['overall_semantic_score']:.4f}")
+    logging.info(
+        f"\tOverall Instance Score: {found_scores['overall_instance_score']:.4f}"
+    )
+    logging.info(
+        f"\tOverall Semantic Score: {found_scores['overall_semantic_score']:.4f}"
+    )
     logging.info(f"\tOverall Score: {found_scores['overall_score']:.4f}")
 
     # current, peak = tracemalloc.get_traced_memory()
@@ -1230,9 +1246,13 @@ def match_crop_space(path, class_label, voxel_size, shape, translation) -> np.nd
                 input_end = input_length
 
             if input_length <= 0:
-                logging.info("WARNING: Cropping to proper offset resulted in empty volume.")
+                logging.info(
+                    "WARNING: Cropping to proper offset resulted in empty volume."
+                )
                 logging.info(f"\tInput shape: {image.shape}, Output shape: {shape}")
-                logging.info(f"\tInput offset: {input_start}, Output offset: {output_start}")
+                logging.info(
+                    f"\tInput offset: {input_start}, Output offset: {output_start}"
+                )
                 return result
 
             input_slices.append(slice(int(input_start), int(input_end)))
