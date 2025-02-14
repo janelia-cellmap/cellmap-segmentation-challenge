@@ -27,6 +27,14 @@ from .config import PROCESSED_PATH, SUBMISSION_PATH, TRUTH_PATH
 from .utils import TEST_CROPS, TEST_CROPS_DICT, format_string
 
 
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    # format="%(asctime)s - %(levelname)s - %(message)s",
+    format="%(asctime)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+
 INSTANCE_CLASSES = [
     "nuc",
     "vim",
@@ -119,7 +127,7 @@ def unzip_file(zip_path):
     saved_path = UPath(zip_path).with_suffix(".zarr").path
     with zipfile.ZipFile(zip_path, "r") as zip_ref:
         zip_ref.extractall(saved_path)
-        print(f"Unzipped {zip_path} to {saved_path}")
+        logging.info(f"Unzipped {zip_path} to {saved_path}")
 
     return UPath(saved_path)
 
@@ -147,7 +155,7 @@ def save_numpy_class_labels_to_zarr(
     # Create a Zarr-2 file
     if not UPath(save_path).exists():
         os.makedirs(UPath(save_path).parent, exist_ok=True)
-    print(f"Saving to {save_path}")
+    logging.info(f"Saving to {save_path}")
     store = zarr.DirectoryStore(save_path)
     zarr_group = zarr.group(store)
 
@@ -156,7 +164,7 @@ def save_numpy_class_labels_to_zarr(
 
     # Save the labels
     for i, label_name in enumerate(label_name):
-        print(f"Saving {label_name}")
+        logging.info(f"Saving {label_name}")
         ds = zarr_group[test_volume_name].create_dataset(
             label_name,
             data=(labels == i + 1),
@@ -166,7 +174,7 @@ def save_numpy_class_labels_to_zarr(
         for k, v in (attrs or {}).items():
             ds.attrs[k] = v
 
-    print("Done saving")
+    logging.info("Done saving")
 
 
 def save_numpy_class_arrays_to_zarr(
@@ -194,7 +202,7 @@ def save_numpy_class_arrays_to_zarr(
     # Create a Zarr-2 file
     if not UPath(save_path).exists():
         os.makedirs(UPath(save_path).parent, exist_ok=True)
-    print(f"Saving to {save_path}")
+    logging.info(f"Saving to {save_path}")
     store = zarr.DirectoryStore(save_path)
     zarr_group = zarr.group(store)
 
@@ -202,11 +210,11 @@ def save_numpy_class_arrays_to_zarr(
     try:
         zarr_group.create_group(test_volume_name, overwrite=(mode == "overwrite"))
     except zarr.errors.ContainsGroupError:
-        print(f"Appending to existing group {test_volume_name}")
+        logging.info(f"Appending to existing group {test_volume_name}")
 
     # Save the labels
     for i, label_name in enumerate(label_names):
-        print(f"Saving {label_name}")
+        logging.info(f"Saving {label_name}")
         ds = zarr_group[test_volume_name].create_dataset(
             label_name,
             data=labels[i],
@@ -216,7 +224,7 @@ def save_numpy_class_arrays_to_zarr(
         for k, v in (attrs or {}).items():
             ds.attrs[k] = v
 
-    print("Done saving")
+    logging.info("Done saving")
 
 
 def resize_array(arr, target_shape, pad_value=0):
@@ -381,9 +389,9 @@ def score_instance(
     Example usage:
         scores = score_instance(pred_label, truth_label)
     """
-    print("Scoring instance segmentation...")
+    logging.info("Scoring instance segmentation...")
     # Relabel the predicted instance labels to be consistent with the ground truth instance labels
-    print("Relabeling predicted instance labels...")
+    logging.info("Relabeling predicted instance labels...")
     pred_label = relabel(pred_label, connectivity=len(pred_label.shape))
 
     # Get unique IDs, excluding background (assumed to be 0)
@@ -395,7 +403,7 @@ def score_instance(
 
     # Skip if the submission has way too many instances
     if len(truth_ids) > 0 and len(pred_ids) / len(truth_ids) > INSTANCE_RATIO_CUTOFF:
-        print(
+        logging.info(
             f"Skipping {len(pred_ids)} instances in submission, {len(truth_ids)} in ground truth"
         )
         return {
@@ -406,7 +414,7 @@ def score_instance(
         }
 
     # Initialize the cost matrix
-    print(
+    logging.info(
         f"Initializing cost matrix of {len(truth_ids)} x {len(pred_ids)} (true x pred)..."
     )
     cost_matrix = np.zeros((len(truth_ids), len(pred_ids)))
@@ -419,7 +427,7 @@ def score_instance(
     if len(truth_flat) * len(truth_ids) > PRECOMPUTE_LIMIT:")
         truth_binary_masks = spoof_precomputed(truth_flat, truth_ids)
     else:
-        print("Precomputing binary masks for all `truth_ids`...")
+        logging.info("Precomputing binary masks for all `truth_ids`...")
         truth_binary_masks = np.array(
             [(truth_flat == tid) for tid in truth_ids], dtype=bool
         )
@@ -496,10 +504,10 @@ def score_instance(
         -hausdorff_dist / np.linalg.norm(voxel_size)
     )  # normalize Hausdorff distance to [0, 1] using the maximum distance represented by a voxel. 32 is arbitrarily chosen to have a reasonable range
     combined_score = (accuracy * normalized_hausdorff_dist) ** 0.5
-    print(f"Accuracy: {accuracy:.4f}")
-    print(f"Hausdorff Distance: {hausdorff_dist:.4f}")
-    print(f"Normalized Hausdorff Distance: {normalized_hausdorff_dist:.4f}")
-    print(f"Combined Score: {combined_score:.4f}")
+    logging.info(f"Accuracy: {accuracy:.4f}")
+    logging.info(f"Hausdorff Distance: {hausdorff_dist:.4f}")
+    logging.info(f"Normalized Hausdorff Distance: {normalized_hausdorff_dist:.4f}")
+    logging.info(f"Combined Score: {combined_score:.4f}")
     return {
         "accuracy": accuracy,
         "hausdorff_distance": hausdorff_dist,
@@ -522,7 +530,7 @@ def score_semantic(pred_label, truth_label) -> dict[str, float]:
     Example usage:
         scores = score_semantic(pred_label, truth_label)
     """
-    print("Scoring semantic segmentation...")
+    logging.info("Scoring semantic segmentation...")
     # Flatten the label volumes and convert to binary
     pred_label = (pred_label > 0.0).flatten()
     truth_label = (truth_label > 0.0).flatten()
@@ -533,8 +541,8 @@ def score_semantic(pred_label, truth_label) -> dict[str, float]:
         "dice_score": dice_score if not np.isnan(dice_score) else 1,
     }
 
-    print(f"IoU: {scores['iou']:.4f}")
-    print(f"Dice Score: {scores['dice_score']:.4f}")
+    logging.info(f"IoU: {scores['iou']:.4f}")
+    logging.info(f"Dice Score: {scores['dice_score']:.4f}")
 
     return scores
 
@@ -556,7 +564,7 @@ def score_label(
     Example usage:
         scores = score_label('pred.zarr/test_volume/label1')
     """
-    print(f"Scoring {pred_label_path}...")
+    logging.info(f"Scoring {pred_label_path}...")
     truth_path = UPath(truth_path)
     # Load the predicted and ground truth label volumes
     label_name = UPath(pred_label_path).name
@@ -576,7 +584,7 @@ def score_label(
     mask_path = truth_path / crop_name / f"{label_name}_mask"
     if mask_path.exists():
         # Mask out uncertain regions resulting from low-res ground truth annotations
-        print(f"Masking {label_name} with {mask_path}...")
+        logging.info(f"Masking {label_name} with {mask_path}...")
         mask = zarr.open(mask_path.path, mode="r")[:]
         pred_label = pred_label * mask
         truth_label = truth_label * mask
@@ -584,21 +592,21 @@ def score_label(
     # Compute the scores
     if label_name in instance_classes:
         global CURRENT_INSTANCE_EVALS
-        printed = False
+        logging.infoed = False
         if CURRENT_INSTANCE_EVALS >= MAX_CONCURRENT_INSTANCE_EVALS:
-            if not printed:
-                print("Waiting for other instance evaluations to finish...")
-                printed = True
+            if not logging.infoed:
+                logging.info("Waiting for other instance evaluations to finish...")
+                logging.infoed = True
             while CURRENT_INSTANCE_EVALS >= MAX_CONCURRENT_INSTANCE_EVALS:
                 sleep(1)
         with lock:
             CURRENT_INSTANCE_EVALS += 1
-            print(f"Starting an instance evaluation for {label_name} in {crop_name} (total of {CURRENT_INSTANCE_EVALS} instance evals running)...")
+            logging.info(f"Starting an instance evaluation for {label_name} in {crop_name} (total of {CURRENT_INSTANCE_EVALS} instance evals running)...")
         timer = time()
         results = score_instance(pred_label, truth_label, crop.voxel_size)
         with lock:
             CURRENT_INSTANCE_EVALS -= 1
-            print(f"Finished instance evaluation for {label_name} in {crop_name} in {time() - timer:.2f} seconds (total of {CURRENT_INSTANCE_EVALS} instance evals now running)...")
+            logging.info(f"Finished instance evaluation for {label_name} in {crop_name} in {time() - timer:.2f} seconds (total of {CURRENT_INSTANCE_EVALS} instance evals now running)...")
     else:
         results = score_semantic(pred_label, truth_label)
     results["num_voxels"] = int(np.prod(truth_label.shape))
@@ -627,7 +635,7 @@ def score_volume(
     """
     submission_path = UPath(submission_path)
     pred_volume_path = submission_path / volume
-    print(f"Scoring {pred_volume_path}...")
+    logging.info(f"Scoring {pred_volume_path}...")
     truth_path = UPath(truth_path)
 
     # Find labels to score
@@ -685,7 +693,7 @@ def score_volume(
             for label in missing_labels
         }
     )
-    print(f"Missing labels: {missing_labels}")
+    logging.info(f"Missing labels: {missing_labels}")
 
     return volume, scores
 
@@ -705,7 +713,7 @@ def missing_volume_score(
     Example usage:
         scores = missing_volume_score('truth.zarr/test_volume')
     """
-    print(f"Scoring missing volume {truth_volume_path}...")
+    logging.info(f"Scoring missing volume {truth_volume_path}...")
     truth_volume_path = UPath(truth_volume_path)
 
     # Find labels to score
@@ -769,13 +777,13 @@ def combine_scores(
     """
 
     # Combine label scores across volumes, normalizing by the number of voxels
-    print(f"Combining label scores...")
+    logging.info(f"Combining label scores...")
     scores = scores.copy()
     label_scores = {}
     total_volumes = {}
     for ds, these_scores in scores.items():
         for label, this_score in these_scores.items():
-            print(this_score)
+            logging.info(this_score)
             if this_score["is_missing"] and not include_missing:
                 continue
             total_volume = np.prod(this_score["voxel_size"]) * this_score["num_voxels"]
@@ -817,7 +825,7 @@ def combine_scores(
     scores["label_scores"] = label_scores
 
     # Compute the overall score
-    print("Computing overall scores...")
+    logging.info("Computing overall scores...")
     overall_instance_scores = []
     overall_semantic_scores = []
     for label in label_scores:
@@ -890,19 +898,19 @@ def score_submission(
 
     # tracemalloc.start()
 
-    print(f"Scoring {submission_path}...")
+    logging.info(f"Scoring {submission_path}...")
     start_time = time()
     # Unzip the submission
     submission_path = unzip_file(submission_path)
 
     # Find volumes to score
-    print(f"Scoring volumes in {submission_path}...")
+    logging.info(f"Scoring volumes in {submission_path}...")
     pred_volumes = [d.name for d in UPath(submission_path).glob("*") if d.is_dir()]
     truth_path = UPath(truth_path)
-    print(f"Volumes: {pred_volumes}")
-    print(f"Truth path: {truth_path}")
+    logging.info(f"Volumes: {pred_volumes}")
+    logging.info(f"Truth path: {truth_path}")
     truth_volumes = [d.name for d in truth_path.glob("*") if d.is_dir()]
-    print(f"Truth volumes: {truth_volumes}")
+    logging.info(f"Truth volumes: {truth_volumes}")
 
     found_volumes = list(set(pred_volumes) & set(truth_volumes))
     missing_volumes = list(set(truth_volumes) - set(pred_volumes))
@@ -910,14 +918,14 @@ def score_submission(
         raise ValueError(
             "No volumes found to score. Make sure the submission is formatted correctly."
         )
-    print(f"Scoring volumes: {found_volumes}")
+    logging.info(f"Scoring volumes: {found_volumes}")
     if len(missing_volumes) > 0:
-        print(f"Missing volumes: {missing_volumes}")
-        print("Scoring missing volumes as 0's")
+        logging.info(f"Missing volumes: {missing_volumes}")
+        logging.info("Scoring missing volumes as 0's")
 
     # Score each volume
     if DEBUG:
-        print("Scoring volumes in serial for debugging...")
+        logging.info("Scoring volumes in serial for debugging...")
         scores = {
             volume: score_volume(
                 volume=volume,
@@ -957,35 +965,35 @@ def score_submission(
         scores, include_missing=False, instance_classes=instance_classes
     )
 
-    print("Scores combined across all test volumes:")
-    print(f"\tOverall Instance Score: {all_scores['overall_instance_score']:.4f}")
-    print(f"\tOverall Semantic Score: {all_scores['overall_semantic_score']:.4f}")
-    print(f"\tOverall Score: {all_scores['overall_score']:.4f}")
+    logging.info("Scores combined across all test volumes:")
+    logging.info(f"\tOverall Instance Score: {all_scores['overall_instance_score']:.4f}")
+    logging.info(f"\tOverall Semantic Score: {all_scores['overall_semantic_score']:.4f}")
+    logging.info(f"\tOverall Score: {all_scores['overall_score']:.4f}")
 
-    print("Scores combined across test volumes with data submitted:")
-    print(f"\tOverall Instance Score: {found_scores['overall_instance_score']:.4f}")
-    print(f"\tOverall Semantic Score: {found_scores['overall_semantic_score']:.4f}")
-    print(f"\tOverall Score: {found_scores['overall_score']:.4f}")
+    logging.info("Scores combined across test volumes with data submitted:")
+    logging.info(f"\tOverall Instance Score: {found_scores['overall_instance_score']:.4f}")
+    logging.info(f"\tOverall Semantic Score: {found_scores['overall_semantic_score']:.4f}")
+    logging.info(f"\tOverall Score: {found_scores['overall_score']:.4f}")
 
     # current, peak = tracemalloc.get_traced_memory()
-    # print(f"Current memory usage: {current / 1024**2:.2f} MB")
-    # print(f"Peak memory usage: {peak / 1024**2:.2f} MB")
+    # logging.info(f"Current memory usage: {current / 1024**2:.2f} MB")
+    # logging.info(f"Peak memory usage: {peak / 1024**2:.2f} MB")
 
     # tracemalloc.stop()
 
     # Save the scores
     if result_file:
-        print(f"Saving collected scores to {result_file}...")
+        logging.info(f"Saving collected scores to {result_file}...")
         with open(result_file, "w") as f:
             json.dump(all_scores, f, indent=4)
 
         found_result_file = str(result_file).replace(
             UPath(result_file).suffix, "_submitted_only" + UPath(result_file).suffix
         )
-        print(f"Saving scores for only submitted data to {found_result_file}...")
+        logging.info(f"Saving scores for only submitted data to {found_result_file}...")
         with open(found_result_file, "w") as f:
             json.dump(found_scores, f, indent=4)
-        print(
+        logging.info(
             f"Scores saved to {result_file} and {found_result_file} in {time() - start_time:.2f} seconds"
         )
     else:
@@ -1038,12 +1046,12 @@ def package_submission(
     ):
         tqdm.write(f"Packaged {crop_path}")
 
-    print(f"Saved submission to {output_path}")
+    logging.info(f"Saved submission to {output_path}")
 
-    print("Zipping submission...")
+    logging.info("Zipping submission...")
     zip_submission(output_path)
 
-    print("Done packaging submission")
+    logging.info("Done packaging submission")
 
 
 def package_crop(crop, zarr_group, overwrite, input_search_path=PROCESSED_PATH):
@@ -1062,7 +1070,7 @@ def package_crop(crop, zarr_group, overwrite, input_search_path=PROCESSED_PATH):
     else:
         crop_group = zarr_group[f"crop{crop.id}"]
 
-    print(f"Scaling {crop_path} to {crop.voxel_size} nm")
+    logging.info(f"Scaling {crop_path} to {crop.voxel_size} nm")
     # Match the resolution, spatial position, and shape of the processed volume to the test volume
     image = match_crop_space(
         path=crop_path.path,
@@ -1145,8 +1153,8 @@ def match_crop_space(path, class_label, voxel_size, shape, translation) -> np.nd
         else:
             input_translation = None
     else:
-        print(f"Could not find voxel size and translation for {path}")
-        print(
+        logging.info(f"Could not find voxel size and translation for {path}")
+        logging.info(
             "Assuming voxel size matches target voxel size and will crop to target shape centering the volume."
         )
         image = ds[:]
@@ -1196,7 +1204,7 @@ def match_crop_space(path, class_label, voxel_size, shape, translation) -> np.nd
     if any(offset != 0 for offset in relative_offset) or any(
         s1 != s2 for s1, s2 in zip(image.shape, shape)
     ):
-        print(
+        logging.info(
             f"Translating and cropping {path} to {shape} with offset {relative_offset}"
         )
         # Make destination array
@@ -1222,9 +1230,9 @@ def match_crop_space(path, class_label, voxel_size, shape, translation) -> np.nd
                 input_end = input_length
 
             if input_length <= 0:
-                print("WARNING: Cropping to proper offset resulted in empty volume.")
-                print(f"\tInput shape: {image.shape}, Output shape: {shape}")
-                print(f"\tInput offset: {input_start}, Output offset: {output_start}")
+                logging.info("WARNING: Cropping to proper offset resulted in empty volume.")
+                logging.info(f"\tInput shape: {image.shape}, Output shape: {shape}")
+                logging.info(f"\tInput offset: {input_start}, Output offset: {output_start}")
                 return result
 
             input_slices.append(slice(int(input_start), int(input_end)))
@@ -1261,7 +1269,7 @@ def zip_submission(zarr_path: str | UPath = SUBMISSION_PATH):
                 arcname = os.path.relpath(file_path, zarr_path)
                 zipf.write(file_path, arcname)
 
-    print(f"Zipped {zarr_path} to {zip_path}")
+    logging.info(f"Zipped {zarr_path} to {zip_path}")
 
     return zip_path
 
@@ -1276,7 +1284,7 @@ if __name__ == "__main__":
     argparser.add_argument(
         "result_file",
         nargs="?",
-        help="If provided, store submission results in this file. Else print them to stdout",
+        help="If provided, store submission results in this file. Else logging.info them to stdout",
     )
     argparser.add_argument(
         "--truth-path", default=TRUTH_PATH, help="Path to zarr containing ground truth"
