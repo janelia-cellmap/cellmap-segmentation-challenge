@@ -106,7 +106,7 @@ def get_dataloader(
     if (
         "shape" in input_array_info
         and "scale" in input_array_info
-        and len(input_array_info.keys) == 2
+        and len(input_array_info.keys()) == 2
     ):
         input_arrays = {"input": input_array_info}
     else:
@@ -115,7 +115,7 @@ def get_dataloader(
     if (
         "shape" in target_array_info
         and "scale" in target_array_info
-        and len(target_array_info.keys) == 2
+        and len(target_array_info.keys()) == 2
     ):
         target_arrays = {"output": target_array_info}
     else:
