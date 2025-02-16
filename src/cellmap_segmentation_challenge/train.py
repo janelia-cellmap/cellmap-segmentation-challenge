@@ -387,7 +387,6 @@ def train(config_path: str):
 
             with torch.no_grad():
                 for batch in val_bar:
-                    # TODO: Make multiscale
                     if len(input_keys) > 1:
                         inputs = {key: batch[key] for key in input_keys}
                     else:
