@@ -165,8 +165,8 @@ def compute_hausdorff_distance(image0, image1, voxel_size, max_distance, method)
     # Query distances
     # fwd = a_tree.query(b_points, k=1, distance_upper_bound=max_distance)[0]
     # bwd = b_tree.query(a_points, k=1, distance_upper_bound=max_distance)[0]
-    fwd = a_tree.query(b_points, k=1)
-    bwd = b_tree.query(a_points, k=1)
+    fwd = a_tree.query(b_points, k=1)[0]
+    bwd = b_tree.query(a_points, k=1)[0]
 
     # Replace "inf" with `max_distance` for numerical stability
     # fwd[fwd == np.inf] = max_distance
@@ -265,6 +265,8 @@ def score_instance(
         # Fill in the cost matrix for this `j` (prediction)
         return relevant_truth_indices, j, jaccard_scores
 
+    matched_pred_label = np.zeros_like(pred_label)
+
     if len(pred_ids) > 0:
         # Compute the cost matrix
         if DEBUG:
@@ -292,24 +294,28 @@ def score_instance(
                 ):
                     cost_matrix[relevant_truth_indices, j] = jaccard_scores
 
-    # Match the predicted instances to the ground truth instances
-    logging.info("Calculating linear sum assignment...")
-    row_inds, col_inds = linear_sum_assignment(cost_matrix, maximize=True)
+        # Match the predicted instances to the ground truth instances
+        logging.info("Calculating linear sum assignment...")
+        row_inds, col_inds = linear_sum_assignment(cost_matrix, maximize=True)
 
-    # Contruct the volume for the matched instances
-    matched_pred_label = np.zeros_like(pred_label)
-    for i, j in tqdm(
-        zip(col_inds, row_inds), desc="Relabeling matched instances", dynamic_ncols=True
-    ):
-        if pred_ids[i] == 0 or truth_ids[j] == 0:
-            # Don't score the background
-            continue
-        pred_mask = pred_label == pred_ids[i]
-        matched_pred_label[pred_mask] = truth_ids[j]
+        # Contruct the volume for the matched instances
+        for i, j in tqdm(
+            zip(col_inds, row_inds),
+            desc="Relabeling matched instances",
+            dynamic_ncols=True,
+        ):
+            if pred_ids[i] == 0 or truth_ids[j] == 0:
+                # Don't score the background
+                continue
+            pred_mask = pred_label == pred_ids[i]
+            matched_pred_label[pred_mask] = truth_ids[j]
 
-    hausdorff_distances = optimized_hausdorff_distances(
-        truth_label, matched_pred_label, voxel_size, hausdorff_distance_max
-    )
+        hausdorff_distances = optimized_hausdorff_distances(
+            truth_label, matched_pred_label, voxel_size, hausdorff_distance_max
+        )
+    else:
+        # No predictions to match
+        hausdorff_distances = []
 
     # Compute the scores
     logging.info("Computing accuracy score...")
