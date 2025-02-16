@@ -23,9 +23,9 @@ from cellmap_segmentation_challenge.utils import (
 )
 from cellmap_segmentation_challenge.evaluate import (
     INSTANCE_CLASSES,
-    zip_submission,
     match_crop_space,
 )
+from cellmap_segmentation_challenge.utils.submission import zip_submission
 
 CONFIGURED_ACCURACY = 0.8
 CONFIGURED_IOU = 0.8

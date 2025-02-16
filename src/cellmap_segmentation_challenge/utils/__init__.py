@@ -32,5 +32,10 @@ __getattr__, __dir__, __all__ = lazy.attach(
             "download_file",
             "format_string",
         ],
+        "submission": [
+            "package_submission",
+            "save_numpy_class_arrays_to_zarr",
+            "save_numpy_class_labels_to_zarr",
+        ],
     },
 )
