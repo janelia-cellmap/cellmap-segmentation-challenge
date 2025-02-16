@@ -47,6 +47,7 @@ dependencies = [
   "boto3==1.35.81",
   "pyreadline3; sys_platform == 'win32'",
   "cellmap-flow@git+https://github.com/janelia-cellmap/cellmap-flow",
+  "pykdtree",
   ]
 
 [project.optional-dependencies]

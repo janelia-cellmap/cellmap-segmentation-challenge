@@ -11,7 +11,10 @@ from scipy.optimize import linear_sum_assignment
 from scipy.spatial.distance import dice  # , jaccard
 from skimage.measure import label as relabel
 from skimage.transform import rescale
-from scipy.spatial import cKDTree
+
+# from scipy.spatial import cKDTree
+from pykdtree.kdtree import KDTree as cKDTree
+
 from sklearn.metrics import accuracy_score, jaccard_score
 from tqdm import tqdm
 from upath import UPath
@@ -124,8 +127,8 @@ def optimized_hausdorff_distances(
             i, h_dist = get_distance(i)
             hausdorff_distances[i] = h_dist
     else:
-        # with ThreadPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
-        with ProcessPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
+        with ThreadPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
+            # with ProcessPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
             for i, h_dist in tqdm(
                 executor.map(get_distance, range(len(truth_ids))),
                 desc="Computing Hausdorff distances",
@@ -160,12 +163,16 @@ def compute_hausdorff_distance(image0, image1, voxel_size, max_distance, method)
     b_tree = cKDTree(b_points)
 
     # Query distances
-    fwd = a_tree.query(b_points, k=1, distance_upper_bound=max_distance)[0]
-    bwd = b_tree.query(a_points, k=1, distance_upper_bound=max_distance)[0]
+    # fwd = a_tree.query(b_points, k=1, distance_upper_bound=max_distance)[0]
+    # bwd = b_tree.query(a_points, k=1, distance_upper_bound=max_distance)[0]
+    fwd = a_tree.query(b_points, k=1)
+    bwd = b_tree.query(a_points, k=1)
 
     # Replace "inf" with `max_distance` for numerical stability
-    fwd[fwd == np.inf] = max_distance
-    bwd[bwd == np.inf] = max_distance
+    # fwd[fwd == np.inf] = max_distance
+    # bwd[bwd == np.inf] = max_distance
+    fwd[fwd > max_distance] = max_distance
+    bwd[bwd > max_distance] = max_distance
 
     if method == "standard":
         return max(fwd.max(), bwd.max())
@@ -274,8 +281,8 @@ def score_instance(
                 relevant_truth_indices, j, jaccard_scores = get_cost(j)
                 cost_matrix[relevant_truth_indices, j] = jaccard_scores
         else:
-            # with ThreadPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
-            with ProcessPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
+            with ThreadPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
+                # with ProcessPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
                 for relevant_truth_indices, j, jaccard_scores in tqdm(
                     executor.map(get_cost, range(len(pred_ids))),
                     desc="Computing cost matrix in parallel",

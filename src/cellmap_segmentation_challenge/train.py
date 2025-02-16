@@ -277,6 +277,9 @@ def train(config_path: str):
         criterion_kwargs["pos_weight"] = pos_weight
     criterion = CellMapLossWrapper(criterion, **criterion_kwargs)
 
+    input_keys = list(train_loader.dataset.input_arrays.keys())
+    target_keys = list(train_loader.dataset.target_arrays.keys())
+
     # %% Train the model
     post_fix_dict = {}
 
@@ -310,17 +313,22 @@ def train(config_path: str):
             # Increment the training iteration
             n_iter += 1
 
-            # Get the inputs and targets
-            inputs = batch["input"]
-            targets = batch["output"]
-
             # Zero the gradients, so that they don't accumulate across iterations
             optimizer.zero_grad()
 
             # Forward pass (compute the output of the model)
+            if len(input_keys) > 1:
+                inputs = {key: batch[key] for key in input_keys}
+            else:
+                inputs = batch[input_keys[0]]
             outputs = model(inputs)
 
             # Compute the loss
+            if len(target_keys) > 1:
+                targets = {key: batch[key] for key in target_keys}
+            else:
+                targets = batch[target_keys[0]]
+                # Assumes the model output is a single tensor
             loss = criterion(outputs, targets)
 
             # Backward pass (compute the gradients)
@@ -379,9 +387,17 @@ def train(config_path: str):
 
             with torch.no_grad():
                 for batch in val_bar:
-                    inputs = batch["input"]
-                    targets = batch["output"]
+                    if len(input_keys) > 1:
+                        inputs = {key: batch[key] for key in input_keys}
+                    else:
+                        inputs = batch[input_keys[0]]
                     outputs = model(inputs)
+
+                    # Compute the loss
+                    if len(target_keys) > 1:
+                        targets = {key: batch[key] for key in target_keys}
+                    else:
+                        targets = batch[target_keys[0]]
                     val_score += criterion(outputs, targets).item()
                     i += 1
 
