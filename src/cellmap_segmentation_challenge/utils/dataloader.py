@@ -103,7 +103,11 @@ def get_dataloader(
         Tuple containing the train and validation dataloaders.
     """
     # If "shape" and "scale" are not top level keys in the array_info dict, then we can assume a full dictionary of input arrays are being passed in
-    if "shape" in array_info and "scale" in array_info and len(array_info.keys) == 2:
+    if (
+        "shape" in input_array_info
+        and "scale" in input_array_info
+        and len(input_array_info.keys) == 2
+    ):
         input_arrays = {"input": input_array_info}
     else:
         input_arrays = input_array_info
