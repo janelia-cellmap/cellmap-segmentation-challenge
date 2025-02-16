@@ -124,8 +124,8 @@ def optimized_hausdorff_distances(
             i, h_dist = get_distance(i)
             hausdorff_distances[i] = h_dist
     else:
-        # with ThreadPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
-        with ProcessPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
+        with ThreadPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
+            # with ProcessPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
             for i, h_dist in tqdm(
                 executor.map(get_distance, range(len(truth_ids))),
                 desc="Computing Hausdorff distances",
@@ -274,8 +274,8 @@ def score_instance(
                 relevant_truth_indices, j, jaccard_scores = get_cost(j)
                 cost_matrix[relevant_truth_indices, j] = jaccard_scores
         else:
-            # with ThreadPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
-            with ProcessPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
+            with ThreadPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
+                # with ProcessPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
                 for relevant_truth_indices, j, jaccard_scores in tqdm(
                     executor.map(get_cost, range(len(pred_ids))),
                     desc="Computing cost matrix in parallel",
