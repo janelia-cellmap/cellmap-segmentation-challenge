@@ -52,6 +52,14 @@ cellmap\_segmentation\_challenge.utils.security module
    :undoc-members:
    :show-inheritance:
 
+cellmap\_segmentation\_challenge.utils.submission module
+--------------------------------------------------------
+
+.. automodule:: cellmap_segmentation_challenge.utils.submission
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 cellmap\_segmentation\_challenge.utils.utils module
 ---------------------------------------------------
 

@@ -284,7 +284,6 @@
     <span class="n">datasplit_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">classes</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-    <span class="n">array_info</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">input_array_info</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">target_array_info</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">spatial_transforms</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -326,8 +325,6 @@
 <span class="sd">        List of classes to segment.</span>
 <span class="sd">    batch_size : int</span>
 <span class="sd">        Batch size for the dataloader.</span>
-<span class="sd">    array_info : Optional[Mapping[str, Sequence[int | float]]]</span>
-<span class="sd">        Dictionary containing the shape and scale of the data to load for the input and target. Either `array_info` or `input_array_info` &amp; `target_array_info` must be provided.</span>
 <span class="sd">    input_array_info : Optional[Mapping[str, Sequence[int | float]]]</span>
 <span class="sd">        Dictionary containing the shape and scale of the data to load for the input.</span>
 <span class="sd">    target_array_info : Optional[Mapping[str, Sequence[int | float]]]</span>
@@ -378,13 +375,25 @@
 <span class="sd">    tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader]</span>
 <span class="sd">        Tuple containing the train and validation dataloaders.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># If &quot;shape&quot; and &quot;scale&quot; are not top level keys in the array_info dict, then we can assume a full dictionary of input arrays are being passed in</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="s2">&quot;shape&quot;</span> <span class="ow">in</span> <span class="n">input_array_info</span>
+        <span class="ow">and</span> <span class="s2">&quot;scale&quot;</span> <span class="ow">in</span> <span class="n">input_array_info</span>
+        <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_array_info</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="mi">2</span>
+    <span class="p">):</span>
+        <span class="n">input_arrays</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;input&quot;</span><span class="p">:</span> <span class="n">input_array_info</span><span class="p">}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">input_arrays</span> <span class="o">=</span> <span class="n">input_array_info</span>
 
-    <span class="n">input_arrays</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;input&quot;</span><span class="p">:</span> <span class="n">input_array_info</span> <span class="k">if</span> <span class="n">input_array_info</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">array_info</span>
-    <span class="p">}</span>
-    <span class="n">target_arrays</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="n">target_array_info</span> <span class="k">if</span> <span class="n">target_array_info</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">array_info</span>
-    <span class="p">}</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="s2">&quot;shape&quot;</span> <span class="ow">in</span> <span class="n">target_array_info</span>
+        <span class="ow">and</span> <span class="s2">&quot;scale&quot;</span> <span class="ow">in</span> <span class="n">target_array_info</span>
+        <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_array_info</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="mi">2</span>
+    <span class="p">):</span>
+        <span class="n">target_arrays</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="n">target_array_info</span><span class="p">}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">target_arrays</span> <span class="o">=</span> <span class="n">target_array_info</span>
+
     <span class="k">assert</span> <span class="p">(</span>
         <span class="n">input_arrays</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">target_arrays</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
     <span class="p">),</span> <span class="s2">&quot;No array info provided&quot;</span>

@@ -382,6 +382,7 @@
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils.loss">cellmap_segmentation_challenge.utils.loss module</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.loss.CellMapLossWrapper"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.loss.CellMapLossWrapper.calc_loss"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper.calc_loss()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.loss.CellMapLossWrapper.forward"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper.forward()</span></code></a></li>
 </ul>
 </li>
@@ -391,6 +392,14 @@
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.analyze_script"><code class="docutils literal notranslate"><span class="pre">analyze_script()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.load_safe_config"><code class="docutils literal notranslate"><span class="pre">load_safe_config()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.Config"><code class="docutils literal notranslate"><span class="pre">Config</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils.submission">cellmap_segmentation_challenge.utils.submission module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.submission.save_numpy_class_labels_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_labels_to_zarr()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.submission.save_numpy_class_arrays_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_arrays_to_zarr()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.submission.zip_submission"><code class="docutils literal notranslate"><span class="pre">zip_submission()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.submission.package_crop"><code class="docutils literal notranslate"><span class="pre">package_crop()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.submission.package_submission"><code class="docutils literal notranslate"><span class="pre">package_submission()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils.utils">cellmap_segmentation_challenge.utils.utils module</a><ul class="nav section-nav flex-column">
@@ -408,6 +417,7 @@
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils">Module contents</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.CellMapLossWrapper"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.CellMapLossWrapper.calc_loss"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper.calc_loss()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.CellMapLossWrapper.forward"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper.forward()</span></code></a></li>
 </ul>
 </li>
@@ -435,7 +445,10 @@
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.load_safe_config"><code class="docutils literal notranslate"><span class="pre">load_safe_config()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.make_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_datasplit_csv()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.make_s3_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_s3_datasplit_csv()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.package_submission"><code class="docutils literal notranslate"><span class="pre">package_submission()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.perturb_instance_mask"><code class="docutils literal notranslate"><span class="pre">perturb_instance_mask()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.save_numpy_class_arrays_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_arrays_to_zarr()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.save_numpy_class_labels_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_labels_to_zarr()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.simulate_predictions_accuracy"><code class="docutils literal notranslate"><span class="pre">simulate_predictions_accuracy()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.simulate_predictions_iou"><code class="docutils literal notranslate"><span class="pre">simulate_predictions_iou()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.simulate_predictions_iou_binary"><code class="docutils literal notranslate"><span class="pre">simulate_predictions_iou_binary()</span></code></a></li>
@@ -713,7 +726,7 @@
 <span id="cellmap-segmentation-challenge-utils-dataloader-module"></span><h2>cellmap_segmentation_challenge.utils.dataloader module<a class="headerlink" href="#module-cellmap_segmentation_challenge.utils.dataloader" title="Link to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.dataloader.get_dataloader">
-<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.dataloader.</span></span><span class="sig-name descname"><span class="pre">get_dataloader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">datasplit_path:</span> <span class="pre">str,</span> <span class="pre">classes:</span> <span class="pre">~typing.Sequence[str],</span> <span class="pre">batch_size:</span> <span class="pre">int,</span> <span class="pre">array_info:</span> <span class="pre">~typing.Mapping[str,</span> <span class="pre">~typing.Sequence[int</span> <span class="pre">|</span> <span class="pre">float]]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">input_array_info:</span> <span class="pre">~typing.Mapping[str,</span> <span class="pre">~typing.Sequence[int</span> <span class="pre">|</span> <span class="pre">float]]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">target_array_info:</span> <span class="pre">~typing.Mapping[str,</span> <span class="pre">~typing.Sequence[int</span> <span class="pre">|</span> <span class="pre">float]]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">spatial_transforms:</span> <span class="pre">~typing.Mapping[str,</span> <span class="pre">~typing.Any]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">target_value_transforms:</span> <span class="pre">~torchvision.transforms.v2._transform.Transform</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">Compose(</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">ToDtype(scale=False)</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">Binarize(threshold=0)</span> <span class="pre">),</span> <span class="pre">train_raw_value_transforms:</span> <span class="pre">~torchvision.transforms.v2._transform.Transform</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">Compose(</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">Normalize</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">ToDtype(scale=True)</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">NaNtoNum(params={'nan':</span> <span class="pre">0,</span> <span class="pre">'posinf':</span> <span class="pre">None,</span> <span class="pre">'neginf':</span> <span class="pre">None})</span> <span class="pre">),</span> <span class="pre">val_raw_value_transforms:</span> <span class="pre">~torchvision.transforms.v2._transform.Transform</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">Compose(</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">Normalize</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">ToDtype(scale=True)</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">NaNtoNum(params={'nan':</span> <span class="pre">0,</span> <span class="pre">'posinf':</span> <span class="pre">None,</span> <span class="pre">'neginf':</span> <span class="pre">None})</span> <span class="pre">),</span> <span class="pre">iterations_per_epoch:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1000,</span> <span class="pre">random_validation:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">device:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">~torch.device</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">use_mutual_exclusion:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">weighted_sampler:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True,</span> <span class="pre">**kwargs</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">CellMapDataLoader</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">CellMapDataLoader</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/dataloader.html#get_dataloader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.dataloader.get_dataloader" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.dataloader.</span></span><span class="sig-name descname"><span class="pre">get_dataloader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">datasplit_path:</span> <span class="pre">str,</span> <span class="pre">classes:</span> <span class="pre">~typing.Sequence[str],</span> <span class="pre">batch_size:</span> <span class="pre">int,</span> <span class="pre">input_array_info:</span> <span class="pre">~typing.Mapping[str,</span> <span class="pre">~typing.Sequence[int</span> <span class="pre">|</span> <span class="pre">float]]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">target_array_info:</span> <span class="pre">~typing.Mapping[str,</span> <span class="pre">~typing.Sequence[int</span> <span class="pre">|</span> <span class="pre">float]]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">spatial_transforms:</span> <span class="pre">~typing.Mapping[str,</span> <span class="pre">~typing.Any]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">target_value_transforms:</span> <span class="pre">~torchvision.transforms.v2._transform.Transform</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">Compose(</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">ToDtype(scale=False)</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">Binarize(threshold=0)</span> <span class="pre">),</span> <span class="pre">train_raw_value_transforms:</span> <span class="pre">~torchvision.transforms.v2._transform.Transform</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">Compose(</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">Normalize</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">ToDtype(scale=True)</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">NaNtoNum(params={'nan':</span> <span class="pre">0,</span> <span class="pre">'posinf':</span> <span class="pre">None,</span> <span class="pre">'neginf':</span> <span class="pre">None})</span> <span class="pre">),</span> <span class="pre">val_raw_value_transforms:</span> <span class="pre">~torchvision.transforms.v2._transform.Transform</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">Compose(</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">Normalize</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">ToDtype(scale=True)</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">NaNtoNum(params={'nan':</span> <span class="pre">0,</span> <span class="pre">'posinf':</span> <span class="pre">None,</span> <span class="pre">'neginf':</span> <span class="pre">None})</span> <span class="pre">),</span> <span class="pre">iterations_per_epoch:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1000,</span> <span class="pre">random_validation:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">device:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">~torch.device</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">use_mutual_exclusion:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">weighted_sampler:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True,</span> <span class="pre">**kwargs</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">CellMapDataLoader</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">CellMapDataLoader</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/dataloader.html#get_dataloader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.dataloader.get_dataloader" title="Link to this definition">#</a></dt>
 <dd><p>Get the train and validation dataloaders.</p>
 <p>This function gets the train and validation dataloaders for the given datasplit file, classes, batch size, array
 info, spatial transforms, iterations per epoch, number of workers, and device.</p>
@@ -723,7 +736,6 @@ info, spatial transforms, iterations per epoch, number of workers, and device.</
 <li><p><strong>datasplit_path</strong> (<em>str</em>) – Path to the datasplit file that defines the train/val split the dataloader should use.</p></li>
 <li><p><strong>classes</strong> (<em>Sequence</em><em>[</em><em>str</em><em>]</em>) – List of classes to segment.</p></li>
 <li><p><strong>batch_size</strong> (<em>int</em>) – Batch size for the dataloader.</p></li>
-<li><p><strong>array_info</strong> (<em>Optional</em><em>[</em><em>Mapping</em><em>[</em><em>str</em><em>, </em><em>Sequence</em><em>[</em><em>int</em><em> | </em><em>float</em><em>]</em><em>]</em><em>]</em>) – Dictionary containing the shape and scale of the data to load for the input and target. Either <cite>array_info</cite> or <cite>input_array_info</cite> &amp; <cite>target_array_info</cite> must be provided.</p></li>
 <li><p><strong>input_array_info</strong> (<em>Optional</em><em>[</em><em>Mapping</em><em>[</em><em>str</em><em>, </em><em>Sequence</em><em>[</em><em>int</em><em> | </em><em>float</em><em>]</em><em>]</em><em>]</em>) – Dictionary containing the shape and scale of the data to load for the input.</p></li>
 <li><p><strong>target_array_info</strong> (<em>Optional</em><em>[</em><em>Mapping</em><em>[</em><em>str</em><em>, </em><em>Sequence</em><em>[</em><em>int</em><em> | </em><em>float</em><em>]</em><em>]</em><em>]</em>) – Dictionary containing the shape and scale of the data to load for the target.</p></li>
 <li><p><strong>spatial_transforms</strong> (<em>Optional</em><em>[</em><em>Mapping</em><em>[</em><em>str</em><em>, </em><em>any</em><em>]</em><em>]</em>) – <p>Dictionary containing the spatial transformations to apply to the data.
@@ -1106,8 +1118,21 @@ will result in all the chunk keys being returned.</p></li>
 </dd>
 </dl>
 <dl class="py method">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.loss.CellMapLossWrapper.calc_loss">
+<span class="sig-name descname"><span class="pre">calc_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/loss.html#CellMapLossWrapper.calc_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.loss.CellMapLossWrapper.calc_loss" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>outputs</strong> (<em>Tensor</em>)</p></li>
+<li><p><strong>target</strong> (<em>Tensor</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.loss.CellMapLossWrapper.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/loss.html#CellMapLossWrapper.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.loss.CellMapLossWrapper.forward" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/loss.html#CellMapLossWrapper.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.loss.CellMapLossWrapper.forward" title="Link to this definition">#</a></dt>
 <dd><p>Define the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -1120,8 +1145,8 @@ registered hooks while the latter silently ignores them.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>outputs</strong> (<em>Tensor</em>)</p></li>
-<li><p><strong>target</strong> (<em>Tensor</em>)</p></li>
+<li><p><strong>outputs</strong> (<em>dict</em><em> | </em><em>Tensor</em>)</p></li>
+<li><p><strong>targets</strong> (<em>dict</em><em> | </em><em>Tensor</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -1150,6 +1175,92 @@ If <cite>force_safe</cite> is True, raises an error if the script is deemed unsa
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.security.Config">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.security.</span></span><span class="sig-name descname"><span class="pre">Config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/security.html#Config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.security.Config" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+</section>
+<section id="module-cellmap_segmentation_challenge.utils.submission">
+<span id="cellmap-segmentation-challenge-utils-submission-module"></span><h2>cellmap_segmentation_challenge.utils.submission module<a class="headerlink" href="#module-cellmap_segmentation_challenge.utils.submission" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.submission.save_numpy_class_labels_to_zarr">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.submission.</span></span><span class="sig-name descname"><span class="pre">save_numpy_class_labels_to_zarr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_volume_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attrs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/submission.html#save_numpy_class_labels_to_zarr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.submission.save_numpy_class_labels_to_zarr" title="Link to this definition">#</a></dt>
+<dd><p>Save a single 3D numpy array of class labels to a
+Zarr-2 file with the required structure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>save_path</strong> (<em>str</em>) – The path to save the Zarr-2 file (ending with &lt;filename&gt;.zarr).</p></li>
+<li><p><strong>test_volume_name</strong> (<em>str</em>) – The name of the test volume.</p></li>
+<li><p><strong>label_names</strong> (<em>str</em>) – The names of the labels.</p></li>
+<li><p><strong>labels</strong> (<em>np.ndarray</em>) – A 3D numpy array of class labels.</p></li>
+<li><p><strong>overwrite</strong> (<em>bool</em>) – Whether to overwrite the Zarr-2 file if it already exists.</p></li>
+<li><p><strong>attrs</strong> (<em>dict</em>) – A dictionary of attributes to save with the Zarr-2 file.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Example usage:</dt><dd><p># Generate random class labels, with 0 as background
+labels = np.random.randint(0, 4, (128, 128, 128))
+save_numpy_labels_to_zarr(‘submission.zarr’, ‘test_volume’, [‘label1’, ‘label2’, ‘label3’], labels)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.submission.save_numpy_class_arrays_to_zarr">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.submission.</span></span><span class="sig-name descname"><span class="pre">save_numpy_class_arrays_to_zarr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_volume_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'append'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attrs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/submission.html#save_numpy_class_arrays_to_zarr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.submission.save_numpy_class_arrays_to_zarr" title="Link to this definition">#</a></dt>
+<dd><p>Save a list of 3D numpy arrays of binary or instance labels to a
+Zarr-2 file with the required structure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>save_path</strong> (<em>str</em>) – The path to save the Zarr-2 file (ending with &lt;filename&gt;.zarr).</p></li>
+<li><p><strong>test_volume_name</strong> (<em>str</em>) – The name of the test volume.</p></li>
+<li><p><strong>label_names</strong> (<em>list</em>) – A list of label names corresponding to the list of 3D numpy arrays.</p></li>
+<li><p><strong>labels</strong> (<em>list</em>) – A list of 3D numpy arrays of binary labels.</p></li>
+<li><p><strong>mode</strong> (<em>str</em>) – The mode to use when saving the Zarr-2 file. Options are ‘append’ or ‘overwrite’.</p></li>
+<li><p><strong>attrs</strong> (<em>dict</em>) – A dictionary of attributes to save with the Zarr-2 file.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Example usage:</dt><dd><p>label_names = [‘label1’, ‘label2’, ‘label3’]
+# Generate random binary volumes for each label
+labels = [np.random.randint(0, 2, (128, 128, 128)) for _ in range len(label_names)]
+save_numpy_binary_to_zarr(‘submission.zarr’, ‘test_volume’, label_names, labels)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.submission.zip_submission">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.submission.</span></span><span class="sig-name descname"><span class="pre">zip_submission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zarr_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">UPath</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.13.2/x64/lib/python3.13/data/submission.zarr'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/submission.html#zip_submission"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.submission.zip_submission" title="Link to this definition">#</a></dt>
+<dd><p>(Re-)Zip a submission zarr file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>zarr_path</strong> (<em>str</em><em> | </em><em>UPath</em>) – The path to the submission zarr file (ending with <cite>&lt;filename&gt;.zarr</cite>). <cite>.zarr</cite> will be replaced with <cite>.zip</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.submission.package_crop">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.submission.</span></span><span class="sig-name descname"><span class="pre">package_crop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zarr_group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_search_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.13.2/x64/lib/python3.13/data/processed/{dataset}.zarr/{crop}'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/submission.html#package_crop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.submission.package_crop" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.submission.package_submission">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.submission.</span></span><span class="sig-name descname"><span class="pre">package_submission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_search_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">UPath</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.13.2/x64/lib/python3.13/data/processed/{dataset}.zarr/{crop}'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">UPath</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.13.2/x64/lib/python3.13/data/submission.zarr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_workers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/submission.html#package_submission"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.submission.package_submission" title="Link to this definition">#</a></dt>
+<dd><p>Package a submission for the CellMap challenge. This will create a zarr file, combining all the processed volumes, and then zip it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_search_path</strong> (<em>str</em>) – The base path to the processed volumes, with placeholders for dataset and crops.</p></li>
+<li><p><strong>output_path</strong> (<em>str</em><em> | </em><em>UPath</em>) – The path to save the submission zarr to. (ending with <cite>&lt;filename&gt;.zarr</cite>; <cite>.zarr</cite> will be appended if not present, and replaced with <cite>.zip</cite> when zipped).</p></li>
+<li><p><strong>overwrite</strong> (<em>bool</em>) – Whether to overwrite the submission zarr if it already exists.</p></li>
+<li><p><strong>max_workers</strong> (<em>int</em>) – The maximum number of workers to use for parallel processing. Defaults to the number of CPUs.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
@@ -1297,8 +1408,21 @@ format_string(“this/{thing}”, {“thing”:”that”, “but”:”not this
 </dd>
 </dl>
 <dl class="py method">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.CellMapLossWrapper.calc_loss">
+<span class="sig-name descname"><span class="pre">calc_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/loss.html#CellMapLossWrapper.calc_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.CellMapLossWrapper.calc_loss" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>outputs</strong> (<em>Tensor</em>)</p></li>
+<li><p><strong>target</strong> (<em>Tensor</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.CellMapLossWrapper.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/loss.html#CellMapLossWrapper.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.CellMapLossWrapper.forward" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/loss.html#CellMapLossWrapper.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.CellMapLossWrapper.forward" title="Link to this definition">#</a></dt>
 <dd><p>Define the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -1311,8 +1435,8 @@ registered hooks while the latter silently ignores them.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>outputs</strong> (<em>Tensor</em>)</p></li>
-<li><p><strong>target</strong> (<em>Tensor</em>)</p></li>
+<li><p><strong>outputs</strong> (<em>dict</em><em> | </em><em>Tensor</em>)</p></li>
+<li><p><strong>targets</strong> (<em>dict</em><em> | </em><em>Tensor</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -1502,7 +1626,7 @@ format_string(“this/{thing}”, {“thing”:”that”, “but”:”not this
 
 <dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.get_dataloader">
-<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">get_dataloader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">datasplit_path:</span> <span class="pre">str,</span> <span class="pre">classes:</span> <span class="pre">~typing.Sequence[str],</span> <span class="pre">batch_size:</span> <span class="pre">int,</span> <span class="pre">array_info:</span> <span class="pre">~typing.Mapping[str,</span> <span class="pre">~typing.Sequence[int</span> <span class="pre">|</span> <span class="pre">float]]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">input_array_info:</span> <span class="pre">~typing.Mapping[str,</span> <span class="pre">~typing.Sequence[int</span> <span class="pre">|</span> <span class="pre">float]]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">target_array_info:</span> <span class="pre">~typing.Mapping[str,</span> <span class="pre">~typing.Sequence[int</span> <span class="pre">|</span> <span class="pre">float]]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">spatial_transforms:</span> <span class="pre">~typing.Mapping[str,</span> <span class="pre">~typing.Any]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">target_value_transforms:</span> <span class="pre">~torchvision.transforms.v2._transform.Transform</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">Compose(</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">ToDtype(scale=False)</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">Binarize(threshold=0)</span> <span class="pre">),</span> <span class="pre">train_raw_value_transforms:</span> <span class="pre">~torchvision.transforms.v2._transform.Transform</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">Compose(</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">Normalize</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">ToDtype(scale=True)</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">NaNtoNum(params={'nan':</span> <span class="pre">0,</span> <span class="pre">'posinf':</span> <span class="pre">None,</span> <span class="pre">'neginf':</span> <span class="pre">None})</span> <span class="pre">),</span> <span class="pre">val_raw_value_transforms:</span> <span class="pre">~torchvision.transforms.v2._transform.Transform</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">Compose(</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">Normalize</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">ToDtype(scale=True)</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">NaNtoNum(params={'nan':</span> <span class="pre">0,</span> <span class="pre">'posinf':</span> <span class="pre">None,</span> <span class="pre">'neginf':</span> <span class="pre">None})</span> <span class="pre">),</span> <span class="pre">iterations_per_epoch:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1000,</span> <span class="pre">random_validation:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">device:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">~torch.device</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">use_mutual_exclusion:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">weighted_sampler:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True,</span> <span class="pre">**kwargs</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">CellMapDataLoader</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">CellMapDataLoader</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/dataloader.html#get_dataloader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.get_dataloader" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">get_dataloader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">datasplit_path:</span> <span class="pre">str,</span> <span class="pre">classes:</span> <span class="pre">~typing.Sequence[str],</span> <span class="pre">batch_size:</span> <span class="pre">int,</span> <span class="pre">input_array_info:</span> <span class="pre">~typing.Mapping[str,</span> <span class="pre">~typing.Sequence[int</span> <span class="pre">|</span> <span class="pre">float]]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">target_array_info:</span> <span class="pre">~typing.Mapping[str,</span> <span class="pre">~typing.Sequence[int</span> <span class="pre">|</span> <span class="pre">float]]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">spatial_transforms:</span> <span class="pre">~typing.Mapping[str,</span> <span class="pre">~typing.Any]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">target_value_transforms:</span> <span class="pre">~torchvision.transforms.v2._transform.Transform</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">Compose(</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">ToDtype(scale=False)</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">Binarize(threshold=0)</span> <span class="pre">),</span> <span class="pre">train_raw_value_transforms:</span> <span class="pre">~torchvision.transforms.v2._transform.Transform</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">Compose(</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">Normalize</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">ToDtype(scale=True)</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">NaNtoNum(params={'nan':</span> <span class="pre">0,</span> <span class="pre">'posinf':</span> <span class="pre">None,</span> <span class="pre">'neginf':</span> <span class="pre">None})</span> <span class="pre">),</span> <span class="pre">val_raw_value_transforms:</span> <span class="pre">~torchvision.transforms.v2._transform.Transform</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">Compose(</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">Normalize</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">ToDtype(scale=True)</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">NaNtoNum(params={'nan':</span> <span class="pre">0,</span> <span class="pre">'posinf':</span> <span class="pre">None,</span> <span class="pre">'neginf':</span> <span class="pre">None})</span> <span class="pre">),</span> <span class="pre">iterations_per_epoch:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1000,</span> <span class="pre">random_validation:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">device:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">~torch.device</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">use_mutual_exclusion:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">weighted_sampler:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True,</span> <span class="pre">**kwargs</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">CellMapDataLoader</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">CellMapDataLoader</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/dataloader.html#get_dataloader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.get_dataloader" title="Link to this definition">#</a></dt>
 <dd><p>Get the train and validation dataloaders.</p>
 <p>This function gets the train and validation dataloaders for the given datasplit file, classes, batch size, array
 info, spatial transforms, iterations per epoch, number of workers, and device.</p>
@@ -1512,7 +1636,6 @@ info, spatial transforms, iterations per epoch, number of workers, and device.</
 <li><p><strong>datasplit_path</strong> (<em>str</em>) – Path to the datasplit file that defines the train/val split the dataloader should use.</p></li>
 <li><p><strong>classes</strong> (<em>Sequence</em><em>[</em><em>str</em><em>]</em>) – List of classes to segment.</p></li>
 <li><p><strong>batch_size</strong> (<em>int</em>) – Batch size for the dataloader.</p></li>
-<li><p><strong>array_info</strong> (<em>Optional</em><em>[</em><em>Mapping</em><em>[</em><em>str</em><em>, </em><em>Sequence</em><em>[</em><em>int</em><em> | </em><em>float</em><em>]</em><em>]</em><em>]</em>) – Dictionary containing the shape and scale of the data to load for the input and target. Either <cite>array_info</cite> or <cite>input_array_info</cite> &amp; <cite>target_array_info</cite> must be provided.</p></li>
 <li><p><strong>input_array_info</strong> (<em>Optional</em><em>[</em><em>Mapping</em><em>[</em><em>str</em><em>, </em><em>Sequence</em><em>[</em><em>int</em><em> | </em><em>float</em><em>]</em><em>]</em><em>]</em>) – Dictionary containing the shape and scale of the data to load for the input.</p></li>
 <li><p><strong>target_array_info</strong> (<em>Optional</em><em>[</em><em>Mapping</em><em>[</em><em>str</em><em>, </em><em>Sequence</em><em>[</em><em>int</em><em> | </em><em>float</em><em>]</em><em>]</em><em>]</em>) – Dictionary containing the shape and scale of the data to load for the target.</p></li>
 <li><p><strong>spatial_transforms</strong> (<em>Optional</em><em>[</em><em>Mapping</em><em>[</em><em>str</em><em>, </em><em>any</em><em>]</em><em>]</em>) – <p>Dictionary containing the spatial transformations to apply to the data.
@@ -1632,6 +1755,22 @@ If <cite>force_safe</cite> is True, raises an error if the script is deemed unsa
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.package_submission">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">package_submission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_search_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">UPath</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.13.2/x64/lib/python3.13/data/processed/{dataset}.zarr/{crop}'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">UPath</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.13.2/x64/lib/python3.13/data/submission.zarr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_workers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/submission.html#package_submission"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.package_submission" title="Link to this definition">#</a></dt>
+<dd><p>Package a submission for the CellMap challenge. This will create a zarr file, combining all the processed volumes, and then zip it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_search_path</strong> (<em>str</em>) – The base path to the processed volumes, with placeholders for dataset and crops.</p></li>
+<li><p><strong>output_path</strong> (<em>str</em><em> | </em><em>UPath</em>) – The path to save the submission zarr to. (ending with <cite>&lt;filename&gt;.zarr</cite>; <cite>.zarr</cite> will be appended if not present, and replaced with <cite>.zip</cite> when zipped).</p></li>
+<li><p><strong>overwrite</strong> (<em>bool</em>) – Whether to overwrite the submission zarr if it already exists.</p></li>
+<li><p><strong>max_workers</strong> (<em>int</em>) – The maximum number of workers to use for parallel processing. Defaults to the number of CPUs.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.perturb_instance_mask">
 <span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">perturb_instance_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">true_labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hd_target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accuracy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/utils.html#perturb_instance_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.perturb_instance_mask" title="Link to this definition">#</a></dt>
 <dd><p>Simulate a predicted instance segmentation mask with an approximate Hausdorff distance.</p>
@@ -1657,6 +1796,57 @@ If <cite>force_safe</cite> is True, raises an error if the script is deemed unsa
 <blockquote>
 <div><p>Perturbed instance segmentation mask.</p>
 </div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.save_numpy_class_arrays_to_zarr">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">save_numpy_class_arrays_to_zarr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_volume_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'append'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attrs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/submission.html#save_numpy_class_arrays_to_zarr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.save_numpy_class_arrays_to_zarr" title="Link to this definition">#</a></dt>
+<dd><p>Save a list of 3D numpy arrays of binary or instance labels to a
+Zarr-2 file with the required structure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>save_path</strong> (<em>str</em>) – The path to save the Zarr-2 file (ending with &lt;filename&gt;.zarr).</p></li>
+<li><p><strong>test_volume_name</strong> (<em>str</em>) – The name of the test volume.</p></li>
+<li><p><strong>label_names</strong> (<em>list</em>) – A list of label names corresponding to the list of 3D numpy arrays.</p></li>
+<li><p><strong>labels</strong> (<em>list</em>) – A list of 3D numpy arrays of binary labels.</p></li>
+<li><p><strong>mode</strong> (<em>str</em>) – The mode to use when saving the Zarr-2 file. Options are ‘append’ or ‘overwrite’.</p></li>
+<li><p><strong>attrs</strong> (<em>dict</em>) – A dictionary of attributes to save with the Zarr-2 file.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Example usage:</dt><dd><p>label_names = [‘label1’, ‘label2’, ‘label3’]
+# Generate random binary volumes for each label
+labels = [np.random.randint(0, 2, (128, 128, 128)) for _ in range len(label_names)]
+save_numpy_binary_to_zarr(‘submission.zarr’, ‘test_volume’, label_names, labels)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.save_numpy_class_labels_to_zarr">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">save_numpy_class_labels_to_zarr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_volume_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attrs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/submission.html#save_numpy_class_labels_to_zarr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.save_numpy_class_labels_to_zarr" title="Link to this definition">#</a></dt>
+<dd><p>Save a single 3D numpy array of class labels to a
+Zarr-2 file with the required structure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>save_path</strong> (<em>str</em>) – The path to save the Zarr-2 file (ending with &lt;filename&gt;.zarr).</p></li>
+<li><p><strong>test_volume_name</strong> (<em>str</em>) – The name of the test volume.</p></li>
+<li><p><strong>label_names</strong> (<em>str</em>) – The names of the labels.</p></li>
+<li><p><strong>labels</strong> (<em>np.ndarray</em>) – A 3D numpy array of class labels.</p></li>
+<li><p><strong>overwrite</strong> (<em>bool</em>) – Whether to overwrite the Zarr-2 file if it already exists.</p></li>
+<li><p><strong>attrs</strong> (<em>dict</em>) – A dictionary of attributes to save with the Zarr-2 file.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Example usage:</dt><dd><p># Generate random class labels, with 0 as background
+labels = np.random.randint(0, 4, (128, 128, 128))
+save_numpy_labels_to_zarr(‘submission.zarr’, ‘test_volume’, [‘label1’, ‘label2’, ‘label3’], labels)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1774,6 +1964,7 @@ If <cite>force_safe</cite> is True, raises an error if the script is deemed unsa
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils.loss">cellmap_segmentation_challenge.utils.loss module</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.loss.CellMapLossWrapper"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.loss.CellMapLossWrapper.calc_loss"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper.calc_loss()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.loss.CellMapLossWrapper.forward"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper.forward()</span></code></a></li>
 </ul>
 </li>
@@ -1783,6 +1974,14 @@ If <cite>force_safe</cite> is True, raises an error if the script is deemed unsa
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.analyze_script"><code class="docutils literal notranslate"><span class="pre">analyze_script()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.load_safe_config"><code class="docutils literal notranslate"><span class="pre">load_safe_config()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.Config"><code class="docutils literal notranslate"><span class="pre">Config</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils.submission">cellmap_segmentation_challenge.utils.submission module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.submission.save_numpy_class_labels_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_labels_to_zarr()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.submission.save_numpy_class_arrays_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_arrays_to_zarr()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.submission.zip_submission"><code class="docutils literal notranslate"><span class="pre">zip_submission()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.submission.package_crop"><code class="docutils literal notranslate"><span class="pre">package_crop()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.submission.package_submission"><code class="docutils literal notranslate"><span class="pre">package_submission()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils.utils">cellmap_segmentation_challenge.utils.utils module</a><ul class="nav section-nav flex-column">
@@ -1800,6 +1999,7 @@ If <cite>force_safe</cite> is True, raises an error if the script is deemed unsa
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils">Module contents</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.CellMapLossWrapper"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.CellMapLossWrapper.calc_loss"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper.calc_loss()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.CellMapLossWrapper.forward"><code class="docutils literal notranslate"><span class="pre">CellMapLossWrapper.forward()</span></code></a></li>
 </ul>
 </li>
@@ -1827,7 +2027,10 @@ If <cite>force_safe</cite> is True, raises an error if the script is deemed unsa
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.load_safe_config"><code class="docutils literal notranslate"><span class="pre">load_safe_config()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.make_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_datasplit_csv()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.make_s3_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_s3_datasplit_csv()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.package_submission"><code class="docutils literal notranslate"><span class="pre">package_submission()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.perturb_instance_mask"><code class="docutils literal notranslate"><span class="pre">perturb_instance_mask()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.save_numpy_class_arrays_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_arrays_to_zarr()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.save_numpy_class_labels_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_labels_to_zarr()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.simulate_predictions_accuracy"><code class="docutils literal notranslate"><span class="pre">simulate_predictions_accuracy()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.simulate_predictions_iou"><code class="docutils literal notranslate"><span class="pre">simulate_predictions_iou()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.simulate_predictions_iou_binary"><code class="docutils literal notranslate"><span class="pre">simulate_predictions_iou_binary()</span></code></a></li>

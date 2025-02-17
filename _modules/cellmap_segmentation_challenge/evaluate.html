@@ -275,7 +275,6 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">time</span><span class="p">,</span> <span class="n">sleep</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">zipfile</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">zarr</span>
@@ -283,18 +282,20 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial.distance</span><span class="w"> </span><span class="kn">import</span> <span class="n">dice</span>  <span class="c1"># , jaccard</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">skimage.measure</span><span class="w"> </span><span class="kn">import</span> <span class="n">label</span> <span class="k">as</span> <span class="n">relabel</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">skimage.transform</span><span class="w"> </span><span class="kn">import</span> <span class="n">rescale</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial</span><span class="w"> </span><span class="kn">import</span> <span class="n">cKDTree</span>
+
+<span class="c1"># from scipy.spatial import cKDTree</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pykdtree.kdtree</span><span class="w"> </span><span class="kn">import</span> <span class="n">KDTree</span> <span class="k">as</span> <span class="n">cKDTree</span>
+
 <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">accuracy_score</span><span class="p">,</span> <span class="n">jaccard_score</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">upath</span><span class="w"> </span><span class="kn">import</span> <span class="n">UPath</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_data</span><span class="w"> </span><span class="kn">import</span> <span class="n">CellMapImage</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">zarr.errors</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">multiprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pool</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">multiprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pool</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span><span class="p">,</span> <span class="n">ProcessPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
+
+<span class="c1"># from multiprocessing import Pool</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">PROCESSED_PATH</span><span class="p">,</span> <span class="n">SUBMISSION_PATH</span><span class="p">,</span> <span class="n">TRUTH_PATH</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">TEST_CROPS</span><span class="p">,</span> <span class="n">TEST_CROPS_DICT</span><span class="p">,</span> <span class="n">format_string</span>
@@ -327,18 +328,13 @@
 <span class="n">HAUSDORFF_DISTANCE_MAX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
 <span class="n">CAST_TO_NONE</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span>
 
-<span class="n">MAX_MAIN_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_MAIN_THREADS&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
-<span class="n">MAX_LABEL_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_LABEL_THREADS&quot;</span><span class="p">,</span> <span class="mi">13</span><span class="p">))</span>
-<span class="n">MAX_INSTANCE_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_INSTANCE_THREADS&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
-<span class="n">MAX_CONCURRENT_INSTANCE_EVALS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_CONCURRENT_INSTANCE_EVALS&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-
+<span class="n">MAX_INSTANCE_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_INSTANCE_THREADS&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="n">MAX_SEMANTIC_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_SEMANTIC_THREADS&quot;</span><span class="p">,</span> <span class="mi">22</span><span class="p">))</span>
+<span class="n">PER_INSTANCE_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;PER_INSTANCE_THREADS&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
 <span class="c1"># submitted_# of instances / ground_truth_# of instances</span>
 <span class="n">INSTANCE_RATIO_CUTOFF</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;INSTANCE_RATIO_CUTOFF&quot;</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
-<span class="n">PRECOMPUTE_LIMIT</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;PRECOMPUTE_LIMIT&quot;</span><span class="p">,</span> <span class="mf">1e9</span><span class="p">))</span>
+<span class="n">PRECOMPUTE_LIMIT</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;PRECOMPUTE_LIMIT&quot;</span><span class="p">,</span> <span class="mf">1e8</span><span class="p">))</span>
 <span class="n">DEBUG</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">,</span> <span class="s2">&quot;False&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">&quot;False&quot;</span>
-
-<span class="n">CURRENT_INSTANCE_EVALS</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="n">lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
 
 
 <div class="viewcode-block" id="spoof_precomputed">
@@ -362,216 +358,6 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span></div>
 </div>
-
-
-
-<div class="viewcode-block" id="score_label_single">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.score_label_single">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">score_label_single</span><span class="p">(</span>
-    <span class="n">label</span><span class="p">,</span>
-    <span class="n">pred_volume_path</span><span class="p">,</span>
-    <span class="n">truth_path</span><span class="p">,</span>
-    <span class="n">instance_classes</span><span class="p">,</span>
-<span class="p">):</span>
-    <span class="n">score</span> <span class="o">=</span> <span class="n">score_label</span><span class="p">(</span>
-        <span class="n">pred_volume_path</span> <span class="o">/</span> <span class="n">label</span><span class="p">,</span>
-        <span class="n">truth_path</span><span class="o">=</span><span class="n">truth_path</span><span class="p">,</span>
-        <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span><span class="p">,</span>
-    <span class="p">)</span>
-
-    <span class="k">return</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">score</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="parallel_score_labels">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.parallel_score_labels">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">parallel_score_labels</span><span class="p">(</span><span class="n">found_labels</span><span class="p">,</span> <span class="n">pred_volume_path</span><span class="p">,</span> <span class="n">truth_path</span><span class="p">,</span> <span class="n">instance_classes</span><span class="p">):</span>
-    <span class="n">partial_score_func</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
-        <span class="n">score_label_single</span><span class="p">,</span>
-        <span class="n">pred_volume_path</span><span class="o">=</span><span class="n">pred_volume_path</span><span class="p">,</span>
-        <span class="n">truth_path</span><span class="o">=</span><span class="n">truth_path</span><span class="p">,</span>
-        <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">partial_score_func</span><span class="p">,</span> <span class="n">found_labels</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">MAX_LABEL_THREADS</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
-            <span class="n">results</span> <span class="o">=</span> <span class="n">executor</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">partial_score_func</span><span class="p">,</span> <span class="n">found_labels</span><span class="p">)</span>
-
-    <span class="c1"># `results` is an iterator of (label, score) tuples, so convert to dict</span>
-    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">results</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="unzip_file">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.unzip_file">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">unzip_file</span><span class="p">(</span><span class="n">zip_path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Unzip a zip file to a specified directory.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        zip_path (str): The path to the zip file.</span>
-
-<span class="sd">    Example usage:</span>
-<span class="sd">        unzip_file(&#39;submission.zip&#39;)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">saved_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">zip_path</span><span class="p">)</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;.zarr&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span>
-    <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">zip_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">zip_ref</span><span class="p">:</span>
-        <span class="n">zip_ref</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">saved_path</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unzipped </span><span class="si">{</span><span class="n">zip_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">saved_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">UPath</span><span class="p">(</span><span class="n">saved_path</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="save_numpy_class_labels_to_zarr">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.save_numpy_class_labels_to_zarr">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">save_numpy_class_labels_to_zarr</span><span class="p">(</span>
-    <span class="n">save_path</span><span class="p">,</span> <span class="n">test_volume_name</span><span class="p">,</span> <span class="n">label_name</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="kc">None</span>
-<span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Save a single 3D numpy array of class labels to a</span>
-<span class="sd">    Zarr-2 file with the required structure.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        save_path (str): The path to save the Zarr-2 file (ending with &lt;filename&gt;.zarr).</span>
-<span class="sd">        test_volume_name (str): The name of the test volume.</span>
-<span class="sd">        label_names (str): The names of the labels.</span>
-<span class="sd">        labels (np.ndarray): A 3D numpy array of class labels.</span>
-<span class="sd">        overwrite (bool): Whether to overwrite the Zarr-2 file if it already exists.</span>
-<span class="sd">        attrs (dict): A dictionary of attributes to save with the Zarr-2 file.</span>
-
-<span class="sd">    Example usage:</span>
-<span class="sd">        # Generate random class labels, with 0 as background</span>
-<span class="sd">        labels = np.random.randint(0, 4, (128, 128, 128))</span>
-<span class="sd">        save_numpy_labels_to_zarr(&#39;submission.zarr&#39;, &#39;test_volume&#39;, [&#39;label1&#39;, &#39;label2&#39;, &#39;label3&#39;], labels)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Create a Zarr-2 file</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">UPath</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving to </span><span class="si">{</span><span class="n">save_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="n">store</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">DirectoryStore</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span>
-    <span class="n">zarr_group</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">store</span><span class="p">)</span>
-
-    <span class="c1"># Save the test volume group</span>
-    <span class="n">zarr_group</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="n">test_volume_name</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span>
-
-    <span class="c1"># Save the labels</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">label_name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">label_name</span><span class="p">):</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving </span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">ds</span> <span class="o">=</span> <span class="n">zarr_group</span><span class="p">[</span><span class="n">test_volume_name</span><span class="p">]</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
-            <span class="n">label_name</span><span class="p">,</span>
-            <span class="n">data</span><span class="o">=</span><span class="p">(</span><span class="n">labels</span> <span class="o">==</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="n">chunks</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
-            <span class="c1"># compressor=zarr.Blosc(cname=&#39;zstd&#39;, clevel=3, shuffle=2),</span>
-        <span class="p">)</span>
-        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="p">(</span><span class="n">attrs</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
-
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done saving&quot;</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="save_numpy_class_arrays_to_zarr">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.save_numpy_class_arrays_to_zarr">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">save_numpy_class_arrays_to_zarr</span><span class="p">(</span>
-    <span class="n">save_path</span><span class="p">,</span> <span class="n">test_volume_name</span><span class="p">,</span> <span class="n">label_names</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="kc">None</span>
-<span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Save a list of 3D numpy arrays of binary or instance labels to a</span>
-<span class="sd">    Zarr-2 file with the required structure.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        save_path (str): The path to save the Zarr-2 file (ending with &lt;filename&gt;.zarr).</span>
-<span class="sd">        test_volume_name (str): The name of the test volume.</span>
-<span class="sd">        label_names (list): A list of label names corresponding to the list of 3D numpy arrays.</span>
-<span class="sd">        labels (list): A list of 3D numpy arrays of binary labels.</span>
-<span class="sd">        mode (str): The mode to use when saving the Zarr-2 file. Options are &#39;append&#39; or &#39;overwrite&#39;.</span>
-<span class="sd">        attrs (dict): A dictionary of attributes to save with the Zarr-2 file.</span>
-
-<span class="sd">    Example usage:</span>
-<span class="sd">        label_names = [&#39;label1&#39;, &#39;label2&#39;, &#39;label3&#39;]</span>
-<span class="sd">        # Generate random binary volumes for each label</span>
-<span class="sd">        labels = [np.random.randint(0, 2, (128, 128, 128)) for _ in range len(label_names)]</span>
-<span class="sd">        save_numpy_binary_to_zarr(&#39;submission.zarr&#39;, &#39;test_volume&#39;, label_names, labels)</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Create a Zarr-2 file</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">UPath</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving to </span><span class="si">{</span><span class="n">save_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="n">store</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">DirectoryStore</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span>
-    <span class="n">zarr_group</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">store</span><span class="p">)</span>
-
-    <span class="c1"># Save the test volume group</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">zarr_group</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="n">test_volume_name</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;overwrite&quot;</span><span class="p">))</span>
-    <span class="k">except</span> <span class="n">zarr</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">ContainsGroupError</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Appending to existing group </span><span class="si">{</span><span class="n">test_volume_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-    <span class="c1"># Save the labels</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">label_name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">label_names</span><span class="p">):</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving </span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">ds</span> <span class="o">=</span> <span class="n">zarr_group</span><span class="p">[</span><span class="n">test_volume_name</span><span class="p">]</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
-            <span class="n">label_name</span><span class="p">,</span>
-            <span class="n">data</span><span class="o">=</span><span class="n">labels</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
-            <span class="n">chunks</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
-            <span class="c1"># compressor=zarr.Blosc(cname=&#39;zstd&#39;, clevel=3, shuffle=2),</span>
-        <span class="p">)</span>
-        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="p">(</span><span class="n">attrs</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
-
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done saving&quot;</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="resize_array">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.resize_array">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">resize_array</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">target_shape</span><span class="p">,</span> <span class="n">pad_value</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Resize an array to a target shape by padding or cropping as needed.</span>
-
-<span class="sd">    Parameters:</span>
-<span class="sd">        arr (np.ndarray): Input array to resize.</span>
-<span class="sd">        target_shape (tuple): Desired shape for the output array.</span>
-<span class="sd">        pad_value (int, float, etc.): Value to use for padding if the array is smaller than the target shape.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        np.ndarray: Resized array with the specified target shape.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">arr_shape</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span>
-    <span class="n">resized_arr</span> <span class="o">=</span> <span class="n">arr</span>
-
-    <span class="c1"># Pad if the array is smaller than the target shape</span>
-    <span class="n">pad_width</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">target_shape</span><span class="p">)):</span>
-        <span class="k">if</span> <span class="n">arr_shape</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">target_shape</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
-            <span class="c1"># Padding needed: calculate amount for both sides</span>
-            <span class="n">pad_before</span> <span class="o">=</span> <span class="p">(</span><span class="n">target_shape</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">arr_shape</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">//</span> <span class="mi">2</span>
-            <span class="n">pad_after</span> <span class="o">=</span> <span class="n">target_shape</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">arr_shape</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">pad_before</span>
-            <span class="n">pad_width</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">pad_before</span><span class="p">,</span> <span class="n">pad_after</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># No padding needed for this dimension</span>
-            <span class="n">pad_width</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
-
-    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">pad</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">pads</span> <span class="ow">in</span> <span class="n">pad_width</span> <span class="k">for</span> <span class="n">pad</span> <span class="ow">in</span> <span class="n">pads</span><span class="p">):</span>
-        <span class="n">resized_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span>
-            <span class="n">resized_arr</span><span class="p">,</span> <span class="n">pad_width</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span> <span class="n">constant_values</span><span class="o">=</span><span class="n">pad_value</span>
-        <span class="p">)</span>
-
-    <span class="c1"># Crop if the array is larger than the target shape</span>
-    <span class="n">slices</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">target_shape</span><span class="p">)):</span>
-        <span class="k">if</span> <span class="n">arr_shape</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">target_shape</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
-            <span class="c1"># Calculate cropping slices to center the crop</span>
-            <span class="n">start</span> <span class="o">=</span> <span class="p">(</span><span class="n">arr_shape</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">target_shape</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">//</span> <span class="mi">2</span>
-            <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">target_shape</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-            <span class="n">slices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># No cropping needed for this dimension</span>
-            <span class="n">slices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">))</span>
-
-    <span class="k">return</span> <span class="n">resized_arr</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">slices</span><span class="p">)]</span></div>
 
 
 
@@ -623,7 +409,8 @@
             <span class="n">i</span><span class="p">,</span> <span class="n">h_dist</span> <span class="o">=</span> <span class="n">get_distance</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
             <span class="n">hausdorff_distances</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">h_dist</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">MAX_INSTANCE_THREADS</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">PER_INSTANCE_THREADS</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+            <span class="c1"># with ProcessPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">h_dist</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
                 <span class="n">executor</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">get_distance</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">))),</span>
                 <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Computing Hausdorff distances&quot;</span><span class="p">,</span>
@@ -661,12 +448,16 @@
     <span class="n">b_tree</span> <span class="o">=</span> <span class="n">cKDTree</span><span class="p">(</span><span class="n">b_points</span><span class="p">)</span>
 
     <span class="c1"># Query distances</span>
-    <span class="n">fwd</span> <span class="o">=</span> <span class="n">a_tree</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">b_points</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">distance_upper_bound</span><span class="o">=</span><span class="n">max_distance</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">bwd</span> <span class="o">=</span> <span class="n">b_tree</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">a_points</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">distance_upper_bound</span><span class="o">=</span><span class="n">max_distance</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># fwd = a_tree.query(b_points, k=1, distance_upper_bound=max_distance)[0]</span>
+    <span class="c1"># bwd = b_tree.query(a_points, k=1, distance_upper_bound=max_distance)[0]</span>
+    <span class="n">fwd</span> <span class="o">=</span> <span class="n">a_tree</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">b_points</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">bwd</span> <span class="o">=</span> <span class="n">b_tree</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">a_points</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="c1"># Replace &quot;inf&quot; with `max_distance` for numerical stability</span>
-    <span class="n">fwd</span><span class="p">[</span><span class="n">fwd</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_distance</span>
-    <span class="n">bwd</span><span class="p">[</span><span class="n">bwd</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_distance</span>
+    <span class="c1"># fwd[fwd == np.inf] = max_distance</span>
+    <span class="c1"># bwd[bwd == np.inf] = max_distance</span>
+    <span class="n">fwd</span><span class="p">[</span><span class="n">fwd</span> <span class="o">&gt;</span> <span class="n">max_distance</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_distance</span>
+    <span class="n">bwd</span><span class="p">[</span><span class="n">bwd</span> <span class="o">&gt;</span> <span class="n">max_distance</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_distance</span>
 
     <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;standard&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">fwd</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">bwd</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
@@ -712,8 +503,8 @@
 
     <span class="c1"># Skip if the submission has way too many instances</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">INSTANCE_RATIO_CUTOFF</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Skipping </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> instances in submission, </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> in ground truth&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;WARNING: Skipping </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> instances in submission, </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> in ground truth, because there are too many instances in the submission.&quot;</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
@@ -762,6 +553,8 @@
         <span class="c1"># Fill in the cost matrix for this `j` (prediction)</span>
         <span class="k">return</span> <span class="n">relevant_truth_indices</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">jaccard_scores</span>
 
+    <span class="n">matched_pred_label</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">pred_label</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="c1"># Compute the cost matrix</span>
         <span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span>
@@ -778,7 +571,8 @@
                 <span class="n">relevant_truth_indices</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">jaccard_scores</span> <span class="o">=</span> <span class="n">get_cost</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
                 <span class="n">cost_matrix</span><span class="p">[</span><span class="n">relevant_truth_indices</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">jaccard_scores</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">MAX_INSTANCE_THREADS</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">PER_INSTANCE_THREADS</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+                <span class="c1"># with ProcessPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:</span>
                 <span class="k">for</span> <span class="n">relevant_truth_indices</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">jaccard_scores</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
                     <span class="n">executor</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">get_cost</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">))),</span>
                     <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Computing cost matrix in parallel&quot;</span><span class="p">,</span>
@@ -788,24 +582,28 @@
                 <span class="p">):</span>
                     <span class="n">cost_matrix</span><span class="p">[</span><span class="n">relevant_truth_indices</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">jaccard_scores</span>
 
-    <span class="c1"># Match the predicted instances to the ground truth instances</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Calculating linear sum assignment...&quot;</span><span class="p">)</span>
-    <span class="n">row_inds</span><span class="p">,</span> <span class="n">col_inds</span> <span class="o">=</span> <span class="n">linear_sum_assignment</span><span class="p">(</span><span class="n">cost_matrix</span><span class="p">,</span> <span class="n">maximize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># Match the predicted instances to the ground truth instances</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Calculating linear sum assignment...&quot;</span><span class="p">)</span>
+        <span class="n">row_inds</span><span class="p">,</span> <span class="n">col_inds</span> <span class="o">=</span> <span class="n">linear_sum_assignment</span><span class="p">(</span><span class="n">cost_matrix</span><span class="p">,</span> <span class="n">maximize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-    <span class="c1"># Contruct the volume for the matched instances</span>
-    <span class="n">matched_pred_label</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">pred_label</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
-        <span class="nb">zip</span><span class="p">(</span><span class="n">col_inds</span><span class="p">,</span> <span class="n">row_inds</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Relabeling matched instances&quot;</span><span class="p">,</span> <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span>
-    <span class="p">):</span>
-        <span class="k">if</span> <span class="n">pred_ids</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">truth_ids</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="c1"># Don&#39;t score the background</span>
-            <span class="k">continue</span>
-        <span class="n">pred_mask</span> <span class="o">=</span> <span class="n">pred_label</span> <span class="o">==</span> <span class="n">pred_ids</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-        <span class="n">matched_pred_label</span><span class="p">[</span><span class="n">pred_mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">truth_ids</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+        <span class="c1"># Contruct the volume for the matched instances</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
+            <span class="nb">zip</span><span class="p">(</span><span class="n">col_inds</span><span class="p">,</span> <span class="n">row_inds</span><span class="p">),</span>
+            <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Relabeling matched instances&quot;</span><span class="p">,</span>
+            <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="k">if</span> <span class="n">pred_ids</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">truth_ids</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># Don&#39;t score the background</span>
+                <span class="k">continue</span>
+            <span class="n">pred_mask</span> <span class="o">=</span> <span class="n">pred_label</span> <span class="o">==</span> <span class="n">pred_ids</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">matched_pred_label</span><span class="p">[</span><span class="n">pred_mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">truth_ids</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
 
-    <span class="n">hausdorff_distances</span> <span class="o">=</span> <span class="n">optimized_hausdorff_distances</span><span class="p">(</span>
-        <span class="n">truth_label</span><span class="p">,</span> <span class="n">matched_pred_label</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span> <span class="n">hausdorff_distance_max</span>
-    <span class="p">)</span>
+        <span class="n">hausdorff_distances</span> <span class="o">=</span> <span class="n">optimized_hausdorff_distances</span><span class="p">(</span>
+            <span class="n">truth_label</span><span class="p">,</span> <span class="n">matched_pred_label</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span> <span class="n">hausdorff_distance_max</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># No predictions to match</span>
+        <span class="n">hausdorff_distances</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="c1"># Compute the scores</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Computing accuracy score...&quot;</span><span class="p">)</span>
@@ -865,7 +663,11 @@
 <div class="viewcode-block" id="score_label">
 <a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.score_label">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">score_label</span><span class="p">(</span>
-    <span class="n">pred_label_path</span><span class="p">,</span> <span class="n">truth_path</span><span class="o">=</span><span class="n">TRUTH_PATH</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">INSTANCE_CLASSES</span>
+    <span class="n">pred_label_path</span><span class="p">,</span>
+    <span class="n">label_name</span><span class="p">,</span>
+    <span class="n">crop_name</span><span class="p">,</span>
+    <span class="n">truth_path</span><span class="o">=</span><span class="n">TRUTH_PATH</span><span class="p">,</span>
+    <span class="n">instance_classes</span><span class="o">=</span><span class="n">INSTANCE_CLASSES</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Score a single label volume against the ground truth label volume.</span>
@@ -881,11 +683,19 @@
 <span class="sd">    Example usage:</span>
 <span class="sd">        scores = score_label(&#39;pred.zarr/test_volume/label1&#39;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">pred_label_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Label </span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2"> not found in submission volume </span><span class="si">{</span><span class="n">crop_name</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">empty_label_score</span><span class="p">(</span>
+            <span class="n">label</span><span class="o">=</span><span class="n">label_name</span><span class="p">,</span>
+            <span class="n">crop_name</span><span class="o">=</span><span class="n">crop_name</span><span class="p">,</span>
+            <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span><span class="p">,</span>
+            <span class="n">truth_path</span><span class="o">=</span><span class="n">truth_path</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scoring </span><span class="si">{</span><span class="n">pred_label_path</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
     <span class="n">truth_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span>
     <span class="c1"># Load the predicted and ground truth label volumes</span>
-    <span class="n">label_name</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">pred_label_path</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
-    <span class="n">crop_name</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">pred_label_path</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span>
+    <span class="c1"># label_name = UPath(pred_label_path).name</span>
+    <span class="c1"># crop_name = UPath(pred_label_path).parent.name</span>
     <span class="n">truth_label_path</span> <span class="o">=</span> <span class="p">(</span><span class="n">truth_path</span> <span class="o">/</span> <span class="n">crop_name</span> <span class="o">/</span> <span class="n">label_name</span><span class="p">)</span><span class="o">.</span><span class="n">path</span>
     <span class="n">truth_label_ds</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">truth_label_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
     <span class="n">truth_label</span> <span class="o">=</span> <span class="n">truth_label_ds</span><span class="p">[:]</span>
@@ -908,118 +718,117 @@
 
     <span class="c1"># Compute the scores</span>
     <span class="k">if</span> <span class="n">label_name</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
-        <span class="k">global</span> <span class="n">CURRENT_INSTANCE_EVALS</span>
-        <span class="n">printed</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">if</span> <span class="n">CURRENT_INSTANCE_EVALS</span> <span class="o">&gt;=</span> <span class="n">MAX_CONCURRENT_INSTANCE_EVALS</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">printed</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Waiting for other instance evaluations to finish...&quot;</span><span class="p">)</span>
-                <span class="n">printed</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="k">while</span> <span class="n">CURRENT_INSTANCE_EVALS</span> <span class="o">&gt;=</span> <span class="n">MAX_CONCURRENT_INSTANCE_EVALS</span><span class="p">:</span>
-                <span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-        <span class="k">with</span> <span class="n">lock</span><span class="p">:</span>
-            <span class="n">CURRENT_INSTANCE_EVALS</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Starting an instance evaluation for </span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">crop_name</span><span class="si">}</span><span class="s2"> (total of </span><span class="si">{</span><span class="n">CURRENT_INSTANCE_EVALS</span><span class="si">}</span><span class="s2"> instance evals running)...&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Starting an instance evaluation for </span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">crop_name</span><span class="si">}</span><span class="s2">...&quot;</span>
         <span class="p">)</span>
         <span class="n">timer</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
         <span class="n">results</span> <span class="o">=</span> <span class="n">score_instance</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">truth_label</span><span class="p">,</span> <span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">)</span>
-        <span class="k">with</span> <span class="n">lock</span><span class="p">:</span>
-            <span class="n">CURRENT_INSTANCE_EVALS</span> <span class="o">-=</span> <span class="mi">1</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Finished instance evaluation for </span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">crop_name</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">timer</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds (total of </span><span class="si">{</span><span class="n">CURRENT_INSTANCE_EVALS</span><span class="si">}</span><span class="s2"> instance evals now running)...&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Finished instance evaluation for </span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">crop_name</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">timer</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds...&quot;</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">results</span> <span class="o">=</span> <span class="n">score_semantic</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">truth_label</span><span class="p">)</span>
     <span class="n">results</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">truth_label</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
     <span class="n">results</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span>
     <span class="n">results</span><span class="p">[</span><span class="s2">&quot;is_missing&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="k">return</span> <span class="n">results</span></div>
+    <span class="k">return</span> <span class="n">crop_name</span><span class="p">,</span> <span class="n">label_name</span><span class="p">,</span> <span class="n">results</span></div>
 
 
 
-<div class="viewcode-block" id="score_volume">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.score_volume">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">score_volume</span><span class="p">(</span>
-    <span class="n">volume</span><span class="p">,</span>
+<div class="viewcode-block" id="empty_label_score">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.empty_label_score">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">empty_label_score</span><span class="p">(</span>
+    <span class="n">label</span><span class="p">,</span> <span class="n">crop_name</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">INSTANCE_CLASSES</span><span class="p">,</span> <span class="n">truth_path</span><span class="o">=</span><span class="n">TRUTH_PATH</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;combined_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;num_voxels&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span>
+                    <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">((</span><span class="n">truth_path</span> <span class="o">/</span> <span class="n">crop_name</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span>
+                <span class="p">)</span>
+            <span class="p">),</span>
+            <span class="s2">&quot;voxel_size&quot;</span><span class="p">:</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">truth_path</span> <span class="o">/</span> <span class="n">crop_name</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;is_missing&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;dice_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;num_voxels&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span>
+                    <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">((</span><span class="n">truth_path</span> <span class="o">/</span> <span class="n">crop_name</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span>
+                <span class="p">)</span>
+            <span class="p">),</span>
+            <span class="s2">&quot;voxel_size&quot;</span><span class="p">:</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">truth_path</span> <span class="o">/</span> <span class="n">crop_name</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;is_missing&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="get_evaluation_args">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.get_evaluation_args">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_evaluation_args</span><span class="p">(</span>
+    <span class="n">volumes</span><span class="p">,</span>
     <span class="n">submission_path</span><span class="p">,</span>
     <span class="n">truth_path</span><span class="o">=</span><span class="n">TRUTH_PATH</span><span class="p">,</span>
     <span class="n">instance_classes</span><span class="o">=</span><span class="n">INSTANCE_CLASSES</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Score a single volume against the ground truth volume.</span>
-
+<span class="sd">    Get the arguments for scoring each label in the submission.</span>
 <span class="sd">    Args:</span>
-<span class="sd">        pred_volume_path (str): The path to the predicted volume.</span>
-
+<span class="sd">        volumes (list): A list of volumes to score.</span>
+<span class="sd">        submission_path (str): The path to the submission volume.</span>
+<span class="sd">        truth_path (str): The path to the ground truth volume.</span>
+<span class="sd">        instance_classes (list): A list of instance classes.</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        dict: A dictionary of scores for the volume.</span>
-
-<span class="sd">    Example usage:</span>
-<span class="sd">        scores = score_volume(&#39;pred.zarr/test_volume&#39;)</span>
+<span class="sd">        A list of tuples containing the arguments for each label to be scored.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">submission_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">submission_path</span><span class="p">)</span>
-    <span class="n">pred_volume_path</span> <span class="o">=</span> <span class="n">submission_path</span> <span class="o">/</span> <span class="n">volume</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scoring </span><span class="si">{</span><span class="n">pred_volume_path</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
-    <span class="n">truth_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">volumes</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+        <span class="n">volumes</span> <span class="o">=</span> <span class="p">[</span><span class="n">volumes</span><span class="p">]</span>
+    <span class="n">score_label_arglist</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="n">volumes</span><span class="p">:</span>
+        <span class="n">submission_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">submission_path</span><span class="p">)</span>
+        <span class="n">pred_volume_path</span> <span class="o">=</span> <span class="n">submission_path</span> <span class="o">/</span> <span class="n">volume</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scoring </span><span class="si">{</span><span class="n">pred_volume_path</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+        <span class="n">truth_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span>
 
-    <span class="c1"># Find labels to score</span>
-    <span class="n">pred_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">pred_volume_path</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">array_keys</span><span class="p">()]</span>
+        <span class="c1"># Find labels to score</span>
+        <span class="n">pred_labels</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">pred_volume_path</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">array_keys</span><span class="p">()</span>
+        <span class="p">]</span>
 
-    <span class="n">volume_name</span> <span class="o">=</span> <span class="n">pred_volume_path</span><span class="o">.</span><span class="n">name</span>
-    <span class="n">truth_labels</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">((</span><span class="n">truth_path</span> <span class="o">/</span> <span class="n">volume_name</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">array_keys</span><span class="p">()</span>
-    <span class="p">]</span>
+        <span class="n">crop_name</span> <span class="o">=</span> <span class="n">pred_volume_path</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">truth_labels</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">((</span><span class="n">truth_path</span> <span class="o">/</span> <span class="n">crop_name</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">array_keys</span><span class="p">()</span>
+        <span class="p">]</span>
 
-    <span class="n">found_labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">pred_labels</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">truth_labels</span><span class="p">))</span>
-    <span class="n">missing_labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">truth_labels</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">pred_labels</span><span class="p">))</span>
+        <span class="n">found_labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">pred_labels</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">truth_labels</span><span class="p">))</span>
+        <span class="n">missing_labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">truth_labels</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">pred_labels</span><span class="p">))</span>
 
-    <span class="c1"># Score each label</span>
-    <span class="n">scores</span> <span class="o">=</span> <span class="n">parallel_score_labels</span><span class="p">(</span>
-        <span class="n">found_labels</span><span class="p">,</span> <span class="n">pred_volume_path</span><span class="p">,</span> <span class="n">truth_path</span><span class="p">,</span> <span class="n">instance_classes</span>
-    <span class="p">)</span>
-    <span class="n">scores</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
-        <span class="p">{</span>
-            <span class="n">label</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">{</span>
-                    <span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-                    <span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-                    <span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-                    <span class="s2">&quot;combined_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-                    <span class="s2">&quot;num_voxels&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span>
-                        <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span>
-                            <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
-                                <span class="p">(</span><span class="n">truth_path</span> <span class="o">/</span> <span class="n">volume_name</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span>
-                            <span class="p">)</span><span class="o">.</span><span class="n">shape</span>
-                        <span class="p">)</span>
-                    <span class="p">),</span>
-                    <span class="s2">&quot;voxel_size&quot;</span><span class="p">:</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
-                        <span class="p">(</span><span class="n">truth_path</span> <span class="o">/</span> <span class="n">volume_name</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span>
-                    <span class="p">)</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">],</span>
-                    <span class="s2">&quot;is_missing&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-                <span class="p">}</span>
-                <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">instance_classes</span>
-                <span class="k">else</span> <span class="p">{</span>
-                    <span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-                    <span class="s2">&quot;dice_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-                    <span class="s2">&quot;num_voxels&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span>
-                        <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span>
-                            <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
-                                <span class="p">(</span><span class="n">truth_path</span> <span class="o">/</span> <span class="n">volume_name</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span>
-                            <span class="p">)</span><span class="o">.</span><span class="n">shape</span>
-                        <span class="p">)</span>
-                    <span class="p">),</span>
-                    <span class="s2">&quot;voxel_size&quot;</span><span class="p">:</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
-                        <span class="p">(</span><span class="n">truth_path</span> <span class="o">/</span> <span class="n">volume_name</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span>
-                    <span class="p">)</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">],</span>
-                    <span class="s2">&quot;is_missing&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-                <span class="p">}</span>
-            <span class="p">)</span>
-            <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">missing_labels</span>
-        <span class="p">}</span>
-    <span class="p">)</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing labels: </span><span class="si">{</span><span class="n">missing_labels</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># Score_label arguments for each label</span>
+        <span class="n">score_label_arglist</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="p">(</span>
+                    <span class="n">pred_volume_path</span> <span class="o">/</span> <span class="n">label</span> <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">found_labels</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="n">label</span><span class="p">,</span>
+                    <span class="n">crop_name</span><span class="p">,</span>
+                    <span class="n">truth_path</span><span class="p">,</span>
+                    <span class="n">instance_classes</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">truth_labels</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing labels: </span><span class="si">{</span><span class="n">missing_labels</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">volume</span><span class="p">,</span> <span class="n">scores</span></div>
+    <span class="k">return</span> <span class="n">score_label_arglist</span></div>
 
 
 
@@ -1229,8 +1038,6 @@
 <span class="sd">    }</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="c1"># tracemalloc.start()</span>
-
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scoring </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
     <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
     <span class="c1"># Unzip the submission</span>
@@ -1256,31 +1063,44 @@
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing volumes: </span><span class="si">{</span><span class="n">missing_volumes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Scoring missing volumes as 0&#39;s&quot;</span><span class="p">)</span>
 
+    <span class="c1"># Get all prediction paths to evaluate</span>
+    <span class="n">evaluation_args</span> <span class="o">=</span> <span class="n">get_evaluation_args</span><span class="p">(</span>
+        <span class="n">found_volumes</span><span class="p">,</span>
+        <span class="n">submission_path</span><span class="o">=</span><span class="n">UPath</span><span class="p">(</span><span class="n">submission_path</span><span class="p">),</span>
+        <span class="n">truth_path</span><span class="o">=</span><span class="n">truth_path</span><span class="p">,</span>
+        <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span><span class="p">,</span>
+    <span class="p">)</span>
+
     <span class="c1"># Score each volume</span>
     <span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Scoring volumes in serial for debugging...&quot;</span><span class="p">)</span>
-        <span class="n">scores</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">volume</span><span class="p">:</span> <span class="n">score_volume</span><span class="p">(</span>
-                <span class="n">volume</span><span class="o">=</span><span class="n">volume</span><span class="p">,</span>
-                <span class="n">submission_path</span><span class="o">=</span><span class="n">UPath</span><span class="p">(</span><span class="n">submission_path</span><span class="p">),</span>
-                <span class="n">truth_path</span><span class="o">=</span><span class="n">truth_path</span><span class="p">,</span>
-                <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="n">found_volumes</span>
-        <span class="p">}</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">score_label</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="k">for</span> <span class="n">args</span> <span class="ow">in</span> <span class="n">evaluation_args</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="c1"># with ThreadPoolExecutor(max_workers=MAX_MAIN_THREADS) as executor:</span>
-        <span class="k">with</span> <span class="n">Pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">MAX_MAIN_THREADS</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
-            <span class="n">results</span> <span class="o">=</span> <span class="n">executor</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
-                <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
-                    <span class="n">score_volume</span><span class="p">,</span>
-                    <span class="n">submission_path</span><span class="o">=</span><span class="n">UPath</span><span class="p">(</span><span class="n">submission_path</span><span class="p">),</span>
-                    <span class="n">truth_path</span><span class="o">=</span><span class="n">truth_path</span><span class="p">,</span>
-                    <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span><span class="p">,</span>
-                <span class="p">),</span>
-                <span class="n">found_volumes</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="n">scores</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Scoring volumes in parallel...&quot;</span><span class="p">)</span>
+        <span class="n">instance_pool</span> <span class="o">=</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">MAX_INSTANCE_THREADS</span><span class="p">)</span>
+        <span class="n">semantic_pool</span> <span class="o">=</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">MAX_SEMANTIC_THREADS</span><span class="p">)</span>
+        <span class="n">futures</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">args</span> <span class="ow">in</span> <span class="n">evaluation_args</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
+                <span class="n">futures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instance_pool</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">score_label</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">futures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">semantic_pool</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">score_label</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">))</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
+            <span class="n">as_completed</span><span class="p">(</span><span class="n">futures</span><span class="p">),</span>
+            <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Scoring volumes&quot;</span><span class="p">,</span>
+            <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">futures</span><span class="p">),</span>
+            <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">leave</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">())</span>
+
+    <span class="c1"># Combine the results into a dictionary</span>
+    <span class="n">scores</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">crop_name</span><span class="p">,</span> <span class="n">label_name</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">crop_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">:</span>
+            <span class="n">scores</span><span class="p">[</span><span class="n">crop_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">scores</span><span class="p">[</span><span class="n">crop_name</span><span class="p">][</span><span class="n">label_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span>
 
     <span class="n">scores</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
         <span class="p">{</span>
@@ -1317,12 +1137,6 @@
     <span class="p">)</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Overall Score: </span><span class="si">{</span><span class="n">found_scores</span><span class="p">[</span><span class="s1">&#39;overall_score&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-    <span class="c1"># current, peak = tracemalloc.get_traced_memory()</span>
-    <span class="c1"># logging.info(f&quot;Current memory usage: {current / 1024**2:.2f} MB&quot;)</span>
-    <span class="c1"># logging.info(f&quot;Peak memory usage: {peak / 1024**2:.2f} MB&quot;)</span>
-
-    <span class="c1"># tracemalloc.stop()</span>
-
     <span class="c1"># Save the scores</span>
     <span class="k">if</span> <span class="n">result_file</span><span class="p">:</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving collected scores to </span><span class="si">{</span><span class="n">result_file</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
@@ -1343,105 +1157,53 @@
 
 
 
-<div class="viewcode-block" id="package_submission">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.package_submission">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">package_submission</span><span class="p">(</span>
-    <span class="n">input_search_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">UPath</span> <span class="o">=</span> <span class="n">PROCESSED_PATH</span><span class="p">,</span>
-    <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">UPath</span> <span class="o">=</span> <span class="n">SUBMISSION_PATH</span><span class="p">,</span>
-    <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="n">max_workers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">(),</span>
-<span class="p">):</span>
+<div class="viewcode-block" id="resize_array">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.resize_array">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">resize_array</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">target_shape</span><span class="p">,</span> <span class="n">pad_value</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Package a submission for the CellMap challenge. This will create a zarr file, combining all the processed volumes, and then zip it.</span>
+<span class="sd">    Resize an array to a target shape by padding or cropping as needed.</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        input_search_path (str): The base path to the processed volumes, with placeholders for dataset and crops.</span>
-<span class="sd">        output_path (str | UPath): The path to save the submission zarr to. (ending with `&lt;filename&gt;.zarr`; `.zarr` will be appended if not present, and replaced with `.zip` when zipped).</span>
-<span class="sd">        overwrite (bool): Whether to overwrite the submission zarr if it already exists.</span>
-<span class="sd">        max_workers (int): The maximum number of workers to use for parallel processing. Defaults to the number of CPUs.</span>
+<span class="sd">    Parameters:</span>
+<span class="sd">        arr (np.ndarray): Input array to resize.</span>
+<span class="sd">        target_shape (tuple): Desired shape for the output array.</span>
+<span class="sd">        pad_value (int, float, etc.): Value to use for padding if the array is smaller than the target shape.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        np.ndarray: Resized array with the specified target shape.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">input_search_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">input_search_path</span><span class="p">)</span>
-    <span class="n">output_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
-    <span class="n">output_path</span> <span class="o">=</span> <span class="n">output_path</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;.zarr&quot;</span><span class="p">)</span>
+    <span class="n">arr_shape</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">resized_arr</span> <span class="o">=</span> <span class="n">arr</span>
 
-    <span class="c1"># Create a zarr file to store the submission</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">output_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_path</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">store</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">DirectoryStore</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
-    <span class="n">zarr_group</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># Pad if the array is smaller than the target shape</span>
+    <span class="n">pad_width</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">target_shape</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">arr_shape</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">target_shape</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+            <span class="c1"># Padding needed: calculate amount for both sides</span>
+            <span class="n">pad_before</span> <span class="o">=</span> <span class="p">(</span><span class="n">target_shape</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">arr_shape</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">//</span> <span class="mi">2</span>
+            <span class="n">pad_after</span> <span class="o">=</span> <span class="n">target_shape</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">arr_shape</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">pad_before</span>
+            <span class="n">pad_width</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">pad_before</span><span class="p">,</span> <span class="n">pad_after</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># No padding needed for this dimension</span>
+            <span class="n">pad_width</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
 
-    <span class="c1"># Make groups for each test volume</span>
-    <span class="k">for</span> <span class="n">crop</span> <span class="ow">in</span> <span class="n">TEST_CROPS</span><span class="p">:</span>
-        <span class="k">if</span> <span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">zarr_group</span><span class="p">:</span>
-            <span class="n">crop_group</span> <span class="o">=</span> <span class="n">zarr_group</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-    <span class="c1"># Find all the processed test volumes</span>
-    <span class="n">pool</span> <span class="o">=</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="p">)</span>
-    <span class="n">partial_package_crop</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
-        <span class="n">package_crop</span><span class="p">,</span>
-        <span class="n">zarr_group</span><span class="o">=</span><span class="n">zarr_group</span><span class="p">,</span>
-        <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span>
-        <span class="n">input_search_path</span><span class="o">=</span><span class="n">input_search_path</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="k">for</span> <span class="n">crop_path</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
-        <span class="n">pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">partial_package_crop</span><span class="p">,</span> <span class="n">TEST_CROPS</span><span class="p">),</span>
-        <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">TEST_CROPS</span><span class="p">),</span>
-        <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Packaging crops...&quot;</span><span class="p">,</span>
-    <span class="p">):</span>
-        <span class="n">tqdm</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Packaged </span><span class="si">{</span><span class="n">crop_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved submission to </span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Zipping submission...&quot;</span><span class="p">)</span>
-    <span class="n">zip_submission</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
-
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done packaging submission&quot;</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="package_crop">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.package_crop">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">package_crop</span><span class="p">(</span><span class="n">crop</span><span class="p">,</span> <span class="n">zarr_group</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">,</span> <span class="n">input_search_path</span><span class="o">=</span><span class="n">PROCESSED_PATH</span><span class="p">):</span>
-    <span class="n">crop_path</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">UPath</span><span class="p">(</span>
-            <span class="n">format_string</span><span class="p">(</span>
-                <span class="n">input_search_path</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;crop&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;dataset&quot;</span><span class="p">:</span> <span class="n">crop</span><span class="o">.</span><span class="n">dataset</span><span class="p">}</span>
-            <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">pad</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">pads</span> <span class="ow">in</span> <span class="n">pad_width</span> <span class="k">for</span> <span class="n">pad</span> <span class="ow">in</span> <span class="n">pads</span><span class="p">):</span>
+        <span class="n">resized_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span>
+            <span class="n">resized_arr</span><span class="p">,</span> <span class="n">pad_width</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span> <span class="n">constant_values</span><span class="o">=</span><span class="n">pad_value</span>
         <span class="p">)</span>
-        <span class="o">/</span> <span class="n">crop</span><span class="o">.</span><span class="n">class_label</span>
-    <span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">crop_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Skipping </span><span class="si">{</span><span class="n">crop_path</span><span class="si">}</span><span class="s2"> as it does not exist.&quot;</span>
-    <span class="k">if</span> <span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">zarr_group</span><span class="p">:</span>
-        <span class="n">crop_group</span> <span class="o">=</span> <span class="n">zarr_group</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">crop_group</span> <span class="o">=</span> <span class="n">zarr_group</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
 
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scaling </span><span class="si">{</span><span class="n">crop_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span><span class="si">}</span><span class="s2"> nm&quot;</span><span class="p">)</span>
-    <span class="c1"># Match the resolution, spatial position, and shape of the processed volume to the test volume</span>
-    <span class="n">image</span> <span class="o">=</span> <span class="n">match_crop_space</span><span class="p">(</span>
-        <span class="n">path</span><span class="o">=</span><span class="n">crop_path</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
-        <span class="n">class_label</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">class_label</span><span class="p">,</span>
-        <span class="n">voxel_size</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">,</span>
-        <span class="n">shape</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
-        <span class="n">translation</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">translation</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
-    <span class="c1"># Save the processed labels to the submission zarr</span>
-    <span class="n">label_array</span> <span class="o">=</span> <span class="n">crop_group</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
-        <span class="n">crop</span><span class="o">.</span><span class="n">class_label</span><span class="p">,</span>
-        <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span>
-        <span class="n">shape</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
-        <span class="n">dtype</span><span class="o">=</span><span class="n">image</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">label_array</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">image</span>
-    <span class="c1"># Add the metadata</span>
-    <span class="n">label_array</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span>
-    <span class="n">label_array</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;translation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span><span class="o">.</span><span class="n">translation</span>
-    <span class="n">label_array</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span><span class="o">.</span><span class="n">shape</span>
+    <span class="c1"># Crop if the array is larger than the target shape</span>
+    <span class="n">slices</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">target_shape</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">arr_shape</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">target_shape</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+            <span class="c1"># Calculate cropping slices to center the crop</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="p">(</span><span class="n">arr_shape</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">target_shape</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">//</span> <span class="mi">2</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">target_shape</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">slices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># No cropping needed for this dimension</span>
+            <span class="n">slices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">))</span>
 
-    <span class="k">return</span> <span class="n">crop_path</span></div>
+    <span class="k">return</span> <span class="n">resized_arr</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">slices</span><span class="p">)]</span></div>
 
 
 
@@ -1601,35 +1363,24 @@
 
 
 
-<div class="viewcode-block" id="zip_submission">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.zip_submission">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">zip_submission</span><span class="p">(</span><span class="n">zarr_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">UPath</span> <span class="o">=</span> <span class="n">SUBMISSION_PATH</span><span class="p">):</span>
+<div class="viewcode-block" id="unzip_file">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.unzip_file">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">unzip_file</span><span class="p">(</span><span class="n">zip_path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    (Re-)Zip a submission zarr file.</span>
+<span class="sd">    Unzip a zip file to a specified directory.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        zarr_path (str | UPath): The path to the submission zarr file (ending with `&lt;filename&gt;.zarr`). `.zarr` will be replaced with `.zip`.</span>
+<span class="sd">        zip_path (str): The path to the zip file.</span>
+
+<span class="sd">    Example usage:</span>
+<span class="sd">        unzip_file(&#39;submission.zip&#39;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">zarr_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">zarr_path</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">zarr_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Submission zarr file not found at </span><span class="si">{</span><span class="n">zarr_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">saved_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">zip_path</span><span class="p">)</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;.zarr&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span>
+    <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">zip_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">zip_ref</span><span class="p">:</span>
+        <span class="n">zip_ref</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">saved_path</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unzipped </span><span class="si">{</span><span class="n">zip_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">saved_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-    <span class="n">zip_path</span> <span class="o">=</span> <span class="n">zarr_path</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;.zip&quot;</span><span class="p">)</span>
-    <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">zip_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZIP_DEFLATED</span><span class="p">)</span> <span class="k">as</span> <span class="n">zipf</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">zarr_path</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
-                <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
-                <span class="c1"># Ensure symlink targets are added as files</span>
-                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">file_path</span><span class="p">):</span>
-                    <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">readlink</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
-
-                <span class="c1"># Define the relative path in the zip archive</span>
-                <span class="n">arcname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">zarr_path</span><span class="p">)</span>
-                <span class="n">zipf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">arcname</span><span class="p">)</span>
-
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Zipped </span><span class="si">{</span><span class="n">zarr_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">zip_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">zip_path</span></div>
+    <span class="k">return</span> <span class="n">UPath</span><span class="p">(</span><span class="n">saved_path</span><span class="p">)</span></div>
 
 
 
