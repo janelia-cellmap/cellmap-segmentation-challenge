@@ -4,7 +4,6 @@ import json
 import os
 from time import time, sleep
 import zipfile
-import threading
 
 import numpy as np
 import zarr
@@ -12,18 +11,20 @@ from scipy.optimize import linear_sum_assignment
 from scipy.spatial.distance import dice  # , jaccard
 from skimage.measure import label as relabel
 from skimage.transform import rescale
-from scipy.spatial import cKDTree
+
+# from scipy.spatial import cKDTree
+from pykdtree.kdtree import KDTree as cKDTree
+
 from sklearn.metrics import accuracy_score, jaccard_score
 from tqdm import tqdm
 from upath import UPath
 
 from cellmap_data import CellMapImage
-import zarr.errors
 
 import functools
-from concurrent.futures import ThreadPoolExecutor
-from multiprocessing import Pool
-from multiprocessing import Pool
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
+
+# from multiprocessing import Pool
 
 from .config import PROCESSED_PATH, SUBMISSION_PATH, TRUTH_PATH
 from .utils import TEST_CROPS, TEST_CROPS_DICT, format_string
@@ -56,18 +57,13 @@ INSTANCE_CLASSES = [
 HAUSDORFF_DISTANCE_MAX = np.inf
 CAST_TO_NONE = [np.nan, np.inf, -np.inf]
 
-MAX_MAIN_THREADS = int(os.getenv("MAX_MAIN_THREADS", 8))
-MAX_LABEL_THREADS = int(os.getenv("MAX_LABEL_THREADS", 13))
-MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 8))
-MAX_CONCURRENT_INSTANCE_EVALS = int(os.getenv("MAX_CONCURRENT_INSTANCE_EVALS", 2))
-
+MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 2))
+MAX_SEMANTIC_THREADS = int(os.getenv("MAX_SEMANTIC_THREADS", 22))
+PER_INSTANCE_THREADS = int(os.getenv("PER_INSTANCE_THREADS", 8))
 # submitted_# of instances / ground_truth_# of instances
 INSTANCE_RATIO_CUTOFF = float(os.getenv("INSTANCE_RATIO_CUTOFF", 100))
-PRECOMPUTE_LIMIT = int(os.getenv("PRECOMPUTE_LIMIT", 1e9))
+PRECOMPUTE_LIMIT = int(os.getenv("PRECOMPUTE_LIMIT", 1e8))
 DEBUG = os.getenv("DEBUG", "False") != "False"
-
-CURRENT_INSTANCE_EVALS = 0
-lock = threading.Lock()
 
 
 class spoof_precomputed:
@@ -83,198 +79,6 @@ class spoof_precomputed:
 
     def __len__(self):
         return len(self.ids)
-
-
-def score_label_single(
-    label,
-    pred_volume_path,
-    truth_path,
-    instance_classes,
-):
-    score = score_label(
-        pred_volume_path / label,
-        truth_path=truth_path,
-        instance_classes=instance_classes,
-    )
-
-    return (label, score)
-
-
-def parallel_score_labels(found_labels, pred_volume_path, truth_path, instance_classes):
-    partial_score_func = functools.partial(
-        score_label_single,
-        pred_volume_path=pred_volume_path,
-        truth_path=truth_path,
-        instance_classes=instance_classes,
-    )
-    if DEBUG:
-        results = map(partial_score_func, found_labels)
-    else:
-        with ThreadPoolExecutor(max_workers=MAX_LABEL_THREADS) as executor:
-            results = executor.map(partial_score_func, found_labels)
-
-    # `results` is an iterator of (label, score) tuples, so convert to dict
-    return dict(results)
-
-
-def unzip_file(zip_path):
-    """
-    Unzip a zip file to a specified directory.
-
-    Args:
-        zip_path (str): The path to the zip file.
-
-    Example usage:
-        unzip_file('submission.zip')
-    """
-    saved_path = UPath(zip_path).with_suffix(".zarr").path
-    with zipfile.ZipFile(zip_path, "r") as zip_ref:
-        zip_ref.extractall(saved_path)
-        logging.info(f"Unzipped {zip_path} to {saved_path}")
-
-    return UPath(saved_path)
-
-
-def save_numpy_class_labels_to_zarr(
-    save_path, test_volume_name, label_name, labels, overwrite=False, attrs=None
-):
-    """
-    Save a single 3D numpy array of class labels to a
-    Zarr-2 file with the required structure.
-
-    Args:
-        save_path (str): The path to save the Zarr-2 file (ending with <filename>.zarr).
-        test_volume_name (str): The name of the test volume.
-        label_names (str): The names of the labels.
-        labels (np.ndarray): A 3D numpy array of class labels.
-        overwrite (bool): Whether to overwrite the Zarr-2 file if it already exists.
-        attrs (dict): A dictionary of attributes to save with the Zarr-2 file.
-
-    Example usage:
-        # Generate random class labels, with 0 as background
-        labels = np.random.randint(0, 4, (128, 128, 128))
-        save_numpy_labels_to_zarr('submission.zarr', 'test_volume', ['label1', 'label2', 'label3'], labels)
-    """
-    # Create a Zarr-2 file
-    if not UPath(save_path).exists():
-        os.makedirs(UPath(save_path).parent, exist_ok=True)
-    logging.info(f"Saving to {save_path}")
-    store = zarr.DirectoryStore(save_path)
-    zarr_group = zarr.group(store)
-
-    # Save the test volume group
-    zarr_group.create_group(test_volume_name, overwrite=overwrite)
-
-    # Save the labels
-    for i, label_name in enumerate(label_name):
-        logging.info(f"Saving {label_name}")
-        ds = zarr_group[test_volume_name].create_dataset(
-            label_name,
-            data=(labels == i + 1),
-            chunks=64,
-            # compressor=zarr.Blosc(cname='zstd', clevel=3, shuffle=2),
-        )
-        for k, v in (attrs or {}).items():
-            ds.attrs[k] = v
-
-    logging.info("Done saving")
-
-
-def save_numpy_class_arrays_to_zarr(
-    save_path, test_volume_name, label_names, labels, mode="append", attrs=None
-):
-    """
-    Save a list of 3D numpy arrays of binary or instance labels to a
-    Zarr-2 file with the required structure.
-
-    Args:
-        save_path (str): The path to save the Zarr-2 file (ending with <filename>.zarr).
-        test_volume_name (str): The name of the test volume.
-        label_names (list): A list of label names corresponding to the list of 3D numpy arrays.
-        labels (list): A list of 3D numpy arrays of binary labels.
-        mode (str): The mode to use when saving the Zarr-2 file. Options are 'append' or 'overwrite'.
-        attrs (dict): A dictionary of attributes to save with the Zarr-2 file.
-
-    Example usage:
-        label_names = ['label1', 'label2', 'label3']
-        # Generate random binary volumes for each label
-        labels = [np.random.randint(0, 2, (128, 128, 128)) for _ in range len(label_names)]
-        save_numpy_binary_to_zarr('submission.zarr', 'test_volume', label_names, labels)
-
-    """
-    # Create a Zarr-2 file
-    if not UPath(save_path).exists():
-        os.makedirs(UPath(save_path).parent, exist_ok=True)
-    logging.info(f"Saving to {save_path}")
-    store = zarr.DirectoryStore(save_path)
-    zarr_group = zarr.group(store)
-
-    # Save the test volume group
-    try:
-        zarr_group.create_group(test_volume_name, overwrite=(mode == "overwrite"))
-    except zarr.errors.ContainsGroupError:
-        logging.info(f"Appending to existing group {test_volume_name}")
-
-    # Save the labels
-    for i, label_name in enumerate(label_names):
-        logging.info(f"Saving {label_name}")
-        ds = zarr_group[test_volume_name].create_dataset(
-            label_name,
-            data=labels[i],
-            chunks=64,
-            # compressor=zarr.Blosc(cname='zstd', clevel=3, shuffle=2),
-        )
-        for k, v in (attrs or {}).items():
-            ds.attrs[k] = v
-
-    logging.info("Done saving")
-
-
-def resize_array(arr, target_shape, pad_value=0):
-    """
-    Resize an array to a target shape by padding or cropping as needed.
-
-    Parameters:
-        arr (np.ndarray): Input array to resize.
-        target_shape (tuple): Desired shape for the output array.
-        pad_value (int, float, etc.): Value to use for padding if the array is smaller than the target shape.
-
-    Returns:
-        np.ndarray: Resized array with the specified target shape.
-    """
-    arr_shape = arr.shape
-    resized_arr = arr
-
-    # Pad if the array is smaller than the target shape
-    pad_width = []
-    for i in range(len(target_shape)):
-        if arr_shape[i] < target_shape[i]:
-            # Padding needed: calculate amount for both sides
-            pad_before = (target_shape[i] - arr_shape[i]) // 2
-            pad_after = target_shape[i] - arr_shape[i] - pad_before
-            pad_width.append((pad_before, pad_after))
-        else:
-            # No padding needed for this dimension
-            pad_width.append((0, 0))
-
-    if any(pad > 0 for pads in pad_width for pad in pads):
-        resized_arr = np.pad(
-            resized_arr, pad_width, mode="constant", constant_values=pad_value
-        )
-
-    # Crop if the array is larger than the target shape
-    slices = []
-    for i in range(len(target_shape)):
-        if arr_shape[i] > target_shape[i]:
-            # Calculate cropping slices to center the crop
-            start = (arr_shape[i] - target_shape[i]) // 2
-            end = start + target_shape[i]
-            slices.append(slice(start, end))
-        else:
-            # No cropping needed for this dimension
-            slices.append(slice(None))
-
-    return resized_arr[tuple(slices)]
 
 
 def optimized_hausdorff_distances(
@@ -323,7 +127,8 @@ def optimized_hausdorff_distances(
             i, h_dist = get_distance(i)
             hausdorff_distances[i] = h_dist
     else:
-        with ThreadPoolExecutor(max_workers=MAX_INSTANCE_THREADS) as executor:
+        with ThreadPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
+            # with ProcessPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
             for i, h_dist in tqdm(
                 executor.map(get_distance, range(len(truth_ids))),
                 desc="Computing Hausdorff distances",
@@ -358,12 +163,16 @@ def compute_hausdorff_distance(image0, image1, voxel_size, max_distance, method)
     b_tree = cKDTree(b_points)
 
     # Query distances
-    fwd = a_tree.query(b_points, k=1, distance_upper_bound=max_distance)[0]
-    bwd = b_tree.query(a_points, k=1, distance_upper_bound=max_distance)[0]
+    # fwd = a_tree.query(b_points, k=1, distance_upper_bound=max_distance)[0]
+    # bwd = b_tree.query(a_points, k=1, distance_upper_bound=max_distance)[0]
+    fwd = a_tree.query(b_points, k=1)[0]
+    bwd = b_tree.query(a_points, k=1)[0]
 
     # Replace "inf" with `max_distance` for numerical stability
-    fwd[fwd == np.inf] = max_distance
-    bwd[bwd == np.inf] = max_distance
+    # fwd[fwd == np.inf] = max_distance
+    # bwd[bwd == np.inf] = max_distance
+    fwd[fwd > max_distance] = max_distance
+    bwd[bwd > max_distance] = max_distance
 
     if method == "standard":
         return max(fwd.max(), bwd.max())
@@ -406,8 +215,8 @@ def score_instance(
 
     # Skip if the submission has way too many instances
     if len(truth_ids) > 0 and len(pred_ids) / len(truth_ids) > INSTANCE_RATIO_CUTOFF:
-        logging.info(
-            f"Skipping {len(pred_ids)} instances in submission, {len(truth_ids)} in ground truth"
+        logging.warning(
+            f"WARNING: Skipping {len(pred_ids)} instances in submission, {len(truth_ids)} in ground truth, because there are too many instances in the submission."
         )
         return {
             "accuracy": 0,
@@ -456,6 +265,8 @@ def score_instance(
         # Fill in the cost matrix for this `j` (prediction)
         return relevant_truth_indices, j, jaccard_scores
 
+    matched_pred_label = np.zeros_like(pred_label)
+
     if len(pred_ids) > 0:
         # Compute the cost matrix
         if DEBUG:
@@ -472,7 +283,8 @@ def score_instance(
                 relevant_truth_indices, j, jaccard_scores = get_cost(j)
                 cost_matrix[relevant_truth_indices, j] = jaccard_scores
         else:
-            with ThreadPoolExecutor(max_workers=MAX_INSTANCE_THREADS) as executor:
+            with ThreadPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
+                # with ProcessPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
                 for relevant_truth_indices, j, jaccard_scores in tqdm(
                     executor.map(get_cost, range(len(pred_ids))),
                     desc="Computing cost matrix in parallel",
@@ -482,24 +294,28 @@ def score_instance(
                 ):
                     cost_matrix[relevant_truth_indices, j] = jaccard_scores
 
-    # Match the predicted instances to the ground truth instances
-    logging.info("Calculating linear sum assignment...")
-    row_inds, col_inds = linear_sum_assignment(cost_matrix, maximize=True)
+        # Match the predicted instances to the ground truth instances
+        logging.info("Calculating linear sum assignment...")
+        row_inds, col_inds = linear_sum_assignment(cost_matrix, maximize=True)
 
-    # Contruct the volume for the matched instances
-    matched_pred_label = np.zeros_like(pred_label)
-    for i, j in tqdm(
-        zip(col_inds, row_inds), desc="Relabeling matched instances", dynamic_ncols=True
-    ):
-        if pred_ids[i] == 0 or truth_ids[j] == 0:
-            # Don't score the background
-            continue
-        pred_mask = pred_label == pred_ids[i]
-        matched_pred_label[pred_mask] = truth_ids[j]
+        # Contruct the volume for the matched instances
+        for i, j in tqdm(
+            zip(col_inds, row_inds),
+            desc="Relabeling matched instances",
+            dynamic_ncols=True,
+        ):
+            if pred_ids[i] == 0 or truth_ids[j] == 0:
+                # Don't score the background
+                continue
+            pred_mask = pred_label == pred_ids[i]
+            matched_pred_label[pred_mask] = truth_ids[j]
 
-    hausdorff_distances = optimized_hausdorff_distances(
-        truth_label, matched_pred_label, voxel_size, hausdorff_distance_max
-    )
+        hausdorff_distances = optimized_hausdorff_distances(
+            truth_label, matched_pred_label, voxel_size, hausdorff_distance_max
+        )
+    else:
+        # No predictions to match
+        hausdorff_distances = []
 
     # Compute the scores
     logging.info("Computing accuracy score...")
@@ -553,7 +369,11 @@ def score_semantic(pred_label, truth_label) -> dict[str, float]:
 
 
 def score_label(
-    pred_label_path, truth_path=TRUTH_PATH, instance_classes=INSTANCE_CLASSES
+    pred_label_path,
+    label_name,
+    crop_name,
+    truth_path=TRUTH_PATH,
+    instance_classes=INSTANCE_CLASSES,
 ) -> dict[str, float]:
     """
     Score a single label volume against the ground truth label volume.
@@ -569,11 +389,19 @@ def score_label(
     Example usage:
         scores = score_label('pred.zarr/test_volume/label1')
     """
+    if pred_label_path is None:
+        print(f"Label {label_name} not found in submission volume {crop_name}.")
+        return empty_label_score(
+            label=label_name,
+            crop_name=crop_name,
+            instance_classes=instance_classes,
+            truth_path=truth_path,
+        )
     logging.info(f"Scoring {pred_label_path}...")
     truth_path = UPath(truth_path)
     # Load the predicted and ground truth label volumes
-    label_name = UPath(pred_label_path).name
-    crop_name = UPath(pred_label_path).parent.name
+    # label_name = UPath(pred_label_path).name
+    # crop_name = UPath(pred_label_path).parent.name
     truth_label_path = (truth_path / crop_name / label_name).path
     truth_label_ds = zarr.open(truth_label_path, mode="r")
     truth_label = truth_label_ds[:]
@@ -596,115 +424,111 @@ def score_label(
 
     # Compute the scores
     if label_name in instance_classes:
-        global CURRENT_INSTANCE_EVALS
-        printed = False
-        if CURRENT_INSTANCE_EVALS >= MAX_CONCURRENT_INSTANCE_EVALS:
-            if not printed:
-                logging.info("Waiting for other instance evaluations to finish...")
-                printed = True
-            while CURRENT_INSTANCE_EVALS >= MAX_CONCURRENT_INSTANCE_EVALS:
-                sleep(1)
-        with lock:
-            CURRENT_INSTANCE_EVALS += 1
         logging.info(
-            f"Starting an instance evaluation for {label_name} in {crop_name} (total of {CURRENT_INSTANCE_EVALS} instance evals running)..."
+            f"Starting an instance evaluation for {label_name} in {crop_name}..."
         )
         timer = time()
         results = score_instance(pred_label, truth_label, crop.voxel_size)
-        with lock:
-            CURRENT_INSTANCE_EVALS -= 1
         logging.info(
-            f"Finished instance evaluation for {label_name} in {crop_name} in {time() - timer:.2f} seconds (total of {CURRENT_INSTANCE_EVALS} instance evals now running)..."
+            f"Finished instance evaluation for {label_name} in {crop_name} in {time() - timer:.2f} seconds..."
         )
     else:
         results = score_semantic(pred_label, truth_label)
     results["num_voxels"] = int(np.prod(truth_label.shape))
     results["voxel_size"] = crop.voxel_size
     results["is_missing"] = False
-    return results
+    return crop_name, label_name, results
 
 
-def score_volume(
-    volume,
+def empty_label_score(
+    label, crop_name, instance_classes=INSTANCE_CLASSES, truth_path=TRUTH_PATH
+):
+    if label in instance_classes:
+        return {
+            "accuracy": 0,
+            "hausdorff_distance": 0,
+            "normalized_hausdorff_distance": 0,
+            "combined_score": 0,
+            "num_voxels": int(
+                np.prod(
+                    zarr.open((truth_path / crop_name / label).path, mode="r").shape
+                )
+            ),
+            "voxel_size": zarr.open(
+                (truth_path / crop_name / label).path, mode="r"
+            ).attrs["voxel_size"],
+            "is_missing": True,
+        }
+    else:
+        return {
+            "iou": 0,
+            "dice_score": 0,
+            "num_voxels": int(
+                np.prod(
+                    zarr.open((truth_path / crop_name / label).path, mode="r").shape
+                )
+            ),
+            "voxel_size": zarr.open(
+                (truth_path / crop_name / label).path, mode="r"
+            ).attrs["voxel_size"],
+            "is_missing": True,
+        }
+
+
+def get_evaluation_args(
+    volumes,
     submission_path,
     truth_path=TRUTH_PATH,
     instance_classes=INSTANCE_CLASSES,
 ) -> dict[str, dict[str, float]]:
     """
-    Score a single volume against the ground truth volume.
-
+    Get the arguments for scoring each label in the submission.
     Args:
-        pred_volume_path (str): The path to the predicted volume.
-
+        volumes (list): A list of volumes to score.
+        submission_path (str): The path to the submission volume.
+        truth_path (str): The path to the ground truth volume.
+        instance_classes (list): A list of instance classes.
     Returns:
-        dict: A dictionary of scores for the volume.
-
-    Example usage:
-        scores = score_volume('pred.zarr/test_volume')
+        A list of tuples containing the arguments for each label to be scored.
     """
-    submission_path = UPath(submission_path)
-    pred_volume_path = submission_path / volume
-    logging.info(f"Scoring {pred_volume_path}...")
-    truth_path = UPath(truth_path)
+    if not isinstance(volumes, (tuple, list)):
+        volumes = [volumes]
+    score_label_arglist = []
+    for volume in volumes:
+        submission_path = UPath(submission_path)
+        pred_volume_path = submission_path / volume
+        logging.info(f"Scoring {pred_volume_path}...")
+        truth_path = UPath(truth_path)
 
-    # Find labels to score
-    pred_labels = [a for a in zarr.open(pred_volume_path.path, mode="r").array_keys()]
+        # Find labels to score
+        pred_labels = [
+            a for a in zarr.open(pred_volume_path.path, mode="r").array_keys()
+        ]
 
-    volume_name = pred_volume_path.name
-    truth_labels = [
-        a for a in zarr.open((truth_path / volume_name).path, mode="r").array_keys()
-    ]
+        crop_name = pred_volume_path.name
+        truth_labels = [
+            a for a in zarr.open((truth_path / crop_name).path, mode="r").array_keys()
+        ]
 
-    found_labels = list(set(pred_labels) & set(truth_labels))
-    missing_labels = list(set(truth_labels) - set(pred_labels))
+        found_labels = list(set(pred_labels) & set(truth_labels))
+        missing_labels = list(set(truth_labels) - set(pred_labels))
 
-    # Score each label
-    scores = parallel_score_labels(
-        found_labels, pred_volume_path, truth_path, instance_classes
-    )
-    scores.update(
-        {
-            label: (
-                {
-                    "accuracy": 0,
-                    "hausdorff_distance": 0,
-                    "normalized_hausdorff_distance": 0,
-                    "combined_score": 0,
-                    "num_voxels": int(
-                        np.prod(
-                            zarr.open(
-                                (truth_path / volume_name / label).path, mode="r"
-                            ).shape
-                        )
-                    ),
-                    "voxel_size": zarr.open(
-                        (truth_path / volume_name / label).path, mode="r"
-                    ).attrs["voxel_size"],
-                    "is_missing": True,
-                }
-                if label in instance_classes
-                else {
-                    "iou": 0,
-                    "dice_score": 0,
-                    "num_voxels": int(
-                        np.prod(
-                            zarr.open(
-                                (truth_path / volume_name / label).path, mode="r"
-                            ).shape
-                        )
-                    ),
-                    "voxel_size": zarr.open(
-                        (truth_path / volume_name / label).path, mode="r"
-                    ).attrs["voxel_size"],
-                    "is_missing": True,
-                }
-            )
-            for label in missing_labels
-        }
-    )
-    logging.info(f"Missing labels: {missing_labels}")
+        # Score_label arguments for each label
+        score_label_arglist.extend(
+            [
+                (
+                    pred_volume_path / label if label in found_labels else None,
+                    label,
+                    crop_name,
+                    truth_path,
+                    instance_classes,
+                )
+                for label in truth_labels
+            ]
+        )
+        logging.info(f"Missing labels: {missing_labels}")
 
-    return volume, scores
+    return score_label_arglist
 
 
 def missing_volume_score(
@@ -905,8 +729,6 @@ def score_submission(
     }
     """
 
-    # tracemalloc.start()
-
     logging.info(f"Scoring {submission_path}...")
     start_time = time()
     # Unzip the submission
@@ -932,31 +754,44 @@ def score_submission(
         logging.info(f"Missing volumes: {missing_volumes}")
         logging.info("Scoring missing volumes as 0's")
 
+    # Get all prediction paths to evaluate
+    evaluation_args = get_evaluation_args(
+        found_volumes,
+        submission_path=UPath(submission_path),
+        truth_path=truth_path,
+        instance_classes=instance_classes,
+    )
+
     # Score each volume
     if DEBUG:
         logging.info("Scoring volumes in serial for debugging...")
-        scores = {
-            volume: score_volume(
-                volume=volume,
-                submission_path=UPath(submission_path),
-                truth_path=truth_path,
-                instance_classes=instance_classes,
-            )
-            for volume in found_volumes
-        }
+        results = [score_label(*args) for args in evaluation_args]
     else:
-        # with ThreadPoolExecutor(max_workers=MAX_MAIN_THREADS) as executor:
-        with Pool(processes=MAX_MAIN_THREADS) as executor:
-            results = executor.map(
-                functools.partial(
-                    score_volume,
-                    submission_path=UPath(submission_path),
-                    truth_path=truth_path,
-                    instance_classes=instance_classes,
-                ),
-                found_volumes,
-            )
-            scores = dict(results)
+        logging.info("Scoring volumes in parallel...")
+        instance_pool = ProcessPoolExecutor(MAX_INSTANCE_THREADS)
+        semantic_pool = ProcessPoolExecutor(MAX_SEMANTIC_THREADS)
+        futures = []
+        for args in evaluation_args:
+            if args[1] in instance_classes:
+                futures.append(instance_pool.submit(score_label, *args))
+            else:
+                futures.append(semantic_pool.submit(score_label, *args))
+        results = []
+        for future in tqdm(
+            as_completed(futures),
+            desc="Scoring volumes",
+            total=len(futures),
+            dynamic_ncols=True,
+            leave=True,
+        ):
+            results.append(future.result())
+
+    # Combine the results into a dictionary
+    scores = {}
+    for crop_name, label_name, result in results:
+        if crop_name not in scores:
+            scores[crop_name] = {}
+        scores[crop_name][label_name] = result
 
     scores.update(
         {
@@ -993,12 +828,6 @@ def score_submission(
     )
     logging.info(f"\tOverall Score: {found_scores['overall_score']:.4f}")
 
-    # current, peak = tracemalloc.get_traced_memory()
-    # logging.info(f"Current memory usage: {current / 1024**2:.2f} MB")
-    # logging.info(f"Peak memory usage: {peak / 1024**2:.2f} MB")
-
-    # tracemalloc.stop()
-
     # Save the scores
     if result_file:
         logging.info(f"Saving collected scores to {result_file}...")
@@ -1018,100 +847,51 @@ def score_submission(
         return all_scores
 
 
-def package_submission(
-    input_search_path: str | UPath = PROCESSED_PATH,
-    output_path: str | UPath = SUBMISSION_PATH,
-    overwrite: bool = False,
-    max_workers: int = os.cpu_count(),
-):
+def resize_array(arr, target_shape, pad_value=0):
     """
-    Package a submission for the CellMap challenge. This will create a zarr file, combining all the processed volumes, and then zip it.
+    Resize an array to a target shape by padding or cropping as needed.
 
-    Args:
-        input_search_path (str): The base path to the processed volumes, with placeholders for dataset and crops.
-        output_path (str | UPath): The path to save the submission zarr to. (ending with `<filename>.zarr`; `.zarr` will be appended if not present, and replaced with `.zip` when zipped).
-        overwrite (bool): Whether to overwrite the submission zarr if it already exists.
-        max_workers (int): The maximum number of workers to use for parallel processing. Defaults to the number of CPUs.
+    Parameters:
+        arr (np.ndarray): Input array to resize.
+        target_shape (tuple): Desired shape for the output array.
+        pad_value (int, float, etc.): Value to use for padding if the array is smaller than the target shape.
+
+    Returns:
+        np.ndarray: Resized array with the specified target shape.
     """
-    input_search_path = str(input_search_path)
-    output_path = UPath(output_path)
-    output_path = output_path.with_suffix(".zarr")
+    arr_shape = arr.shape
+    resized_arr = arr
 
-    # Create a zarr file to store the submission
-    if not output_path.exists():
-        os.makedirs(output_path.parent, exist_ok=True)
-    store = zarr.DirectoryStore(output_path)
-    zarr_group = zarr.group(store, overwrite=True)
+    # Pad if the array is smaller than the target shape
+    pad_width = []
+    for i in range(len(target_shape)):
+        if arr_shape[i] < target_shape[i]:
+            # Padding needed: calculate amount for both sides
+            pad_before = (target_shape[i] - arr_shape[i]) // 2
+            pad_after = target_shape[i] - arr_shape[i] - pad_before
+            pad_width.append((pad_before, pad_after))
+        else:
+            # No padding needed for this dimension
+            pad_width.append((0, 0))
 
-    # Make groups for each test volume
-    for crop in TEST_CROPS:
-        if f"crop{crop.id}" not in zarr_group:
-            crop_group = zarr_group.create_group(f"crop{crop.id}")
-
-    # Find all the processed test volumes
-    pool = ThreadPoolExecutor(max_workers)
-    partial_package_crop = functools.partial(
-        package_crop,
-        zarr_group=zarr_group,
-        overwrite=overwrite,
-        input_search_path=input_search_path,
-    )
-    for crop_path in tqdm(
-        pool.map(partial_package_crop, TEST_CROPS),
-        total=len(TEST_CROPS),
-        dynamic_ncols=True,
-        desc="Packaging crops...",
-    ):
-        tqdm.write(f"Packaged {crop_path}")
-
-    logging.info(f"Saved submission to {output_path}")
-
-    logging.info("Zipping submission...")
-    zip_submission(output_path)
-
-    logging.info("Done packaging submission")
-
-
-def package_crop(crop, zarr_group, overwrite, input_search_path=PROCESSED_PATH):
-    crop_path = (
-        UPath(
-            format_string(
-                input_search_path, {"crop": f"crop{crop.id}", "dataset": crop.dataset}
-            )
+    if any(pad > 0 for pads in pad_width for pad in pads):
+        resized_arr = np.pad(
+            resized_arr, pad_width, mode="constant", constant_values=pad_value
         )
-        / crop.class_label
-    )
-    if not crop_path.exists():
-        return f"Skipping {crop_path} as it does not exist."
-    if f"crop{crop.id}" not in zarr_group:
-        crop_group = zarr_group.create_group(f"crop{crop.id}")
-    else:
-        crop_group = zarr_group[f"crop{crop.id}"]
 
-    logging.info(f"Scaling {crop_path} to {crop.voxel_size} nm")
-    # Match the resolution, spatial position, and shape of the processed volume to the test volume
-    image = match_crop_space(
-        path=crop_path.path,
-        class_label=crop.class_label,
-        voxel_size=crop.voxel_size,
-        shape=crop.shape,
-        translation=crop.translation,
-    )
-    image = image.astype(np.uint8)
-    # Save the processed labels to the submission zarr
-    label_array = crop_group.create_dataset(
-        crop.class_label,
-        overwrite=overwrite,
-        shape=crop.shape,
-        dtype=image.dtype,
-    )
-    label_array[:] = image
-    # Add the metadata
-    label_array.attrs["voxel_size"] = crop.voxel_size
-    label_array.attrs["translation"] = crop.translation
-    label_array.attrs["shape"] = crop.shape
+    # Crop if the array is larger than the target shape
+    slices = []
+    for i in range(len(target_shape)):
+        if arr_shape[i] > target_shape[i]:
+            # Calculate cropping slices to center the crop
+            start = (arr_shape[i] - target_shape[i]) // 2
+            end = start + target_shape[i]
+            slices.append(slice(start, end))
+        else:
+            # No cropping needed for this dimension
+            slices.append(slice(None))
 
-    return crop_path
+    return resized_arr[tuple(slices)]
 
 
 def match_crop_space(path, class_label, voxel_size, shape, translation) -> np.ndarray:
@@ -1267,33 +1047,22 @@ def match_crop_space(path, class_label, voxel_size, shape, translation) -> np.nd
         return image
 
 
-def zip_submission(zarr_path: str | UPath = SUBMISSION_PATH):
+def unzip_file(zip_path):
     """
-    (Re-)Zip a submission zarr file.
+    Unzip a zip file to a specified directory.
 
     Args:
-        zarr_path (str | UPath): The path to the submission zarr file (ending with `<filename>.zarr`). `.zarr` will be replaced with `.zip`.
+        zip_path (str): The path to the zip file.
+
+    Example usage:
+        unzip_file('submission.zip')
     """
-    zarr_path = UPath(zarr_path)
-    if not zarr_path.exists():
-        raise FileNotFoundError(f"Submission zarr file not found at {zarr_path}")
+    saved_path = UPath(zip_path).with_suffix(".zarr").path
+    with zipfile.ZipFile(zip_path, "r") as zip_ref:
+        zip_ref.extractall(saved_path)
+        logging.info(f"Unzipped {zip_path} to {saved_path}")
 
-    zip_path = zarr_path.with_suffix(".zip")
-    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
-        for root, dirs, files in os.walk(zarr_path, followlinks=True):
-            for file in files:
-                file_path = os.path.join(root, file)
-                # Ensure symlink targets are added as files
-                if os.path.islink(file_path):
-                    file_path = os.readlink(file_path)
-
-                # Define the relative path in the zip archive
-                arcname = os.path.relpath(file_path, zarr_path)
-                zipf.write(file_path, arcname)
-
-    logging.info(f"Zipped {zarr_path} to {zip_path}")
-
-    return zip_path
+    return UPath(saved_path)
 
 
 if __name__ == "__main__":

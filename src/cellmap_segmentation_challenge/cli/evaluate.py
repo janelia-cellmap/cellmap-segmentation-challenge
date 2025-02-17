@@ -90,6 +90,6 @@ def package_submission_cli(input_search_path, output_path, overwrite, max_worker
     Package zarr datasets for submission.
     """
 
-    from cellmap_segmentation_challenge.evaluate import package_submission
+    from cellmap_segmentation_challenge.utils.submission import package_submission
 
     package_submission(input_search_path, output_path, overwrite, max_workers)
