@@ -384,9 +384,13 @@ def train(config_path: str):
                     total=validation_batch_limit or len(val_loader.loader),
                     dynamic_ncols=True,
                 )
-            i = 0
 
+            # Validation loop
             with torch.no_grad():
+                # Free up GPU memory
+                torch.cuda.empty_cache()
+
+                i = 0
                 for batch in val_bar:
                     if len(input_keys) > 1:
                         inputs = {key: batch[key] for key in input_keys}
@@ -426,6 +430,13 @@ def train(config_path: str):
             post_fix_dict["Validation"] = f"{val_score:.4f}"
 
         # Generate and save figures from the last batch of the validation to appear in tensorboard
+        # TODO: Make this more general rather than only taking the first key
+        if isinstance(outputs, dict):
+            outputs = list(outputs.values())[0]
+        if isinstance(inputs, dict):
+            inputs = list(inputs.values())[0]
+        if isinstance(targets, dict):
+            targets = list(targets.values())[0]
         figs = get_fig_dict(inputs, targets, outputs, classes)
         for name, fig in figs.items():
             writer.add_figure(name, fig, n_iter)
