@@ -321,6 +321,7 @@ def train(config_path: str):
                 inputs = {key: batch[key] for key in input_keys}
             else:
                 inputs = batch[input_keys[0]]
+                # Assumes the model input is a single tensor
             outputs = model(inputs)
 
             # Compute the loss
