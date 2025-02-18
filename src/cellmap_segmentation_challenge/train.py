@@ -10,6 +10,7 @@ from cellmap_data.transforms.augment import NaNtoNum, Binarize
 from tensorboardX import SummaryWriter
 from tqdm import tqdm
 from upath import UPath
+import matplotlib.pyplot as plt
 
 from .models import ResNet, UNet_2D, UNet_3D, ViTVNet, load_best_val, load_latest
 from .utils import (
@@ -360,9 +361,6 @@ def train(config_path: str):
             model_save_path.format(epoch=epoch + 1, model_name=model_name),
         )
 
-        # Set the model to evaluation mode to disable backpropagation
-        model.eval()
-
         # Compute the validation score by averaging the loss across the validation set
         if len(val_loader.loader) > 0:
             val_score = 0
@@ -374,7 +372,7 @@ def train(config_path: str):
                 pbar = tqdm(
                     total=validation_time_limit,
                     desc="Validation",
-                    bar_format="{l_bar}{bar}| {remaining}s",
+                    bar_format="{l_bar}{bar}| {remaining}s remaining",
                     dynamic_ncols=True,
                 )
             else:
@@ -385,11 +383,13 @@ def train(config_path: str):
                     dynamic_ncols=True,
                 )
 
+            # Free up GPU memory, disable backprop etc.
+            torch.cuda.empty_cache()
+            optimizer.zero_grad()
+            model.eval()
+
             # Validation loop
             with torch.no_grad():
-                # Free up GPU memory
-                torch.cuda.empty_cache()
-
                 i = 0
                 for batch in val_bar:
                     if len(input_keys) > 1:
@@ -414,20 +414,19 @@ def train(config_path: str):
                             break
                         pbar.update(last_elapsed_time)
                         last_time = time.time()
-
                     # Check batch limit
                     elif (
                         validation_batch_limit is not None
                         and i >= validation_batch_limit
                     ):
                         break
-            val_score /= i
+                val_score /= i
 
-            # Log the validation using tensorboard
-            writer.add_scalar("validation", val_score, n_iter)
+                # Log the validation using tensorboard
+                writer.add_scalar("validation", val_score, n_iter)
 
-            # Update the progress bar
-            post_fix_dict["Validation"] = f"{val_score:.4f}"
+                # Update the progress bar
+                post_fix_dict["Validation"] = f"{val_score:.4f}"
 
         # Generate and save figures from the last batch of the validation to appear in tensorboard
         # TODO: Make this more general rather than only taking the first key
@@ -440,9 +439,10 @@ def train(config_path: str):
         figs = get_fig_dict(inputs, targets, outputs, classes)
         for name, fig in figs.items():
             writer.add_figure(name, fig, n_iter)
+            plt.close(fig)
 
-        # Refresh the train loader to shuffle the data yielded by the dataloader
-        train_loader.refresh()
+        # Clear the GPU memory again
+        torch.cuda.empty_cache()
 
     # Close the summarywriter
     writer.close()
