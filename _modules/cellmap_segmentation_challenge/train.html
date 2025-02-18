@@ -281,6 +281,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">tensorboardX</span><span class="w"> </span><span class="kn">import</span> <span class="n">SummaryWriter</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">upath</span><span class="w"> </span><span class="kn">import</span> <span class="n">UPath</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ResNet</span><span class="p">,</span> <span class="n">UNet_2D</span><span class="p">,</span> <span class="n">UNet_3D</span><span class="p">,</span> <span class="n">ViTVNet</span><span class="p">,</span> <span class="n">load_best_val</span><span class="p">,</span> <span class="n">load_latest</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -633,9 +634,6 @@
             <span class="n">model_save_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">epoch</span><span class="o">=</span><span class="n">epoch</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="n">model_name</span><span class="p">),</span>
         <span class="p">)</span>
 
-        <span class="c1"># Set the model to evaluation mode to disable backpropagation</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
-
         <span class="c1"># Compute the validation score by averaging the loss across the validation set</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val_loader</span><span class="o">.</span><span class="n">loader</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">val_score</span> <span class="o">=</span> <span class="mi">0</span>
@@ -647,7 +645,7 @@
                 <span class="n">pbar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span>
                     <span class="n">total</span><span class="o">=</span><span class="n">validation_time_limit</span><span class="p">,</span>
                     <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Validation&quot;</span><span class="p">,</span>
-                    <span class="n">bar_format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{l_bar}{bar}</span><span class="s2">| </span><span class="si">{remaining}</span><span class="s2">s&quot;</span><span class="p">,</span>
+                    <span class="n">bar_format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{l_bar}{bar}</span><span class="s2">| </span><span class="si">{remaining}</span><span class="s2">s remaining&quot;</span><span class="p">,</span>
                     <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -658,11 +656,13 @@
                     <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                 <span class="p">)</span>
 
+            <span class="c1"># Free up GPU memory, disable backprop etc.</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">empty_cache</span><span class="p">()</span>
+            <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+
             <span class="c1"># Validation loop</span>
             <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-                <span class="c1"># Free up GPU memory</span>
-                <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">empty_cache</span><span class="p">()</span>
-
                 <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
                 <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">val_bar</span><span class="p">:</span>
                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_keys</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
@@ -687,20 +687,19 @@
                             <span class="k">break</span>
                         <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">last_elapsed_time</span><span class="p">)</span>
                         <span class="n">last_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-
                     <span class="c1"># Check batch limit</span>
                     <span class="k">elif</span> <span class="p">(</span>
                         <span class="n">validation_batch_limit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
                         <span class="ow">and</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="n">validation_batch_limit</span>
                     <span class="p">):</span>
                         <span class="k">break</span>
-            <span class="n">val_score</span> <span class="o">/=</span> <span class="n">i</span>
+                <span class="n">val_score</span> <span class="o">/=</span> <span class="n">i</span>
 
-            <span class="c1"># Log the validation using tensorboard</span>
-            <span class="n">writer</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="s2">&quot;validation&quot;</span><span class="p">,</span> <span class="n">val_score</span><span class="p">,</span> <span class="n">n_iter</span><span class="p">)</span>
+                <span class="c1"># Log the validation using tensorboard</span>
+                <span class="n">writer</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="s2">&quot;validation&quot;</span><span class="p">,</span> <span class="n">val_score</span><span class="p">,</span> <span class="n">n_iter</span><span class="p">)</span>
 
-            <span class="c1"># Update the progress bar</span>
-            <span class="n">post_fix_dict</span><span class="p">[</span><span class="s2">&quot;Validation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">val_score</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="c1"># Update the progress bar</span>
+                <span class="n">post_fix_dict</span><span class="p">[</span><span class="s2">&quot;Validation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">val_score</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span>
 
         <span class="c1"># Generate and save figures from the last batch of the validation to appear in tensorboard</span>
         <span class="c1"># TODO: Make this more general rather than only taking the first key</span>
@@ -713,9 +712,10 @@
         <span class="n">figs</span> <span class="o">=</span> <span class="n">get_fig_dict</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">classes</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">fig</span> <span class="ow">in</span> <span class="n">figs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">writer</span><span class="o">.</span><span class="n">add_figure</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">n_iter</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
 
-        <span class="c1"># Refresh the train loader to shuffle the data yielded by the dataloader</span>
-        <span class="n">train_loader</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+        <span class="c1"># Clear the GPU memory again</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">empty_cache</span><span class="p">()</span>
 
     <span class="c1"># Close the summarywriter</span>
     <span class="n">writer</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
