@@ -356,7 +356,13 @@ def score_semantic(pred_label, truth_label) -> dict[str, float]:
     pred_label = (pred_label > 0.0).flatten()
     truth_label = (truth_label > 0.0).flatten()
     # Compute the scores
-    dice_score = 1 - dice(truth_label, pred_label)
+
+    if np.sum(truth_label + pred_label) == 0:
+        # If there are no true positives, set the scores to 1
+        logging.debug("No true positives found. Setting scores to 1.")
+        dice_score = 1
+    else:
+        dice_score = 1 - dice(truth_label, pred_label)
     scores = {
         "iou": jaccard_score(truth_label, pred_label, zero_division=1),
         "dice_score": dice_score if not np.isnan(dice_score) else 1,
