@@ -9,69 +9,69 @@ cellmap\_segmentation\_challenge.utils.crops module
 
 .. automodule:: cellmap_segmentation_challenge.utils.crops
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cellmap\_segmentation\_challenge.utils.dataloader module
 --------------------------------------------------------
 
 .. automodule:: cellmap_segmentation_challenge.utils.dataloader
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cellmap\_segmentation\_challenge.utils.datasplit module
 -------------------------------------------------------
 
 .. automodule:: cellmap_segmentation_challenge.utils.datasplit
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cellmap\_segmentation\_challenge.utils.fetch\_data module
 ---------------------------------------------------------
 
 .. automodule:: cellmap_segmentation_challenge.utils.fetch_data
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cellmap\_segmentation\_challenge.utils.loss module
 --------------------------------------------------
 
 .. automodule:: cellmap_segmentation_challenge.utils.loss
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cellmap\_segmentation\_challenge.utils.security module
 ------------------------------------------------------
 
 .. automodule:: cellmap_segmentation_challenge.utils.security
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cellmap\_segmentation\_challenge.utils.submission module
 --------------------------------------------------------
 
 .. automodule:: cellmap_segmentation_challenge.utils.submission
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 cellmap\_segmentation\_challenge.utils.utils module
 ---------------------------------------------------
 
 .. automodule:: cellmap_segmentation_challenge.utils.utils
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: cellmap_segmentation_challenge.utils
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
