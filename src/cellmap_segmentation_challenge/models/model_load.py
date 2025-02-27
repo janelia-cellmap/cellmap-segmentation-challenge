@@ -1,11 +1,12 @@
 # Imports
-import glob
+from glob import glob
 import os
 
 import numpy as np
 import torch
 from tensorboard.backend.event_processing import event_accumulator
 from upath import UPath
+from cellmap_segmentation_challenge.utils import get_formatted_fields, format_string
 
 
 def load_latest(search_path, model):
@@ -21,14 +22,19 @@ def load_latest(search_path, model):
     """
 
     # Check if there are any files matching the checkpoint save path
-    checkpoint_files = glob.glob(search_path)
+    checkpoint_files = glob(format_string(search_path, {"epoch": "*"}))
     if checkpoint_files:
 
-        # If there are checkpoints, sort by modification time
+        # If there are checkpoints, sort by modification time and get the latest
         checkpoint_files.sort(key=os.path.getmtime, reverse=True)
 
-        # Saves the latest checkpoint
+        # Get the latest checkpoint
         newest_checkpoint = checkpoint_files[0]
+
+        # Extract the epoch from the filename
+        epoch = int(
+            get_formatted_fields(newest_checkpoint, search_path, ["{epoch}"])["epoch"]
+        )
 
         # Loads the most recent checkpoint into the model and prints out the file path
         try:
@@ -36,9 +42,13 @@ def load_latest(search_path, model):
                 torch.load(newest_checkpoint, weights_only=True), strict=False
             )
             print(f"Loaded latest checkpoint: {newest_checkpoint}")
+            return epoch
         except Exception as e:
             print(f"Error loading checkpoint: {newest_checkpoint}")
             print(e)
+
+    # If there are no checkpoints, or an error occurs, return None
+    return None
 
 
 def load_best_val(logs_save_path, model_save_path, model, low_is_best=True):
@@ -63,7 +73,7 @@ def load_best_val(logs_save_path, model_save_path, model, low_is_best=True):
         event_acc.Reload()
     except:
         print("No events file found, skipping")
-        return
+        return None
 
     # Get validation scores
     tags = event_acc.Tags()["scalars"]
@@ -83,7 +93,12 @@ def load_best_val(logs_save_path, model_save_path, model, low_is_best=True):
 
         try:
             model.load_state_dict(checkpoint, strict=False)
+            return best_epoch
             print(f"Loaded best validation checkpoint from epoch: {best_epoch}")
         except Exception as e:
             print(f"Error loading checkpoint: {checkpoint_path}")
             print(e)
+            return None
+    else:
+        print("No validation scores found, skipping")
+        return None

@@ -19,6 +19,7 @@ from .utils import (
     load_safe_config,
     make_datasplit_csv,
     make_s3_datasplit_csv,
+    format_string,
 )
 
 
@@ -250,18 +251,32 @@ def train(config_path: str):
             )
 
     # Optionally, load a pre-trained model
+    checkpoint_epoch = None
     if load_model.lower() == "latest":
         # Check to see if there are any checkpoints and if so load the latest one
-        # Use the command below for loading the latest model, otherwise comment it out
-        load_latest(model_save_path.format(epoch="*", model_name=model_to_load), model)
-    elif load_model.lower() == "best":
-        # Load the checkpoint with the best validation score
-        # Use the command below for loading the epoch with the best validation score, otherwise comment it out
-        load_best_val(
-            logs_save_path.format(model_name=model_to_load),
-            model_save_path.format(epoch="{epoch}", model_name=model_to_load),
+        checkpoint_epoch = load_latest(
+            format_string(model_save_path, {"model_name": model_to_load}),
             model,
         )
+    elif load_model.lower() == "best":
+        # Load the checkpoint from the epoch with the best validation score
+        checkpoint_epoch = load_best_val(
+            format_string(logs_save_path, {"model_name": model_to_load}),
+            format_string(model_save_path, {"model_name": model_to_load}),
+            model,
+        )
+    if checkpoint_epoch is None:
+        checkpoint_epoch = 0
+
+    # Create a variables for tracking iterations and offseting already completed epochs, if applicable
+    epochs = np.arange(epochs) + 1
+    if model_to_load == model_name:
+        # Calculate the number of iterations to skip
+        # NOTE: This assumes that the number of iterations per epoch is consistent
+        n_iter = checkpoint_epoch * iterations_per_epoch
+        epochs += checkpoint_epoch
+    else:
+        n_iter = 0
 
     # %% Move model to device
     model = model.to(device)
@@ -285,18 +300,19 @@ def train(config_path: str):
     post_fix_dict = {}
 
     # Define a summarywriter
-    writer = SummaryWriter(logs_save_path.format(model_name=model_name))
+    writer = SummaryWriter(format_string(logs_save_path, {"model_name": model_name}))
 
-    # Create a variable to track iterations
-    n_iter = 0
     # Training outer loop, across epochs
-    for epoch in range(epochs):
+    print(
+        f"Training {model_name} for {len(epochs)} epochs, starting at epoch {epochs[0]}, iteration {n_iter}..."
+    )
+    for epoch in epochs:
 
         # Set the model to training mode to enable backpropagation
         model.train()
 
         # Training loop for the epoch
-        post_fix_dict["Epoch"] = epoch + 1
+        post_fix_dict["Epoch"] = epoch
 
         # Refresh the train loader to shuffle the data yielded by the dataloader
         train_loader.refresh()
@@ -358,7 +374,7 @@ def train(config_path: str):
         # Save the model
         torch.save(
             model.state_dict(),
-            model_save_path.format(epoch=epoch + 1, model_name=model_name),
+            format_string(model_save_path, {"epoch": epoch, "model_name": model_name}),
         )
 
         # Compute the validation score by averaging the loss across the validation set
