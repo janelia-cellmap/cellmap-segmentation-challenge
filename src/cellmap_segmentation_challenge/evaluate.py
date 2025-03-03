@@ -25,7 +25,7 @@ from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_compl
 
 # from multiprocessing import Pool
 
-from .config import SUBMISSION_PATH, TRUTH_PATH
+from .config import PROCESSED_PATH, SUBMISSION_PATH, TRUTH_PATH
 from .utils import TEST_CROPS_DICT
 
 
