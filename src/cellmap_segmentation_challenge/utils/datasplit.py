@@ -183,6 +183,11 @@ def get_csv_string(
         zarr_path = raw_path.split(".n5")[0] + ".n5"
     else:
         zarr_path = raw_path.split(".zarr")[0] + ".zarr"
+    # ensure that the path is normalized
+    zarr_path = os.path.normpath(zarr_path)
+    path = os.path.normpath(path)
+    raw_path = os.path.normpath(raw_path)
+
     raw_ds_name = raw_path.removeprefix(zarr_path + os.path.sep)
     gt_ds_name = path.removeprefix(zarr_path + os.path.sep)
     bar_string = f"Found raw data for {dataset_name} at {raw_path}"
