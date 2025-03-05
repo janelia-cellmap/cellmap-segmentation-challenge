@@ -15,7 +15,7 @@ from cellmap_segmentation_challenge.utils import (
 
 
 from cellmap_segmentation_challenge import RAW_NAME, CROP_NAME
-from cellmap_segmentation_challenge.evaluate import (
+from cellmap_segmentation_challenge.utils.submission import (
     zip_submission,
     save_numpy_class_arrays_to_zarr,
 )

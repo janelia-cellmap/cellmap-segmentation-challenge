@@ -11,7 +11,6 @@ def get_dataloader(
     datasplit_path: str,
     classes: Sequence[str],
     batch_size: int,
-    array_info: Optional[Mapping[str, Sequence[int | float]]] = None,
     input_array_info: Optional[Mapping[str, Sequence[int | float]]] = None,
     target_array_info: Optional[Mapping[str, Sequence[int | float]]] = None,
     spatial_transforms: Optional[Mapping[str, Any]] = None,
@@ -37,6 +36,7 @@ def get_dataloader(
     device: Optional[str | torch.device] = None,
     use_mutual_exclusion: bool = False,
     weighted_sampler: bool = True,
+    **kwargs,
 ) -> tuple[CellMapDataLoader, CellMapDataLoader]:
     """
     Get the train and validation dataloaders.
@@ -52,8 +52,6 @@ def get_dataloader(
         List of classes to segment.
     batch_size : int
         Batch size for the dataloader.
-    array_info : Optional[Mapping[str, Sequence[int | float]]]
-        Dictionary containing the shape and scale of the data to load for the input and target. Either `array_info` or `input_array_info` & `target_array_info` must be provided.
     input_array_info : Optional[Mapping[str, Sequence[int | float]]]
         Dictionary containing the shape and scale of the data to load for the input.
     target_array_info : Optional[Mapping[str, Sequence[int | float]]]
@@ -96,19 +94,33 @@ def get_dataloader(
         Whether to use mutually exclusive class labels to infer non-present labels for the training data. Defaults to False.
     weighted_sampler : bool
         Whether to weight sample draws based on the number of positive labels within a dataset. Defaults to True.
+    **kwargs : Any
+        Additional keyword arguments to pass to the CellMapDataLoader.
 
     Returns
     -------
     tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader]
         Tuple containing the train and validation dataloaders.
     """
+    # If "shape" and "scale" are not top level keys in the array_info dict, then we can assume a full dictionary of input arrays are being passed in
+    if (
+        "shape" in input_array_info
+        and "scale" in input_array_info
+        and len(input_array_info.keys()) == 2
+    ):
+        input_arrays = {"input": input_array_info}
+    else:
+        input_arrays = input_array_info
 
-    input_arrays = {
-        "input": input_array_info if input_array_info is not None else array_info
-    }
-    target_arrays = {
-        "output": target_array_info if target_array_info is not None else array_info
-    }
+    if (
+        "shape" in target_array_info
+        and "scale" in target_array_info
+        and len(target_array_info.keys()) == 2
+    ):
+        target_arrays = {"output": target_array_info}
+    else:
+        target_arrays = target_array_info
+
     assert (
         input_arrays is not None and target_arrays is not None
     ), "No array info provided"
@@ -146,6 +158,7 @@ def get_dataloader(
         batch_size=batch_size,
         is_train=random_validation,
         device=device,
+        **kwargs,
     )
 
     train_loader = CellMapDataLoader(
@@ -156,6 +169,8 @@ def get_dataloader(
             iterations_per_epoch * batch_size, weighted=weighted_sampler
         ),
         device=device,
+        is_train=True,
+        **kwargs,
     )
 
     return train_loader, validation_loader  # type: ignore

@@ -197,7 +197,9 @@ print(f"Configured accuracy: {configured_accuracy}")
 # %%
 
 # Now let's test the whole pipeline by first saving the GT and prediction arrays to disk using the included utility functions
-from cellmap_segmentation_challenge.evaluate import save_numpy_class_arrays_to_zarr
+from cellmap_segmentation_challenge.utils.submission import (
+    save_numpy_class_arrays_to_zarr,
+)
 
 # First save the GT array
 semantic_label = truth_label > 0

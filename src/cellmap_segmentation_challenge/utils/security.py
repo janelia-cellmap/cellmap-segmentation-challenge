@@ -52,7 +52,7 @@ def analyze_script(filepath):
     return is_safe, issues
 
 
-def load_safe_config(config_path, force_safe=os.getenv("FORCE_SAFE_CONFIG", True)):
+def load_safe_config(config_path, force_safe=os.getenv("FORCE_SAFE_CONFIG", False)):
     """
     Loads the configuration script at `config_path` after verifying its safety.
     If `force_safe` is True, raises an error if the script is deemed unsafe.

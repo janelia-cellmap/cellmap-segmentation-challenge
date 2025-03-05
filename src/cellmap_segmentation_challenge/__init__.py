@@ -9,10 +9,8 @@ __getattr__, __dir__, __all__ = lazy.attach(
         "train": ["train"],
         "visualize": ["visualize"],
         "evaluate": [
-            "package_submission",
-            "save_numpy_class_arrays_to_zarr",
-            "save_numpy_class_labels_to_zarr",
             "score_submission",
+            "match_crop_space",
         ],
     },
 )

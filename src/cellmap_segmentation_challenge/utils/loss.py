@@ -27,7 +27,21 @@ class CellMapLossWrapper(torch.nn.modules.loss._Loss):
         self.kwargs["reduction"] = "none"
         self.loss_fn = loss_fn(**self.kwargs)
 
-    def forward(self, outputs: torch.Tensor, target: torch.Tensor):
+    def calc_loss(self, outputs: torch.Tensor, target: torch.Tensor):
         loss = self.loss_fn(outputs, target.nan_to_num(0))
         loss = (loss * target.isnan().logical_not()).nanmean()
+        return loss
+
+    def forward(
+        self,
+        outputs: dict | torch.Tensor,
+        targets: dict | torch.Tensor,
+    ):
+        if isinstance(targets, dict):
+            loss = 0
+            for key in targets.keys():
+                loss += self.calc_loss(outputs[key], targets[key])
+            loss /= len(targets)
+        else:
+            loss = self.calc_loss(outputs, targets)  # type: ignore
         return loss

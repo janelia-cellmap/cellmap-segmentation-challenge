@@ -6,10 +6,11 @@ import numpy as np
 import torch
 from cellmap_data.utils import get_fig_dict
 import torchvision.transforms.v2 as T
-from cellmap_data.transforms.augment import NaNtoNum, Normalize, Binarize
+from cellmap_data.transforms.augment import NaNtoNum, Binarize
 from tensorboardX import SummaryWriter
 from tqdm import tqdm
 from upath import UPath
+import matplotlib.pyplot as plt
 
 from .models import ResNet, UNet_2D, UNet_3D, ViTVNet, load_best_val, load_latest
 from .utils import (
@@ -57,11 +58,13 @@ def train(config_path: str):
         - weight_loss: Whether to weight the loss function by class counts found in the datasets. Default is True.
         - use_mutual_exclusion: Whether to use mutual exclusion to infer labels for unannotated pixels. Default is False.
         - weighted_sampler: Whether to use a sampler weighted by class counts for the dataloader. Default is True.
-        - train_raw_value_transforms: Transform to apply to the raw values for training. Defaults to T.Compose([Normalize(), T.ToDtype(torch.float, scale=True), NaNtoNum({"nan": 0, "posinf": None, "neginf": None})]) which normalizes the input data, converts it to float32, and replaces NaNs with 0. This can be used to add augmentations such as random erasing, blur, noise, etc.
+        - train_raw_value_transforms: Transform to apply to the raw values for training. Defaults to T.Compose([T.ToDtype(torch.float, scale=True), NaNtoNum({"nan": 0, "posinf": None, "neginf": None})]) which normalizes the input data, converts it to float32, and replaces NaNs with 0. This can be used to add augmentations such as random erasing, blur, noise, etc.
         - val_raw_value_transforms: Transform to apply to the raw values for validation, similar to `train_raw_value_transforms`. Default is the same as `train_raw_value_transforms`.
         - target_value_transforms: Transform to apply to the target values. Default is T.Compose([T.ToDtype(torch.float), Binarize()]) which converts the input masks to float32 and threshold at 0 (turning object ID's into binary masks for use with binary cross entropy loss). This can be used to specify other targets, such as distance transforms.
         - max_grad_norm: Maximum gradient norm for clipping. If None, no clipping is performed. Default is None. This can be useful to prevent exploding gradients which would lead to NaNs in the weights.
         - force_all_classes: Whether to force all classes to be present in each batch provided by dataloaders. Can either be `True` to force this for both validation and training dataloader, `False` to force for neither, or `train` / `validate` to restrict it to training or validation, respectively. Default is 'validate'.
+        - scheduler: PyTorch learning rate scheduler (or uninstantiated class) to use for training. Default is None. If provided, the scheduler will be called at the end of each epoch.
+        - scheduler_kwargs: Dictionary of keyword arguments to pass to the scheduler constructor. Default is {}. If `scheduler` instantiation is provided, this will be ignored.
 
     Returns
     -------
@@ -118,7 +121,6 @@ def train(config_path: str):
         "train_raw_value_transforms",
         T.Compose(
             [
-                Normalize(),
                 T.ToDtype(torch.float, scale=True),
                 NaNtoNum({"nan": 0, "posinf": None, "neginf": None}),
             ],
@@ -129,7 +131,6 @@ def train(config_path: str):
         "val_raw_value_transforms",
         T.Compose(
             [
-                Normalize(),
                 T.ToDtype(torch.float, scale=True),
                 NaNtoNum({"nan": 0, "posinf": None, "neginf": None}),
             ],
@@ -151,6 +152,12 @@ def train(config_path: str):
             model.parameters(), lr=learning_rate, decoupled_weight_decay=True
         ),
     )
+
+    # %% Define the scheduler, from the config file or default to None
+    scheduler = getattr(config, "scheduler", None)
+    if isinstance(scheduler, type):
+        scheduler_kwargs = getattr(config, "scheduler_kwargs", {})
+        scheduler = scheduler(optimizer, **scheduler_kwargs)
 
     # %% Define the loss function, from the config file or default to BCEWithLogitsLoss
     criterion = getattr(config, "criterion", torch.nn.BCEWithLogitsLoss)
@@ -271,6 +278,9 @@ def train(config_path: str):
         criterion_kwargs["pos_weight"] = pos_weight
     criterion = CellMapLossWrapper(criterion, **criterion_kwargs)
 
+    input_keys = list(train_loader.dataset.input_arrays.keys())
+    target_keys = list(train_loader.dataset.target_arrays.keys())
+
     # %% Train the model
     post_fix_dict = {}
 
@@ -291,22 +301,36 @@ def train(config_path: str):
         # Refresh the train loader to shuffle the data yielded by the dataloader
         train_loader.refresh()
 
-        epoch_bar = tqdm(train_loader.loader, desc="Training", dynamic_ncols=True)
-        for batch in epoch_bar:
+        # epoch_bar = tqdm(train_loader.loader, desc="Training", dynamic_ncols=True)
+        # for batch in epoch_bar:
+        loader = iter(train_loader.loader)
+        epoch_bar = tqdm(
+            range(iterations_per_epoch), desc="Training", dynamic_ncols=True
+        )
+        for _ in epoch_bar:
+            # for some reason this seems to be faster...
+            batch = next(loader)
+
             # Increment the training iteration
             n_iter += 1
-
-            # Get the inputs and targets
-            inputs = batch["input"]
-            targets = batch["output"]
 
             # Zero the gradients, so that they don't accumulate across iterations
             optimizer.zero_grad()
 
             # Forward pass (compute the output of the model)
+            if len(input_keys) > 1:
+                inputs = {key: batch[key] for key in input_keys}
+            else:
+                inputs = batch[input_keys[0]]
+                # Assumes the model input is a single tensor
             outputs = model(inputs)
 
             # Compute the loss
+            if len(target_keys) > 1:
+                targets = {key: batch[key] for key in target_keys}
+            else:
+                targets = batch[target_keys[0]]
+                # Assumes the model output is a single tensor
             loss = criterion(outputs, targets)
 
             # Backward pass (compute the gradients)
@@ -326,14 +350,16 @@ def train(config_path: str):
             # Log the loss using tensorboard
             writer.add_scalar("loss", loss.item(), n_iter)
 
+        if scheduler is not None:
+            # Step the scheduler at the end of each epoch
+            scheduler.step()
+            writer.add_scalar("lr", scheduler.get_last_lr()[0], n_iter)
+
         # Save the model
         torch.save(
             model.state_dict(),
             model_save_path.format(epoch=epoch + 1, model_name=model_name),
         )
-
-        # Set the model to evaluation mode to disable backpropagation
-        model.eval()
 
         # Compute the validation score by averaging the loss across the validation set
         if len(val_loader.loader) > 0:
@@ -346,7 +372,7 @@ def train(config_path: str):
                 pbar = tqdm(
                     total=validation_time_limit,
                     desc="Validation",
-                    bar_format="{l_bar}{bar}| {remaining}s",
+                    bar_format="{l_bar}{bar}| {remaining}s remaining",
                     dynamic_ncols=True,
                 )
             else:
@@ -356,13 +382,27 @@ def train(config_path: str):
                     total=validation_batch_limit or len(val_loader.loader),
                     dynamic_ncols=True,
                 )
-            i = 0
 
+            # Free up GPU memory, disable backprop etc.
+            torch.cuda.empty_cache()
+            optimizer.zero_grad()
+            model.eval()
+
+            # Validation loop
             with torch.no_grad():
+                i = 0
                 for batch in val_bar:
-                    inputs = batch["input"]
-                    targets = batch["output"]
+                    if len(input_keys) > 1:
+                        inputs = {key: batch[key] for key in input_keys}
+                    else:
+                        inputs = batch[input_keys[0]]
                     outputs = model(inputs)
+
+                    # Compute the loss
+                    if len(target_keys) > 1:
+                        targets = {key: batch[key] for key in target_keys}
+                    else:
+                        targets = batch[target_keys[0]]
                     val_score += criterion(outputs, targets).item()
                     i += 1
 
@@ -374,28 +414,35 @@ def train(config_path: str):
                             break
                         pbar.update(last_elapsed_time)
                         last_time = time.time()
-
                     # Check batch limit
                     elif (
                         validation_batch_limit is not None
                         and i >= validation_batch_limit
                     ):
                         break
-            val_score /= i
+                val_score /= i
 
-            # Log the validation using tensorboard
-            writer.add_scalar("validation", val_score, n_iter)
+                # Log the validation using tensorboard
+                writer.add_scalar("validation", val_score, n_iter)
 
-            # Update the progress bar
-            post_fix_dict["Validation"] = f"{val_score:.4f}"
+                # Update the progress bar
+                post_fix_dict["Validation"] = f"{val_score:.4f}"
 
         # Generate and save figures from the last batch of the validation to appear in tensorboard
+        # TODO: Make this more general rather than only taking the first key
+        if isinstance(outputs, dict):
+            outputs = list(outputs.values())[0]
+        if isinstance(inputs, dict):
+            inputs = list(inputs.values())[0]
+        if isinstance(targets, dict):
+            targets = list(targets.values())[0]
         figs = get_fig_dict(inputs, targets, outputs, classes)
         for name, fig in figs.items():
             writer.add_figure(name, fig, n_iter)
+            plt.close(fig)
 
-        # Refresh the train loader to shuffle the data yielded by the dataloader
-        train_loader.refresh()
+        # Clear the GPU memory again
+        torch.cuda.empty_cache()
 
     # Close the summarywriter
     writer.close()
