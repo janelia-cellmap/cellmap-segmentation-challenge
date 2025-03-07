@@ -21,13 +21,12 @@ from upath import UPath
 
 from cellmap_data import CellMapImage
 
-import functools
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 
 # from multiprocessing import Pool
 
 from .config import PROCESSED_PATH, SUBMISSION_PATH, TRUTH_PATH
-from .utils import TEST_CROPS, TEST_CROPS_DICT, format_string
+from .utils import TEST_CROPS_DICT
 
 
 import logging
