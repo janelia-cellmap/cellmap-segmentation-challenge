@@ -9,6 +9,7 @@ from typing import Optional
 import numpy as np
 from tqdm import tqdm
 from upath import UPath
+import zarr
 
 from ..config import (
     CROP_NAME,
@@ -194,6 +195,7 @@ def get_csv_string(
 
 def make_s3_datasplit_csv(
     classes: list[str] = ["nuc", "mito"],
+    scale : list[float] = None,
     force_all_classes: bool | str = False,
     validation_prob: float = 0.1,
     datasets: list[str] = ["*"],
@@ -230,7 +232,6 @@ def make_s3_datasplit_csv(
         assert not os.path.exists(
             csv_path
         ), f"CSV file {csv_path} already exists and could not be overwritten"
-
     datapaths = {}
     for dataset in datasets:
         for crop in crops:
@@ -254,7 +255,14 @@ def make_s3_datasplit_csv(
                 for path in these_datapaths:
                     if path not in datapaths:
                         datapaths[path] = []
-                    datapaths[path].append(label)
+                        
+                    #check scale
+                    s3_path = UPath("s3://" + GT_S3_BUCKET + '/' + path + '/' + label, anon=True)
+                    store = zarr.storage.FSStore(s3_path)
+                    zg = zarr.open(store, mode="r")
+                    scale_label = zg.attrs['multiscales'][0]['datasets'][0]['coordinateTransformations'][0]['scale']
+                    if all([True if sc_label <= sc else False for sc_label, sc in zip(scale_label, scale) ]):
+                        datapaths[path].append(label)
 
     if dry_run:
         print("Dry run, not writing csv")
@@ -302,6 +310,7 @@ def make_s3_datasplit_csv(
 
 def make_datasplit_csv(
     classes: list[str] = ["nuc", "mito"],
+    scale: list[float] = None,
     force_all_classes: bool | str = False,
     validation_prob: float = 0.1,
     datasets: list[str] = ["*"],
@@ -356,7 +365,12 @@ def make_datasplit_csv(
                 for path in these_datapaths:
                     if path not in datapaths:
                         datapaths[path] = []
-                    datapaths[path].append(label)
+                    
+                    #check scale
+                    zg = zarr.open(os.path.join(path, label))
+                    scale_label = zg.attrs['multiscales'][0]['datasets'][0]['coordinateTransformations'][0]['scale']
+                    if all([True if sc_label <= sc else False for sc_label, sc in zip(scale_label, scale) ]):
+                        datapaths[path].append(label)
 
     if dry_run:
         print("Dry run, not writing csv")
