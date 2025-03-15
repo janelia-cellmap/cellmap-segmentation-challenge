@@ -294,6 +294,7 @@ document.write(`
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">upath</span><span class="w"> </span><span class="kn">import</span> <span class="n">UPath</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">zarr</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">..config</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">CROP_NAME</span><span class="p">,</span>
@@ -496,6 +497,7 @@ document.write(`
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.datasplit.make_s3_datasplit_csv">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_s3_datasplit_csv</span><span class="p">(</span>
     <span class="n">classes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;nuc&quot;</span><span class="p">,</span> <span class="s2">&quot;mito&quot;</span><span class="p">],</span>
+    <span class="n">scale</span> <span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">force_all_classes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">validation_prob</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
     <span class="n">datasets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;*&quot;</span><span class="p">],</span>
@@ -532,7 +534,6 @@ document.write(`
         <span class="k">assert</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span>
             <span class="n">csv_path</span>
         <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;CSV file </span><span class="si">{</span><span class="n">csv_path</span><span class="si">}</span><span class="s2"> already exists and could not be overwritten&quot;</span>
-
     <span class="n">datapaths</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="n">datasets</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">crop</span> <span class="ow">in</span> <span class="n">crops</span><span class="p">:</span>
@@ -556,7 +557,14 @@ document.write(`
                 <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">these_datapaths</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">datapaths</span><span class="p">:</span>
                         <span class="n">datapaths</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-                    <span class="n">datapaths</span><span class="p">[</span><span class="n">path</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+                        
+                    <span class="c1">#check scale</span>
+                    <span class="n">s3_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="s2">&quot;s3://&quot;</span> <span class="o">+</span> <span class="n">GT_S3_BUCKET</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">path</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">label</span><span class="p">,</span> <span class="n">anon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">store</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">FSStore</span><span class="p">(</span><span class="n">s3_path</span><span class="p">)</span>
+                    <span class="n">zg</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+                    <span class="n">scale_label</span> <span class="o">=</span> <span class="n">zg</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;multiscales&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;datasets&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;coordinateTransformations&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;scale&#39;</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="nb">all</span><span class="p">([</span><span class="kc">True</span> <span class="k">if</span> <span class="n">sc_label</span> <span class="o">&lt;=</span> <span class="n">sc</span> <span class="k">else</span> <span class="kc">False</span> <span class="k">for</span> <span class="n">sc_label</span><span class="p">,</span> <span class="n">sc</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">scale_label</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span> <span class="p">]):</span>
+                        <span class="n">datapaths</span><span class="p">[</span><span class="n">path</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">dry_run</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Dry run, not writing csv&quot;</span><span class="p">)</span>
@@ -607,6 +615,7 @@ document.write(`
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.datasplit.make_datasplit_csv">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_datasplit_csv</span><span class="p">(</span>
     <span class="n">classes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;nuc&quot;</span><span class="p">,</span> <span class="s2">&quot;mito&quot;</span><span class="p">],</span>
+    <span class="n">scale</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">force_all_classes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">validation_prob</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
     <span class="n">datasets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;*&quot;</span><span class="p">],</span>
@@ -661,7 +670,12 @@ document.write(`
                 <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">these_datapaths</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">datapaths</span><span class="p">:</span>
                         <span class="n">datapaths</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-                    <span class="n">datapaths</span><span class="p">[</span><span class="n">path</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+                    
+                    <span class="c1">#check scale</span>
+                    <span class="n">zg</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">label</span><span class="p">))</span>
+                    <span class="n">scale_label</span> <span class="o">=</span> <span class="n">zg</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;multiscales&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;datasets&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;coordinateTransformations&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;scale&#39;</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="nb">all</span><span class="p">([</span><span class="kc">True</span> <span class="k">if</span> <span class="n">sc_label</span> <span class="o">&lt;=</span> <span class="n">sc</span> <span class="k">else</span> <span class="kc">False</span> <span class="k">for</span> <span class="n">sc_label</span><span class="p">,</span> <span class="n">sc</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">scale_label</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span> <span class="p">]):</span>
+                        <span class="n">datapaths</span><span class="p">[</span><span class="n">path</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">dry_run</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Dry run, not writing csv&quot;</span><span class="p">)</span>
