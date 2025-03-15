@@ -304,6 +304,7 @@ document.write(`
     <span class="n">load_safe_config</span><span class="p">,</span>
     <span class="n">make_datasplit_csv</span><span class="p">,</span>
     <span class="n">make_s3_datasplit_csv</span><span class="p">,</span>
+    <span class="n">format_string</span><span class="p">,</span>
 <span class="p">)</span>
 
 
@@ -537,18 +538,32 @@ document.write(`
             <span class="p">)</span>
 
     <span class="c1"># Optionally, load a pre-trained model</span>
+    <span class="n">checkpoint_epoch</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">load_model</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;latest&quot;</span><span class="p">:</span>
         <span class="c1"># Check to see if there are any checkpoints and if so load the latest one</span>
-        <span class="c1"># Use the command below for loading the latest model, otherwise comment it out</span>
-        <span class="n">load_latest</span><span class="p">(</span><span class="n">model_save_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">epoch</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="n">model_to_load</span><span class="p">),</span> <span class="n">model</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">load_model</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;best&quot;</span><span class="p">:</span>
-        <span class="c1"># Load the checkpoint with the best validation score</span>
-        <span class="c1"># Use the command below for loading the epoch with the best validation score, otherwise comment it out</span>
-        <span class="n">load_best_val</span><span class="p">(</span>
-            <span class="n">logs_save_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="n">model_to_load</span><span class="p">),</span>
-            <span class="n">model_save_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">epoch</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{epoch}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="n">model_to_load</span><span class="p">),</span>
+        <span class="n">checkpoint_epoch</span> <span class="o">=</span> <span class="n">load_latest</span><span class="p">(</span>
+            <span class="n">format_string</span><span class="p">(</span><span class="n">model_save_path</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;model_name&quot;</span><span class="p">:</span> <span class="n">model_to_load</span><span class="p">}),</span>
             <span class="n">model</span><span class="p">,</span>
         <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">load_model</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;best&quot;</span><span class="p">:</span>
+        <span class="c1"># Load the checkpoint from the epoch with the best validation score</span>
+        <span class="n">checkpoint_epoch</span> <span class="o">=</span> <span class="n">load_best_val</span><span class="p">(</span>
+            <span class="n">format_string</span><span class="p">(</span><span class="n">logs_save_path</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;model_name&quot;</span><span class="p">:</span> <span class="n">model_to_load</span><span class="p">}),</span>
+            <span class="n">format_string</span><span class="p">(</span><span class="n">model_save_path</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;model_name&quot;</span><span class="p">:</span> <span class="n">model_to_load</span><span class="p">}),</span>
+            <span class="n">model</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">checkpoint_epoch</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">checkpoint_epoch</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># Create a variables for tracking iterations and offseting already completed epochs, if applicable</span>
+    <span class="n">epochs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">epochs</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">model_to_load</span> <span class="o">==</span> <span class="n">model_name</span><span class="p">:</span>
+        <span class="c1"># Calculate the number of iterations to skip</span>
+        <span class="c1"># NOTE: This assumes that the number of iterations per epoch is consistent</span>
+        <span class="n">n_iter</span> <span class="o">=</span> <span class="n">checkpoint_epoch</span> <span class="o">*</span> <span class="n">iterations_per_epoch</span>
+        <span class="n">epochs</span> <span class="o">+=</span> <span class="n">checkpoint_epoch</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">n_iter</span> <span class="o">=</span> <span class="mi">0</span>
 
     <span class="c1"># %% Move model to device</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
@@ -572,18 +587,19 @@ document.write(`
     <span class="n">post_fix_dict</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="c1"># Define a summarywriter</span>
-    <span class="n">writer</span> <span class="o">=</span> <span class="n">SummaryWriter</span><span class="p">(</span><span class="n">logs_save_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="n">model_name</span><span class="p">))</span>
+    <span class="n">writer</span> <span class="o">=</span> <span class="n">SummaryWriter</span><span class="p">(</span><span class="n">format_string</span><span class="p">(</span><span class="n">logs_save_path</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;model_name&quot;</span><span class="p">:</span> <span class="n">model_name</span><span class="p">}))</span>
 
-    <span class="c1"># Create a variable to track iterations</span>
-    <span class="n">n_iter</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="c1"># Training outer loop, across epochs</span>
-    <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">epochs</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Training </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2"> for </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">epochs</span><span class="p">)</span><span class="si">}</span><span class="s2"> epochs, starting at epoch </span><span class="si">{</span><span class="n">epochs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, iteration </span><span class="si">{</span><span class="n">n_iter</span><span class="si">}</span><span class="s2">...&quot;</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="n">epochs</span><span class="p">:</span>
 
         <span class="c1"># Set the model to training mode to enable backpropagation</span>
         <span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
 
         <span class="c1"># Training loop for the epoch</span>
-        <span class="n">post_fix_dict</span><span class="p">[</span><span class="s2">&quot;Epoch&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">epoch</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">post_fix_dict</span><span class="p">[</span><span class="s2">&quot;Epoch&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">epoch</span>
 
         <span class="c1"># Refresh the train loader to shuffle the data yielded by the dataloader</span>
         <span class="n">train_loader</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
@@ -645,7 +661,7 @@ document.write(`
         <span class="c1"># Save the model</span>
         <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
             <span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
-            <span class="n">model_save_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">epoch</span><span class="o">=</span><span class="n">epoch</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="n">model_name</span><span class="p">),</span>
+            <span class="n">format_string</span><span class="p">(</span><span class="n">model_save_path</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;epoch&quot;</span><span class="p">:</span> <span class="n">epoch</span><span class="p">,</span> <span class="s2">&quot;model_name&quot;</span><span class="p">:</span> <span class="n">model_name</span><span class="p">}),</span>
         <span class="p">)</span>
 
         <span class="c1"># Compute the validation score by averaging the loss across the validation set</span>
