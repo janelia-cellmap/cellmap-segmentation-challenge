@@ -328,6 +328,8 @@ def make_datasplit_csv(
     ----------
     classes : list[str], optional
         The classes to include in the csv, by default ["nuc", "mito"]
+    scale : list[float]
+        Filter crops by annotation scale, i.e. only fibsem data that has groundtruth array with this scale will be included in the datasplit.
     force_all_classes : bool | str, optional
         If True, force all classes to be present in the training/validation datasets. If False, as long as at least one requested class is present, a crop will be included. If "train" or "validate", force all classes to be present in the training or validation datasets, respectively. By default False.
     validation_prob : float, optional
