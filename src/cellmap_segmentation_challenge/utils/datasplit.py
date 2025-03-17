@@ -310,7 +310,7 @@ def make_s3_datasplit_csv(
 
 def make_datasplit_csv(
     classes: list[str] = ["nuc", "mito"],
-    scale: list[float] = None,
+    scale: list[float] = [pow(10, 3),]*3,
     force_all_classes: bool | str = False,
     validation_prob: float = 0.1,
     datasets: list[str] = ["*"],
