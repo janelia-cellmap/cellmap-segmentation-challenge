@@ -1118,7 +1118,7 @@ The process function should take an array as input and return an array as output
 - force_all_classes: Whether to force all classes to be present in each batch provided by dataloaders. Can either be <cite>True</cite> to force this for both validation and training dataloader, <cite>False</cite> to force for neither, or <cite>train</cite> / <cite>validate</cite> to restrict it to training or validation, respectively. Default is ‘validate’.
 - scheduler: PyTorch learning rate scheduler (or uninstantiated class) to use for training. Default is None. If provided, the scheduler will be called at the end of each epoch.
 - scheduler_kwargs: Dictionary of keyword arguments to pass to the scheduler constructor. Default is {}. If <cite>scheduler</cite> instantiation is provided, this will be ignored.
-- filter_by_scale: Whether to filter the data by scale. If True, only data with a scale less than or equal to the <cite>input_array_info</cite> highest resolution will be included in the datasplit. Default is False.</p>
+- filter_by_scale: Whether to filter the data by scale. If True, only data with a scale less than or equal to the <cite>input_array_info</cite> highest resolution will be included in the datasplit. If set to a scalar value, data will be filtered for that isotropic resolution - anisotropic can be specified with a sequence of scalars. Default is False (no filtering).</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>None</p>
@@ -1390,7 +1390,7 @@ The process function should take an array as input and return an array as output
 - force_all_classes: Whether to force all classes to be present in each batch provided by dataloaders. Can either be <cite>True</cite> to force this for both validation and training dataloader, <cite>False</cite> to force for neither, or <cite>train</cite> / <cite>validate</cite> to restrict it to training or validation, respectively. Default is ‘validate’.
 - scheduler: PyTorch learning rate scheduler (or uninstantiated class) to use for training. Default is None. If provided, the scheduler will be called at the end of each epoch.
 - scheduler_kwargs: Dictionary of keyword arguments to pass to the scheduler constructor. Default is {}. If <cite>scheduler</cite> instantiation is provided, this will be ignored.
-- filter_by_scale: Whether to filter the data by scale. If True, only data with a scale less than or equal to the <cite>input_array_info</cite> highest resolution will be included in the datasplit. Default is False.</p>
+- filter_by_scale: Whether to filter the data by scale. If True, only data with a scale less than or equal to the <cite>input_array_info</cite> highest resolution will be included in the datasplit. If set to a scalar value, data will be filtered for that isotropic resolution - anisotropic can be specified with a sequence of scalars. Default is False (no filtering).</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>None</p>
