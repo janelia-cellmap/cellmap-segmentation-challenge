@@ -16,6 +16,13 @@ from cellmap_segmentation_challenge.utils.datasplit import (
     help="A comma-separated list of classes to include in the csv. Defaults to nuc,er.",
 )
 @click.option(
+    "--scale",
+    "-s",
+    nargs=3,
+    default=(64.0, 64.0, 64.0),
+    help="Filter out crops that don't have data at required scale. Example: -s 1.0 2.0 3.0",
+)
+@click.option(
     "--force-all-classes",
     "-fa",
     is_flag=True,
@@ -76,6 +83,7 @@ from cellmap_segmentation_challenge.utils.datasplit import (
 )
 def make_datasplit_csv_cli(
     classes,
+    scale,
     force_all_classes,
     force_all_classes_train,
     force_all_classes_validate,
@@ -111,6 +119,7 @@ def make_datasplit_csv_cli(
 
         make_datasplit_csv(
             classes=classes,
+            scale=scale,
             force_all_classes=force_all_classes,
             validation_prob=validate_ratio,
             search_path=search_path,

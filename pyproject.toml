@@ -46,7 +46,7 @@ dependencies = [
   "scikit-image",
   "boto3==1.35.81",
   "pyreadline3; sys_platform == 'win32'",
-  "cellmap-flow@git+https://github.com/janelia-cellmap/cellmap-flow",
+  "cellmap-flow@git+https://github.com/janelia-cellmap/cellmap-flow@1ece404",
   "pykdtree",
   ]
 

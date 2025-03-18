@@ -25,5 +25,5 @@ TRUTH_PATH = (BASE_DATA_PATH / "ground_truth.zarr").path
 GT_S3_BUCKET = "janelia-cosem-datasets"
 RAW_S3_BUCKET = "janelia-cosem-datasets"
 S3_SEARCH_PATH = "{dataset}/{dataset}.zarr/recon-1/{name}"
-S3_CROP_NAME = "groundtruth/{crop}/{label}"
+S3_CROP_NAME = "labels/groundtruth/{crop}/{label}"
 S3_RAW_NAME = "em/fibsem-uint8"
