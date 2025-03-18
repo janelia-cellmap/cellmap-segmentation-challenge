@@ -90,6 +90,7 @@ def train(config_path: str):
     validation_prob = getattr(config, "validation_prob", 0.15)
     learning_rate = getattr(config, "learning_rate", 0.0001)
     batch_size = getattr(config, "batch_size", 8)
+    filter_by_scale = getattr(config, "filter_by_scale", False)
     input_array_info = getattr(
         config, "input_array_info", {"shape": (1, 128, 128), "scale": (8, 8, 8)}
     )
