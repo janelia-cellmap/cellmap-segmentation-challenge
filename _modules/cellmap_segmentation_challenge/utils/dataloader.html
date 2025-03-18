@@ -296,7 +296,7 @@ document.write(`
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.dataloader.get_dataloader">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_dataloader</span><span class="p">(</span>
     <span class="n">datasplit_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">classes</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">classes</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">input_array_info</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">target_array_info</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -324,7 +324,7 @@ document.write(`
     <span class="n">use_mutual_exclusion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">weighted_sampler</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">CellMapDataLoader</span><span class="p">,</span> <span class="n">CellMapDataLoader</span><span class="p">]:</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">CellMapDataLoader</span><span class="p">,</span> <span class="n">CellMapDataLoader</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get the train and validation dataloaders.</span>
 
@@ -335,8 +335,8 @@ document.write(`
 <span class="sd">    ----------</span>
 <span class="sd">    datasplit_path : str</span>
 <span class="sd">        Path to the datasplit file that defines the train/val split the dataloader should use.</span>
-<span class="sd">    classes : Sequence[str]</span>
-<span class="sd">        List of classes to segment.</span>
+<span class="sd">    classes : Sequence[str] | None</span>
+<span class="sd">        List of classes to segment. If None, assumes training on raw data.</span>
 <span class="sd">    batch_size : int</span>
 <span class="sd">        Batch size for the dataloader.</span>
 <span class="sd">    input_array_info : Optional[Mapping[str, Sequence[int | float]]]</span>
@@ -399,7 +399,7 @@ document.write(`
     <span class="k">else</span><span class="p">:</span>
         <span class="n">input_arrays</span> <span class="o">=</span> <span class="n">input_array_info</span>
 
-    <span class="k">if</span> <span class="p">(</span>
+    <span class="k">if</span> <span class="n">target_array_info</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span>
         <span class="s2">&quot;shape&quot;</span> <span class="ow">in</span> <span class="n">target_array_info</span>
         <span class="ow">and</span> <span class="s2">&quot;scale&quot;</span> <span class="ow">in</span> <span class="n">target_array_info</span>
         <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_array_info</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="mi">2</span>
@@ -408,9 +408,7 @@ document.write(`
     <span class="k">else</span><span class="p">:</span>
         <span class="n">target_arrays</span> <span class="o">=</span> <span class="n">target_array_info</span>
 
-    <span class="k">assert</span> <span class="p">(</span>
-        <span class="n">input_arrays</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">target_arrays</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-    <span class="p">),</span> <span class="s2">&quot;No array info provided&quot;</span>
+    <span class="k">assert</span> <span class="n">input_arrays</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;No array info provided&quot;</span>
 
     <span class="k">if</span> <span class="n">device</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
@@ -439,14 +437,17 @@ document.write(`
         <span class="n">class_relation_dict</span><span class="o">=</span><span class="n">class_relation_dict</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="n">validation_loader</span> <span class="o">=</span> <span class="n">CellMapDataLoader</span><span class="p">(</span>
-        <span class="n">datasplit</span><span class="o">.</span><span class="n">validation_blocks</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span>
-        <span class="n">classes</span><span class="o">=</span><span class="n">classes</span><span class="p">,</span>
-        <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
-        <span class="n">is_train</span><span class="o">=</span><span class="n">random_validation</span><span class="p">,</span>
-        <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
-        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-    <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">datasplit</span><span class="o">.</span><span class="n">validation_datasets</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">validation_loader</span> <span class="o">=</span> <span class="n">CellMapDataLoader</span><span class="p">(</span>
+            <span class="n">datasplit</span><span class="o">.</span><span class="n">validation_blocks</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span>
+            <span class="n">classes</span><span class="o">=</span><span class="n">classes</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+            <span class="n">is_train</span><span class="o">=</span><span class="n">random_validation</span><span class="p">,</span>
+            <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">validation_loader</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="n">train_loader</span> <span class="o">=</span> <span class="n">CellMapDataLoader</span><span class="p">(</span>
         <span class="n">datasplit</span><span class="o">.</span><span class="n">train_datasets_combined</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span>
