@@ -18,9 +18,8 @@ from cellmap_segmentation_challenge.utils.datasplit import (
 @click.option(
     "--scale",
     "-s",
-    nargs=3,
-    default=(64.0, 64.0, 64.0),
-    help="Filter out crops that don't have data at required scale. Example: -s 1.0 2.0 3.0",
+    default=None,
+    help="Single scalar or comma-separated list defining resolution (scale) used to filter out crops that don't have data at required scale. If only a scalar is specified, isotropic resolution is assumed. Default is not to filter data by resolution. Example: -s 1.0,2.0,3.0",
 )
 @click.option(
     "--force-all-classes",
@@ -98,6 +97,9 @@ def make_datasplit_csv_cli(
     Make a datasplit csv file for the given classes with a given validate:train split ratio.
     """
     classes = classes.split(",")
+    scale = None if scale is None else [float(s) for s in scale.split(",")]
+    if scale is not None and len(scale) == 1:
+        scale = [scale[0], scale[0], scale[0]]
     if force_all_classes_train:
         force_all_classes = "train"
         if force_all_classes_validate:
@@ -110,6 +112,7 @@ def make_datasplit_csv_cli(
 
         make_s3_datasplit_csv(
             classes=classes,
+            scale=scale,
             force_all_classes=force_all_classes,
             validation_prob=validate_ratio,
             csv_path=csv_path,

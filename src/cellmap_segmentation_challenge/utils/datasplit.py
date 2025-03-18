@@ -195,7 +195,7 @@ def get_csv_string(
 
 def make_s3_datasplit_csv(
     classes: list[str] = ["nuc", "mito"],
-    scale : list[float] = None,
+    scale: float | list[float] = None,
     force_all_classes: bool | str = False,
     validation_prob: float = 0.1,
     datasets: list[str] = ["*"],
@@ -211,6 +211,8 @@ def make_s3_datasplit_csv(
     ----------
     classes : list[str], optional
         The classes to include in the csv, by default ["nuc", "mito"]
+    scale : float | list[float], optional
+        Single scalar or list of scalars defining resolution (scale) used to filter out crops that don't have data at required scale. If only a scalar is specified, isotropic resolution is assumed. Default is not to filter data by resolution (e.g. None).
     force_all_classes : bool | str, optional
         If True, force all classes to be present in the training/validation datasets. If False, as long as at least one requested class is present, a crop will be included. If "train" or "validate", force all classes to be present in the training or validation datasets, respectively. By default False.
     validation_prob : float, optional
@@ -255,14 +257,20 @@ def make_s3_datasplit_csv(
                 for path in these_datapaths:
                     if path not in datapaths:
                         datapaths[path] = []
-                        
-                    #check scale
-                    s3_path = UPath("s3://" + GT_S3_BUCKET + '/' + path + '/' + label, anon=True)
-                    store = zarr.storage.FSStore(s3_path)
-                    zg = zarr.open(store, mode="r")
-                    scale_label = zg.attrs['multiscales'][0]['datasets'][0]['coordinateTransformations'][0]['scale']
-                    if all([True if sc_label <= sc else False for sc_label, sc in zip(scale_label, scale) ]):
+
+                    # check scale if requested
+                    if scale is None:
                         datapaths[path].append(label)
+                    else:
+                        s3_path = UPath(
+                            "s3://" + GT_S3_BUCKET + "/" + path + "/" + label, anon=True
+                        )
+                        store = zarr.storage.FSStore(s3_path)
+                        zg = zarr.open(store, mode="r")
+                        if check_scale(zg, scale):
+                            datapaths[path].append(label)
+                        else:
+                            print(f"Skipping {path} due to scale mismatch")
 
     if dry_run:
         print("Dry run, not writing csv")
@@ -310,7 +318,7 @@ def make_s3_datasplit_csv(
 
 def make_datasplit_csv(
     classes: list[str] = ["nuc", "mito"],
-    scale: list[float] = None,
+    scale: float | list[float] = None,
     force_all_classes: bool | str = False,
     validation_prob: float = 0.1,
     datasets: list[str] = ["*"],
@@ -328,6 +336,8 @@ def make_datasplit_csv(
     ----------
     classes : list[str], optional
         The classes to include in the csv, by default ["nuc", "mito"]
+    scale : float | list[float], optional
+        Single scalar or list of scalars defining resolution (scale) used to filter out crops that don't have data at required scale. If only a scalar is specified, isotropic resolution is assumed. Default is not to filter data by resolution (e.g. None).
     force_all_classes : bool | str, optional
         If True, force all classes to be present in the training/validation datasets. If False, as long as at least one requested class is present, a crop will be included. If "train" or "validate", force all classes to be present in the training or validation datasets, respectively. By default False.
     validation_prob : float, optional
@@ -365,12 +375,16 @@ def make_datasplit_csv(
                 for path in these_datapaths:
                     if path not in datapaths:
                         datapaths[path] = []
-                    
-                    #check scale
-                    zg = zarr.open(os.path.join(path, label))
-                    scale_label = zg.attrs['multiscales'][0]['datasets'][0]['coordinateTransformations'][0]['scale']
-                    if all([True if sc_label <= sc else False for sc_label, sc in zip(scale_label, scale) ]):
+
+                    # check scale if requested
+                    if scale is None:
                         datapaths[path].append(label)
+                    else:
+                        zg = zarr.open(os.path.join(path, label))
+                        if check_scale(zg, scale):
+                            datapaths[path].append(label)
+                        else:
+                            print(f"Skipping {path} due to scale mismatch")
 
     if dry_run:
         print("Dry run, not writing csv")
@@ -427,6 +441,28 @@ def make_datasplit_csv(
         f"Number of validation datasets: {num_validate} ({num_validate/(num_train+num_validate)*100:.2f}%)"
     )
     print(f"CSV written to {csv_path}")
+
+
+def check_scale(dataset, scale):
+    """
+    Check if the dataset has the required scale.
+
+    Parameters
+    ----------
+    dataset : zarr.Group
+        The dataset to check.
+    scale : float | list[float]
+        The required scale.
+
+    Returns
+    -------
+    bool
+        True if the dataset has the required scale, False otherwise.
+    """
+    scale_label = dataset.attrs["multiscales"][0]["datasets"][0][
+        "coordinateTransformations"
+    ][0]["scale"]
+    return all([sc_label <= sc for sc_label, sc in zip(scale_label, scale)])
 
 
 def get_dataset_counts(

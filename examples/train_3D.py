@@ -76,6 +76,7 @@ spatial_transforms = {  # dictionary of spatial transformations to apply to the 
 
 # Set a limit to how long the validation can take
 validation_time_limit = 60  # time limit in seconds for the validation step
+filter_by_scale = True  # filter the data by scale
 
 if __name__ == "__main__":
     from cellmap_segmentation_challenge import train

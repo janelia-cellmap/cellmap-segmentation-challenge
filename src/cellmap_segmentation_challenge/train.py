@@ -66,6 +66,7 @@ def train(config_path: str):
         - force_all_classes: Whether to force all classes to be present in each batch provided by dataloaders. Can either be `True` to force this for both validation and training dataloader, `False` to force for neither, or `train` / `validate` to restrict it to training or validation, respectively. Default is 'validate'.
         - scheduler: PyTorch learning rate scheduler (or uninstantiated class) to use for training. Default is None. If provided, the scheduler will be called at the end of each epoch.
         - scheduler_kwargs: Dictionary of keyword arguments to pass to the scheduler constructor. Default is {}. If `scheduler` instantiation is provided, this will be ignored.
+        - filter_by_scale: Whether to filter the data by scale. If True, only data with a scale less than or equal to the `input_array_info` highest resolution will be included in the datasplit. Default is False.
 
     Returns
     -------
@@ -190,9 +191,25 @@ def train(config_path: str):
 
     # %% Make the datasplit file if it doesn't exist
     if not os.path.exists(datasplit_path):
+        if getattr(config, "filter_by_scale", False):
+            # Find highest resolution scale
+            if "scale" in input_array_info:
+                scale = input_array_info["scale"]
+            else:
+                highest_res = [np.inf, np.inf, np.inf]
+                for key, info in input_array_info.items():
+                    if "scale" in info:
+                        res = np.prod(info["scale"])
+                        if res < np.prod(highest_res):
+                            highest_res = info["scale"]
+                scale = highest_res
+        else:
+            scale = None
+        # Make the datasplit CSV
         if use_s3:
             make_s3_datasplit_csv(
                 classes=classes,
+                scale=scale,
                 csv_path=datasplit_path,
                 validation_prob=validation_prob,
                 force_all_classes=force_all_classes,
@@ -200,6 +217,7 @@ def train(config_path: str):
         else:
             make_datasplit_csv(
                 classes=classes,
+                scale=scale,
                 csv_path=datasplit_path,
                 validation_prob=validation_prob,
                 force_all_classes=force_all_classes,
