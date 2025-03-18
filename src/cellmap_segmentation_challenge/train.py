@@ -66,7 +66,7 @@ def train(config_path: str):
         - force_all_classes: Whether to force all classes to be present in each batch provided by dataloaders. Can either be `True` to force this for both validation and training dataloader, `False` to force for neither, or `train` / `validate` to restrict it to training or validation, respectively. Default is 'validate'.
         - scheduler: PyTorch learning rate scheduler (or uninstantiated class) to use for training. Default is None. If provided, the scheduler will be called at the end of each epoch.
         - scheduler_kwargs: Dictionary of keyword arguments to pass to the scheduler constructor. Default is {}. If `scheduler` instantiation is provided, this will be ignored.
-        - filter_by_scale: Whether to filter the data by scale. If True, only data with a scale less than or equal to the `input_array_info` highest resolution will be included in the datasplit. Default is False.
+        - filter_by_scale: Whether to filter the data by scale. If True, only data with a scale less than or equal to the `input_array_info` highest resolution will be included in the datasplit. If set to a scalar value, data will be filtered for that isotropic resolution - anisotropic can be specified with a sequence of scalars. Default is False (no filtering).
 
     Returns
     -------
@@ -193,7 +193,11 @@ def train(config_path: str):
     if not os.path.exists(datasplit_path):
         if getattr(config, "filter_by_scale", False):
             # Find highest resolution scale
-            if "scale" in input_array_info:
+            if filter_by_scale is not True:
+                scale = filter_by_scale
+                if isinstance(scale, (int, float)):
+                    scale = (scale, scale, scale)
+            elif "scale" in input_array_info:
                 scale = input_array_info["scale"]
             else:
                 highest_res = [np.inf, np.inf, np.inf]
