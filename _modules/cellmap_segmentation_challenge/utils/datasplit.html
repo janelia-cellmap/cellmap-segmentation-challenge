@@ -497,7 +497,7 @@ document.write(`
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.datasplit.make_s3_datasplit_csv">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_s3_datasplit_csv</span><span class="p">(</span>
     <span class="n">classes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;nuc&quot;</span><span class="p">,</span> <span class="s2">&quot;mito&quot;</span><span class="p">],</span>
-    <span class="n">scale</span> <span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">force_all_classes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">validation_prob</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
     <span class="n">datasets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;*&quot;</span><span class="p">],</span>
@@ -513,6 +513,8 @@ document.write(`
 <span class="sd">    ----------</span>
 <span class="sd">    classes : list[str], optional</span>
 <span class="sd">        The classes to include in the csv, by default [&quot;nuc&quot;, &quot;mito&quot;]</span>
+<span class="sd">    scale : float | list[float], optional</span>
+<span class="sd">        Single scalar or list of scalars defining resolution (scale) used to filter out crops that don&#39;t have data at required scale. If only a scalar is specified, isotropic resolution is assumed. Default is not to filter data by resolution (e.g. None).</span>
 <span class="sd">    force_all_classes : bool | str, optional</span>
 <span class="sd">        If True, force all classes to be present in the training/validation datasets. If False, as long as at least one requested class is present, a crop will be included. If &quot;train&quot; or &quot;validate&quot;, force all classes to be present in the training or validation datasets, respectively. By default False.</span>
 <span class="sd">    validation_prob : float, optional</span>
@@ -557,14 +559,20 @@ document.write(`
                 <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">these_datapaths</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">datapaths</span><span class="p">:</span>
                         <span class="n">datapaths</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-                        
-                    <span class="c1">#check scale</span>
-                    <span class="n">s3_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="s2">&quot;s3://&quot;</span> <span class="o">+</span> <span class="n">GT_S3_BUCKET</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">path</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">label</span><span class="p">,</span> <span class="n">anon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                    <span class="n">store</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">FSStore</span><span class="p">(</span><span class="n">s3_path</span><span class="p">)</span>
-                    <span class="n">zg</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
-                    <span class="n">scale_label</span> <span class="o">=</span> <span class="n">zg</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;multiscales&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;datasets&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;coordinateTransformations&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;scale&#39;</span><span class="p">]</span>
-                    <span class="k">if</span> <span class="nb">all</span><span class="p">([</span><span class="kc">True</span> <span class="k">if</span> <span class="n">sc_label</span> <span class="o">&lt;=</span> <span class="n">sc</span> <span class="k">else</span> <span class="kc">False</span> <span class="k">for</span> <span class="n">sc_label</span><span class="p">,</span> <span class="n">sc</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">scale_label</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span> <span class="p">]):</span>
+
+                    <span class="c1"># check scale if requested</span>
+                    <span class="k">if</span> <span class="n">scale</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="n">datapaths</span><span class="p">[</span><span class="n">path</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">s3_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span>
+                            <span class="s2">&quot;s3://&quot;</span> <span class="o">+</span> <span class="n">GT_S3_BUCKET</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">path</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">label</span><span class="p">,</span> <span class="n">anon</span><span class="o">=</span><span class="kc">True</span>
+                        <span class="p">)</span>
+                        <span class="n">store</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">FSStore</span><span class="p">(</span><span class="n">s3_path</span><span class="p">)</span>
+                        <span class="n">zg</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">check_scale</span><span class="p">(</span><span class="n">zg</span><span class="p">,</span> <span class="n">scale</span><span class="p">):</span>
+                            <span class="n">datapaths</span><span class="p">[</span><span class="n">path</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Skipping </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> due to scale mismatch&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">dry_run</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Dry run, not writing csv&quot;</span><span class="p">)</span>
@@ -615,7 +623,7 @@ document.write(`
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.datasplit.make_datasplit_csv">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_datasplit_csv</span><span class="p">(</span>
     <span class="n">classes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;nuc&quot;</span><span class="p">,</span> <span class="s2">&quot;mito&quot;</span><span class="p">],</span>
-    <span class="n">scale</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">force_all_classes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">validation_prob</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
     <span class="n">datasets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;*&quot;</span><span class="p">],</span>
@@ -633,6 +641,8 @@ document.write(`
 <span class="sd">    ----------</span>
 <span class="sd">    classes : list[str], optional</span>
 <span class="sd">        The classes to include in the csv, by default [&quot;nuc&quot;, &quot;mito&quot;]</span>
+<span class="sd">    scale : float | list[float], optional</span>
+<span class="sd">        Single scalar or list of scalars defining resolution (scale) used to filter out crops that don&#39;t have data at required scale. If only a scalar is specified, isotropic resolution is assumed. Default is not to filter data by resolution (e.g. None).</span>
 <span class="sd">    force_all_classes : bool | str, optional</span>
 <span class="sd">        If True, force all classes to be present in the training/validation datasets. If False, as long as at least one requested class is present, a crop will be included. If &quot;train&quot; or &quot;validate&quot;, force all classes to be present in the training or validation datasets, respectively. By default False.</span>
 <span class="sd">    validation_prob : float, optional</span>
@@ -670,12 +680,16 @@ document.write(`
                 <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">these_datapaths</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">datapaths</span><span class="p">:</span>
                         <span class="n">datapaths</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-                    
-                    <span class="c1">#check scale</span>
-                    <span class="n">zg</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">label</span><span class="p">))</span>
-                    <span class="n">scale_label</span> <span class="o">=</span> <span class="n">zg</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;multiscales&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;datasets&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;coordinateTransformations&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;scale&#39;</span><span class="p">]</span>
-                    <span class="k">if</span> <span class="nb">all</span><span class="p">([</span><span class="kc">True</span> <span class="k">if</span> <span class="n">sc_label</span> <span class="o">&lt;=</span> <span class="n">sc</span> <span class="k">else</span> <span class="kc">False</span> <span class="k">for</span> <span class="n">sc_label</span><span class="p">,</span> <span class="n">sc</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">scale_label</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span> <span class="p">]):</span>
+
+                    <span class="c1"># check scale if requested</span>
+                    <span class="k">if</span> <span class="n">scale</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="n">datapaths</span><span class="p">[</span><span class="n">path</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">zg</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">label</span><span class="p">))</span>
+                        <span class="k">if</span> <span class="n">check_scale</span><span class="p">(</span><span class="n">zg</span><span class="p">,</span> <span class="n">scale</span><span class="p">):</span>
+                            <span class="n">datapaths</span><span class="p">[</span><span class="n">path</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Skipping </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> due to scale mismatch&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">dry_run</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Dry run, not writing csv&quot;</span><span class="p">)</span>
@@ -732,6 +746,31 @@ document.write(`
         <span class="sa">f</span><span class="s2">&quot;Number of validation datasets: </span><span class="si">{</span><span class="n">num_validate</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">num_validate</span><span class="o">/</span><span class="p">(</span><span class="n">num_train</span><span class="o">+</span><span class="n">num_validate</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">%)&quot;</span>
     <span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CSV written to </span><span class="si">{</span><span class="n">csv_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="check_scale">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.datasplit.check_scale">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_scale</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">scale</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check if the dataset has the required scale.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dataset : zarr.Group</span>
+<span class="sd">        The dataset to check.</span>
+<span class="sd">    scale : float | list[float]</span>
+<span class="sd">        The required scale.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+<span class="sd">        True if the dataset has the required scale, False otherwise.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">scale_label</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;multiscales&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;datasets&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span>
+        <span class="s2">&quot;coordinateTransformations&quot;</span>
+    <span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;scale&quot;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">all</span><span class="p">([</span><span class="n">sc_label</span> <span class="o">&lt;=</span> <span class="n">sc</span> <span class="k">for</span> <span class="n">sc_label</span><span class="p">,</span> <span class="n">sc</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">scale_label</span><span class="p">,</span> <span class="n">scale</span><span class="p">)])</span></div>
 
 
 

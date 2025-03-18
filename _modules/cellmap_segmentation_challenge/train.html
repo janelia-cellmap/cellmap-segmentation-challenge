@@ -353,6 +353,7 @@ document.write(`
 <span class="sd">        - force_all_classes: Whether to force all classes to be present in each batch provided by dataloaders. Can either be `True` to force this for both validation and training dataloader, `False` to force for neither, or `train` / `validate` to restrict it to training or validation, respectively. Default is &#39;validate&#39;.</span>
 <span class="sd">        - scheduler: PyTorch learning rate scheduler (or uninstantiated class) to use for training. Default is None. If provided, the scheduler will be called at the end of each epoch.</span>
 <span class="sd">        - scheduler_kwargs: Dictionary of keyword arguments to pass to the scheduler constructor. Default is {}. If `scheduler` instantiation is provided, this will be ignored.</span>
+<span class="sd">        - filter_by_scale: Whether to filter the data by scale. If True, only data with a scale less than or equal to the `input_array_info` highest resolution will be included in the datasplit. Default is False.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -477,9 +478,25 @@ document.write(`
 
     <span class="c1"># %% Make the datasplit file if it doesn&#39;t exist</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">datasplit_path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;filter_by_scale&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="c1"># Find highest resolution scale</span>
+            <span class="k">if</span> <span class="s2">&quot;scale&quot;</span> <span class="ow">in</span> <span class="n">input_array_info</span><span class="p">:</span>
+                <span class="n">scale</span> <span class="o">=</span> <span class="n">input_array_info</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">highest_res</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">info</span> <span class="ow">in</span> <span class="n">input_array_info</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="s2">&quot;scale&quot;</span> <span class="ow">in</span> <span class="n">info</span><span class="p">:</span>
+                        <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">])</span>
+                        <span class="k">if</span> <span class="n">res</span> <span class="o">&lt;</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">highest_res</span><span class="p">):</span>
+                            <span class="n">highest_res</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">]</span>
+                <span class="n">scale</span> <span class="o">=</span> <span class="n">highest_res</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">scale</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># Make the datasplit CSV</span>
         <span class="k">if</span> <span class="n">use_s3</span><span class="p">:</span>
             <span class="n">make_s3_datasplit_csv</span><span class="p">(</span>
                 <span class="n">classes</span><span class="o">=</span><span class="n">classes</span><span class="p">,</span>
+                <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">,</span>
                 <span class="n">csv_path</span><span class="o">=</span><span class="n">datasplit_path</span><span class="p">,</span>
                 <span class="n">validation_prob</span><span class="o">=</span><span class="n">validation_prob</span><span class="p">,</span>
                 <span class="n">force_all_classes</span><span class="o">=</span><span class="n">force_all_classes</span><span class="p">,</span>
@@ -487,6 +504,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="n">make_datasplit_csv</span><span class="p">(</span>
                 <span class="n">classes</span><span class="o">=</span><span class="n">classes</span><span class="p">,</span>
+                <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">,</span>
                 <span class="n">csv_path</span><span class="o">=</span><span class="n">datasplit_path</span><span class="p">,</span>
                 <span class="n">validation_prob</span><span class="o">=</span><span class="n">validation_prob</span><span class="p">,</span>
                 <span class="n">force_all_classes</span><span class="o">=</span><span class="n">force_all_classes</span><span class="p">,</span>
