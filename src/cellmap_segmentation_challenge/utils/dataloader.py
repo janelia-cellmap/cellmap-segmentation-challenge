@@ -9,7 +9,7 @@ from cellmap_segmentation_challenge.utils import get_class_relations
 
 def get_dataloader(
     datasplit_path: str,
-    classes: Sequence[str],
+    classes: Sequence[str] | None,
     batch_size: int,
     input_array_info: Optional[Mapping[str, Sequence[int | float]]] = None,
     target_array_info: Optional[Mapping[str, Sequence[int | float]]] = None,
@@ -37,7 +37,7 @@ def get_dataloader(
     use_mutual_exclusion: bool = False,
     weighted_sampler: bool = True,
     **kwargs,
-) -> tuple[CellMapDataLoader, CellMapDataLoader]:
+) -> tuple[CellMapDataLoader, CellMapDataLoader | None]:
     """
     Get the train and validation dataloaders.
 
@@ -48,8 +48,8 @@ def get_dataloader(
     ----------
     datasplit_path : str
         Path to the datasplit file that defines the train/val split the dataloader should use.
-    classes : Sequence[str]
-        List of classes to segment.
+    classes : Sequence[str] | None
+        List of classes to segment. If None, assumes training on raw data.
     batch_size : int
         Batch size for the dataloader.
     input_array_info : Optional[Mapping[str, Sequence[int | float]]]
@@ -112,7 +112,7 @@ def get_dataloader(
     else:
         input_arrays = input_array_info
 
-    if (
+    if target_array_info is not None and (
         "shape" in target_array_info
         and "scale" in target_array_info
         and len(target_array_info.keys()) == 2
@@ -121,9 +121,7 @@ def get_dataloader(
     else:
         target_arrays = target_array_info
 
-    assert (
-        input_arrays is not None and target_arrays is not None
-    ), "No array info provided"
+    assert input_arrays is not None, "No array info provided"
 
     if device is None:
         if torch.cuda.is_available():
@@ -152,14 +150,17 @@ def get_dataloader(
         class_relation_dict=class_relation_dict,
     )
 
-    validation_loader = CellMapDataLoader(
-        datasplit.validation_blocks.to(device),
-        classes=classes,
-        batch_size=batch_size,
-        is_train=random_validation,
-        device=device,
-        **kwargs,
-    )
+    if len(datasplit.validation_datasets) >= 0:
+        validation_loader = CellMapDataLoader(
+            datasplit.validation_blocks.to(device),
+            classes=classes,
+            batch_size=batch_size,
+            is_train=random_validation,
+            device=device,
+            **kwargs,
+        )
+    else:
+        validation_loader = None
 
     train_loader = CellMapDataLoader(
         datasplit.train_datasets_combined.to(device),
