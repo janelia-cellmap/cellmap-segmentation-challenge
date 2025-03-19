@@ -192,7 +192,7 @@ def train(config_path: str):
 
     # %% Make the datasplit file if it doesn't exist
     if not os.path.exists(datasplit_path):
-        if getattr(config, "filter_by_scale", False):
+        if filter_by_scale is not False:
             # Find highest resolution scale
             if filter_by_scale is not True:
                 scale = filter_by_scale
