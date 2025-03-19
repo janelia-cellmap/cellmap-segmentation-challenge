@@ -416,6 +416,8 @@ document.write(`
 <span class="sd">    str</span>
 <span class="sd">        The csv string for the dataset.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">classes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;No classes found&quot;</span>
     <span class="n">dataset_name</span> <span class="o">=</span> <span class="n">get_formatted_fields</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">S3_SEARCH_PATH</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;dataset&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">])[</span>
         <span class="s2">&quot;dataset&quot;</span>
     <span class="p">]</span>
@@ -467,6 +469,8 @@ document.write(`
 <span class="sd">    str</span>
 <span class="sd">        The csv string for the dataset.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">classes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;No classes found&quot;</span>
     <span class="n">raw_path</span> <span class="o">=</span> <span class="n">get_raw_path</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">raw_name</span><span class="p">)</span>
     <span class="n">dataset_name</span> <span class="o">=</span> <span class="n">get_dataset_name</span><span class="p">(</span>
         <span class="n">raw_path</span><span class="p">,</span> <span class="n">search_path</span><span class="o">=</span><span class="n">search_path</span><span class="p">,</span> <span class="n">raw_name</span><span class="o">=</span><span class="n">raw_name</span>
