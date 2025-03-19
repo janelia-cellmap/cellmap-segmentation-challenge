@@ -120,6 +120,8 @@ def get_s3_csv_string(path: str, classes: list[str], usage: str):
     str
         The csv string for the dataset.
     """
+    if len(classes) == 0:
+        return None, "No classes found"
     dataset_name = get_formatted_fields(path, S3_SEARCH_PATH, ["dataset", "name"])[
         "dataset"
     ]
@@ -168,6 +170,8 @@ def get_csv_string(
     str
         The csv string for the dataset.
     """
+    if len(classes) == 0:
+        return None, "No classes found"
     raw_path = get_raw_path(path, raw_name)
     dataset_name = get_dataset_name(
         raw_path, search_path=search_path, raw_name=raw_name
