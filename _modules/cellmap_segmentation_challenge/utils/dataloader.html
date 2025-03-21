@@ -306,14 +306,12 @@ document.write(`
     <span class="p">),</span>
     <span class="n">train_raw_value_transforms</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">T</span><span class="o">.</span><span class="n">Transform</span><span class="p">]</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">Compose</span><span class="p">(</span>
         <span class="p">[</span>
-            <span class="n">Normalize</span><span class="p">(),</span>
             <span class="n">T</span><span class="o">.</span><span class="n">ToDtype</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
             <span class="n">NaNtoNum</span><span class="p">({</span><span class="s2">&quot;nan&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;posinf&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;neginf&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}),</span>
         <span class="p">],</span>
     <span class="p">),</span>
     <span class="n">val_raw_value_transforms</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">T</span><span class="o">.</span><span class="n">Transform</span><span class="p">]</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">Compose</span><span class="p">(</span>
         <span class="p">[</span>
-            <span class="n">Normalize</span><span class="p">(),</span>
             <span class="n">T</span><span class="o">.</span><span class="n">ToDtype</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
             <span class="n">NaNtoNum</span><span class="p">({</span><span class="s2">&quot;nan&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;posinf&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;neginf&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}),</span>
         <span class="p">],</span>
