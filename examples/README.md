@@ -112,3 +112,43 @@ Evaluation resampling ensures that the predicted and ground truth volumes are co
 ### Data Format
 
 For more detailed information on the expected format of the data submitted, refer to the [submission_data_format.rst](../docs/source/submission_data_format.rst) file.
+
+### Extended Training Configuration
+The training pipeline (`train.py`) accepts a configuration file that defines the training parameters, model architecture, and other settings. Here is the current list of included parameters that can be set in the configuration file:
+- **batch_size**: Batch size for the dataloader. Default is `8`.
+- **classes**: List of classes to train the model to predict. This will be reflected in the data included in the datasplit, if generated de novo after calling this script. Default is `['nuc', 'er']`.
+- **criterion**: Uninstantiated PyTorch loss function to use for training. Default is `torch.nn.BCEWithLogitsLoss`.
+- **criterion_kwargs**: Dictionary of keyword arguments to pass to the loss function constructor. Default is `{}`.
+- **datasplit_path**: Path to the datasplit file that defines the train/val split the dataloader should use. Default is `'datasplit.csv'`.
+- **device**: Device to use for training. If `None`, will use `'cuda'` if available, `'mps'` if available, or `'cpu'` otherwise. Default is `None`.
+- **epochs**: Number of epochs to train the model for. Default is `1000`.
+- **filter_by_scale**: Whether to filter the data by scale. If `True`, only data with a scale less than or equal to the `input_array_info` highest resolution will be included in the datasplit. If set to a scalar value, data will be filtered for that isotropic resolution - anisotropic can be specified with a sequence of scalars. Default is `False` (no filtering).
+- **force_all_classes**: Whether to force all classes to be present in each batch provided by dataloaders. Can either be `True` to force this for both validation and training dataloader, `False` to force for neither, or `train` / `validate` to restrict it to training or validation, respectively. Default is `'validate'`.
+- **gradient_accumulation_steps**: Number of gradient accumulation steps to use. Default is `1`. This can be used to simulate larger batch sizes without increasing memory usage.
+- **input_array_info**: Dictionary containing the shape and scale of the input data. Default is `{'shape': (1, 128, 128), 'scale': (8, 8, 8)}`.
+- **iterations_per_epoch**: Number of iterations per epoch. Each iteration includes an independently generated random batch from the training set. Default is `1000`.
+- **learning_rate**: Learning rate for the optimizer. Default is `0.0001`.
+- **load_model**: Which model checkpoint to load if it exists. Options are `'latest'` or `'best'`. If no checkpoints exist, will silently use the already initialized model. Default is `'latest'`.
+- **logs_save_path**: Path to save the logs for tensorboard. Default is `'tensorboard/{model_name}'`. Training progress may be monitored by running `tensorboard --logdir <logs_save_path>` in the terminal.
+- **max_grad_norm**: Maximum gradient norm for clipping. If `None`, no clipping is performed. Default is `None`. This can be useful to prevent exploding gradients which would lead to NaNs in the weights.
+- **model**: PyTorch model to use for training. If this is provided, the `model_name` and `model_to_load` can be any string. Default is `None`.
+- **model_kwargs**: Dictionary of keyword arguments to pass to the model constructor. Default is `{}`. If the PyTorch `model` is passed, this will be ignored. See the `models` module `README.md` for more information.
+- **model_name**: Name of the model to use. If the config file constructs the PyTorch model, this name can be anything. If the config file does not construct the PyTorch model, the model_name will need to specify which included architecture to use. This includes `'2d_unet'`, `'2d_resnet'`, `'3d_unet'`, `'3d_resnet'`, and `'vitnet'`. Default is `'2d_unet'`. See the `models` module `README.md` for more information.
+- **model_save_path**: Path to save the model checkpoints. Default is `'checkpoints/{model_name}_{epoch}.pth'`.
+- **model_to_load**: Name of the pre-trained model to load. Default is the same as `model_name`.
+- **optimizer**: PyTorch optimizer to use for training. Default is `torch.optim.RAdam(model.parameters(), lr=learning_rate, decoupled_weight_decay=True)`.
+- **random_seed**: Random seed for reproducibility. Default is `42`.
+- **scheduler**: PyTorch learning rate scheduler (or uninstantiated class) to use for training. Default is `None`. If provided, the scheduler will be called at the end of each epoch.
+- **scheduler_kwargs**: Dictionary of keyword arguments to pass to the scheduler constructor. Default is `{}`. If `scheduler` instantiation is provided, this will be ignored.
+- **spatial_transforms**: Dictionary of spatial transformations to apply to the training data. Default is `{'mirror': {'axes': {'x': 0.5, 'y': 0.5}}, 'transpose': {'axes': ['x', 'y']}, 'rotate': {'axes': {'x': [-180, 180], 'y': [-180, 180]}}}`. See the `dataloader` module documentation for more information.
+- **target_array_info**: Dictionary containing the shape and scale of the target data. Default is to use `input_array_info`.
+- **target_value_transforms**: Transform to apply to the target values. Default is `T.Compose([T.ToDtype(torch.float), Binarize()])` which converts the input masks to float32 and threshold at 0 (turning object ID's into binary masks for use with binary cross entropy loss). This can be used to specify other targets, such as distance transforms.
+- **train_raw_value_transforms**: Transform to apply to the raw values for training. Defaults to `T.Compose([T.ToDtype(torch.float, scale=True), NaNtoNum({"nan": 0, "posinf": None, "neginf": None})])` which normalizes the input data, converts it to float32, and replaces NaNs with 0. This can be used to add augmentations such as random erasing, blur, noise, etc.
+- **use_mutual_exclusion**: Whether to use mutual exclusion to infer labels for unannotated pixels. Default is `False`.
+- **use_s3**: Whether to use the S3 bucket for the datasplit. Default is `False`.
+- **val_raw_value_transforms**: Transform to apply to the raw values for validation, similar to `train_raw_value_transforms`. Default is the same as `train_raw_value_transforms`.
+- **validation_batch_limit**: Maximum number of validation batches to process. If `None`, there is no limit. Default is `None`.
+- **validation_prob**: Proportion of the datasets to use for validation. This is used if the datasplit CSV specified by `datasplit_path` does not already exist. Default is `0.15`.
+- **validation_time_limit**: Maximum time to spend on validation in seconds. If `None`, there is no time limit. Default is `None`.
+- **weighted_sampler**: Whether to use a sampler weighted by class counts for the dataloader. Default is `True`.
+- **weight_loss**: Whether to weight the loss function by class counts found in the datasets. Default is `True`.
