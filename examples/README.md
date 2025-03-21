@@ -113,7 +113,7 @@ Evaluation resampling ensures that the predicted and ground truth volumes are co
 
 For more detailed information on the expected format of the data submitted, refer to the [submission_data_format.rst](../docs/source/submission_data_format.rst) file.
 
-### Extended Training Configuration
+## Extended Training Configuration
 The training pipeline (`train.py`) accepts a configuration file that defines the training parameters, model architecture, and other settings. Here is the current list of included parameters that can be set in the configuration file:
 - **batch_size**: Batch size for the dataloader. Default is `8`.
 - **classes**: List of classes to train the model to predict. This will be reflected in the data included in the datasplit, if generated de novo after calling this script. Default is `['nuc', 'er']`.
