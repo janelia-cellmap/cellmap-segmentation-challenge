@@ -19,14 +19,12 @@ def get_dataloader(
     ),
     train_raw_value_transforms: Optional[T.Transform] = T.Compose(
         [
-            Normalize(),
             T.ToDtype(torch.float, scale=True),
             NaNtoNum({"nan": 0, "posinf": None, "neginf": None}),
         ],
     ),
     val_raw_value_transforms: Optional[T.Transform] = T.Compose(
         [
-            Normalize(),
             T.ToDtype(torch.float, scale=True),
             NaNtoNum({"nan": 0, "posinf": None, "neginf": None}),
         ],
