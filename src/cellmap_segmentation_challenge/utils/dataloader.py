@@ -149,27 +149,33 @@ def get_dataloader(
     )
 
     if len(datasplit.validation_datasets) >= 0:
+        _kwargs = {
+            "classes": classes,
+            "batch_size": batch_size,
+            "is_train": random_validation,
+            "device": device,
+        }
+        _kwargs.update(kwargs)
         validation_loader = CellMapDataLoader(
             datasplit.validation_blocks.to(device),
-            classes=classes,
-            batch_size=batch_size,
-            is_train=random_validation,
-            device=device,
-            **kwargs,
+            **_kwargs,
         )
     else:
         validation_loader = None
 
-    train_loader = CellMapDataLoader(
-        datasplit.train_datasets_combined.to(device),
-        classes=classes,
-        batch_size=batch_size,
-        sampler=lambda: datasplit.train_datasets_combined.get_subset_random_sampler(
+    _kwargs = {
+        "classes": classes,
+        "batch_size": batch_size,
+        "sampler": lambda: datasplit.train_datasets_combined.get_subset_random_sampler(
             iterations_per_epoch * batch_size, weighted=weighted_sampler
         ),
-        device=device,
-        is_train=True,
-        **kwargs,
+        "device": device,
+        "is_train": True,
+    }
+    _kwargs.update(kwargs)
+    train_loader = CellMapDataLoader(
+        datasplit.train_datasets_combined.to(device),
+        **_kwargs,
     )
 
     return train_loader, validation_loader  # type: ignore
