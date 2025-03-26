@@ -67,6 +67,7 @@ def train(config_path: str):
         - scheduler: PyTorch learning rate scheduler (or uninstantiated class) to use for training. Default is None. If provided, the scheduler will be called at the end of each epoch.
         - scheduler_kwargs: Dictionary of keyword arguments to pass to the scheduler constructor. Default is {}. If `scheduler` instantiation is provided, this will be ignored.
         - filter_by_scale: Whether to filter the data by scale. If True, only data with a scale less than or equal to the `input_array_info` highest resolution will be included in the datasplit. If set to a scalar value, data will be filtered for that isotropic resolution - anisotropic can be specified with a sequence of scalars. Default is False (no filtering).
+        - gradient_accumulation_steps: Number of gradient accumulation steps to use. Default is 1. This can be used to simulate larger batch sizes without increasing memory usage.
 
     Returns
     -------
@@ -166,6 +167,14 @@ def train(config_path: str):
     criterion = getattr(config, "criterion", torch.nn.BCEWithLogitsLoss)
     criterion_kwargs = getattr(config, "criterion_kwargs", {})
     weight_loss = getattr(config, "weight_loss", True)
+
+    gradient_accumulation_steps = getattr(
+        config, "gradient_accumulation_steps", 1
+    )  # default to 1 for no accumulation
+    if gradient_accumulation_steps < 1:
+        raise ValueError(
+            f"gradient_accumulation_steps must be >= 1, but got {gradient_accumulation_steps}"
+        )
 
     # %% Make sure the save path exists
     for path in [model_save_path, logs_save_path, datasplit_path]:
@@ -346,15 +355,13 @@ def train(config_path: str):
         epoch_bar = tqdm(
             range(iterations_per_epoch), desc="Training", dynamic_ncols=True
         )
-        for _ in epoch_bar:
+        optimizer.zero_grad()
+        for epoch_iter in epoch_bar:
             # for some reason this seems to be faster...
             batch = next(loader)
 
             # Increment the training iteration
             n_iter += 1
-
-            # Zero the gradients, so that they don't accumulate across iterations
-            optimizer.zero_grad()
 
             # Forward pass (compute the output of the model)
             if len(input_keys) > 1:
@@ -370,7 +377,7 @@ def train(config_path: str):
             else:
                 targets = batch[target_keys[0]]
                 # Assumes the model output is a single tensor
-            loss = criterion(outputs, targets)
+            loss = criterion(outputs, targets) / gradient_accumulation_steps
 
             # Backward pass (compute the gradients)
             loss.backward()
@@ -380,7 +387,14 @@ def train(config_path: str):
                 torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
 
             # Update the weights
-            optimizer.step()
+            if (
+                epoch_iter % gradient_accumulation_steps == 0
+                or epoch_iter == iterations_per_epoch - 1
+            ):
+                # Only update the weights every `gradient_accumulation_steps` iterations
+                # This allows for larger effective batch sizes without increasing memory usage
+                optimizer.step()
+                optimizer.zero_grad()
 
             # Update the progress bar
             post_fix_dict["Loss"] = f"{loss.item()}"
