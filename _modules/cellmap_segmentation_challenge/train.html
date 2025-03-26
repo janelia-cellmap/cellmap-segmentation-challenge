@@ -354,6 +354,7 @@ document.write(`
 <span class="sd">        - scheduler: PyTorch learning rate scheduler (or uninstantiated class) to use for training. Default is None. If provided, the scheduler will be called at the end of each epoch.</span>
 <span class="sd">        - scheduler_kwargs: Dictionary of keyword arguments to pass to the scheduler constructor. Default is {}. If `scheduler` instantiation is provided, this will be ignored.</span>
 <span class="sd">        - filter_by_scale: Whether to filter the data by scale. If True, only data with a scale less than or equal to the `input_array_info` highest resolution will be included in the datasplit. If set to a scalar value, data will be filtered for that isotropic resolution - anisotropic can be specified with a sequence of scalars. Default is False (no filtering).</span>
+<span class="sd">        - gradient_accumulation_steps: Number of gradient accumulation steps to use. Default is 1. This can be used to simulate larger batch sizes without increasing memory usage.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -453,6 +454,14 @@ document.write(`
     <span class="n">criterion</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;criterion&quot;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">BCEWithLogitsLoss</span><span class="p">)</span>
     <span class="n">criterion_kwargs</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;criterion_kwargs&quot;</span><span class="p">,</span> <span class="p">{})</span>
     <span class="n">weight_loss</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;weight_loss&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">gradient_accumulation_steps</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span>
+        <span class="n">config</span><span class="p">,</span> <span class="s2">&quot;gradient_accumulation_steps&quot;</span><span class="p">,</span> <span class="mi">1</span>
+    <span class="p">)</span>  <span class="c1"># default to 1 for no accumulation</span>
+    <span class="k">if</span> <span class="n">gradient_accumulation_steps</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;gradient_accumulation_steps must be &gt;= 1, but got </span><span class="si">{</span><span class="n">gradient_accumulation_steps</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
 
     <span class="c1"># %% Make sure the save path exists</span>
     <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="p">[</span><span class="n">model_save_path</span><span class="p">,</span> <span class="n">logs_save_path</span><span class="p">,</span> <span class="n">datasplit_path</span><span class="p">]:</span>
@@ -633,15 +642,13 @@ document.write(`
         <span class="n">epoch_bar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span>
             <span class="nb">range</span><span class="p">(</span><span class="n">iterations_per_epoch</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Training&quot;</span><span class="p">,</span> <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span>
         <span class="p">)</span>
-        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">epoch_bar</span><span class="p">:</span>
+        <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">epoch_iter</span> <span class="ow">in</span> <span class="n">epoch_bar</span><span class="p">:</span>
             <span class="c1"># for some reason this seems to be faster...</span>
             <span class="n">batch</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">loader</span><span class="p">)</span>
 
             <span class="c1"># Increment the training iteration</span>
             <span class="n">n_iter</span> <span class="o">+=</span> <span class="mi">1</span>
-
-            <span class="c1"># Zero the gradients, so that they don&#39;t accumulate across iterations</span>
-            <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
 
             <span class="c1"># Forward pass (compute the output of the model)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_keys</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
@@ -657,7 +664,7 @@ document.write(`
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">targets</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="n">target_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
                 <span class="c1"># Assumes the model output is a single tensor</span>
-            <span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span> <span class="o">/</span> <span class="n">gradient_accumulation_steps</span>
 
             <span class="c1"># Backward pass (compute the gradients)</span>
             <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
@@ -667,7 +674,14 @@ document.write(`
                 <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">clip_grad_norm_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">max_grad_norm</span><span class="p">)</span>
 
             <span class="c1"># Update the weights</span>
-            <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">epoch_iter</span> <span class="o">%</span> <span class="n">gradient_accumulation_steps</span> <span class="o">==</span> <span class="mi">0</span>
+                <span class="ow">or</span> <span class="n">epoch_iter</span> <span class="o">==</span> <span class="n">iterations_per_epoch</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="p">):</span>
+                <span class="c1"># Only update the weights every `gradient_accumulation_steps` iterations</span>
+                <span class="c1"># This allows for larger effective batch sizes without increasing memory usage</span>
+                <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+                <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
 
             <span class="c1"># Update the progress bar</span>
             <span class="n">post_fix_dict</span><span class="p">[</span><span class="s2">&quot;Loss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
