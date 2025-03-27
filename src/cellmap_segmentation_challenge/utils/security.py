@@ -95,3 +95,10 @@ def load_safe_config(config_path, force_safe=os.getenv("FORCE_SAFE_CONFIG", Fals
 class Config:
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
+        self.kwargs = kwargs
+
+    def to_dict(self):
+        """
+        Returns the configuration as a dictionary.
+        """
+        return self.kwargs
