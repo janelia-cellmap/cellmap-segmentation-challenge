@@ -323,8 +323,11 @@ def fetch_data_cli(
                     _, (current_scale, _) = transforms_from_coords(
                         array.coords, transform_precision=4
                     )
+
+                    # Scale ratio of ground truth resolution compared to the current source resolution.
+                    # i.e. 1 is the desired (highest) resolution input, and all ratio values <1 are not desired.
                     scale_ratios = tuple(
-                        s_current / s_gt
+                        s_gt / s_current
                         for s_current, s_gt in zip(
                             current_scale.scale, base_gt_scale.scale
                         )
