@@ -41,7 +41,6 @@ Detailed Class Descriptions
 ---------------------------
 
 Below is a comprehensive list of all annotation classes, categorized into atomic and group classes.
-
 .. raw:: html
 
    <!-- Load DataTables CSS -->
@@ -70,29 +69,38 @@ Below is a comprehensive list of all annotation classes, categorized into atomic
    $(document).ready(function() {
        // Fetch the CSV file
        $.get("_static/classes.csv", function(csvData) {
-            // Split into lines
+           // Split into lines
            var lines = csvData.trim().split("\n");
            
            // First line is headers
            var headers = lines[0].split(",");
+           
            // Remaining lines are data rows
            var data = lines.slice(1).map(function(line) {
                return line.split(",");
            });
 
-           // Initialize DataTable with custom render for the third column (index 2)
+           // Initialize DataTable
            $('#main-table').DataTable({
                data: data,
                columns: [
-                   { title: headers[0] },
-                   { title: headers[1] },
-                   { title: headers[2] },
-                   { title: headers[3] },
-               ]
+                   { title: headers[0] },  // field_name
+                   { title: headers[1] },  // class_id
+                   { title: headers[2] },  // group_id
+                   { title: headers[3] },  // long_name
+                   { title: headers[4] }   // challenge
+               ],
+               rowCallback: function(row, rowData) {
+                   // rowData[4] refers to the 'challenge' column (index 4)
+                   if (rowData[4] === 'True') {
+                       $(row).css('background-color', 'green');
+                   }
+               }
            });
        });
    });
    </script>
+
 
    
 Aliases

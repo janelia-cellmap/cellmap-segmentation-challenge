@@ -383,15 +383,17 @@ Group classes define broader categories by combining multiple atomic classes int
 </section>
 <section id="detailed-class-descriptions">
 <h2>Detailed Class Descriptions<a class="headerlink" href="#detailed-class-descriptions" title="Link to this heading">#</a></h2>
-<p>Below is a comprehensive list of all annotation classes, categorized into atomic and group classes.</p>
-<!-- Load DataTables CSS -->
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
-
-<!-- Load jQuery -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<!-- Load DataTables JS -->
-<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script><table id="main-table" class="display" style="width:100%">
+<p>Below is a comprehensive list of all annotation classes, categorized into atomic and group classes.
+.. raw:: html</p>
+<blockquote>
+<div><p>&lt;!– Load DataTables CSS –&gt;
+&lt;link rel=”stylesheet” type=”text/css” href=”<a class="reference external" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css</a>”&gt;</p>
+<p>&lt;!– Load jQuery –&gt;
+&lt;script src=”<a class="reference external" href="https://code.jquery.com/jquery-3.6.0.min.js">https://code.jquery.com/jquery-3.6.0.min.js</a>”&gt;&lt;/script&gt;</p>
+<p>&lt;!– Load DataTables JS –&gt;
+&lt;script src=”<a class="reference external" href="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js">https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js</a>”&gt;&lt;/script&gt;</p>
+</div></blockquote>
+<table id="main-table" class="display" style="width:100%">
   <thead>
     <!-- We'll dynamically fill these from CSV headers -->
   </thead>
@@ -402,25 +404,33 @@ Group classes define broader categories by combining multiple atomic classes int
 $(document).ready(function() {
     // Fetch the CSV file
     $.get("_static/classes.csv", function(csvData) {
-         // Split into lines
+        // Split into lines
         var lines = csvData.trim().split("\n");
 
         // First line is headers
         var headers = lines[0].split(",");
+
         // Remaining lines are data rows
         var data = lines.slice(1).map(function(line) {
             return line.split(",");
         });
 
-        // Initialize DataTable with custom render for the third column (index 2)
+        // Initialize DataTable
         $('#main-table').DataTable({
             data: data,
             columns: [
-                { title: headers[0] },
-                { title: headers[1] },
-                { title: headers[2] },
-                { title: headers[3] },
-            ]
+                { title: headers[0] },  // field_name
+                { title: headers[1] },  // class_id
+                { title: headers[2] },  // group_id
+                { title: headers[3] },  // long_name
+                { title: headers[4] }   // challenge
+            ],
+            rowCallback: function(row, rowData) {
+                // rowData[4] refers to the 'challenge' column (index 4)
+                if (rowData[4] === 'True') {
+                    $(row).css('background-color', 'green');
+                }
+            }
         });
     });
 });
