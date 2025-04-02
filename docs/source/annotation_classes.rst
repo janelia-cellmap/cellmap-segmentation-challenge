@@ -41,6 +41,7 @@ Detailed Class Descriptions
 ---------------------------
 
 Below is a comprehensive list of all annotation classes, categorized into atomic and group classes.
+
 .. raw:: html
 
    <!-- Load DataTables CSS -->
