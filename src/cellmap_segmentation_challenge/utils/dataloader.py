@@ -1,4 +1,5 @@
 from typing import Any, Mapping, Optional, Sequence
+import functools
 
 import torch
 import torchvision.transforms.v2 as T
@@ -166,8 +167,10 @@ def get_dataloader(
     _kwargs = {
         "classes": classes,
         "batch_size": batch_size,
-        "sampler": lambda: datasplit.train_datasets_combined.get_subset_random_sampler(
-            iterations_per_epoch * batch_size, weighted=weighted_sampler
+        "sampler": functools.partial(
+            datasplit.train_datasets_combined.get_subset_random_sampler,
+            num_samples=iterations_per_epoch * batch_size,
+            weighted=weighted_sampler,
         ),
         "device": device,
         "is_train": True,
