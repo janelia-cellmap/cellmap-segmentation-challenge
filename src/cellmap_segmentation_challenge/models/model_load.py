@@ -71,7 +71,7 @@ def load_best_val(logs_save_path, model_save_path, model, low_is_best=True):
         print("Loading events files, may take a minute")
         event_acc = event_accumulator.EventAccumulator(logs_save_path)
         event_acc.Reload()
-    except:
+    except FileNotFoundError:
         print("No events file found, skipping")
         return None
 
@@ -93,8 +93,8 @@ def load_best_val(logs_save_path, model_save_path, model, low_is_best=True):
 
         try:
             model.load_state_dict(checkpoint, strict=False)
-            return best_epoch
             print(f"Loaded best validation checkpoint from epoch: {best_epoch}")
+            return best_epoch
         except Exception as e:
             print(f"Error loading checkpoint: {checkpoint_path}")
             print(e)
@@ -102,3 +102,77 @@ def load_best_val(logs_save_path, model_save_path, model, low_is_best=True):
     else:
         print("No validation scores found, skipping")
         return None
+
+
+def get_best_val_epoch(logs_save_path, low_is_best=True):
+    """
+    Get the epoch with the best validation score from tensorboard logs.
+
+    Parameters
+    ----------
+    logs_save_path : str
+        The path to the directory with the tensorboard logs.
+    low_is_best : bool
+        Whether a lower validation score is better.
+
+    Returns
+    -------
+    int or None
+        The epoch number with the best validation score, or None if not found.
+    """
+    try:
+        event_acc = event_accumulator.EventAccumulator(logs_save_path)
+        event_acc.Reload()
+    except:
+        print("No events file found, skipping")
+        return None
+
+    tags = event_acc.Tags()["scalars"]
+    if "validation" in tags:
+        events = event_acc.Scalars("validation")
+        scores = [event.value for event in events]
+
+        if low_is_best:
+            best_epoch = np.argmin(scores)
+        else:
+            best_epoch = np.argmax(scores)
+
+        return best_epoch
+    else:
+        print("No validation scores found, skipping")
+        return None
+
+
+def get_latest_checkpoint_epoch(model_save_path):
+    """
+    Get the latest checkpoint epoch from a directory.
+
+    Parameters
+    ----------
+    model_save_path : str
+        The path to the directory with the model checkpoints.
+
+    Returns
+    -------
+    int or None
+        The epoch number of the latest checkpoint, or None if not found.
+    """
+    # Check if there are any files matching the checkpoint save path
+    checkpoint_files = glob(format_string(model_save_path, {"epoch": "*"}))
+    if checkpoint_files:
+        # If there are checkpoints, sort by modification time and get the latest
+        checkpoint_files.sort(key=os.path.getmtime, reverse=True)
+
+        # Get the latest checkpoint
+        newest_checkpoint = checkpoint_files[0]
+
+        # Extract the epoch from the filename
+        epoch = int(
+            get_formatted_fields(newest_checkpoint, model_save_path, ["{epoch}"])[
+                "epoch"
+            ]
+        )
+        return epoch
+
+    # If there are no checkpoints, return None
+    return None
