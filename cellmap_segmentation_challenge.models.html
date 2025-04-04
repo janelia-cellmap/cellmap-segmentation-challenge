@@ -331,6 +331,8 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.models.model_load">cellmap_segmentation_challenge.models.model_load module</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.model_load.load_latest"><code class="docutils literal notranslate"><span class="pre">load_latest()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.model_load.load_best_val"><code class="docutils literal notranslate"><span class="pre">load_best_val()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.model_load.get_best_val_epoch"><code class="docutils literal notranslate"><span class="pre">get_best_val_epoch()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.model_load.get_latest_checkpoint_epoch"><code class="docutils literal notranslate"><span class="pre">get_latest_checkpoint_epoch()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.models.resnet">cellmap_segmentation_challenge.models.resnet module</a><ul class="nav section-nav flex-column">
@@ -505,6 +507,43 @@ document.write(`
 <li><p><strong>model</strong> (<em>torch.nn.Module</em>) – The model to load the checkpoint into.</p></li>
 <li><p><strong>low_is_best</strong> (<em>bool</em>) – Whether a lower validation score is better.</p></li>
 </ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.model_load.get_best_val_epoch">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.model_load.</span></span><span class="sig-name descname"><span class="pre">get_best_val_epoch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logs_save_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">low_is_best</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/model_load.html#get_best_val_epoch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.model_load.get_best_val_epoch" title="Link to this definition">#</a></dt>
+<dd><p>Get the epoch with the best validation score from tensorboard logs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>logs_save_path</strong> (<em>str</em>) – The path to the directory with the tensorboard logs.</p></li>
+<li><p><strong>low_is_best</strong> (<em>bool</em>) – Whether a lower validation score is better.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The epoch number with the best validation score, or None if not found.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.model_load.get_latest_checkpoint_epoch">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.model_load.</span></span><span class="sig-name descname"><span class="pre">get_latest_checkpoint_epoch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_save_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/model_load.html#get_latest_checkpoint_epoch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.model_load.get_latest_checkpoint_epoch" title="Link to this definition">#</a></dt>
+<dd><p>Get the latest checkpoint epoch from a directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>model_save_path</strong> (<em>str</em>) – The path to the directory with the model checkpoints.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The epoch number of the latest checkpoint, or None if not found.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int or None</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1220,6 +1259,8 @@ registered hooks while the latter silently ignores them.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.models.model_load">cellmap_segmentation_challenge.models.model_load module</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.model_load.load_latest"><code class="docutils literal notranslate"><span class="pre">load_latest()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.model_load.load_best_val"><code class="docutils literal notranslate"><span class="pre">load_best_val()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.model_load.get_best_val_epoch"><code class="docutils literal notranslate"><span class="pre">get_best_val_epoch()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.models.model_load.get_latest_checkpoint_epoch"><code class="docutils literal notranslate"><span class="pre">get_latest_checkpoint_epoch()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.models.resnet">cellmap_segmentation_challenge.models.resnet module</a><ul class="nav section-nav flex-column">

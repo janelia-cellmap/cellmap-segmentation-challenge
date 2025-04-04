@@ -361,7 +361,7 @@ document.write(`
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Loading events files, may take a minute&quot;</span><span class="p">)</span>
         <span class="n">event_acc</span> <span class="o">=</span> <span class="n">event_accumulator</span><span class="o">.</span><span class="n">EventAccumulator</span><span class="p">(</span><span class="n">logs_save_path</span><span class="p">)</span>
         <span class="n">event_acc</span><span class="o">.</span><span class="n">Reload</span><span class="p">()</span>
-    <span class="k">except</span><span class="p">:</span>
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No events file found, skipping&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span>
 
@@ -383,8 +383,8 @@ document.write(`
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">best_epoch</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded best validation checkpoint from epoch: </span><span class="si">{</span><span class="n">best_epoch</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">best_epoch</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error loading checkpoint: </span><span class="si">{</span><span class="n">checkpoint_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
@@ -392,6 +392,86 @@ document.write(`
     <span class="k">else</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No validation scores found, skipping&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="get_best_val_epoch">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.model_load.get_best_val_epoch">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_best_val_epoch</span><span class="p">(</span><span class="n">logs_save_path</span><span class="p">,</span> <span class="n">low_is_best</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the epoch with the best validation score from tensorboard logs.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    logs_save_path : str</span>
+<span class="sd">        The path to the directory with the tensorboard logs.</span>
+<span class="sd">    low_is_best : bool</span>
+<span class="sd">        Whether a lower validation score is better.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    int or None</span>
+<span class="sd">        The epoch number with the best validation score, or None if not found.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">event_acc</span> <span class="o">=</span> <span class="n">event_accumulator</span><span class="o">.</span><span class="n">EventAccumulator</span><span class="p">(</span><span class="n">logs_save_path</span><span class="p">)</span>
+        <span class="n">event_acc</span><span class="o">.</span><span class="n">Reload</span><span class="p">()</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No events file found, skipping&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">tags</span> <span class="o">=</span> <span class="n">event_acc</span><span class="o">.</span><span class="n">Tags</span><span class="p">()[</span><span class="s2">&quot;scalars&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s2">&quot;validation&quot;</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
+        <span class="n">events</span> <span class="o">=</span> <span class="n">event_acc</span><span class="o">.</span><span class="n">Scalars</span><span class="p">(</span><span class="s2">&quot;validation&quot;</span><span class="p">)</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="p">[</span><span class="n">event</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">events</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">low_is_best</span><span class="p">:</span>
+            <span class="n">best_epoch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">best_epoch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">best_epoch</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No validation scores found, skipping&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="get_latest_checkpoint_epoch">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.model_load.get_latest_checkpoint_epoch">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_latest_checkpoint_epoch</span><span class="p">(</span><span class="n">model_save_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the latest checkpoint epoch from a directory.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model_save_path : str</span>
+<span class="sd">        The path to the directory with the model checkpoints.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    int or None</span>
+<span class="sd">        The epoch number of the latest checkpoint, or None if not found.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Check if there are any files matching the checkpoint save path</span>
+    <span class="n">checkpoint_files</span> <span class="o">=</span> <span class="n">glob</span><span class="p">(</span><span class="n">format_string</span><span class="p">(</span><span class="n">model_save_path</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;epoch&quot;</span><span class="p">:</span> <span class="s2">&quot;*&quot;</span><span class="p">}))</span>
+    <span class="k">if</span> <span class="n">checkpoint_files</span><span class="p">:</span>
+        <span class="c1"># If there are checkpoints, sort by modification time and get the latest</span>
+        <span class="n">checkpoint_files</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Get the latest checkpoint</span>
+        <span class="n">newest_checkpoint</span> <span class="o">=</span> <span class="n">checkpoint_files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># Extract the epoch from the filename</span>
+        <span class="n">epoch</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
+            <span class="n">get_formatted_fields</span><span class="p">(</span><span class="n">newest_checkpoint</span><span class="p">,</span> <span class="n">model_save_path</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">{epoch}</span><span class="s2">&quot;</span><span class="p">])[</span>
+                <span class="s2">&quot;epoch&quot;</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">epoch</span>
+
+    <span class="c1"># If there are no checkpoints, return None</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
 
 </pre></div>
 
