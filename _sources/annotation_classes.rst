@@ -93,9 +93,11 @@ Below is a comprehensive list of all annotation classes, categorized into atomic
                ],
                rowCallback: function(row, rowData) {
                    // rowData[4] refers to the 'challenge' column (index 4)
-                   if (rowData[4] === 'True') {
-                       $(row).css('background-color', 'green');
-                   }
+                     if (rowData[4] === 'True') {
+                       $(row).css('background-color', '#d2f8d2'); // Light green
+                     } else if (rowData[5] === 'True') {
+                       $(row).css('background-color', '#dbf3ee'); // Light teal
+                     }
                }
            });
        });
