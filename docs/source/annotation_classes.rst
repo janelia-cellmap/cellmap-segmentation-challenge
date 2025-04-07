@@ -33,14 +33,28 @@ Class Categories
 ----------------
 
 **Atomic Classes**
-Atomic classes represent the fundamental components of cellular structures. Each atomic class is defined with a unique identifier and descriptive properties.
+represent the fundamental components of cellular structures. Each atomic class is defined with a unique identifier and descriptive properties.
 **Group Classes**
-Group classes define broader categories by combining multiple atomic classes into a set. They are useful for high-level analysis and visualization.
+define broader categories by combining multiple atomic classes into a set. They are useful for high-level analysis and visualization.
+
+Challenge vs. CellMap Class Usage
+-----------------
+
+The table below lists all annotation classes recognized by the CellMap Project Team.
+
+Classes highlighted in green or blue are included in the current segmentation challenge:
+- Green denotes classes that are integrated in the **instance evaluations**
+- Blue denotes classes that are integrated in the **semantic evaluations** 
+
+Other classes are part of the broader CellMap ontology and may appear in future challenges or datasets.
+
+
+
 
 Detailed Class Descriptions
 ---------------------------
 
-Below is a comprehensive list of all annotation classes, categorized into atomic and group classes.
+Below is a comprehensive list of atomic and group classes, along with an indication of whether they are used in the current challenge.
 
 .. raw:: html
 
