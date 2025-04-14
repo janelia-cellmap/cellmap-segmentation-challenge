@@ -421,14 +421,15 @@ $(document).ready(function() {
                 { title: headers[1] },  // class_id
                 { title: headers[2] },  // group_id
                 { title: headers[3] },  // long_name
-                { title: headers[4] }   // challenge
+                { title: headers[4] },   // challenge
+                { title: headers[5] }   // challenge
             ],
             rowCallback: function(row, rowData) {
                 // rowData[4] refers to the 'challenge' column (index 4)
                   if (rowData[4] === 'True') {
                     $(row).css('background-color', '#d2f8d2'); // Light green
                   } else if (rowData[5] === 'True') {
-                    $(row).css('background-color', '#dbf3ee'); // Light teal
+                    $(row).css('background-color', '#4A90E2'); // Light teal
                   }
             }
         });
