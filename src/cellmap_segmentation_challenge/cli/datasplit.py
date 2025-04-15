@@ -80,6 +80,20 @@ from cellmap_segmentation_challenge.utils.datasplit import (
     is_flag=True,
     help="Use s3 (remote) data stores instead of locally downloaded stores.",
 )
+@click.option(
+    "--datasets",
+    "-ds",
+    type=str,
+    default=None,
+    help="A comma-separated list of dataset names to include in the csv. If not specified, all datasets will be included.",
+)
+@click.option(
+    "--crops",
+    "-cr",
+    type=str,
+    default=None,
+    help="A comma-separated list of crop names to include in the csv. If not specified, all crops will be included. Example: -cr crop1,crop2,crop3",
+)
 def make_datasplit_csv_cli(
     classes,
     scale,
@@ -92,6 +106,8 @@ def make_datasplit_csv_cli(
     crop_name,
     csv_path,
     use_s3,
+    datasets,
+    crops,
 ):
     """
     Make a datasplit csv file for the given classes with a given validate:train split ratio.
@@ -107,6 +123,16 @@ def make_datasplit_csv_cli(
     elif force_all_classes_validate:
         force_all_classes = "validate"
 
+    if datasets is not None:
+        datasets = datasets.split(",")
+    else:
+        datasets = ["*"]
+
+    if crops is not None:
+        crops = crops.split(",")
+    else:
+        crops = ["*"]
+
     if use_s3:
         from cellmap_segmentation_challenge.utils.datasplit import make_s3_datasplit_csv
 
@@ -116,6 +142,8 @@ def make_datasplit_csv_cli(
             force_all_classes=force_all_classes,
             validation_prob=validate_ratio,
             csv_path=csv_path,
+            datasets=datasets,
+            crops=crops,
         )
     else:
         from cellmap_segmentation_challenge.utils.datasplit import make_datasplit_csv
@@ -129,6 +157,8 @@ def make_datasplit_csv_cli(
             raw_name=raw_name,
             crop_name=crop_name,
             csv_path=csv_path,
+            datasets=datasets,
+            crops=crops,
         )
 
 
