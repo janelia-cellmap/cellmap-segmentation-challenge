@@ -378,7 +378,6 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.score_submission"><code class="docutils literal notranslate"><span class="pre">score_submission()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.train"><code class="docutils literal notranslate"><span class="pre">train()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.visualize"><code class="docutils literal notranslate"><span class="pre">visualize()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -1118,9 +1117,9 @@ The process function should take an array as input and return an array as output
 - weight_loss: Whether to weight the loss function by class counts found in the datasets. Default is True.
 - use_mutual_exclusion: Whether to use mutual exclusion to infer labels for unannotated pixels. Default is False.
 - weighted_sampler: Whether to use a sampler weighted by class counts for the dataloader. Default is True.
-- train_raw_value_transforms: Transform to apply to the raw values for training. Defaults to T.Compose([Normalize(), NaNtoNum({“nan”: 0, “posinf”: None, “neginf”: None})]) which normalizes the input data, converts it to float32, and replaces NaNs with 0. This can be used to add augmentations such as random erasing, blur, noise, etc.
+- train_raw_value_transforms: Transform to apply to the raw values for training. Defaults to T.Compose([T.ToDtype(torch.float), Normalize(), NaNtoNum({“nan”: 0, “posinf”: None, “neginf”: None})]) which normalizes the input data, converts it to float32, and replaces NaNs with 0. This can be used to add augmentations such as random erasing, blur, noise, etc.
 - val_raw_value_transforms: Transform to apply to the raw values for validation, similar to <cite>train_raw_value_transforms</cite>. Default is the same as <cite>train_raw_value_transforms</cite>.
-- target_value_transforms: Transform to apply to the target values. Default is T.Compose([Binarize()]) which converts the input masks to float32 and threshold at 0 (turning object ID’s into binary masks for use with binary cross entropy loss). This can be used to specify other targets, such as distance transforms.
+- target_value_transforms: Transform to apply to the target values. Default is T.Compose([T.ToDtype(torch.float), Binarize()]) which converts the input masks to float32 and threshold at 0 (turning object ID’s into binary masks for use with binary cross entropy loss). This can be used to specify other targets, such as distance transforms.
 - max_grad_norm: Maximum gradient norm for clipping. If None, no clipping is performed. Default is None. This can be useful to prevent exploding gradients which would lead to NaNs in the weights.
 - force_all_classes: Whether to force all classes to be present in each batch provided by dataloaders. Can either be <cite>True</cite> to force this for both validation and training dataloader, <cite>False</cite> to force for neither, or <cite>train</cite> / <cite>validate</cite> to restrict it to training or validation, respectively. Default is ‘validate’.
 - scheduler: PyTorch learning rate scheduler (or uninstantiated class) to use for training. Default is None. If provided, the scheduler will be called at the end of each epoch.
@@ -1391,9 +1390,9 @@ The process function should take an array as input and return an array as output
 - weight_loss: Whether to weight the loss function by class counts found in the datasets. Default is True.
 - use_mutual_exclusion: Whether to use mutual exclusion to infer labels for unannotated pixels. Default is False.
 - weighted_sampler: Whether to use a sampler weighted by class counts for the dataloader. Default is True.
-- train_raw_value_transforms: Transform to apply to the raw values for training. Defaults to T.Compose([Normalize(), NaNtoNum({“nan”: 0, “posinf”: None, “neginf”: None})]) which normalizes the input data, converts it to float32, and replaces NaNs with 0. This can be used to add augmentations such as random erasing, blur, noise, etc.
+- train_raw_value_transforms: Transform to apply to the raw values for training. Defaults to T.Compose([T.ToDtype(torch.float), Normalize(), NaNtoNum({“nan”: 0, “posinf”: None, “neginf”: None})]) which normalizes the input data, converts it to float32, and replaces NaNs with 0. This can be used to add augmentations such as random erasing, blur, noise, etc.
 - val_raw_value_transforms: Transform to apply to the raw values for validation, similar to <cite>train_raw_value_transforms</cite>. Default is the same as <cite>train_raw_value_transforms</cite>.
-- target_value_transforms: Transform to apply to the target values. Default is T.Compose([Binarize()]) which converts the input masks to float32 and threshold at 0 (turning object ID’s into binary masks for use with binary cross entropy loss). This can be used to specify other targets, such as distance transforms.
+- target_value_transforms: Transform to apply to the target values. Default is T.Compose([T.ToDtype(torch.float), Binarize()]) which converts the input masks to float32 and threshold at 0 (turning object ID’s into binary masks for use with binary cross entropy loss). This can be used to specify other targets, such as distance transforms.
 - max_grad_norm: Maximum gradient norm for clipping. If None, no clipping is performed. Default is None. This can be useful to prevent exploding gradients which would lead to NaNs in the weights.
 - force_all_classes: Whether to force all classes to be present in each batch provided by dataloaders. Can either be <cite>True</cite> to force this for both validation and training dataloader, <cite>False</cite> to force for neither, or <cite>train</cite> / <cite>validate</cite> to restrict it to training or validation, respectively. Default is ‘validate’.
 - scheduler: PyTorch learning rate scheduler (or uninstantiated class) to use for training. Default is None. If provided, the scheduler will be called at the end of each epoch.
@@ -1403,22 +1402,6 @@ The process function should take an array as input and return an array as output
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>None</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.visualize">
-<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.</span></span><span class="sig-name descname"><span class="pre">visualize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datasets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'*'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crops</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['*']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'*'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kinds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['gt',</span> <span class="pre">'predictions',</span> <span class="pre">'processed']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/visualize.html#visualize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.visualize" title="Link to this definition">#</a></dt>
-<dd><p>Visualize datasets and crops in Neuroglancer.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>datasets</strong> (<em>str</em><em> | </em><em>Sequence</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The name of the dataset to visualize. Can be a string or a list of strings. Default is “*”. If “*”, all datasets will be visualized.</p></li>
-<li><p><strong>crops</strong> (<em>int</em><em> | </em><em>Sequence</em><em>[</em><em>int</em><em>]</em><em>, </em><em>optional</em>) – The crop number(s) to visualize. Can be an integer or a list of integers, or None. Default is None. If None, all crops will be visualized.</p></li>
-<li><p><strong>classes</strong> (<em>str</em><em> | </em><em>Sequence</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The class to visualize. Can be a string or a list of strings. Default is “*”. If “*”, all classes will be visualized.</p></li>
-<li><p><strong>kinds</strong> (<em>Sequence</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The type of layers to visualize. Can be “gt” for groundtruth, “predictions” for predictions, or “processed” for processed data. Default is [“gt”, “predictions”, “processed”, “submission”].</p></li>
-</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -1504,7 +1487,6 @@ The process function should take an array as input and return an array as output
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.score_submission"><code class="docutils literal notranslate"><span class="pre">score_submission()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.train"><code class="docutils literal notranslate"><span class="pre">train()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.visualize"><code class="docutils literal notranslate"><span class="pre">visualize()</span></code></a></li>
 </ul>
 </li>
 </ul>
