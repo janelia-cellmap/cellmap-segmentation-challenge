@@ -6,7 +6,7 @@ import numpy as np
 import torch
 from cellmap_data.utils import get_fig_dict
 import torchvision.transforms.v2 as T
-from cellmap_data.transforms.augment import NaNtoNum, Binarize
+from cellmap_data.transforms.augment import NaNtoNum, Binarize, Normalize
 from tensorboardX import SummaryWriter
 from tqdm import tqdm
 from upath import UPath
@@ -59,9 +59,9 @@ def train(config_path: str):
         - weight_loss: Whether to weight the loss function by class counts found in the datasets. Default is True.
         - use_mutual_exclusion: Whether to use mutual exclusion to infer labels for unannotated pixels. Default is False.
         - weighted_sampler: Whether to use a sampler weighted by class counts for the dataloader. Default is True.
-        - train_raw_value_transforms: Transform to apply to the raw values for training. Defaults to T.Compose([T.ToDtype(torch.float, scale=True), NaNtoNum({"nan": 0, "posinf": None, "neginf": None})]) which normalizes the input data, converts it to float32, and replaces NaNs with 0. This can be used to add augmentations such as random erasing, blur, noise, etc.
+        - train_raw_value_transforms: Transform to apply to the raw values for training. Defaults to T.Compose([Normalize(), NaNtoNum({"nan": 0, "posinf": None, "neginf": None})]) which normalizes the input data, converts it to float32, and replaces NaNs with 0. This can be used to add augmentations such as random erasing, blur, noise, etc.
         - val_raw_value_transforms: Transform to apply to the raw values for validation, similar to `train_raw_value_transforms`. Default is the same as `train_raw_value_transforms`.
-        - target_value_transforms: Transform to apply to the target values. Default is T.Compose([T.ToDtype(torch.float), Binarize()]) which converts the input masks to float32 and threshold at 0 (turning object ID's into binary masks for use with binary cross entropy loss). This can be used to specify other targets, such as distance transforms.
+        - target_value_transforms: Transform to apply to the target values. Default is T.Compose([Binarize()]) which converts the input masks to float32 and threshold at 0 (turning object ID's into binary masks for use with binary cross entropy loss). This can be used to specify other targets, such as distance transforms.
         - max_grad_norm: Maximum gradient norm for clipping. If None, no clipping is performed. Default is None. This can be useful to prevent exploding gradients which would lead to NaNs in the weights.
         - force_all_classes: Whether to force all classes to be present in each batch provided by dataloaders. Can either be `True` to force this for both validation and training dataloader, `False` to force for neither, or `train` / `validate` to restrict it to training or validation, respectively. Default is 'validate'.
         - scheduler: PyTorch learning rate scheduler (or uninstantiated class) to use for training. Default is None. If provided, the scheduler will be called at the end of each epoch.
@@ -125,7 +125,7 @@ def train(config_path: str):
         "train_raw_value_transforms",
         T.Compose(
             [
-                T.ToDtype(torch.float, scale=True),
+                Normalize(),
                 NaNtoNum({"nan": 0, "posinf": None, "neginf": None}),
             ],
         ),
@@ -135,7 +135,7 @@ def train(config_path: str):
         "val_raw_value_transforms",
         T.Compose(
             [
-                T.ToDtype(torch.float, scale=True),
+                Normalize(),
                 NaNtoNum({"nan": 0, "posinf": None, "neginf": None}),
             ],
         ),
@@ -143,7 +143,7 @@ def train(config_path: str):
     target_value_transforms = getattr(
         config,
         "target_value_transforms",
-        T.Compose([T.ToDtype(torch.float), Binarize()]),
+        T.Compose([Binarize()]),
     )
     max_grad_norm = getattr(config, "max_grad_norm", None)
     force_all_classes = getattr(config, "force_all_classes", "validate")
