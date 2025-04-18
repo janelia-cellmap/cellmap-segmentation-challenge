@@ -5,6 +5,7 @@ import os
 import zipfile
 import functools
 from tqdm import tqdm
+import numpy as np
 from concurrent.futures import ThreadPoolExecutor
 
 from cellmap_segmentation_challenge.utils import format_string, TEST_CROPS
