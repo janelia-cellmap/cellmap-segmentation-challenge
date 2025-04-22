@@ -28,6 +28,8 @@ The package is built on top of the [`cellmap-data`](https://github.com/janelia-c
 8. [Issues](#issues)
 7. [Acknowledgements](#acknowledgements)
 
+### For more information and frequently asked questions, see the [Segmentation Challenge FAQ](./FAQ.md).
+
 # Getting started
 
 ## Set up your environment
