@@ -4,9 +4,6 @@
 
 Welcome to the [**CellMap Segmentation Challenge**](https://janelia.figshare.com/articles/online_resource/CellMap_Segmentation_Challenge/28034561/1?file=51215543) toolbox!
 
-For more information, see the [Segmentation Challenge FAQ](./FAQ.md).
-
-
 This Python package provides a simple and flexible API for:
 
 - [Accessing challenge data](#download-the-data)
@@ -30,6 +27,8 @@ The package is built on top of the [`cellmap-data`](https://github.com/janelia-c
     - [Data format](#data-format)
 8. [Issues](#issues)
 7. [Acknowledgements](#acknowledgements)
+
+### For more information and frequently asked questions, see the [Segmentation Challenge FAQ](./FAQ.md).
 
 # Getting started
 
