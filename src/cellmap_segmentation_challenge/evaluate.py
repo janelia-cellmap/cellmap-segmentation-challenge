@@ -1,4 +1,3 @@
-# import tracemalloc
 import argparse
 import json
 import os
@@ -8,11 +7,10 @@ import zipfile
 import numpy as np
 import zarr
 from scipy.optimize import linear_sum_assignment
-from scipy.spatial.distance import dice  # , jaccard
+from scipy.spatial.distance import dice
 from skimage.measure import label as relabel
 from skimage.transform import rescale
 
-# from scipy.spatial import cKDTree
 from pykdtree.kdtree import KDTree as cKDTree
 
 from sklearn.metrics import accuracy_score, jaccard_score
@@ -23,17 +21,13 @@ from cellmap_data import CellMapImage
 
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 
-# from multiprocessing import Pool
-
 from .config import PROCESSED_PATH, SUBMISSION_PATH, TRUTH_PATH
 from .utils import TEST_CROPS_DICT
-
 
 import logging
 
 logging.basicConfig(
     level=logging.INFO,
-    # format="%(asctime)s - %(levelname)s - %(message)s",
     format="%(asctime)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
@@ -127,7 +121,6 @@ def optimized_hausdorff_distances(
             hausdorff_distances[i] = h_dist
     else:
         with ThreadPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
-            # with ProcessPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
             for i, h_dist in tqdm(
                 executor.map(get_distance, range(len(truth_ids))),
                 desc="Computing Hausdorff distances",
@@ -224,49 +217,50 @@ def score_instance(
             "combined_score": 0,
         }
 
-    # Initialize the cost matrix
-    logging.info(
-        f"Initializing cost matrix of {len(truth_ids)} x {len(pred_ids)} (true x pred)..."
-    )
-    cost_matrix = np.zeros((len(truth_ids), len(pred_ids)))
-
     # Flatten the labels for vectorized computation
     truth_flat = truth_label.flatten()
     pred_flat = pred_label.flatten()
 
-    # Precompute binary masks for all `truth_ids`
-    if len(truth_flat) * len(truth_ids) > PRECOMPUTE_LIMIT:
-        truth_binary_masks = spoof_precomputed(truth_flat, truth_ids)
-    else:
-        logging.info("Precomputing binary masks for all `truth_ids`...")
-        truth_binary_masks = np.array(
-            [(truth_flat == tid) for tid in truth_ids], dtype=bool
-        )
-
-    def get_cost(j):
-        # Find all `truth_ids` that overlap with this prediction mask
-        pred_mask = pred_flat == pred_ids[j]
-        relevant_truth_ids = np.unique(truth_flat[pred_mask])
-        relevant_truth_ids = relevant_truth_ids[relevant_truth_ids != 0]
-        relevant_truth_indices = np.where(np.isin(truth_ids, relevant_truth_ids))[0]
-        relevant_truth_masks = truth_binary_masks[relevant_truth_indices]
-
-        if relevant_truth_indices.size == 0:
-            return [], j, []
-
-        tp = relevant_truth_masks[:, pred_mask].sum(1)
-        fn = (relevant_truth_masks[:, pred_mask == 0]).sum(1)
-        fp = (relevant_truth_masks[:, pred_mask] == 0).sum(1)
-
-        # Compute Jaccard scores
-        jaccard_scores = tp / (tp + fp + fn)
-
-        # Fill in the cost matrix for this `j` (prediction)
-        return relevant_truth_indices, j, jaccard_scores
-
     matched_pred_label = np.zeros_like(pred_label)
 
     if len(pred_ids) > 0:
+
+        # Precompute binary masks for all `truth_ids`
+        if len(truth_flat) * len(truth_ids) > PRECOMPUTE_LIMIT:
+            truth_binary_masks = spoof_precomputed(truth_flat, truth_ids)
+        else:
+            logging.info("Precomputing binary masks for all `truth_ids`...")
+            truth_binary_masks = np.array(
+                [(truth_flat == tid) for tid in truth_ids], dtype=bool
+            )
+
+        def get_cost(j):
+            # Find all `truth_ids` that overlap with this prediction mask
+            pred_mask = pred_flat == pred_ids[j]
+            relevant_truth_ids = np.unique(truth_flat[pred_mask])
+            relevant_truth_ids = relevant_truth_ids[relevant_truth_ids != 0]
+            relevant_truth_indices = np.where(np.isin(truth_ids, relevant_truth_ids))[0]
+            relevant_truth_masks = truth_binary_masks[relevant_truth_indices]
+
+            if relevant_truth_indices.size == 0:
+                return [], j, []
+
+            tp = relevant_truth_masks[:, pred_mask].sum(1)
+            fn = (relevant_truth_masks[:, pred_mask == 0]).sum(1)
+            fp = (relevant_truth_masks[:, pred_mask] == 0).sum(1)
+
+            # Compute Jaccard scores
+            jaccard_scores = tp / (tp + fp + fn)
+
+            # Fill in the cost matrix for this `j` (prediction)
+            return relevant_truth_indices, j, jaccard_scores
+
+        # Initialize the cost matrix
+        logging.info(
+            f"Initializing cost matrix of {len(truth_ids)} x {len(pred_ids)} (true x pred)..."
+        )
+        cost_matrix = np.zeros((len(truth_ids), len(pred_ids)))
+
         # Compute the cost matrix
         if DEBUG:
             # Use tqdm for progress tracking
@@ -283,7 +277,6 @@ def score_instance(
                 cost_matrix[relevant_truth_indices, j] = jaccard_scores
         else:
             with ThreadPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
-                # with ProcessPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
                 for relevant_truth_indices, j, jaccard_scores in tqdm(
                     executor.map(get_cost, range(len(pred_ids))),
                     desc="Computing cost matrix in parallel",
@@ -318,7 +311,7 @@ def score_instance(
 
     # Compute the scores
     logging.info("Computing accuracy score...")
-    accuracy = accuracy_score(truth_label.flatten(), matched_pred_label.flatten())
+    accuracy = accuracy_score(truth_flat, matched_pred_label.flatten())
     hausdorff_dist = np.mean(hausdorff_distances) if len(hausdorff_distances) > 0 else 0
     normalized_hausdorff_dist = 1.01 ** (
         -hausdorff_dist / np.linalg.norm(voxel_size)
@@ -396,17 +389,19 @@ def score_label(
     """
     if pred_label_path is None:
         print(f"Label {label_name} not found in submission volume {crop_name}.")
-        return empty_label_score(
-            label=label_name,
-            crop_name=crop_name,
-            instance_classes=instance_classes,
-            truth_path=truth_path,
+        return (
+            crop_name,
+            label_name,
+            empty_label_score(
+                label=label_name,
+                crop_name=crop_name,
+                instance_classes=instance_classes,
+                truth_path=truth_path,
+            ),
         )
     logging.info(f"Scoring {pred_label_path}...")
     truth_path = UPath(truth_path)
     # Load the predicted and ground truth label volumes
-    # label_name = UPath(pred_label_path).name
-    # crop_name = UPath(pred_label_path).parent.name
     truth_label_path = (truth_path / crop_name / label_name).path
     truth_label_ds = zarr.open(truth_label_path, mode="r")
     truth_label = truth_label_ds[:]
