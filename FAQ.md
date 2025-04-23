@@ -2,7 +2,8 @@
 
 # Frequently Asked Questions
 ---
-
+#### This FAQ is a living document and will continue to evolve as questions and needs arise. If you have a question that isn't addressed here, please feel free to open an issue in the repository. We review incoming questions regularly and will move commonly asked or broadly helpful topics into the Discussions section to benefit the community. 
+---
 - [How can I access the ground truth data for the CellMap Segmentation Challenge?](#how-can-i-access-the-ground-truth-data-for-the-cellmap-segmentation-challenge)
 - [Where can I find the `train_crop_manifest.csv` file in the CellMap Segmentation Challenge dataset?](#where-can-i-find-the-train_crop_manifestcsv-file-in-the-cellmap-segmentation-challenge-dataset)
 - [Where can I find information about the annotated blocks for each dataset?](#where-can-i-find-information-about-the-annotated-blocks-for-each-dataset)
