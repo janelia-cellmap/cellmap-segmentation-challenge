@@ -283,8 +283,7 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for cellmap_segmentation_challenge.evaluate</h1><div class="highlight"><pre>
-<span></span><span class="c1"># import tracemalloc</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">time</span><span class="p">,</span> <span class="n">sleep</span>
@@ -293,11 +292,10 @@ document.write(`
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">zarr</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">linear_sum_assignment</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial.distance</span><span class="w"> </span><span class="kn">import</span> <span class="n">dice</span>  <span class="c1"># , jaccard</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial.distance</span><span class="w"> </span><span class="kn">import</span> <span class="n">dice</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">skimage.measure</span><span class="w"> </span><span class="kn">import</span> <span class="n">label</span> <span class="k">as</span> <span class="n">relabel</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">skimage.transform</span><span class="w"> </span><span class="kn">import</span> <span class="n">rescale</span>
 
-<span class="c1"># from scipy.spatial import cKDTree</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pykdtree.kdtree</span><span class="w"> </span><span class="kn">import</span> <span class="n">KDTree</span> <span class="k">as</span> <span class="n">cKDTree</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">accuracy_score</span><span class="p">,</span> <span class="n">jaccard_score</span>
@@ -308,17 +306,13 @@ document.write(`
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span><span class="p">,</span> <span class="n">ProcessPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
 
-<span class="c1"># from multiprocessing import Pool</span>
-
 <span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">PROCESSED_PATH</span><span class="p">,</span> <span class="n">SUBMISSION_PATH</span><span class="p">,</span> <span class="n">TRUTH_PATH</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">TEST_CROPS_DICT</span>
-
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
 <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
     <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
-    <span class="c1"># format=&quot;%(asctime)s - %(levelname)s - %(message)s&quot;,</span>
     <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%(asctime)s</span><span class="s2"> - </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">,</span>
     <span class="n">datefmt</span><span class="o">=</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">,</span>
 <span class="p">)</span>
@@ -423,7 +417,6 @@ document.write(`
             <span class="n">hausdorff_distances</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">h_dist</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">PER_INSTANCE_THREADS</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
-            <span class="c1"># with ProcessPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">h_dist</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
                 <span class="n">executor</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">get_distance</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">))),</span>
                 <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Computing Hausdorff distances&quot;</span><span class="p">,</span>
@@ -526,49 +519,50 @@ document.write(`
             <span class="s2">&quot;combined_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
         <span class="p">}</span>
 
-    <span class="c1"># Initialize the cost matrix</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;Initializing cost matrix of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> x </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> (true x pred)...&quot;</span>
-    <span class="p">)</span>
-    <span class="n">cost_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">)))</span>
-
     <span class="c1"># Flatten the labels for vectorized computation</span>
     <span class="n">truth_flat</span> <span class="o">=</span> <span class="n">truth_label</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
     <span class="n">pred_flat</span> <span class="o">=</span> <span class="n">pred_label</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
 
-    <span class="c1"># Precompute binary masks for all `truth_ids`</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">truth_flat</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">PRECOMPUTE_LIMIT</span><span class="p">:</span>
-        <span class="n">truth_binary_masks</span> <span class="o">=</span> <span class="n">spoof_precomputed</span><span class="p">(</span><span class="n">truth_flat</span><span class="p">,</span> <span class="n">truth_ids</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Precomputing binary masks for all `truth_ids`...&quot;</span><span class="p">)</span>
-        <span class="n">truth_binary_masks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-            <span class="p">[(</span><span class="n">truth_flat</span> <span class="o">==</span> <span class="n">tid</span><span class="p">)</span> <span class="k">for</span> <span class="n">tid</span> <span class="ow">in</span> <span class="n">truth_ids</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span>
-        <span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_cost</span><span class="p">(</span><span class="n">j</span><span class="p">):</span>
-        <span class="c1"># Find all `truth_ids` that overlap with this prediction mask</span>
-        <span class="n">pred_mask</span> <span class="o">=</span> <span class="n">pred_flat</span> <span class="o">==</span> <span class="n">pred_ids</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
-        <span class="n">relevant_truth_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">truth_flat</span><span class="p">[</span><span class="n">pred_mask</span><span class="p">])</span>
-        <span class="n">relevant_truth_ids</span> <span class="o">=</span> <span class="n">relevant_truth_ids</span><span class="p">[</span><span class="n">relevant_truth_ids</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span>
-        <span class="n">relevant_truth_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">,</span> <span class="n">relevant_truth_ids</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">relevant_truth_masks</span> <span class="o">=</span> <span class="n">truth_binary_masks</span><span class="p">[</span><span class="n">relevant_truth_indices</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="n">relevant_truth_indices</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">[],</span> <span class="n">j</span><span class="p">,</span> <span class="p">[]</span>
-
-        <span class="n">tp</span> <span class="o">=</span> <span class="n">relevant_truth_masks</span><span class="p">[:,</span> <span class="n">pred_mask</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">fn</span> <span class="o">=</span> <span class="p">(</span><span class="n">relevant_truth_masks</span><span class="p">[:,</span> <span class="n">pred_mask</span> <span class="o">==</span> <span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">fp</span> <span class="o">=</span> <span class="p">(</span><span class="n">relevant_truth_masks</span><span class="p">[:,</span> <span class="n">pred_mask</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-
-        <span class="c1"># Compute Jaccard scores</span>
-        <span class="n">jaccard_scores</span> <span class="o">=</span> <span class="n">tp</span> <span class="o">/</span> <span class="p">(</span><span class="n">tp</span> <span class="o">+</span> <span class="n">fp</span> <span class="o">+</span> <span class="n">fn</span><span class="p">)</span>
-
-        <span class="c1"># Fill in the cost matrix for this `j` (prediction)</span>
-        <span class="k">return</span> <span class="n">relevant_truth_indices</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">jaccard_scores</span>
-
     <span class="n">matched_pred_label</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">pred_label</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+
+        <span class="c1"># Precompute binary masks for all `truth_ids`</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">truth_flat</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">PRECOMPUTE_LIMIT</span><span class="p">:</span>
+            <span class="n">truth_binary_masks</span> <span class="o">=</span> <span class="n">spoof_precomputed</span><span class="p">(</span><span class="n">truth_flat</span><span class="p">,</span> <span class="n">truth_ids</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Precomputing binary masks for all `truth_ids`...&quot;</span><span class="p">)</span>
+            <span class="n">truth_binary_masks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="p">[(</span><span class="n">truth_flat</span> <span class="o">==</span> <span class="n">tid</span><span class="p">)</span> <span class="k">for</span> <span class="n">tid</span> <span class="ow">in</span> <span class="n">truth_ids</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span>
+            <span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">get_cost</span><span class="p">(</span><span class="n">j</span><span class="p">):</span>
+            <span class="c1"># Find all `truth_ids` that overlap with this prediction mask</span>
+            <span class="n">pred_mask</span> <span class="o">=</span> <span class="n">pred_flat</span> <span class="o">==</span> <span class="n">pred_ids</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+            <span class="n">relevant_truth_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">truth_flat</span><span class="p">[</span><span class="n">pred_mask</span><span class="p">])</span>
+            <span class="n">relevant_truth_ids</span> <span class="o">=</span> <span class="n">relevant_truth_ids</span><span class="p">[</span><span class="n">relevant_truth_ids</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="n">relevant_truth_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">,</span> <span class="n">relevant_truth_ids</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">relevant_truth_masks</span> <span class="o">=</span> <span class="n">truth_binary_masks</span><span class="p">[</span><span class="n">relevant_truth_indices</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">relevant_truth_indices</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[],</span> <span class="n">j</span><span class="p">,</span> <span class="p">[]</span>
+
+            <span class="n">tp</span> <span class="o">=</span> <span class="n">relevant_truth_masks</span><span class="p">[:,</span> <span class="n">pred_mask</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">fn</span> <span class="o">=</span> <span class="p">(</span><span class="n">relevant_truth_masks</span><span class="p">[:,</span> <span class="n">pred_mask</span> <span class="o">==</span> <span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">fp</span> <span class="o">=</span> <span class="p">(</span><span class="n">relevant_truth_masks</span><span class="p">[:,</span> <span class="n">pred_mask</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="c1"># Compute Jaccard scores</span>
+            <span class="n">jaccard_scores</span> <span class="o">=</span> <span class="n">tp</span> <span class="o">/</span> <span class="p">(</span><span class="n">tp</span> <span class="o">+</span> <span class="n">fp</span> <span class="o">+</span> <span class="n">fn</span><span class="p">)</span>
+
+            <span class="c1"># Fill in the cost matrix for this `j` (prediction)</span>
+            <span class="k">return</span> <span class="n">relevant_truth_indices</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">jaccard_scores</span>
+
+        <span class="c1"># Initialize the cost matrix</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Initializing cost matrix of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> x </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> (true x pred)...&quot;</span>
+        <span class="p">)</span>
+        <span class="n">cost_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">)))</span>
+
         <span class="c1"># Compute the cost matrix</span>
         <span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span>
             <span class="c1"># Use tqdm for progress tracking</span>
@@ -585,7 +579,6 @@ document.write(`
                 <span class="n">cost_matrix</span><span class="p">[</span><span class="n">relevant_truth_indices</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">jaccard_scores</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">PER_INSTANCE_THREADS</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
-                <span class="c1"># with ProcessPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:</span>
                 <span class="k">for</span> <span class="n">relevant_truth_indices</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">jaccard_scores</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
                     <span class="n">executor</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">get_cost</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">))),</span>
                     <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Computing cost matrix in parallel&quot;</span><span class="p">,</span>
@@ -620,7 +613,7 @@ document.write(`
 
     <span class="c1"># Compute the scores</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Computing accuracy score...&quot;</span><span class="p">)</span>
-    <span class="n">accuracy</span> <span class="o">=</span> <span class="n">accuracy_score</span><span class="p">(</span><span class="n">truth_label</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">matched_pred_label</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+    <span class="n">accuracy</span> <span class="o">=</span> <span class="n">accuracy_score</span><span class="p">(</span><span class="n">truth_flat</span><span class="p">,</span> <span class="n">matched_pred_label</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
     <span class="n">hausdorff_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">hausdorff_distances</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hausdorff_distances</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
     <span class="n">normalized_hausdorff_dist</span> <span class="o">=</span> <span class="mf">1.01</span> <span class="o">**</span> <span class="p">(</span>
         <span class="o">-</span><span class="n">hausdorff_dist</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">)</span>
@@ -704,17 +697,19 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">pred_label_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Label </span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2"> not found in submission volume </span><span class="si">{</span><span class="n">crop_name</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">empty_label_score</span><span class="p">(</span>
-            <span class="n">label</span><span class="o">=</span><span class="n">label_name</span><span class="p">,</span>
-            <span class="n">crop_name</span><span class="o">=</span><span class="n">crop_name</span><span class="p">,</span>
-            <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span><span class="p">,</span>
-            <span class="n">truth_path</span><span class="o">=</span><span class="n">truth_path</span><span class="p">,</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">crop_name</span><span class="p">,</span>
+            <span class="n">label_name</span><span class="p">,</span>
+            <span class="n">empty_label_score</span><span class="p">(</span>
+                <span class="n">label</span><span class="o">=</span><span class="n">label_name</span><span class="p">,</span>
+                <span class="n">crop_name</span><span class="o">=</span><span class="n">crop_name</span><span class="p">,</span>
+                <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span><span class="p">,</span>
+                <span class="n">truth_path</span><span class="o">=</span><span class="n">truth_path</span><span class="p">,</span>
+            <span class="p">),</span>
         <span class="p">)</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scoring </span><span class="si">{</span><span class="n">pred_label_path</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
     <span class="n">truth_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span>
     <span class="c1"># Load the predicted and ground truth label volumes</span>
-    <span class="c1"># label_name = UPath(pred_label_path).name</span>
-    <span class="c1"># crop_name = UPath(pred_label_path).parent.name</span>
     <span class="n">truth_label_path</span> <span class="o">=</span> <span class="p">(</span><span class="n">truth_path</span> <span class="o">/</span> <span class="n">crop_name</span> <span class="o">/</span> <span class="n">label_name</span><span class="p">)</span><span class="o">.</span><span class="n">path</span>
     <span class="n">truth_label_ds</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">truth_label_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
     <span class="n">truth_label</span> <span class="o">=</span> <span class="n">truth_label_ds</span><span class="p">[:]</span>
