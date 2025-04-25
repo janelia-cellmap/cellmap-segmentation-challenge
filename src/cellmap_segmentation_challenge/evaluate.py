@@ -50,12 +50,12 @@ INSTANCE_CLASSES = [
 HAUSDORFF_DISTANCE_MAX = np.inf
 CAST_TO_NONE = [np.nan, np.inf, -np.inf]
 
-MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 2))
-MAX_SEMANTIC_THREADS = int(os.getenv("MAX_SEMANTIC_THREADS", 22))
-PER_INSTANCE_THREADS = int(os.getenv("PER_INSTANCE_THREADS", 8))
+MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 1))
+MAX_SEMANTIC_THREADS = int(os.getenv("MAX_SEMANTIC_THREADS", 20))
+PER_INSTANCE_THREADS = int(os.getenv("PER_INSTANCE_THREADS", 16))
 # submitted_# of instances / ground_truth_# of instances
-INSTANCE_RATIO_CUTOFF = float(os.getenv("INSTANCE_RATIO_CUTOFF", 100))
-PRECOMPUTE_LIMIT = int(os.getenv("PRECOMPUTE_LIMIT", 1e8))
+INSTANCE_RATIO_CUTOFF = float(os.getenv("INSTANCE_RATIO_CUTOFF", 50))
+PRECOMPUTE_LIMIT = int(os.getenv("PRECOMPUTE_LIMIT", 1e7))
 DEBUG = os.getenv("DEBUG", "False") != "False"
 
 
@@ -388,7 +388,7 @@ def score_label(
         scores = score_label('pred.zarr/test_volume/label1')
     """
     if pred_label_path is None:
-        print(f"Label {label_name} not found in submission volume {crop_name}.")
+        logging.info(f"Label {label_name} not found in submission volume {crop_name}.")
         return (
             crop_name,
             label_name,
@@ -616,7 +616,7 @@ def combine_scores(
     total_volumes = {}
     for ds, these_scores in scores.items():
         for label, this_score in these_scores.items():
-            logging.info(this_score)
+            # logging.info(this_score)
             if this_score["is_missing"] and not include_missing:
                 continue
             total_volume = np.prod(this_score["voxel_size"]) * this_score["num_voxels"]
@@ -754,6 +754,13 @@ def score_submission(
         logging.info(f"Missing volumes: {missing_volumes}")
         logging.info("Scoring missing volumes as 0's")
 
+    scores = {
+        volume: missing_volume_score(
+            truth_path / volume, instance_classes=instance_classes
+        )
+        for volume in missing_volumes
+    }
+
     # Get all prediction paths to evaluate
     evaluation_args = get_evaluation_args(
         found_volumes,
@@ -766,6 +773,39 @@ def score_submission(
     if DEBUG:
         logging.info("Scoring volumes in serial for debugging...")
         results = [score_label(*args) for args in evaluation_args]
+        # Combine the results into a dictionary
+        for crop_name, label_name, result in results:
+            if crop_name not in scores:
+                scores[crop_name] = {}
+            scores[crop_name][label_name] = result
+
+        # Combine label scores across volumes, normalizing by the number of voxels
+        all_scores = combine_scores(
+            scores, include_missing=True, instance_classes=instance_classes
+        )
+        found_scores = combine_scores(
+            scores, include_missing=False, instance_classes=instance_classes
+        )
+
+        # Save the scores
+        if result_file:
+            logging.info(f"Saving collected scores to {result_file}...")
+            with open(result_file, "w") as f:
+                json.dump(all_scores, f, indent=4)
+
+            found_result_file = str(result_file).replace(
+                UPath(result_file).suffix, "_submitted_only" + UPath(result_file).suffix
+            )
+            logging.info(
+                f"Saving scores for only submitted data to {found_result_file}..."
+            )
+            with open(found_result_file, "w") as f:
+                json.dump(found_scores, f, indent=4)
+            logging.info(
+                f"Scores saved to {result_file} and {found_result_file} in {time() - start_time:.2f} seconds"
+            )
+        else:
+            return all_scores
     else:
         logging.info("Scoring volumes in parallel...")
         instance_pool = ProcessPoolExecutor(MAX_INSTANCE_THREADS)
@@ -785,30 +825,9 @@ def score_submission(
             leave=True,
         ):
             results.append(future.result())
-
-    # Combine the results into a dictionary
-    scores = {}
-    for crop_name, label_name, result in results:
-        if crop_name not in scores:
-            scores[crop_name] = {}
-        scores[crop_name][label_name] = result
-
-    scores.update(
-        {
-            volume: missing_volume_score(
-                truth_path / volume, instance_classes=instance_classes
+            all_scores, found_scores = update_scores(
+                scores, results, result_file, instance_classes=instance_classes
             )
-            for volume in missing_volumes
-        }
-    )
-
-    # Combine label scores across volumes, normalizing by the number of voxels
-    all_scores = combine_scores(
-        scores, include_missing=True, instance_classes=instance_classes
-    )
-    found_scores = combine_scores(
-        scores, include_missing=False, instance_classes=instance_classes
-    )
 
     logging.info("Scores combined across all test volumes:")
     logging.info(
@@ -827,24 +846,61 @@ def score_submission(
         f"\tOverall Semantic Score: {found_scores['overall_semantic_score']:.4f}"
     )
     logging.info(f"\tOverall Score: {found_scores['overall_score']:.4f}")
+    logging.info(f"Submission scored in {time() - start_time:.2f} seconds")
 
-    # Save the scores
-    if result_file:
-        logging.info(f"Saving collected scores to {result_file}...")
+    if result_file is None:
+        return all_scores
+
+
+def num_evals_done(all_scores):
+    num_evals_done = 0
+    for volume, scores in all_scores.items():
+        if "crop" in volume:
+            num_evals_done += len(scores.keys())
+    return num_evals_done
+
+
+def update_scores(scores, results, result_file, instance_classes=INSTANCE_CLASSES):
+    start_time = time()
+    logging.info(f"Updating scores in {result_file}...")
+
+    # Check the types of the inputs
+    assert isinstance(scores, dict)
+    assert isinstance(results, list)
+
+    # Combine the results into a dictionary
+    # TODO: This is technically inefficient, but it works for now
+    for crop_name, label_name, result in results:
+        if crop_name not in scores:
+            scores[crop_name] = {}
+        scores[crop_name][label_name] = result
+
+    # Combine label scores across volumes, normalizing by the number of voxels
+    all_scores = combine_scores(
+        scores, include_missing=True, instance_classes=instance_classes
+    )
+    all_scores["total_evals"] = len(TEST_CROPS_DICT)
+    all_scores["num_evals_done"] = num_evals_done(all_scores)
+
+    found_scores = combine_scores(
+        scores, include_missing=False, instance_classes=instance_classes
+    )
+
+    if result_file is not None:
         with open(result_file, "w") as f:
             json.dump(all_scores, f, indent=4)
 
         found_result_file = str(result_file).replace(
             UPath(result_file).suffix, "_submitted_only" + UPath(result_file).suffix
         )
-        logging.info(f"Saving scores for only submitted data to {found_result_file}...")
         with open(found_result_file, "w") as f:
             json.dump(found_scores, f, indent=4)
-        logging.info(
-            f"Scores saved to {result_file} and {found_result_file} in {time() - start_time:.2f} seconds"
-        )
-    else:
-        return all_scores
+
+    logging.info(
+        f"Scores updated in {result_file} and {found_result_file} in {time() - start_time:.2f} seconds"
+    )
+
+    return all_scores, found_scores
 
 
 def resize_array(arr, target_shape, pad_value=0):
@@ -1075,7 +1131,7 @@ if __name__ == "__main__":
     argparser.add_argument(
         "result_file",
         nargs="?",
-        help="If provided, store submission results in this file. Else logging.info them to stdout",
+        help="If provided, store submission results in this file. Else print them to stdout",
     )
     argparser.add_argument(
         "--truth-path", default=TRUTH_PATH, help="Path to zarr containing ground truth"
