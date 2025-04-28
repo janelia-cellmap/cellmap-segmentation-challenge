@@ -219,3 +219,19 @@ If you use the included data loading utilities, only regions with data should be
 
 ### Is the downloaded data intended for semantic segmentation, and how can I obtain labels for instance segmentation?
 The provided groundtruth data is primarily for semantic segmentation. To derive instance segmentation labels, you can apply connected component labeling or watershed algorithms to the semantic segmentation masks.
+
+<br><br>
+
+### Why do some classes have labels containing only 0 and 1, while others have labels containing 0,1,2... (excluding the "all" class)?
+Semantic segmentation class (e.g. `ecs`) crops contain only 0's and 1's (present and not present, respectively), while classes like `cell`, which are scored for instance segmentations, will have unique object ID's (e.g. 0, 1, 2, ...). The classes scored for instance segmentations are the following:
+- `nuc`
+- `vim`
+- `ves`
+- `endo`
+- `lyso`
+- `ld`
+- `perox`
+- `mito`
+- `np`
+- `mt`
+- `cell`
