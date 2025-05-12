@@ -31,9 +31,10 @@ def train(config_path: str):
     ----------
     config_path : str
         Path to the configuration file to use for training the model. This file should be a Python file that defines the hyperparameters and other configurations for training the model. This may include:
-        - model_save_path: Path to save the model checkpoints. Default is 'checkpoints/{model_name}_{epoch}.pth'.
-        - logs_save_path: Path to save the logs for tensorboard. Default is 'tensorboard/{model_name}'. Training progress may be monitored by running `tensorboard --logdir <logs_save_path>` in the terminal.
-        - datasplit_path: Path to the datasplit file that defines the train/val split the dataloader should use. Default is 'datasplit.csv'.
+        - base_experiment_path: Path to the base experiment directory. Default is the parent directory of the config file.
+        - model_save_path: Path to save the model checkpoints. Default is 'checkpoints/{model_name}_{epoch}.pth' within the base_experiment_path.
+        - logs_save_path: Path to save the logs for tensorboard. Default is 'tensorboard/{model_name}' within the base_experiment_path. Training progress may be monitored by running `tensorboard --logdir <logs_save_path>` in the terminal.
+        - datasplit_path: Path to the datasplit file that defines the train/val split the dataloader should use. Default is 'datasplit.csv' within the base_experiment_path.
         - validation_prob: Proportion of the datasets to use for validation. This is used if the datasplit CSV specified by `datasplit_path` does not already exist. Default is 0.15.
         - learning_rate: Learning rate for the optimizer. Default is 0.0001.
         - batch_size: Batch size for the dataloader. Default is 8.
@@ -78,16 +79,25 @@ def train(config_path: str):
     torch.backends.cudnn.benchmark = True
 
     # %% Load the configuration file
-    config = UPath(config_path).stem
     config = load_safe_config(config_path)
     # %% Set hyperparameters and other configurations from the config file
+    base_experiment_path = getattr(
+        config, "base_experiment_path", UPath(config_path).parent
+    )
+    base_experiment_path = UPath(base_experiment_path)
     model_save_path = getattr(
-        config, "model_save_path", UPath("checkpoints/{model_name}_{epoch}.pth").path
+        config,
+        "model_save_path",
+        (base_experiment_path / "checkpoints" / "{model_name}_{epoch}.pth").path,
     )
     logs_save_path = getattr(
-        config, "logs_save_path", UPath("tensorboard/{model_name}").path
+        config,
+        "logs_save_path",
+        (base_experiment_path / "tensorboard" / "{model_name}").path,
     )
-    datasplit_path = getattr(config, "datasplit_path", "datasplit.csv")
+    datasplit_path = getattr(
+        config, "datasplit_path", (base_experiment_path / "datasplit.csv").path
+    )
     validation_prob = getattr(config, "validation_prob", 0.15)
     learning_rate = getattr(config, "learning_rate", 0.0001)
     batch_size = getattr(config, "batch_size", 8)
