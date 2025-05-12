@@ -346,6 +346,8 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.missing_volume_score"><code class="docutils literal notranslate"><span class="pre">missing_volume_score()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.combine_scores"><code class="docutils literal notranslate"><span class="pre">combine_scores()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.score_submission"><code class="docutils literal notranslate"><span class="pre">score_submission()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.num_evals_done"><code class="docutils literal notranslate"><span class="pre">num_evals_done()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.update_scores"><code class="docutils literal notranslate"><span class="pre">update_scores()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.resize_array"><code class="docutils literal notranslate"><span class="pre">resize_array()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.match_crop_space"><code class="docutils literal notranslate"><span class="pre">match_crop_space()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.unzip_file"><code class="docutils literal notranslate"><span class="pre">unzip_file()</span></code></a></li>
@@ -378,6 +380,7 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.score_submission"><code class="docutils literal notranslate"><span class="pre">score_submission()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.train"><code class="docutils literal notranslate"><span class="pre">train()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.visualize"><code class="docutils literal notranslate"><span class="pre">visualize()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -958,6 +961,16 @@ document.write(`
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.num_evals_done">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">num_evals_done</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_scores</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#num_evals_done"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.num_evals_done" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.update_scores">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">update_scores</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['nuc',</span> <span class="pre">'vim',</span> <span class="pre">'ves',</span> <span class="pre">'endo',</span> <span class="pre">'lyso',</span> <span class="pre">'ld',</span> <span class="pre">'perox',</span> <span class="pre">'mito',</span> <span class="pre">'np',</span> <span class="pre">'mt',</span> <span class="pre">'cell',</span> <span class="pre">'instance']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#update_scores"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.update_scores" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.resize_array">
 <span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">resize_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#resize_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.resize_array" title="Link to this definition">#</a></dt>
 <dd><p>Resize an array to a target shape by padding or cropping as needed.</p>
@@ -1089,9 +1102,10 @@ The process function should take an array as input and return an array as output
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>config_path</strong> (<em>str</em>) – Path to the configuration file to use for training the model. This file should be a Python file that defines the hyperparameters and other configurations for training the model. This may include:
-- model_save_path: Path to save the model checkpoints. Default is ‘checkpoints/{model_name}_{epoch}.pth’.
-- logs_save_path: Path to save the logs for tensorboard. Default is ‘tensorboard/{model_name}’. Training progress may be monitored by running <cite>tensorboard –logdir &lt;logs_save_path&gt;</cite> in the terminal.
-- datasplit_path: Path to the datasplit file that defines the train/val split the dataloader should use. Default is ‘datasplit.csv’.
+- base_experiment_path: Path to the base experiment directory. Default is the parent directory of the config file.
+- model_save_path: Path to save the model checkpoints. Default is ‘checkpoints/{model_name}_{epoch}.pth’ within the base_experiment_path.
+- logs_save_path: Path to save the logs for tensorboard. Default is ‘tensorboard/{model_name}’ within the base_experiment_path. Training progress may be monitored by running <cite>tensorboard –logdir &lt;logs_save_path&gt;</cite> in the terminal.
+- datasplit_path: Path to the datasplit file that defines the train/val split the dataloader should use. Default is ‘datasplit.csv’ within the base_experiment_path.
 - validation_prob: Proportion of the datasets to use for validation. This is used if the datasplit CSV specified by <cite>datasplit_path</cite> does not already exist. Default is 0.15.
 - learning_rate: Learning rate for the optimizer. Default is 0.0001.
 - batch_size: Batch size for the dataloader. Default is 8.
@@ -1362,9 +1376,10 @@ The process function should take an array as input and return an array as output
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>config_path</strong> (<em>str</em>) – Path to the configuration file to use for training the model. This file should be a Python file that defines the hyperparameters and other configurations for training the model. This may include:
-- model_save_path: Path to save the model checkpoints. Default is ‘checkpoints/{model_name}_{epoch}.pth’.
-- logs_save_path: Path to save the logs for tensorboard. Default is ‘tensorboard/{model_name}’. Training progress may be monitored by running <cite>tensorboard –logdir &lt;logs_save_path&gt;</cite> in the terminal.
-- datasplit_path: Path to the datasplit file that defines the train/val split the dataloader should use. Default is ‘datasplit.csv’.
+- base_experiment_path: Path to the base experiment directory. Default is the parent directory of the config file.
+- model_save_path: Path to save the model checkpoints. Default is ‘checkpoints/{model_name}_{epoch}.pth’ within the base_experiment_path.
+- logs_save_path: Path to save the logs for tensorboard. Default is ‘tensorboard/{model_name}’ within the base_experiment_path. Training progress may be monitored by running <cite>tensorboard –logdir &lt;logs_save_path&gt;</cite> in the terminal.
+- datasplit_path: Path to the datasplit file that defines the train/val split the dataloader should use. Default is ‘datasplit.csv’ within the base_experiment_path.
 - validation_prob: Proportion of the datasets to use for validation. This is used if the datasplit CSV specified by <cite>datasplit_path</cite> does not already exist. Default is 0.15.
 - learning_rate: Learning rate for the optimizer. Default is 0.0001.
 - batch_size: Batch size for the dataloader. Default is 8.
@@ -1402,6 +1417,22 @@ The process function should take an array as input and return an array as output
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.visualize">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.</span></span><span class="sig-name descname"><span class="pre">visualize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datasets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'*'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crops</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['*']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'*'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kinds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['gt',</span> <span class="pre">'predictions',</span> <span class="pre">'processed']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/visualize.html#visualize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.visualize" title="Link to this definition">#</a></dt>
+<dd><p>Visualize datasets and crops in Neuroglancer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datasets</strong> (<em>str</em><em> | </em><em>Sequence</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The name of the dataset to visualize. Can be a string or a list of strings. Default is “*”. If “*”, all datasets will be visualized.</p></li>
+<li><p><strong>crops</strong> (<em>int</em><em> | </em><em>Sequence</em><em>[</em><em>int</em><em>]</em><em>, </em><em>optional</em>) – The crop number(s) to visualize. Can be an integer or a list of integers, or None. Default is None. If None, all crops will be visualized.</p></li>
+<li><p><strong>classes</strong> (<em>str</em><em> | </em><em>Sequence</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The class to visualize. Can be a string or a list of strings. Default is “*”. If “*”, all classes will be visualized.</p></li>
+<li><p><strong>kinds</strong> (<em>Sequence</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The type of layers to visualize. Can be “gt” for groundtruth, “predictions” for predictions, or “processed” for processed data. Default is [“gt”, “predictions”, “processed”, “submission”].</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -1455,6 +1486,8 @@ The process function should take an array as input and return an array as output
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.missing_volume_score"><code class="docutils literal notranslate"><span class="pre">missing_volume_score()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.combine_scores"><code class="docutils literal notranslate"><span class="pre">combine_scores()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.score_submission"><code class="docutils literal notranslate"><span class="pre">score_submission()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.num_evals_done"><code class="docutils literal notranslate"><span class="pre">num_evals_done()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.update_scores"><code class="docutils literal notranslate"><span class="pre">update_scores()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.resize_array"><code class="docutils literal notranslate"><span class="pre">resize_array()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.match_crop_space"><code class="docutils literal notranslate"><span class="pre">match_crop_space()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.unzip_file"><code class="docutils literal notranslate"><span class="pre">unzip_file()</span></code></a></li>
@@ -1487,6 +1520,7 @@ The process function should take an array as input and return an array as output
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.score_submission"><code class="docutils literal notranslate"><span class="pre">score_submission()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.train"><code class="docutils literal notranslate"><span class="pre">train()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.visualize"><code class="docutils literal notranslate"><span class="pre">visualize()</span></code></a></li>
 </ul>
 </li>
 </ul>

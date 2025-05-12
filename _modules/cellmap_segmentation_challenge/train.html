@@ -318,9 +318,10 @@ document.write(`
 <span class="sd">    ----------</span>
 <span class="sd">    config_path : str</span>
 <span class="sd">        Path to the configuration file to use for training the model. This file should be a Python file that defines the hyperparameters and other configurations for training the model. This may include:</span>
-<span class="sd">        - model_save_path: Path to save the model checkpoints. Default is &#39;checkpoints/{model_name}_{epoch}.pth&#39;.</span>
-<span class="sd">        - logs_save_path: Path to save the logs for tensorboard. Default is &#39;tensorboard/{model_name}&#39;. Training progress may be monitored by running `tensorboard --logdir &lt;logs_save_path&gt;` in the terminal.</span>
-<span class="sd">        - datasplit_path: Path to the datasplit file that defines the train/val split the dataloader should use. Default is &#39;datasplit.csv&#39;.</span>
+<span class="sd">        - base_experiment_path: Path to the base experiment directory. Default is the parent directory of the config file.</span>
+<span class="sd">        - model_save_path: Path to save the model checkpoints. Default is &#39;checkpoints/{model_name}_{epoch}.pth&#39; within the base_experiment_path.</span>
+<span class="sd">        - logs_save_path: Path to save the logs for tensorboard. Default is &#39;tensorboard/{model_name}&#39; within the base_experiment_path. Training progress may be monitored by running `tensorboard --logdir &lt;logs_save_path&gt;` in the terminal.</span>
+<span class="sd">        - datasplit_path: Path to the datasplit file that defines the train/val split the dataloader should use. Default is &#39;datasplit.csv&#39; within the base_experiment_path.</span>
 <span class="sd">        - validation_prob: Proportion of the datasets to use for validation. This is used if the datasplit CSV specified by `datasplit_path` does not already exist. Default is 0.15.</span>
 <span class="sd">        - learning_rate: Learning rate for the optimizer. Default is 0.0001.</span>
 <span class="sd">        - batch_size: Batch size for the dataloader. Default is 8.</span>
@@ -365,16 +366,25 @@ document.write(`
     <span class="n">torch</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">cudnn</span><span class="o">.</span><span class="n">benchmark</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="c1"># %% Load the configuration file</span>
-    <span class="n">config</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span>
     <span class="n">config</span> <span class="o">=</span> <span class="n">load_safe_config</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span>
     <span class="c1"># %% Set hyperparameters and other configurations from the config file</span>
+    <span class="n">base_experiment_path</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span>
+        <span class="n">config</span><span class="p">,</span> <span class="s2">&quot;base_experiment_path&quot;</span><span class="p">,</span> <span class="n">UPath</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span>
+    <span class="p">)</span>
+    <span class="n">base_experiment_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">base_experiment_path</span><span class="p">)</span>
     <span class="n">model_save_path</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span>
-        <span class="n">config</span><span class="p">,</span> <span class="s2">&quot;model_save_path&quot;</span><span class="p">,</span> <span class="n">UPath</span><span class="p">(</span><span class="s2">&quot;checkpoints/</span><span class="si">{model_name}</span><span class="s2">_</span><span class="si">{epoch}</span><span class="s2">.pth&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span>
+        <span class="n">config</span><span class="p">,</span>
+        <span class="s2">&quot;model_save_path&quot;</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">base_experiment_path</span> <span class="o">/</span> <span class="s2">&quot;checkpoints&quot;</span> <span class="o">/</span> <span class="s2">&quot;</span><span class="si">{model_name}</span><span class="s2">_</span><span class="si">{epoch}</span><span class="s2">.pth&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">logs_save_path</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span>
-        <span class="n">config</span><span class="p">,</span> <span class="s2">&quot;logs_save_path&quot;</span><span class="p">,</span> <span class="n">UPath</span><span class="p">(</span><span class="s2">&quot;tensorboard/</span><span class="si">{model_name}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span>
+        <span class="n">config</span><span class="p">,</span>
+        <span class="s2">&quot;logs_save_path&quot;</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">base_experiment_path</span> <span class="o">/</span> <span class="s2">&quot;tensorboard&quot;</span> <span class="o">/</span> <span class="s2">&quot;</span><span class="si">{model_name}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="n">datasplit_path</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;datasplit_path&quot;</span><span class="p">,</span> <span class="s2">&quot;datasplit.csv&quot;</span><span class="p">)</span>
+    <span class="n">datasplit_path</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span>
+        <span class="n">config</span><span class="p">,</span> <span class="s2">&quot;datasplit_path&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">base_experiment_path</span> <span class="o">/</span> <span class="s2">&quot;datasplit.csv&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span>
+    <span class="p">)</span>
     <span class="n">validation_prob</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;validation_prob&quot;</span><span class="p">,</span> <span class="mf">0.15</span><span class="p">)</span>
     <span class="n">learning_rate</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;learning_rate&quot;</span><span class="p">,</span> <span class="mf">0.0001</span><span class="p">)</span>
     <span class="n">batch_size</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;batch_size&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>

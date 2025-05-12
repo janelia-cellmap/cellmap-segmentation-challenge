@@ -335,12 +335,12 @@ document.write(`
 <span class="n">HAUSDORFF_DISTANCE_MAX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
 <span class="n">CAST_TO_NONE</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span>
 
-<span class="n">MAX_INSTANCE_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_INSTANCE_THREADS&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-<span class="n">MAX_SEMANTIC_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_SEMANTIC_THREADS&quot;</span><span class="p">,</span> <span class="mi">22</span><span class="p">))</span>
-<span class="n">PER_INSTANCE_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;PER_INSTANCE_THREADS&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+<span class="n">MAX_INSTANCE_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_INSTANCE_THREADS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">MAX_SEMANTIC_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_SEMANTIC_THREADS&quot;</span><span class="p">,</span> <span class="mi">20</span><span class="p">))</span>
+<span class="n">PER_INSTANCE_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;PER_INSTANCE_THREADS&quot;</span><span class="p">,</span> <span class="mi">16</span><span class="p">))</span>
 <span class="c1"># submitted_# of instances / ground_truth_# of instances</span>
-<span class="n">INSTANCE_RATIO_CUTOFF</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;INSTANCE_RATIO_CUTOFF&quot;</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
-<span class="n">PRECOMPUTE_LIMIT</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;PRECOMPUTE_LIMIT&quot;</span><span class="p">,</span> <span class="mf">1e8</span><span class="p">))</span>
+<span class="n">INSTANCE_RATIO_CUTOFF</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;INSTANCE_RATIO_CUTOFF&quot;</span><span class="p">,</span> <span class="mi">50</span><span class="p">))</span>
+<span class="n">PRECOMPUTE_LIMIT</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;PRECOMPUTE_LIMIT&quot;</span><span class="p">,</span> <span class="mf">1e7</span><span class="p">))</span>
 <span class="n">DEBUG</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">,</span> <span class="s2">&quot;False&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">&quot;False&quot;</span>
 
 
@@ -696,7 +696,7 @@ document.write(`
 <span class="sd">        scores = score_label(&#39;pred.zarr/test_volume/label1&#39;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">pred_label_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Label </span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2"> not found in submission volume </span><span class="si">{</span><span class="n">crop_name</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Label </span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2"> not found in submission volume </span><span class="si">{</span><span class="n">crop_name</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span>
             <span class="n">crop_name</span><span class="p">,</span>
             <span class="n">label_name</span><span class="p">,</span>
@@ -936,7 +936,7 @@ document.write(`
     <span class="n">total_volumes</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">ds</span><span class="p">,</span> <span class="n">these_scores</span> <span class="ow">in</span> <span class="n">scores</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">this_score</span> <span class="ow">in</span> <span class="n">these_scores</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">this_score</span><span class="p">)</span>
+            <span class="c1"># logging.info(this_score)</span>
             <span class="k">if</span> <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;is_missing&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">include_missing</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="n">total_volume</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span>
@@ -1077,6 +1077,13 @@ document.write(`
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing volumes: </span><span class="si">{</span><span class="n">missing_volumes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Scoring missing volumes as 0&#39;s&quot;</span><span class="p">)</span>
 
+    <span class="n">scores</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">volume</span><span class="p">:</span> <span class="n">missing_volume_score</span><span class="p">(</span>
+            <span class="n">truth_path</span> <span class="o">/</span> <span class="n">volume</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="n">missing_volumes</span>
+    <span class="p">}</span>
+
     <span class="c1"># Get all prediction paths to evaluate</span>
     <span class="n">evaluation_args</span> <span class="o">=</span> <span class="n">get_evaluation_args</span><span class="p">(</span>
         <span class="n">found_volumes</span><span class="p">,</span>
@@ -1089,6 +1096,39 @@ document.write(`
     <span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Scoring volumes in serial for debugging...&quot;</span><span class="p">)</span>
         <span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">score_label</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="k">for</span> <span class="n">args</span> <span class="ow">in</span> <span class="n">evaluation_args</span><span class="p">]</span>
+        <span class="c1"># Combine the results into a dictionary</span>
+        <span class="k">for</span> <span class="n">crop_name</span><span class="p">,</span> <span class="n">label_name</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">crop_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">:</span>
+                <span class="n">scores</span><span class="p">[</span><span class="n">crop_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">scores</span><span class="p">[</span><span class="n">crop_name</span><span class="p">][</span><span class="n">label_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span>
+
+        <span class="c1"># Combine label scores across volumes, normalizing by the number of voxels</span>
+        <span class="n">all_scores</span> <span class="o">=</span> <span class="n">combine_scores</span><span class="p">(</span>
+            <span class="n">scores</span><span class="p">,</span> <span class="n">include_missing</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span>
+        <span class="p">)</span>
+        <span class="n">found_scores</span> <span class="o">=</span> <span class="n">combine_scores</span><span class="p">(</span>
+            <span class="n">scores</span><span class="p">,</span> <span class="n">include_missing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Save the scores</span>
+        <span class="k">if</span> <span class="n">result_file</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving collected scores to </span><span class="si">{</span><span class="n">result_file</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">result_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">all_scores</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+            <span class="n">found_result_file</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">result_file</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                <span class="n">UPath</span><span class="p">(</span><span class="n">result_file</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span><span class="p">,</span> <span class="s2">&quot;_submitted_only&quot;</span> <span class="o">+</span> <span class="n">UPath</span><span class="p">(</span><span class="n">result_file</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span>
+            <span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Saving scores for only submitted data to </span><span class="si">{</span><span class="n">found_result_file</span><span class="si">}</span><span class="s2">...&quot;</span>
+            <span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">found_result_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">found_scores</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Scores saved to </span><span class="si">{</span><span class="n">result_file</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">found_result_file</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">all_scores</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Scoring volumes in parallel...&quot;</span><span class="p">)</span>
         <span class="n">instance_pool</span> <span class="o">=</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">MAX_INSTANCE_THREADS</span><span class="p">)</span>
@@ -1108,30 +1148,9 @@ document.write(`
             <span class="n">leave</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">):</span>
             <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">())</span>
-
-    <span class="c1"># Combine the results into a dictionary</span>
-    <span class="n">scores</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">crop_name</span><span class="p">,</span> <span class="n">label_name</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">crop_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">:</span>
-            <span class="n">scores</span><span class="p">[</span><span class="n">crop_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">scores</span><span class="p">[</span><span class="n">crop_name</span><span class="p">][</span><span class="n">label_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span>
-
-    <span class="n">scores</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
-        <span class="p">{</span>
-            <span class="n">volume</span><span class="p">:</span> <span class="n">missing_volume_score</span><span class="p">(</span>
-                <span class="n">truth_path</span> <span class="o">/</span> <span class="n">volume</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span>
+            <span class="n">all_scores</span><span class="p">,</span> <span class="n">found_scores</span> <span class="o">=</span> <span class="n">update_scores</span><span class="p">(</span>
+                <span class="n">scores</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">result_file</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span>
             <span class="p">)</span>
-            <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="n">missing_volumes</span>
-        <span class="p">}</span>
-    <span class="p">)</span>
-
-    <span class="c1"># Combine label scores across volumes, normalizing by the number of voxels</span>
-    <span class="n">all_scores</span> <span class="o">=</span> <span class="n">combine_scores</span><span class="p">(</span>
-        <span class="n">scores</span><span class="p">,</span> <span class="n">include_missing</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span>
-    <span class="p">)</span>
-    <span class="n">found_scores</span> <span class="o">=</span> <span class="n">combine_scores</span><span class="p">(</span>
-        <span class="n">scores</span><span class="p">,</span> <span class="n">include_missing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span>
-    <span class="p">)</span>
 
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Scores combined across all test volumes:&quot;</span><span class="p">)</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
@@ -1150,24 +1169,67 @@ document.write(`
         <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Overall Semantic Score: </span><span class="si">{</span><span class="n">found_scores</span><span class="p">[</span><span class="s1">&#39;overall_semantic_score&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span>
     <span class="p">)</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Overall Score: </span><span class="si">{</span><span class="n">found_scores</span><span class="p">[</span><span class="s1">&#39;overall_score&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Submission scored in </span><span class="si">{</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
 
-    <span class="c1"># Save the scores</span>
-    <span class="k">if</span> <span class="n">result_file</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving collected scores to </span><span class="si">{</span><span class="n">result_file</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">result_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">all_scores</span></div>
+
+
+
+<div class="viewcode-block" id="num_evals_done">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.num_evals_done">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">num_evals_done</span><span class="p">(</span><span class="n">all_scores</span><span class="p">):</span>
+    <span class="n">num_evals_done</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">volume</span><span class="p">,</span> <span class="n">scores</span> <span class="ow">in</span> <span class="n">all_scores</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="s2">&quot;crop&quot;</span> <span class="ow">in</span> <span class="n">volume</span><span class="p">:</span>
+            <span class="n">num_evals_done</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">scores</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">num_evals_done</span></div>
+
+
+
+<div class="viewcode-block" id="update_scores">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.update_scores">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_scores</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">result_file</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">INSTANCE_CLASSES</span><span class="p">):</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Updating scores in </span><span class="si">{</span><span class="n">result_file</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check the types of the inputs</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+
+    <span class="c1"># Combine the results into a dictionary</span>
+    <span class="c1"># TODO: This is technically inefficient, but it works for now</span>
+    <span class="k">for</span> <span class="n">crop_name</span><span class="p">,</span> <span class="n">label_name</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">crop_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">:</span>
+            <span class="n">scores</span><span class="p">[</span><span class="n">crop_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">scores</span><span class="p">[</span><span class="n">crop_name</span><span class="p">][</span><span class="n">label_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span>
+
+    <span class="c1"># Combine label scores across volumes, normalizing by the number of voxels</span>
+    <span class="n">all_scores</span> <span class="o">=</span> <span class="n">combine_scores</span><span class="p">(</span>
+        <span class="n">scores</span><span class="p">,</span> <span class="n">include_missing</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span>
+    <span class="p">)</span>
+    <span class="n">all_scores</span><span class="p">[</span><span class="s2">&quot;total_evals&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">TEST_CROPS_DICT</span><span class="p">)</span>
+    <span class="n">all_scores</span><span class="p">[</span><span class="s2">&quot;num_evals_done&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">num_evals_done</span><span class="p">(</span><span class="n">all_scores</span><span class="p">)</span>
+
+    <span class="n">found_scores</span> <span class="o">=</span> <span class="n">combine_scores</span><span class="p">(</span>
+        <span class="n">scores</span><span class="p">,</span> <span class="n">include_missing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">result_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">result_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">all_scores</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 
         <span class="n">found_result_file</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">result_file</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
             <span class="n">UPath</span><span class="p">(</span><span class="n">result_file</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span><span class="p">,</span> <span class="s2">&quot;_submitted_only&quot;</span> <span class="o">+</span> <span class="n">UPath</span><span class="p">(</span><span class="n">result_file</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span>
         <span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving scores for only submitted data to </span><span class="si">{</span><span class="n">found_result_file</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">found_result_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">found_scores</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Scores saved to </span><span class="si">{</span><span class="n">result_file</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">found_result_file</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds&quot;</span>
-        <span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">all_scores</span></div>
+
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Scores updated in </span><span class="si">{</span><span class="n">result_file</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">found_result_file</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds&quot;</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">all_scores</span><span class="p">,</span> <span class="n">found_scores</span></div>
 
 
 
@@ -1408,7 +1470,7 @@ document.write(`
     <span class="n">argparser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s2">&quot;result_file&quot;</span><span class="p">,</span>
         <span class="n">nargs</span><span class="o">=</span><span class="s2">&quot;?&quot;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If provided, store submission results in this file. Else logging.info them to stdout&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If provided, store submission results in this file. Else print them to stdout&quot;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">argparser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s2">&quot;--truth-path&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">TRUTH_PATH</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to zarr containing ground truth&quot;</span>
