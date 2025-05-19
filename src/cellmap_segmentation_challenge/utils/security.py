@@ -126,3 +126,9 @@ class Config:
             else:
                 serialized[key] = value
         return serialized
+
+    def get(self, key: str, default: any = None) -> any:
+        """
+        Gets the value of a configuration key.
+        """
+        return self.kwargs.get(key, default)
