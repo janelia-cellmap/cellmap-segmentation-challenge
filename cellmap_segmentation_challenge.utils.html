@@ -409,6 +409,7 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.Config"><code class="docutils literal notranslate"><span class="pre">Config</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.Config.to_dict"><code class="docutils literal notranslate"><span class="pre">Config.to_dict()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.Config.serialize"><code class="docutils literal notranslate"><span class="pre">Config.serialize()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.Config.get"><code class="docutils literal notranslate"><span class="pre">Config.get()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -1227,6 +1228,23 @@ If <cite>force_safe</cite> is True, raises an error if the script is deemed unsa
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.security.Config.serialize">
 <span class="sig-name descname"><span class="pre">serialize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/security.html#Config.serialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.security.Config.serialize" title="Link to this definition">#</a></dt>
 <dd><p>Serializes the configuration to a string representation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.security.Config.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">any</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">any</span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/security.html#Config.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.security.Config.get" title="Link to this definition">#</a></dt>
+<dd><p>Gets the value of a configuration key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>str</em>)</p></li>
+<li><p><strong>default</strong> (<em>any</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>any</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -2053,6 +2071,7 @@ save_numpy_labels_to_zarr(‘submission.zarr’, ‘test_volume’, [‘label1�
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.Config"><code class="docutils literal notranslate"><span class="pre">Config</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.Config.to_dict"><code class="docutils literal notranslate"><span class="pre">Config.to_dict()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.Config.serialize"><code class="docutils literal notranslate"><span class="pre">Config.serialize()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.Config.get"><code class="docutils literal notranslate"><span class="pre">Config.get()</span></code></a></li>
 </ul>
 </li>
 </ul>
