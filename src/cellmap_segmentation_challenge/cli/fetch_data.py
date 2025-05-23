@@ -137,6 +137,7 @@ def fetch_data_cli(
 
     else:
         # Do other necessary imports here
+        import shutil
         import numpy as np
         import zarr
         from pydantic_zarr.v2 import GroupSpec
