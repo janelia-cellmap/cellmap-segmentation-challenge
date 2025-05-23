@@ -210,7 +210,7 @@ def fetch_data_cli(
                     gt_dest_path = _resolve_gt_dest_path(crop)
                     if Path(str(dest_root)).exists() and mode == "w":
                         try:
-                            shutil.rmtree(Path(str(dest_root)).path)
+                            shutil.rmtree(Path(str(dest_root)).path, ignore_errors=True)
                         except Exception as e:
                             log.error(f"Failed to remove directory {dest_root}: {e}")
                     dest_root_group = zarr.open_group(str(dest_root), mode=mode)
