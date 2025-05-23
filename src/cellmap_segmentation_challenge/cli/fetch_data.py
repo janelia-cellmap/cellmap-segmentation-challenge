@@ -207,6 +207,11 @@ def fetch_data_cli(
                     )
                     log.info(f"Found GT data at {gt_source_url}.")
                     gt_dest_path = _resolve_gt_dest_path(crop)
+                    if Path(str(dest_root)).exists() and mode == "w":
+                        try:
+                            shutil.rmtree(Path(str(dest_root)).path)
+                        except Exception as e:
+                            log.error(f"Failed to remove directory {dest_root}: {e}")
                     dest_root_group = zarr.open_group(str(dest_root), mode=mode)
                     # create intermediate groups
                     dest_root_group.require_group(gt_dest_path)
