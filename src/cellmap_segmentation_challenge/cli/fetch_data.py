@@ -191,6 +191,8 @@ def fetch_data_cli(
         log.info(f"Data will be saved to {dest_path_abs}")
 
         futures = []
+        if mode == "w":
+            erased = []
         for crop in crops_parsed:
             log = log.bind(crop_id=crop.id, dataset=crop.dataset)
             em_source_url = crop.em_url
@@ -198,6 +200,19 @@ def fetch_data_cli(
             dest_root = URL.build(
                 scheme="file", path=f"/{dest_path_abs.as_posix().lstrip('/')}"
             ).joinpath(f"{crop.dataset}/{crop.dataset}.zarr")
+
+            if (
+                Path(str(dest_root)).exists()
+                and mode == "w"
+                and str(dest_root) not in erased
+            ):
+                log.debug(
+                    f"Deleting existing data at {dest_root} because access mode is 'overwrite'."
+                )
+                try:
+                    shutil.rmtree(str(dest_root))
+                except Exception as e:
+                    log.error(f"Failed to remove directory {dest_root}: {e}")
 
             if not isinstance(crop.gt_source, TestCropRow):
                 gt_source_url = crop.gt_source
@@ -208,16 +223,11 @@ def fetch_data_cli(
                     )
                     log.info(f"Found GT data at {gt_source_url}.")
                     gt_dest_path = _resolve_gt_dest_path(crop)
-                    if Path(str(dest_root)).exists() and mode == "w":
-                        try:
-                            shutil.rmtree(Path(str(dest_root)).path, ignore_errors=True)
-                        except Exception as e:
-                            log.error(f"Failed to remove directory {dest_root}: {e}")
-                    dest_root_group = zarr.open_group(str(dest_root), mode=mode)
+                    dest_root_group = zarr.open_group(str(dest_root), mode="a")
                     # create intermediate groups
                     dest_root_group.require_group(gt_dest_path)
                     dest_crop_group = zarr.open_group(
-                        str(dest_root / gt_dest_path).replace("%5C", "\\"), mode=mode
+                        str(dest_root / gt_dest_path).replace("%5C", "\\"), mode="a"
                     )
 
                     fs = gt_source_group.store.fs
@@ -265,7 +275,7 @@ def fetch_data_cli(
                 dest_em_group = GroupSpec.from_zarr(em_source_group).to_zarr(
                     FSStore(str(dest_root / em_dest_path).replace("%5C", "\\")),
                     path="",
-                    overwrite=(mode == "w"),
+                    # overwrite=(mode == "w"),
                 )
 
                 # get the multiscale model of the source em group
