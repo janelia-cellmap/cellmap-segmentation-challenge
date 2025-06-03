@@ -429,8 +429,7 @@ def make_datasplit_csv(
         bar.set_postfix_str(bar_string)
         if csv_string is not None:
             with open(csv_path, "a") as f:
-                if csv_string is not None:
-                    f.write(csv_string)
+                f.write(csv_string)
             if usage == "train":
                 num_train += 1
             else:
