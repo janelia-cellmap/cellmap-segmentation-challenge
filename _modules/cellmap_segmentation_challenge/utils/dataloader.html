@@ -456,11 +456,8 @@ document.write(`
     <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="n">classes</span><span class="p">,</span>
         <span class="s2">&quot;batch_size&quot;</span><span class="p">:</span> <span class="n">batch_size</span><span class="p">,</span>
-        <span class="s2">&quot;sampler&quot;</span><span class="p">:</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
-            <span class="n">datasplit</span><span class="o">.</span><span class="n">train_datasets_combined</span><span class="o">.</span><span class="n">get_subset_random_sampler</span><span class="p">,</span>
-            <span class="n">num_samples</span><span class="o">=</span><span class="n">iterations_per_epoch</span> <span class="o">*</span> <span class="n">batch_size</span><span class="p">,</span>
-            <span class="n">weighted</span><span class="o">=</span><span class="n">weighted_sampler</span><span class="p">,</span>
-        <span class="p">),</span>
+        <span class="s2">&quot;iterations_per_epoch&quot;</span><span class="p">:</span> <span class="n">iterations_per_epoch</span><span class="p">,</span>
+        <span class="s2">&quot;weighted_sampler&quot;</span><span class="p">:</span> <span class="n">weighted_sampler</span><span class="p">,</span>
         <span class="s2">&quot;device&quot;</span><span class="p">:</span> <span class="n">device</span><span class="p">,</span>
         <span class="s2">&quot;is_train&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">}</span>
