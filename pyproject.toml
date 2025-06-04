@@ -29,7 +29,7 @@ dependencies = [
   "tensorboard",
   "tensorboardX",
   "click>=8, <9",
-  "cellmap-data@git+https://github.com/janelia-cellmap/cellmap-data",
+  "cellmap-data",
   "tqdm",
   "numcodecs < 0.16.0",
   "zarr < 3.0.0",
