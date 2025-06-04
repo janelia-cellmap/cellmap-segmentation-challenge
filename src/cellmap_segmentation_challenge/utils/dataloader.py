@@ -169,11 +169,8 @@ def get_dataloader(
     _kwargs = {
         "classes": classes,
         "batch_size": batch_size,
-        "sampler": functools.partial(
-            datasplit.train_datasets_combined.get_subset_random_sampler,
-            num_samples=iterations_per_epoch * batch_size,
-            weighted=weighted_sampler,
-        ),
+        "iterations_per_epoch": iterations_per_epoch,
+        "weighted_sampler": weighted_sampler,
         "device": device,
         "is_train": True,
     }
