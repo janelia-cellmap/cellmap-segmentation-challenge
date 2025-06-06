@@ -176,3 +176,28 @@ def get_latest_checkpoint_epoch(model_save_path):
 
     # If there are no checkpoints, return None
     return None
+
+
+def newest_wildcard_path(search_path):
+    """
+    Get the newest file matching a wildcard search path.
+
+    Parameters
+    ----------
+    search_path : str
+        The path to search for files.
+
+    Returns
+    -------
+    str or None
+        The path to the newest file, or None if no files are found.
+    """
+    # Check if there are any files matching the search path
+    files = glob(search_path)
+    if files:
+        # Sort by modification time and get the latest
+        files.sort(key=os.path.getmtime, reverse=True)
+        return files[0]
+
+    # If no files are found, return None
+    return None
