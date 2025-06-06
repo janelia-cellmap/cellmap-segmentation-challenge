@@ -473,6 +473,34 @@ document.write(`
     <span class="c1"># If there are no checkpoints, return None</span>
     <span class="k">return</span> <span class="kc">None</span></div>
 
+
+
+<div class="viewcode-block" id="newest_wildcard_path">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.model_load.newest_wildcard_path">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">newest_wildcard_path</span><span class="p">(</span><span class="n">search_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the newest file matching a wildcard search path.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    search_path : str</span>
+<span class="sd">        The path to search for files.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str or None</span>
+<span class="sd">        The path to the newest file, or None if no files are found.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Check if there are any files matching the search path</span>
+    <span class="n">files</span> <span class="o">=</span> <span class="n">glob</span><span class="p">(</span><span class="n">search_path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">files</span><span class="p">:</span>
+        <span class="c1"># Sort by modification time and get the latest</span>
+        <span class="n">files</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># If no files are found, return None</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
 </pre></div>
 
                 </article>
