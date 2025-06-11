@@ -356,6 +356,7 @@ document.write(`
 <span class="sd">        - scheduler_kwargs: Dictionary of keyword arguments to pass to the scheduler constructor. Default is {}. If `scheduler` instantiation is provided, this will be ignored.</span>
 <span class="sd">        - filter_by_scale: Whether to filter the data by scale. If True, only data with a scale less than or equal to the `input_array_info` highest resolution will be included in the datasplit. If set to a scalar value, data will be filtered for that isotropic resolution - anisotropic can be specified with a sequence of scalars. Default is False (no filtering).</span>
 <span class="sd">        - gradient_accumulation_steps: Number of gradient accumulation steps to use. Default is 1. This can be used to simulate larger batch sizes without increasing memory usage.</span>
+<span class="sd">        - dataloader_kwargs: Additional keyword arguments to pass to the CellMapDataLoader. Default is {}.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -552,6 +553,7 @@ document.write(`
         <span class="n">train_raw_value_transforms</span><span class="o">=</span><span class="n">train_raw_value_transforms</span><span class="p">,</span>
         <span class="n">val_raw_value_transforms</span><span class="o">=</span><span class="n">val_raw_value_transforms</span><span class="p">,</span>
         <span class="n">target_value_transforms</span><span class="o">=</span><span class="n">target_value_transforms</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dataloader_kwargs&quot;</span><span class="p">,</span> <span class="p">{}),</span>
     <span class="p">)</span>
 
     <span class="c1"># %% If no model is provided, create a new model</span>
@@ -612,6 +614,14 @@ document.write(`
     <span class="c1"># %% Move model to device</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
 
+    <span class="c1"># Deduce number of spatial dimensions</span>
+    <span class="k">if</span> <span class="s2">&quot;shape&quot;</span> <span class="ow">in</span> <span class="n">target_array_info</span><span class="p">:</span>
+        <span class="n">spatial_dims</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">s</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">target_array_info</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">]])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">spatial_dims</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">s</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">target_array_info</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;shape&quot;</span><span class="p">]]</span>
+        <span class="p">)</span>
+
     <span class="c1"># Use custom loss function wrapper that handles NaN values in the target. This works with any PyTorch loss function</span>
     <span class="k">if</span> <span class="n">weight_loss</span><span class="p">:</span>
         <span class="n">pos_weight</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">train_loader</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">class_weights</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
@@ -619,7 +629,7 @@ document.write(`
 
         <span class="c1"># Adjust weight for data dimensions</span>
         <span class="n">pos_weight</span> <span class="o">=</span> <span class="n">pos_weight</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
-        <span class="k">if</span> <span class="nb">all</span><span class="p">([</span><span class="n">s</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">target_array_info</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">]]):</span>
+        <span class="k">if</span> <span class="n">spatial_dims</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
             <span class="n">pos_weight</span> <span class="o">=</span> <span class="n">pos_weight</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
         <span class="n">criterion_kwargs</span><span class="p">[</span><span class="s2">&quot;pos_weight&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pos_weight</span>
     <span class="n">criterion</span> <span class="o">=</span> <span class="n">CellMapLossWrapper</span><span class="p">(</span><span class="n">criterion</span><span class="p">,</span> <span class="o">**</span><span class="n">criterion_kwargs</span><span class="p">)</span>
