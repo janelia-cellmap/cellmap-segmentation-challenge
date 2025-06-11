@@ -597,6 +597,8 @@ document.write(`
             <span class="n">format_string</span><span class="p">(</span><span class="n">logs_save_path</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;model_name&quot;</span><span class="p">:</span> <span class="n">model_to_load</span><span class="p">}),</span>
             <span class="n">format_string</span><span class="p">(</span><span class="n">model_save_path</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;model_name&quot;</span><span class="p">:</span> <span class="n">model_to_load</span><span class="p">}),</span>
             <span class="n">model</span><span class="p">,</span>
+            <span class="n">low_is_best</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;low_is_best&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+            <span class="n">smoothing_window</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;smoothing_window&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
         <span class="p">)</span>
     <span class="k">if</span> <span class="n">checkpoint_epoch</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">checkpoint_epoch</span> <span class="o">=</span> <span class="mi">0</span>

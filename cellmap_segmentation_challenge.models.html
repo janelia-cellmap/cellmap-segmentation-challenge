@@ -498,7 +498,7 @@ document.write(`
 
 <dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.models.model_load.load_best_val">
-<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.model_load.</span></span><span class="sig-name descname"><span class="pre">load_best_val</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logs_save_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_save_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">low_is_best</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/model_load.html#load_best_val"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.model_load.load_best_val" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.models.model_load.</span></span><span class="sig-name descname"><span class="pre">load_best_val</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logs_save_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_save_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">low_is_best</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing_window</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/models/model_load.html#load_best_val"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.models.model_load.load_best_val" title="Link to this definition">#</a></dt>
 <dd><p>Load the model weights with the best validation score from a directory into an existing model object in place.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -507,6 +507,7 @@ document.write(`
 <li><p><strong>model_save_path</strong> (<em>str</em>) – The path to the model checkpoints.</p></li>
 <li><p><strong>model</strong> (<em>torch.nn.Module</em>) – The model to load the checkpoint into.</p></li>
 <li><p><strong>low_is_best</strong> (<em>bool</em>) – Whether a lower validation score is better.</p></li>
+<li><p><strong>smoothing_window</strong> (<em>int</em>) – The window size for moving average smoothing of validation scores (default: 1).</p></li>
 </ul>
 </dd>
 </dl>

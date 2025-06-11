@@ -341,7 +341,9 @@ document.write(`
 
 <div class="viewcode-block" id="load_best_val">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.model_load.load_best_val">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">load_best_val</span><span class="p">(</span><span class="n">logs_save_path</span><span class="p">,</span> <span class="n">model_save_path</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">low_is_best</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_best_val</span><span class="p">(</span>
+    <span class="n">logs_save_path</span><span class="p">,</span> <span class="n">model_save_path</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">low_is_best</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">smoothing_window</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Load the model weights with the best validation score from a directory into an existing model object in place.</span>
 
@@ -355,6 +357,8 @@ document.write(`
 <span class="sd">        The model to load the checkpoint into.</span>
 <span class="sd">    low_is_best : bool</span>
 <span class="sd">        Whether a lower validation score is better.</span>
+<span class="sd">    smoothing_window : int</span>
+<span class="sd">        The window size for moving average smoothing of validation scores (default: 1).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Load the event file</span>
     <span class="k">try</span><span class="p">:</span>
@@ -371,11 +375,21 @@ document.write(`
         <span class="n">events</span> <span class="o">=</span> <span class="n">event_acc</span><span class="o">.</span><span class="n">Scalars</span><span class="p">(</span><span class="s2">&quot;validation&quot;</span><span class="p">)</span>
         <span class="n">scores</span> <span class="o">=</span> <span class="p">[</span><span class="n">event</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">events</span><span class="p">]</span>
 
+        <span class="c1"># Compute smoothed scores</span>
+        <span class="n">scores_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">smoothing_window</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;smoothing_window must be at least 1&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">smoothing_window</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">window</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">smoothing_window</span><span class="p">)</span> <span class="o">/</span> <span class="n">smoothing_window</span>
+            <span class="n">smoothed_scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">scores_array</span><span class="p">,</span> <span class="n">window</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">smoothed_scores</span> <span class="o">=</span> <span class="n">scores_array</span>
+
         <span class="c1"># Find the best score</span>
         <span class="k">if</span> <span class="n">low_is_best</span><span class="p">:</span>
-            <span class="n">best_epoch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+            <span class="n">best_epoch</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">smoothed_scores</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">best_epoch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+            <span class="n">best_epoch</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">smoothed_scores</span><span class="p">))</span>
 
         <span class="c1"># Load the model with the best validation score</span>
         <span class="n">checkpoint_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">model_save_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">epoch</span><span class="o">=</span><span class="n">best_epoch</span><span class="p">))</span><span class="o">.</span><span class="n">path</span>
