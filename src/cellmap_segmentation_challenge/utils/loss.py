@@ -39,8 +39,13 @@ class CellMapLossWrapper(torch.nn.modules.loss._Loss):
     ):
         if isinstance(targets, dict):
             loss = 0
-            for key in targets.keys():
-                loss += self.calc_loss(outputs[key], targets[key])
+            if isinstance(outputs, dict):
+                for key, target in targets.items():
+                    loss += self.calc_loss(outputs[key], target)
+            else:
+                # Assumes outputs is a list or tuple of tensors aligned with targets
+                for i, target in enumerate(targets.values()):
+                    loss += self.calc_loss(outputs[i], target)
             loss /= len(targets)
         else:
             loss = self.calc_loss(outputs, targets)  # type: ignore
