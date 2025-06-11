@@ -69,6 +69,7 @@ def train(config_path: str):
         - scheduler_kwargs: Dictionary of keyword arguments to pass to the scheduler constructor. Default is {}. If `scheduler` instantiation is provided, this will be ignored.
         - filter_by_scale: Whether to filter the data by scale. If True, only data with a scale less than or equal to the `input_array_info` highest resolution will be included in the datasplit. If set to a scalar value, data will be filtered for that isotropic resolution - anisotropic can be specified with a sequence of scalars. Default is False (no filtering).
         - gradient_accumulation_steps: Number of gradient accumulation steps to use. Default is 1. This can be used to simulate larger batch sizes without increasing memory usage.
+        - dataloader_kwargs: Additional keyword arguments to pass to the CellMapDataLoader. Default is {}.
 
     Returns
     -------
@@ -265,6 +266,7 @@ def train(config_path: str):
         train_raw_value_transforms=train_raw_value_transforms,
         val_raw_value_transforms=val_raw_value_transforms,
         target_value_transforms=target_value_transforms,
+        **config.get("dataloader_kwargs", {}),
     )
 
     # %% If no model is provided, create a new model
@@ -325,6 +327,14 @@ def train(config_path: str):
     # %% Move model to device
     model = model.to(device)
 
+    # Deduce number of spatial dimensions
+    if "shape" in target_array_info:
+        spatial_dims = sum([s > 1 for s in target_array_info["shape"]])
+    else:
+        spatial_dims = sum(
+            [s > 1 for s in list(target_array_info.values())[0]["shape"]]
+        )
+
     # Use custom loss function wrapper that handles NaN values in the target. This works with any PyTorch loss function
     if weight_loss:
         pos_weight = list(train_loader.dataset.class_weights.values())
@@ -332,7 +342,7 @@ def train(config_path: str):
 
         # Adjust weight for data dimensions
         pos_weight = pos_weight[:, None, None]
-        if all([s > 1 for s in target_array_info["shape"]]):
+        if spatial_dims == 3:
             pos_weight = pos_weight[..., None]
         criterion_kwargs["pos_weight"] = pos_weight
     criterion = CellMapLossWrapper(criterion, **criterion_kwargs)
