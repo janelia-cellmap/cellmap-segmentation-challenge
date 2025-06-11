@@ -310,6 +310,8 @@ def train(config_path: str):
             format_string(logs_save_path, {"model_name": model_to_load}),
             format_string(model_save_path, {"model_name": model_to_load}),
             model,
+            low_is_best=config.get("low_is_best", True),
+            smoothing_window=config.get("smoothing_window", 1),
         )
     if checkpoint_epoch is None:
         checkpoint_epoch = 0

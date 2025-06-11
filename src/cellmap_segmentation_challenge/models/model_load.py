@@ -51,7 +51,9 @@ def load_latest(search_path, model):
     return None
 
 
-def load_best_val(logs_save_path, model_save_path, model, low_is_best=True):
+def load_best_val(
+    logs_save_path, model_save_path, model, low_is_best=True, smoothing_window: int = 1
+):
     """
     Load the model weights with the best validation score from a directory into an existing model object in place.
 
@@ -65,6 +67,8 @@ def load_best_val(logs_save_path, model_save_path, model, low_is_best=True):
         The model to load the checkpoint into.
     low_is_best : bool
         Whether a lower validation score is better.
+    smoothing_window : int
+        The window size for moving average smoothing of validation scores (default: 1).
     """
     # Load the event file
     try:
@@ -81,11 +85,21 @@ def load_best_val(logs_save_path, model_save_path, model, low_is_best=True):
         events = event_acc.Scalars("validation")
         scores = [event.value for event in events]
 
+        # Compute smoothed scores
+        scores_array = np.array(scores)
+        if smoothing_window < 1:
+            raise ValueError("smoothing_window must be at least 1")
+        elif smoothing_window > 1:
+            window = np.ones(smoothing_window) / smoothing_window
+            smoothed_scores = np.convolve(scores_array, window, mode="same")
+        else:
+            smoothed_scores = scores_array
+
         # Find the best score
         if low_is_best:
-            best_epoch = np.argmin(scores)
+            best_epoch = int(np.argmin(smoothed_scores))
         else:
-            best_epoch = np.argmax(scores)
+            best_epoch = int(np.argmax(smoothed_scores))
 
         # Load the model with the best validation score
         checkpoint_path = UPath(model_save_path.format(epoch=best_epoch)).path
