@@ -1,0 +1,650 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cellmap_segmentation_challenge.predict &#8212; CellMap Segmentation Challenge</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=15603566" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/cellmap_segmentation_challenge/predict';</script>
+    <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/CellMapLogo.png" class="logo__image only-light" alt="CellMap Segmentation Challenge - Home"/>
+    <script>document.write(`<img src="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/CellMapLogo.png" class="logo__image only-dark" alt="CellMap Segmentation Challenge - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">CellMap Segmentation Challenge</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Data:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../cellmap-schemas.html">CellMap Schemas</a></li>
+
+
+<li class="toctree-l1"><a class="reference internal" href="../../available_data.html">Available Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../annotation_classes.html">Annotation Classes</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Train:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../dataloader.html">Creating a CellMap Data PyTorch Dataloader</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../load_model_weights.html">Loading a Pretrained Model Checkpoint</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Evaluation:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../submission_data_format.html">Submission Data Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../evaluation_resampling.html">Evaluation Resampling</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Visualization:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../visualization.html">Visualization</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for cellmap_segmentation_challenge.predict</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">glob</span><span class="w"> </span><span class="kn">import</span> <span class="n">glob</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torchvision.transforms.v2</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">T</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_data</span><span class="w"> </span><span class="kn">import</span> <span class="n">CellMapDatasetWriter</span><span class="p">,</span> <span class="n">CellMapImage</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_data.transforms.augment</span><span class="w"> </span><span class="kn">import</span> <span class="n">NaNtoNum</span><span class="p">,</span> <span class="n">Normalize</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">upath</span><span class="w"> </span><span class="kn">import</span> <span class="n">UPath</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">CROP_NAME</span><span class="p">,</span> <span class="n">PREDICTIONS_PATH</span><span class="p">,</span> <span class="n">RAW_NAME</span><span class="p">,</span> <span class="n">SEARCH_PATH</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_model</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_safe_config</span><span class="p">,</span> <span class="n">get_test_crops</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils.datasplit</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_formatted_fields</span><span class="p">,</span> <span class="n">get_raw_path</span>
+
+
+<div class="viewcode-block" id="predict_orthoplanes">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.predict.predict_orthoplanes">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">predict_orthoplanes</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">dataset_writer_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span>
+<span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Predicting orthogonal planes.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Make a temporary prediction for each axis</span>
+    <span class="n">tmp_dir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Temporary directory for predictions: </span><span class="si">{</span><span class="n">tmp_dir</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+        <span class="n">temp_kwargs</span> <span class="o">=</span> <span class="n">dataset_writer_kwargs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">temp_kwargs</span><span class="p">[</span><span class="s2">&quot;target_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">tmp_dir</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;output.zarr&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">_predict</span><span class="p">(</span>
+            <span class="n">model</span><span class="p">,</span>
+            <span class="n">temp_kwargs</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Get dataset writer for the average of predictions from x, y, and z orthogonal planes</span>
+    <span class="c1"># TODO: Skip loading raw data</span>
+    <span class="n">dataset_writer</span> <span class="o">=</span> <span class="n">CellMapDatasetWriter</span><span class="p">(</span><span class="o">**</span><span class="n">dataset_writer_kwargs</span><span class="p">)</span>
+
+    <span class="c1"># Load the images for the individual predictions</span>
+    <span class="n">single_axis_images</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">array_name</span><span class="p">:</span> <span class="p">{</span>
+            <span class="n">label</span><span class="p">:</span> <span class="p">[</span>
+                <span class="n">CellMapImage</span><span class="p">(</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_dir</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;output.zarr&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">axis</span><span class="p">),</span> <span class="n">label</span><span class="p">),</span>
+                    <span class="n">target_class</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+                    <span class="n">target_scale</span><span class="o">=</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">],</span>
+                    <span class="n">target_voxel_shape</span><span class="o">=</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">],</span>
+                    <span class="n">pad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">pad_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            <span class="p">]</span>
+            <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">dataset_writer_kwargs</span><span class="p">[</span><span class="s2">&quot;classes&quot;</span><span class="p">]</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">array_name</span><span class="p">,</span> <span class="n">array_info</span> <span class="ow">in</span> <span class="n">dataset_writer_kwargs</span><span class="p">[</span><span class="s2">&quot;target_arrays&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Combine the predictions from the x, y, and z orthogonal planes</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Combining predictions.&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">dataset_writer</span><span class="o">.</span><span class="n">loader</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">),</span> <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="c1"># For each class, get the predictions from the x, y, and z orthogonal planes</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">array_name</span><span class="p">,</span> <span class="n">images</span> <span class="ow">in</span> <span class="n">single_axis_images</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">outputs</span><span class="p">[</span><span class="n">array_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">dataset_writer_kwargs</span><span class="p">[</span><span class="s2">&quot;classes&quot;</span><span class="p">]:</span>
+                <span class="n">outputs</span><span class="p">[</span><span class="n">array_name</span><span class="p">][</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;idx&quot;</span><span class="p">]:</span>
+                    <span class="n">average_prediction</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">images</span><span class="p">[</span><span class="n">label</span><span class="p">]:</span>
+                        <span class="n">average_prediction</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">image</span><span class="p">[</span><span class="n">dataset_writer</span><span class="o">.</span><span class="n">get_center</span><span class="p">(</span><span class="n">idx</span><span class="p">)])</span>
+                    <span class="n">average_prediction</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">average_prediction</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="n">outputs</span><span class="p">[</span><span class="n">array_name</span><span class="p">][</span><span class="n">label</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">average_prediction</span><span class="p">)</span>
+                <span class="n">outputs</span><span class="p">[</span><span class="n">array_name</span><span class="p">][</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">outputs</span><span class="p">[</span><span class="n">array_name</span><span class="p">][</span><span class="n">label</span><span class="p">])</span>
+
+        <span class="c1"># Save the outputs</span>
+        <span class="n">dataset_writer</span><span class="p">[</span><span class="n">batch</span><span class="p">[</span><span class="s2">&quot;idx&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">outputs</span>
+
+    <span class="n">tmp_dir</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_predict</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">dataset_writer_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Predicts the output of a model on a large dataset by splitting it into blocks and predicting each block separately.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model : torch.nn.Module</span>
+<span class="sd">        The model to use for prediction.</span>
+<span class="sd">    dataset_writer_kwargs : dict[str, Any]</span>
+<span class="sd">        A dictionary containing the arguments for the dataset writer.</span>
+<span class="sd">    batch_size : int</span>
+<span class="sd">        The batch size to use for prediction</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">value_transforms</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">Compose</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">Normalize</span><span class="p">(),</span>
+            <span class="n">T</span><span class="o">.</span><span class="n">ToDtype</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+            <span class="n">NaNtoNum</span><span class="p">({</span><span class="s2">&quot;nan&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;posinf&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;neginf&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}),</span>
+        <span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="n">dataset_writer</span> <span class="o">=</span> <span class="n">CellMapDatasetWriter</span><span class="p">(</span>
+        <span class="o">**</span><span class="n">dataset_writer_kwargs</span><span class="p">,</span> <span class="n">raw_value_transforms</span><span class="o">=</span><span class="n">value_transforms</span>
+    <span class="p">)</span>
+    <span class="n">dataloader</span> <span class="o">=</span> <span class="n">dataset_writer</span><span class="o">.</span><span class="n">loader</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">dataloader</span><span class="p">,</span> <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="c1"># Get the inputs and outputs</span>
+            <span class="n">inputs</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;input&quot;</span><span class="p">]</span>
+            <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+            <span class="n">outputs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)}</span>
+
+            <span class="c1"># Save the outputs</span>
+            <span class="n">dataset_writer</span><span class="p">[</span><span class="n">batch</span><span class="p">[</span><span class="s2">&quot;idx&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">outputs</span>
+
+
+<div class="viewcode-block" id="predict">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.predict.predict">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span>
+    <span class="n">config_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">crops</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">PREDICTIONS_PATH</span><span class="p">,</span>
+    <span class="n">do_orthoplanes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">search_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">SEARCH_PATH</span><span class="p">,</span>
+    <span class="n">raw_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">RAW_NAME</span><span class="p">,</span>
+    <span class="n">crop_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">CROP_NAME</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given a model configuration file and list of crop numbers, predicts the output of a model on a large dataset by splitting it into blocks and predicting each block separately.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    config_path : str</span>
+<span class="sd">        The path to the model configuration file. This can be the same as the config file used for training.</span>
+<span class="sd">    crops: str, optional</span>
+<span class="sd">        A comma-separated list of crop numbers to predict on, or &quot;test&quot; to predict on the entire test set. Default is &quot;test&quot;.</span>
+<span class="sd">    output_path: str, optional</span>
+<span class="sd">        The path to save the output predictions to, formatted as a string with a placeholders for the dataset, crop number, and label. Default is PREDICTIONS_PATH set in `cellmap-segmentation/config.py`.</span>
+<span class="sd">    do_orthoplanes: bool, optional</span>
+<span class="sd">        Whether to compute the average of predictions from x, y, and z orthogonal planes for the full 3D volume. This is sometimes called 2.5D predictions. It expects a model that yields 2D outputs. Similarly, it expects the input shape to the model to be 2D. Default is True for 2D models.</span>
+<span class="sd">    overwrite: bool, optional</span>
+<span class="sd">        Whether to overwrite the output dataset if it already exists. Default is False.</span>
+<span class="sd">    search_path: str, optional</span>
+<span class="sd">        The path to search for the raw dataset, with placeholders for dataset and name. Default is SEARCH_PATH set in `cellmap-segmentation/config.py`.</span>
+<span class="sd">    raw_name: str, optional</span>
+<span class="sd">        The name of the raw dataset. Default is RAW_NAME set in `cellmap-segmentation/config.py`.</span>
+<span class="sd">    crop_name: str, optional</span>
+<span class="sd">        The name of the crop dataset with placeholders for crop and label. Default is CROP_NAME set in `cellmap-segmentation/config.py`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">load_safe_config</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span>
+    <span class="n">classes</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">classes</span>
+    <span class="n">batch_size</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;batch_size&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="n">input_array_info</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span>
+        <span class="n">config</span><span class="p">,</span> <span class="s2">&quot;input_array_info&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span> <span class="s2">&quot;scale&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">)}</span>
+    <span class="p">)</span>
+    <span class="n">target_array_info</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;target_array_info&quot;</span><span class="p">,</span> <span class="n">input_array_info</span><span class="p">)</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">model</span>
+
+    <span class="c1"># %% Check that the GPU is available</span>
+    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;device&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">device</span>
+    <span class="k">elif</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span>
+    <span class="k">elif</span> <span class="n">torch</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">mps</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;mps&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cpu&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Prediction device: </span><span class="si">{</span><span class="n">device</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># %% Move model to device</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+    <span class="c1"># Optionally, load a pre-trained model</span>
+    <span class="n">checkpoint_epoch</span> <span class="o">=</span> <span class="n">get_model</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">checkpoint_epoch</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded model checkpoint from epoch: </span><span class="si">{</span><span class="n">checkpoint_epoch</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">do_orthoplanes</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">([</span><span class="n">s</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">input_array_info</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">]]):</span>
+        <span class="c1"># If the model is a 2D model, compute the average of predictions from x, y, and z orthogonal planes</span>
+        <span class="n">predict_func</span> <span class="o">=</span> <span class="n">predict_orthoplanes</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">predict_func</span> <span class="o">=</span> <span class="n">_predict</span>
+
+    <span class="n">input_arrays</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;input&quot;</span><span class="p">:</span> <span class="n">input_array_info</span><span class="p">}</span>
+    <span class="n">target_arrays</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="n">target_array_info</span><span class="p">}</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="n">input_arrays</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">target_arrays</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="p">),</span> <span class="s2">&quot;No array info provided&quot;</span>
+
+    <span class="c1"># Get the crops to predict on</span>
+    <span class="k">if</span> <span class="n">crops</span> <span class="o">==</span> <span class="s2">&quot;test&quot;</span><span class="p">:</span>
+        <span class="n">test_crops</span> <span class="o">=</span> <span class="n">get_test_crops</span><span class="p">()</span>
+        <span class="n">dataset_writers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">crop</span> <span class="ow">in</span> <span class="n">test_crops</span><span class="p">:</span>
+            <span class="c1"># Get path to raw dataset</span>
+            <span class="n">raw_path</span> <span class="o">=</span> <span class="n">search_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">raw_name</span><span class="p">)</span>
+
+            <span class="c1"># Get the boundaries of the crop</span>
+            <span class="n">target_bounds</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="n">axis</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="n">crop</span><span class="o">.</span><span class="n">gt_source</span><span class="o">.</span><span class="n">translation</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">crop</span><span class="o">.</span><span class="n">gt_source</span><span class="o">.</span><span class="n">translation</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                        <span class="o">+</span> <span class="n">crop</span><span class="o">.</span><span class="n">gt_source</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">crop</span><span class="o">.</span><span class="n">gt_source</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                    <span class="p">]</span>
+                    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">axis</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="s2">&quot;zyx&quot;</span><span class="p">)</span>
+                <span class="p">},</span>
+            <span class="p">}</span>
+
+            <span class="c1"># Create the writer</span>
+            <span class="n">dataset_writers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;raw_path&quot;</span><span class="p">:</span> <span class="n">raw_path</span><span class="p">,</span>
+                    <span class="s2">&quot;target_path&quot;</span><span class="p">:</span> <span class="n">output_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">crop</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="n">dataset</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span>
+                    <span class="p">),</span>
+                    <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="n">classes</span><span class="p">,</span>
+                    <span class="s2">&quot;input_arrays&quot;</span><span class="p">:</span> <span class="n">input_arrays</span><span class="p">,</span>
+                    <span class="s2">&quot;target_arrays&quot;</span><span class="p">:</span> <span class="n">target_arrays</span><span class="p">,</span>
+                    <span class="s2">&quot;target_bounds&quot;</span><span class="p">:</span> <span class="n">target_bounds</span><span class="p">,</span>
+                    <span class="s2">&quot;overwrite&quot;</span><span class="p">:</span> <span class="n">overwrite</span><span class="p">,</span>
+                    <span class="s2">&quot;device&quot;</span><span class="p">:</span> <span class="n">device</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">crop_list</span> <span class="o">=</span> <span class="n">crops</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+        <span class="n">crop_paths</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">crop</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">crop_list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">crop</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">crop</span><span class="o">.</span><span class="n">isnumeric</span><span class="p">())</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">crop</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="n">crop</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">crop_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span>  <span class="c1"># type: ignore</span>
+
+            <span class="n">crop_paths</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                <span class="n">glob</span><span class="p">(</span>
+                    <span class="n">search_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">crop_name</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">crop</span><span class="o">=</span><span class="n">crop</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+                    <span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="n">dataset_writers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">crop</span><span class="p">,</span> <span class="n">crop_path</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">crop_list</span><span class="p">,</span> <span class="n">crop_paths</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
+            <span class="c1"># Get path to raw dataset</span>
+            <span class="n">raw_path</span> <span class="o">=</span> <span class="n">get_raw_path</span><span class="p">(</span><span class="n">crop_path</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Get the boundaries of the crop</span>
+            <span class="n">gt_images</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">array_name</span><span class="p">:</span> <span class="n">CellMapImage</span><span class="p">(</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">crop_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">classes</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                    <span class="n">target_class</span><span class="o">=</span><span class="n">classes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="n">target_scale</span><span class="o">=</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">],</span>
+                    <span class="n">target_voxel_shape</span><span class="o">=</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">],</span>
+                    <span class="n">pad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">pad_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">array_name</span><span class="p">,</span> <span class="n">array_info</span> <span class="ow">in</span> <span class="n">target_arrays</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">}</span>
+
+            <span class="n">target_bounds</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">array_name</span><span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">bounding_box</span>
+                <span class="k">for</span> <span class="n">array_name</span><span class="p">,</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">gt_images</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">}</span>
+
+            <span class="n">dataset</span> <span class="o">=</span> <span class="n">get_formatted_fields</span><span class="p">(</span><span class="n">raw_path</span><span class="p">,</span> <span class="n">search_path</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">{dataset}</span><span class="s2">&quot;</span><span class="p">])[</span>
+                <span class="s2">&quot;dataset&quot;</span>
+            <span class="p">]</span>
+
+            <span class="c1"># Create the writer</span>
+            <span class="n">dataset_writers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;raw_path&quot;</span><span class="p">:</span> <span class="n">raw_path</span><span class="p">,</span>
+                    <span class="s2">&quot;target_path&quot;</span><span class="p">:</span> <span class="n">output_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">crop</span><span class="o">=</span><span class="n">crop</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">),</span>
+                    <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="n">classes</span><span class="p">,</span>
+                    <span class="s2">&quot;input_arrays&quot;</span><span class="p">:</span> <span class="n">input_arrays</span><span class="p">,</span>
+                    <span class="s2">&quot;target_arrays&quot;</span><span class="p">:</span> <span class="n">target_arrays</span><span class="p">,</span>
+                    <span class="s2">&quot;target_bounds&quot;</span><span class="p">:</span> <span class="n">target_bounds</span><span class="p">,</span>
+                    <span class="s2">&quot;overwrite&quot;</span><span class="p">:</span> <span class="n">overwrite</span><span class="p">,</span>
+                    <span class="s2">&quot;device&quot;</span><span class="p">:</span> <span class="n">device</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">dataset_writer</span> <span class="ow">in</span> <span class="n">dataset_writers</span><span class="p">:</span>
+        <span class="n">predict_func</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">dataset_writer</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span></div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Jeff Rhoades, Emma Avetissian, Davis Vann Bennett, Marwan Zouinkhi
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2024, Jeff Rhoades, Emma Avetissian, Davis Vann Bennett, Marwan Zouinkhi.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
