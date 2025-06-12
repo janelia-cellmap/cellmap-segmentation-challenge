@@ -112,7 +112,11 @@ def load_best_val(
         low_is_best=low_is_best,
         smoothing_window=smoothing_window,
     )
-    if best_epoch is not None:
+    if best_epoch == 0:
+        print(
+            "Training did not improve the model, skipping loading best validation checkpoint"
+        )
+    elif best_epoch is not None:
         # Load the model with the best validation score
         checkpoint_path = UPath(model_save_path.format(epoch=best_epoch)).path
         checkpoint = torch.load(checkpoint_path, weights_only=True)
