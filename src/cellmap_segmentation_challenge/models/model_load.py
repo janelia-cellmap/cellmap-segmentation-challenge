@@ -9,7 +9,7 @@ from upath import UPath
 from cellmap_segmentation_challenge.utils import get_formatted_fields, format_string
 
 
-def load_model(config):
+def get_model(config):
     checkpoint_epoch = None
     model = config.model
     load_model = getattr(config, "load_model", "latest")
@@ -107,12 +107,48 @@ def load_best_val(
     smoothing_window : int
         The window size for moving average smoothing of validation scores (default: 1).
     """
+    best_epoch = get_best_val_epoch(
+        logs_save_path,
+        low_is_best=low_is_best,
+        smoothing_window=smoothing_window,
+    )
+    if best_epoch is not None:
+        # Load the model with the best validation score
+        checkpoint_path = UPath(model_save_path.format(epoch=best_epoch)).path
+        checkpoint = torch.load(checkpoint_path, weights_only=True)
+
+        try:
+            model.load_state_dict(checkpoint, strict=False)
+            print(f"Loaded best validation checkpoint from epoch: {best_epoch}")
+        except Exception as e:
+            print(f"Error loading checkpoint: {checkpoint_path}")
+            print(e)
+    return best_epoch
+
+
+def get_best_val_epoch(logs_save_path, low_is_best=True, smoothing_window: int = 1):
+    """
+    Get the epoch with the best validation score from tensorboard logs.
+
+    Parameters
+    ----------
+    logs_save_path : str
+        The path to the directory with the tensorboard logs.
+    low_is_best : bool
+        Whether a lower validation score is better.
+    smoothing_window : int
+        The window size for moving average smoothing of validation scores (default: 1).
+
+    Returns
+    -------
+    int or None
+        The epoch number with the best validation score, or None if not found.
+    """
     # Load the event file
     try:
-        print("Loading events files, may take a minute")
         event_acc = event_accumulator.EventAccumulator(logs_save_path)
         event_acc.Reload()
-    except FileNotFoundError:
+    except:
         print("No events file found, skipping")
         return None
 
@@ -123,70 +159,27 @@ def load_best_val(
         scores = [event.value for event in events]
 
         # Compute smoothed scores
-        scores_array = np.array(scores)
+        scores = torch.tensor(scores)
         if smoothing_window < 1:
             raise ValueError("smoothing_window must be at least 1")
         elif smoothing_window > 1:
-            window = np.ones(smoothing_window) / smoothing_window
-            smoothed_scores = np.convolve(scores_array, window, mode="same")
+            kernel = torch.ones((1, 1, smoothing_window)) / smoothing_window
+            scores = torch.nn.functional.pad(
+                scores.unsqueeze(0).unsqueeze(0),
+                (smoothing_window // 2, smoothing_window // 2),
+                mode="replicate",
+            )
+            smoothed_scores = torch.nn.functional.conv1d(
+                scores,
+                kernel,
+            ).squeeze()
         else:
-            smoothed_scores = scores_array
-
-        # Find the best score
-        if low_is_best:
-            best_epoch = int(np.argmin(smoothed_scores))
-        else:
-            best_epoch = int(np.argmax(smoothed_scores))
-
-        # Load the model with the best validation score
-        checkpoint_path = UPath(model_save_path.format(epoch=best_epoch)).path
-        checkpoint = torch.load(checkpoint_path, weights_only=True)
-
-        try:
-            model.load_state_dict(checkpoint, strict=False)
-            print(f"Loaded best validation checkpoint from epoch: {best_epoch}")
-            return best_epoch
-        except Exception as e:
-            print(f"Error loading checkpoint: {checkpoint_path}")
-            print(e)
-            return None
-    else:
-        print("No validation scores found, skipping")
-        return None
-
-
-def get_best_val_epoch(logs_save_path, low_is_best=True):
-    """
-    Get the epoch with the best validation score from tensorboard logs.
-
-    Parameters
-    ----------
-    logs_save_path : str
-        The path to the directory with the tensorboard logs.
-    low_is_best : bool
-        Whether a lower validation score is better.
-
-    Returns
-    -------
-    int or None
-        The epoch number with the best validation score, or None if not found.
-    """
-    try:
-        event_acc = event_accumulator.EventAccumulator(logs_save_path)
-        event_acc.Reload()
-    except:
-        print("No events file found, skipping")
-        return None
-
-    tags = event_acc.Tags()["scalars"]
-    if "validation" in tags:
-        events = event_acc.Scalars("validation")
-        scores = [event.value for event in events]
+            smoothed_scores = scores
 
         if low_is_best:
-            best_epoch = np.argmin(scores)
+            best_epoch = torch.argmin(smoothed_scores).item()
         else:
-            best_epoch = np.argmax(scores)
+            best_epoch = torch.argmax(smoothed_scores).item()
 
         return best_epoch
     else:
