@@ -9,6 +9,43 @@ from upath import UPath
 from cellmap_segmentation_challenge.utils import get_formatted_fields, format_string
 
 
+def load_model(config):
+    checkpoint_epoch = None
+    model = config.model
+    load_model = getattr(config, "load_model", "latest")
+    model_name = getattr(config, "model_name", "model")
+    model_to_load = getattr(config, "model_to_load", model_name)
+    base_experiment_path = getattr(config, "base_experiment_path", UPath("."))
+    model_save_path = getattr(
+        config,
+        "model_save_path",
+        (base_experiment_path / "checkpoints" / "{model_name}_{epoch}.pth").path,
+    )
+    logs_save_path = getattr(
+        config,
+        "logs_save_path",
+        (base_experiment_path / "tensorboard" / "{model_name}").path,
+    )
+    if load_model.lower() == "latest":
+        # Check to see if there are any checkpoints and if so load the latest one
+        checkpoint_epoch = load_latest(
+            format_string(model_save_path, {"model_name": model_to_load}),
+            model,
+        )
+    elif load_model.lower() == "best":
+        # Load the checkpoint from the epoch with the best validation score
+        checkpoint_epoch = load_best_val(
+            format_string(logs_save_path, {"model_name": model_to_load}),
+            format_string(model_save_path, {"model_name": model_to_load}),
+            model,
+            low_is_best=config.get("low_is_best", True),
+            smoothing_window=config.get("smoothing_window", 1),
+        )
+    if checkpoint_epoch is None:
+        checkpoint_epoch = 0
+    return checkpoint_epoch
+
+
 def load_latest(search_path, model):
     """
     Load the latest checkpoint from a directory into a model (in place).
