@@ -294,6 +294,46 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_segmentation_challenge.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_formatted_fields</span><span class="p">,</span> <span class="n">format_string</span>
 
 
+<div class="viewcode-block" id="load_model">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.model_load.load_model">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_model</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+    <span class="n">checkpoint_epoch</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">model</span>
+    <span class="n">load_model</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;load_model&quot;</span><span class="p">,</span> <span class="s2">&quot;latest&quot;</span><span class="p">)</span>
+    <span class="n">model_name</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;model_name&quot;</span><span class="p">,</span> <span class="s2">&quot;model&quot;</span><span class="p">)</span>
+    <span class="n">model_to_load</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;model_to_load&quot;</span><span class="p">,</span> <span class="n">model_name</span><span class="p">)</span>
+    <span class="n">base_experiment_path</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;base_experiment_path&quot;</span><span class="p">,</span> <span class="n">UPath</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">))</span>
+    <span class="n">model_save_path</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span>
+        <span class="n">config</span><span class="p">,</span>
+        <span class="s2">&quot;model_save_path&quot;</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">base_experiment_path</span> <span class="o">/</span> <span class="s2">&quot;checkpoints&quot;</span> <span class="o">/</span> <span class="s2">&quot;</span><span class="si">{model_name}</span><span class="s2">_</span><span class="si">{epoch}</span><span class="s2">.pth&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">logs_save_path</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span>
+        <span class="n">config</span><span class="p">,</span>
+        <span class="s2">&quot;logs_save_path&quot;</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">base_experiment_path</span> <span class="o">/</span> <span class="s2">&quot;tensorboard&quot;</span> <span class="o">/</span> <span class="s2">&quot;</span><span class="si">{model_name}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">load_model</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;latest&quot;</span><span class="p">:</span>
+        <span class="c1"># Check to see if there are any checkpoints and if so load the latest one</span>
+        <span class="n">checkpoint_epoch</span> <span class="o">=</span> <span class="n">load_latest</span><span class="p">(</span>
+            <span class="n">format_string</span><span class="p">(</span><span class="n">model_save_path</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;model_name&quot;</span><span class="p">:</span> <span class="n">model_to_load</span><span class="p">}),</span>
+            <span class="n">model</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">load_model</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;best&quot;</span><span class="p">:</span>
+        <span class="c1"># Load the checkpoint from the epoch with the best validation score</span>
+        <span class="n">checkpoint_epoch</span> <span class="o">=</span> <span class="n">load_best_val</span><span class="p">(</span>
+            <span class="n">format_string</span><span class="p">(</span><span class="n">logs_save_path</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;model_name&quot;</span><span class="p">:</span> <span class="n">model_to_load</span><span class="p">}),</span>
+            <span class="n">format_string</span><span class="p">(</span><span class="n">model_save_path</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;model_name&quot;</span><span class="p">:</span> <span class="n">model_to_load</span><span class="p">}),</span>
+            <span class="n">model</span><span class="p">,</span>
+            <span class="n">low_is_best</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;low_is_best&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+            <span class="n">smoothing_window</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;smoothing_window&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">checkpoint_epoch</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">checkpoint_epoch</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="n">checkpoint_epoch</span></div>
+
+
+
 <div class="viewcode-block" id="load_latest">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.model_load.load_latest">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">load_latest</span><span class="p">(</span><span class="n">search_path</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
