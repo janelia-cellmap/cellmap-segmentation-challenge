@@ -11,7 +11,7 @@ from tqdm import tqdm
 from upath import UPath
 
 from .config import CROP_NAME, PREDICTIONS_PATH, RAW_NAME, SEARCH_PATH
-from .models import load_best_val, load_latest
+from .models import get_model
 from .utils import load_safe_config, get_test_crops
 from .utils.datasplit import get_formatted_fields, get_raw_path
 
@@ -160,16 +160,7 @@ def predict(
         config, "input_array_info", {"shape": (1, 128, 128), "scale": (8, 8, 8)}
     )
     target_array_info = getattr(config, "target_array_info", input_array_info)
-    model_name = getattr(config, "model_name", "2d_unet")
-    model_to_load = getattr(config, "model_to_load", model_name)
     model = config.model
-    load_model = getattr(config, "load_model", "latest")
-    model_save_path = getattr(
-        config, "model_save_path", UPath("checkpoints/{model_name}_{epoch}.pth").path
-    )
-    logs_save_path = getattr(
-        config, "logs_save_path", UPath("tensorboard/{model_name}").path
-    )
 
     # %% Check that the GPU is available
     if getattr(config, "device", None) is not None:
@@ -186,18 +177,9 @@ def predict(
     model = model.to(device)
 
     # Optionally, load a pre-trained model
-    if load_model.lower() == "latest":
-        # Check to see if there are any checkpoints and if so load the latest one
-        # Use the command below for loading the latest model, otherwise comment it out
-        load_latest(model_save_path.format(epoch="*", model_name=model_to_load), model)
-    elif load_model.lower() == "best":
-        # Load the checkpoint with the best validation score
-        # Use the command below for loading the epoch with the best validation score, otherwise comment it out
-        load_best_val(
-            logs_save_path.format(model_name=model_to_load),
-            model_save_path.format(epoch="{epoch}", model_name=model_to_load),
-            model,
-        )
+    checkpoint_epoch = get_model(config)
+    if checkpoint_epoch is not None:
+        print(f"Loaded model checkpoint from epoch: {checkpoint_epoch}")
 
     if do_orthoplanes and any([s == 1 for s in input_array_info["shape"]]):
         # If the model is a 2D model, compute the average of predictions from x, y, and z orthogonal planes

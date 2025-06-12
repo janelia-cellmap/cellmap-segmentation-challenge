@@ -4,7 +4,7 @@ from .model_load import (
     get_latest_checkpoint_epoch,
     get_best_val_epoch,
     newest_wildcard_path,
-    load_model,
+    get_model,
 )
 from .resnet import ResNet
 from .unet_model_2D import UNet_2D

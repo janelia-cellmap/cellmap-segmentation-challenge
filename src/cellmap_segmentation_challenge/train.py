@@ -4,15 +4,15 @@ import time
 
 import numpy as np
 import torch
-from cellmap_data.utils import get_fig_dict
 import torchvision.transforms.v2 as T
+from cellmap_data.utils import get_fig_dict, longest_common_substring
 from cellmap_data.transforms.augment import NaNtoNum, Binarize, Normalize
 from tensorboardX import SummaryWriter
 from tqdm import tqdm
 from upath import UPath
 import matplotlib.pyplot as plt
 
-from .models import ResNet, UNet_2D, UNet_3D, ViTVNet, load_best_val, load_latest
+from .models import ResNet, UNet_2D, UNet_3D, ViTVNet, get_model
 from .utils import (
     CellMapLossWrapper,
     get_dataloader,
@@ -115,7 +115,6 @@ def train(config_path: str):
     model_to_load = getattr(config, "model_to_load", model_name)
     model_kwargs = getattr(config, "model_kwargs", {})
     model = getattr(config, "model", None)
-    load_model = getattr(config, "load_model", "latest")
     spatial_transforms = getattr(
         config,
         "spatial_transforms",
@@ -297,24 +296,7 @@ def train(config_path: str):
             )
 
     # Optionally, load a pre-trained model
-    checkpoint_epoch = None
-    if load_model.lower() == "latest":
-        # Check to see if there are any checkpoints and if so load the latest one
-        checkpoint_epoch = load_latest(
-            format_string(model_save_path, {"model_name": model_to_load}),
-            model,
-        )
-    elif load_model.lower() == "best":
-        # Load the checkpoint from the epoch with the best validation score
-        checkpoint_epoch = load_best_val(
-            format_string(logs_save_path, {"model_name": model_to_load}),
-            format_string(model_save_path, {"model_name": model_to_load}),
-            model,
-            low_is_best=config.get("low_is_best", True),
-            smoothing_window=config.get("smoothing_window", 1),
-        )
-    if checkpoint_epoch is None:
-        checkpoint_epoch = 0
+    checkpoint_epoch = get_model(config)
 
     # Create a variables for tracking iterations and offseting already completed epochs, if applicable
     epochs = np.arange(epochs) + 1
@@ -506,17 +488,38 @@ def train(config_path: str):
                 post_fix_dict["Validation"] = f"{val_score:.4f}"
 
         # Generate and save figures from the last batch of the validation to appear in tensorboard
-        # TODO: Make this more general rather than only taking the first key
         if isinstance(outputs, dict):
-            outputs = list(outputs.values())[0]
-        if isinstance(inputs, dict):
-            inputs = list(inputs.values())[0]
-        if isinstance(targets, dict):
-            targets = list(targets.values())[0]
-        figs = get_fig_dict(inputs, targets, outputs, classes)
-        for name, fig in figs.items():
-            writer.add_figure(name, fig, n_iter)
-            plt.close(fig)
+            outputs = list(outputs.values())
+        if len(input_keys) == len(target_keys) != 1:
+            # If the number of input and target keys is the same, assume they are paired
+            for i, (in_key, target_key) in enumerate(zip(input_keys, target_keys)):
+                figs = get_fig_dict(
+                    input_data=batch[in_key],
+                    target_data=batch[target_key],
+                    outputs=outputs[i],
+                    classes=classes,
+                )
+                array_name = longest_common_substring(in_key, target_key)
+                for name, fig in figs.items():
+                    writer.add_figure(f"{name}: {array_name}", fig, n_iter)
+                    plt.close(fig)
+
+        else:
+            # If the number of input and target keys is not the same, assume that only the first input and target keys match
+            if isinstance(outputs, list):
+                outputs = outputs[0]
+            if isinstance(inputs, dict):
+                inputs = list(inputs.values())[0]
+            elif isinstance(inputs, list):
+                inputs = inputs[0]
+            if isinstance(targets, dict):
+                targets = list(targets.values())[0]
+            elif isinstance(targets, list):
+                targets = targets[0]
+            figs = get_fig_dict(inputs, targets, outputs, classes)
+            for name, fig in figs.items():
+                writer.add_figure(name, fig, n_iter)
+                plt.close(fig)
 
         # Clear the GPU memory again
         torch.cuda.empty_cache()
