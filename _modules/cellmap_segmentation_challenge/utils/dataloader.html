@@ -296,9 +296,10 @@ document.write(`
 <div class="viewcode-block" id="get_dataloader">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.dataloader.get_dataloader">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_dataloader</span><span class="p">(</span>
-    <span class="n">datasplit_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">classes</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">datasplit_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;./datasplit.csv&quot;</span><span class="p">,</span>
+    <span class="n">classes</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="n">input_array_info</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">target_array_info</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">spatial_transforms</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -334,12 +335,14 @@ document.write(`
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
+<span class="sd">    config : Optional[Any]</span>
+<span class="sd">        Optional configuration object that can be used instead of the keyword arguments.</span>
 <span class="sd">    datasplit_path : str</span>
-<span class="sd">        Path to the datasplit file that defines the train/val split the dataloader should use.</span>
+<span class="sd">        Path to the datasplit file that defines the train/val split the dataloader should use. Default is &quot;./datasplit.csv&quot;.</span>
 <span class="sd">    classes : Sequence[str] | None</span>
-<span class="sd">        List of classes to segment. If None, assumes training on raw data.</span>
+<span class="sd">        List of classes to segment. If None, assumes training on raw data. Default is None.</span>
 <span class="sd">    batch_size : int</span>
-<span class="sd">        Batch size for the dataloader.</span>
+<span class="sd">        Batch size for the dataloader. Defaults to 1.</span>
 <span class="sd">    input_array_info : Optional[Mapping[str, Sequence[int | float]]]</span>
 <span class="sd">        Dictionary containing the shape and scale of the data to load for the input.</span>
 <span class="sd">    target_array_info : Optional[Mapping[str, Sequence[int | float]]]</span>
@@ -390,6 +393,31 @@ document.write(`
 <span class="sd">    tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader]</span>
 <span class="sd">        Tuple containing the train and validation dataloaders.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># If a config is provided, use it to override the default values</span>
+        <span class="n">datasplit_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;datasplit_path&quot;</span><span class="p">,</span> <span class="n">datasplit_path</span><span class="p">)</span>
+        <span class="n">classes</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;classes&quot;</span><span class="p">,</span> <span class="n">classes</span><span class="p">)</span>
+        <span class="n">batch_size</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s2">&quot;train_micro_batch_size_per_gpu&quot;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;batch_size&quot;</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">input_array_info</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;input_array_info&quot;</span><span class="p">,</span> <span class="n">input_array_info</span><span class="p">)</span>
+        <span class="n">target_array_info</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;target_array_info&quot;</span><span class="p">,</span> <span class="n">target_array_info</span><span class="p">)</span>
+        <span class="n">spatial_transforms</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;spatial_transforms&quot;</span><span class="p">,</span> <span class="n">spatial_transforms</span><span class="p">)</span>
+        <span class="n">target_value_transforms</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s2">&quot;target_value_transforms&quot;</span><span class="p">,</span> <span class="n">target_value_transforms</span>
+        <span class="p">)</span>
+        <span class="n">train_raw_value_transforms</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s2">&quot;train_raw_value_transforms&quot;</span><span class="p">,</span> <span class="n">train_raw_value_transforms</span>
+        <span class="p">)</span>
+        <span class="n">val_raw_value_transforms</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s2">&quot;val_raw_value_transforms&quot;</span><span class="p">,</span> <span class="n">val_raw_value_transforms</span>
+        <span class="p">)</span>
+        <span class="n">iterations_per_epoch</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;iterations_per_epoch&quot;</span><span class="p">,</span> <span class="n">iterations_per_epoch</span><span class="p">)</span>
+        <span class="n">random_validation</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;random_validation&quot;</span><span class="p">,</span> <span class="n">random_validation</span><span class="p">)</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;device&quot;</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+        <span class="n">use_mutual_exclusion</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;use_mutual_exclusion&quot;</span><span class="p">,</span> <span class="n">use_mutual_exclusion</span><span class="p">)</span>
+        <span class="n">weighted_sampler</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;weighted_sampler&quot;</span><span class="p">,</span> <span class="n">weighted_sampler</span><span class="p">)</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;kwargs&quot;</span><span class="p">,</span> <span class="p">{}))</span>
     <span class="c1"># If &quot;shape&quot; and &quot;scale&quot; are not top level keys in the array_info dict, then we can assume a full dictionary of input arrays are being passed in</span>
     <span class="k">if</span> <span class="p">(</span>
         <span class="s2">&quot;shape&quot;</span> <span class="ow">in</span> <span class="n">input_array_info</span>
