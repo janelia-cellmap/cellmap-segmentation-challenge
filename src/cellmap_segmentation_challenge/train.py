@@ -251,8 +251,8 @@ def train(config_path: str):
 
     # %% Download the data and make the dataloader
     train_loader, val_loader = get_dataloader(
-        datasplit_path,
-        classes,
+        datasplit_path=datasplit_path,
+        classes=classes,
         batch_size=batch_size,
         input_array_info=input_array_info,
         target_array_info=target_array_info,

@@ -9,9 +9,10 @@ from cellmap_segmentation_challenge.utils import get_class_relations
 
 
 def get_dataloader(
-    datasplit_path: str,
-    classes: Sequence[str] | None,
-    batch_size: int,
+    config: Optional[Any] = None,
+    datasplit_path: str = "./datasplit.csv",
+    classes: Sequence[str] | None = None,
+    batch_size: int = 1,
     input_array_info: Optional[Mapping[str, Sequence[int | float]]] = None,
     target_array_info: Optional[Mapping[str, Sequence[int | float]]] = None,
     spatial_transforms: Optional[Mapping[str, Any]] = None,
@@ -47,12 +48,14 @@ def get_dataloader(
 
     Parameters
     ----------
+    config : Optional[Any]
+        Optional configuration object that can be used instead of the keyword arguments.
     datasplit_path : str
-        Path to the datasplit file that defines the train/val split the dataloader should use.
+        Path to the datasplit file that defines the train/val split the dataloader should use. Default is "./datasplit.csv".
     classes : Sequence[str] | None
-        List of classes to segment. If None, assumes training on raw data.
+        List of classes to segment. If None, assumes training on raw data. Default is None.
     batch_size : int
-        Batch size for the dataloader.
+        Batch size for the dataloader. Defaults to 1.
     input_array_info : Optional[Mapping[str, Sequence[int | float]]]
         Dictionary containing the shape and scale of the data to load for the input.
     target_array_info : Optional[Mapping[str, Sequence[int | float]]]
@@ -103,6 +106,31 @@ def get_dataloader(
     tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader]
         Tuple containing the train and validation dataloaders.
     """
+    if config is not None:
+        # If a config is provided, use it to override the default values
+        datasplit_path = config.get("datasplit_path", datasplit_path)
+        classes = config.get("classes", classes)
+        batch_size = config.get(
+            "train_micro_batch_size_per_gpu", config.get("batch_size", batch_size)
+        )
+        input_array_info = config.get("input_array_info", input_array_info)
+        target_array_info = config.get("target_array_info", target_array_info)
+        spatial_transforms = config.get("spatial_transforms", spatial_transforms)
+        target_value_transforms = config.get(
+            "target_value_transforms", target_value_transforms
+        )
+        train_raw_value_transforms = config.get(
+            "train_raw_value_transforms", train_raw_value_transforms
+        )
+        val_raw_value_transforms = config.get(
+            "val_raw_value_transforms", val_raw_value_transforms
+        )
+        iterations_per_epoch = config.get("iterations_per_epoch", iterations_per_epoch)
+        random_validation = config.get("random_validation", random_validation)
+        device = config.get("device", device)
+        use_mutual_exclusion = config.get("use_mutual_exclusion", use_mutual_exclusion)
+        weighted_sampler = config.get("weighted_sampler", weighted_sampler)
+        kwargs.update(config.get("kwargs", {}))
     # If "shape" and "scale" are not top level keys in the array_info dict, then we can assume a full dictionary of input arrays are being passed in
     if (
         "shape" in input_array_info
