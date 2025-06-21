@@ -6,6 +6,11 @@ from typing import Any
 import torch
 import torchvision.transforms.v2 as T
 from cellmap_data import CellMapDatasetWriter, CellMapImage
+from cellmap_data.utils import (
+    array_has_singleton_dim,
+    is_array_2D,
+    permute_singleton_dimension,
+)
 from cellmap_data.transforms.augment import NaNtoNum, Normalize
 from tqdm import tqdm
 from upath import UPath
@@ -25,10 +30,18 @@ def predict_orthoplanes(
     tmp_dir = tempfile.TemporaryDirectory()
     print(f"Temporary directory for predictions: {tmp_dir.name}")
     for axis in range(3):
+        # Actually slice per axis by permuting singleton dimension
         temp_kwargs = dataset_writer_kwargs.copy()
         temp_kwargs["target_path"] = os.path.join(
             tmp_dir.name, "output.zarr", str(axis)
         )
+        # Permute input_arrays and target_arrays so singleton is at the current axis
+        input_arrays = {k: v.copy() for k, v in temp_kwargs["input_arrays"].items()}
+        target_arrays = {k: v.copy() for k, v in temp_kwargs["target_arrays"].items()}
+        permute_singleton_dimension(input_arrays, axis)
+        permute_singleton_dimension(target_arrays, axis)
+        temp_kwargs["input_arrays"] = input_arrays
+        temp_kwargs["target_arrays"] = target_arrays
         _predict(
             model,
             temp_kwargs,
@@ -181,7 +194,10 @@ def predict(
     if checkpoint_epoch is not None:
         print(f"Loaded model checkpoint from epoch: {checkpoint_epoch}")
 
-    if do_orthoplanes and any([s == 1 for s in input_array_info["shape"]]):
+    if do_orthoplanes and (
+        array_has_singleton_dim(input_array_info)
+        or any(is_array_2D(input_array_info, summary=False).values())
+    ):
         # If the model is a 2D model, compute the average of predictions from x, y, and z orthogonal planes
         predict_func = predict_orthoplanes
     else:
