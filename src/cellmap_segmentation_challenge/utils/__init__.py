@@ -5,7 +5,7 @@ __getattr__, __dir__, __all__ = lazy.attach(
     __name__,
     submod_attrs={
         "crops": [
-            "CropsRow",
+            "CropRow",
             "fetch_crop_manifest",
             "TestCropRow",
             "fetch_test_crop_manifest",
