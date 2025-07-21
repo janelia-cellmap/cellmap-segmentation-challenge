@@ -3,6 +3,7 @@ import importlib
 from importlib.machinery import SourceFileLoader
 import os
 import inspect
+import ast
 
 from upath import UPath
 
@@ -79,8 +80,21 @@ def load_safe_config(config_path, force_safe=os.getenv("FORCE_SAFE_CONFIG", Fals
     try:
         with open(config_path, "r") as config_file:
             code = config_file.read()
-            if "__file__" in code:
-                code = code.replace("__file__", f'"{config_path}"')
+            # Parse the code into an AST
+            tree = ast.parse(code)
+
+            # Define a node transformer to replace __file__ with the config path
+            class ReplaceFileNode(ast.NodeTransformer):
+                def visit_Name(self, node):
+                    if node.id == "__file__":
+                        return ast.Constant(value=str(config_path), kind=None)
+                    return node
+
+            # Transform the AST
+            transformer = ReplaceFileNode()
+            tree = transformer.visit(tree)
+            # Convert the modified AST back to source code
+            code = ast.unparse(tree)
             exec(code, config_namespace)
         # Extract the config object from the namespace
         config = Config(**config_namespace)
