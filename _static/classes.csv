@@ -36,7 +36,7 @@ ribo,34,,ribosomes,False,False
 cyto,35,,cytosol,False,True
 mt_in,36,,microtubule in,False,True
 nuc,37,20-21-22-23-24-25-26-27-28-29,nucleus,True,True
-vim,38,,vimentin,True,False
+vim,38,,vimentin,False,False
 glyco,39,,glycogen,False,False
 golgi,40,6-7,Golgi,False,True
 ves,41,8-9,vesicle,True,True
