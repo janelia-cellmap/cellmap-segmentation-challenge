@@ -3,6 +3,7 @@ import tempfile
 from glob import glob
 from typing import Any
 
+import numpy as np
 import torch
 import torchvision.transforms.v2 as T
 from cellmap_data import CellMapDatasetWriter, CellMapImage
@@ -123,12 +124,24 @@ def _predict(
     )
     dataloader = dataset_writer.loader(batch_size=batch_size)
     model.eval()
+    # Find singleton dimension if there is one
+    # Only the first singleton dimension will be used for squeezing/unsqueezing.
+    # If there are multiple singleton dimensions, only the first is handled.
+    singleton_dim = np.where(
+        [s == 1 for s in dataset_writer_kwargs["input_arrays"]["input"]["shape"]]
+    )[0]
+    singleton_dim = singleton_dim[0] if singleton_dim.size > 0 else None
     with torch.no_grad():
         for batch in tqdm(dataloader, dynamic_ncols=True):
             # Get the inputs and outputs
             inputs = batch["input"]
+            if singleton_dim is not None:
+                # Remove singleton dimension
+                inputs = inputs.squeeze(dim=singleton_dim + 2)
             outputs = model(inputs)
-            outputs = {"output": model(inputs)}
+            if singleton_dim is not None:
+                outputs = outputs.unsqueeze(dim=singleton_dim + 2)
+            outputs = {"output": outputs}
 
             # Save the outputs
             dataset_writer[batch["idx"]] = outputs
@@ -196,7 +209,7 @@ def predict(
 
     if do_orthoplanes and (
         array_has_singleton_dim(input_array_info)
-        or any(is_array_2D(input_array_info, summary=False).values())
+        or is_array_2D(input_array_info, summary=any)
     ):
         # If the model is a 2D model, compute the average of predictions from x, y, and z orthogonal planes
         predict_func = predict_orthoplanes
