@@ -76,8 +76,8 @@ def train(config_path: str):
     None
 
     """
-    # Pick the fastest algorithm for the hardware
-    torch.backends.cudnn.benchmark = True
+    # Pick the fastest deterministic algorithm for the hardware
+    torch.backends.cudnn.deterministic = True
 
     # %% Load the configuration file
     config = load_safe_config(config_path)
