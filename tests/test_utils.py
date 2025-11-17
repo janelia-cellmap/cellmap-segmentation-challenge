@@ -2,8 +2,8 @@
 
 import pytest
 import numpy as np
-from unittest.mock import patch, mock_open, MagicMock
-import requests
+import tempfile
+import os
 
 from cellmap_segmentation_challenge.utils.utils import (
     format_coordinates,
@@ -78,31 +78,41 @@ class TestFormatString:
 class TestDownloadFile:
     """Tests for download_file function"""
 
-    @patch("cellmap_segmentation_challenge.utils.utils.requests.get")
-    def test_download_file_success(self, mock_get):
-        """Test successful file download"""
-        # Mock the response
-        mock_response = MagicMock()
-        mock_response.content = b"test content"
-        mock_get.return_value = mock_response
-
-        with patch("builtins.open", mock_open()) as mock_file:
-            download_file("http://example.com/file.txt", "/tmp/file.txt")
+    def test_download_file_success(self):
+        """Test successful file download from a real URL"""
+        # Use a small, reliable test file from the repository itself
+        url = "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/LICENSE"
+        
+        with tempfile.NamedTemporaryFile(mode='wb', delete=False) as f:
+            dest_path = f.name
+        
+        try:
+            download_file(url, dest_path)
             
-            # Verify the file was opened for writing
-            mock_file.assert_called_once_with("/tmp/file.txt", "wb")
-            # Verify content was written
-            mock_file().write.assert_called_once_with(b"test content")
+            # Verify the file was downloaded and has content
+            assert os.path.exists(dest_path)
+            with open(dest_path, 'r') as f:
+                content = f.read()
+                assert len(content) > 0
+                # LICENSE file should contain "MIT"
+                assert "MIT" in content or "License" in content
+        finally:
+            if os.path.exists(dest_path):
+                os.unlink(dest_path)
 
-    @patch("cellmap_segmentation_challenge.utils.utils.requests.get")
-    def test_download_file_http_error(self, mock_get):
-        """Test file download with HTTP error"""
-        mock_response = MagicMock()
-        mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("404")
-        mock_get.return_value = mock_response
-
-        with pytest.raises(requests.exceptions.HTTPError):
-            download_file("http://example.com/file.txt", "/tmp/file.txt")
+    def test_download_file_invalid_url(self):
+        """Test file download with invalid URL"""
+        import requests
+        
+        with tempfile.NamedTemporaryFile(mode='wb', delete=False) as f:
+            dest_path = f.name
+        
+        try:
+            with pytest.raises(requests.exceptions.RequestException):
+                download_file("http://invalid-url-that-does-not-exist-12345.com/file.txt", dest_path)
+        finally:
+            if os.path.exists(dest_path):
+                os.unlink(dest_path)
 
 
 class TestSimulatePredictionsIouBinary:

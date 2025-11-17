@@ -1,9 +1,6 @@
 """Unit tests for crops functions in cellmap_segmentation_challenge.utils.crops"""
 
 import pytest
-from unittest.mock import patch, MagicMock
-import tempfile
-import os
 
 from cellmap_segmentation_challenge.utils.crops import (
     TestCropRow,
