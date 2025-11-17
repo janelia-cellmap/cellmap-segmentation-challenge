@@ -363,8 +363,8 @@ document.write(`
 <span class="sd">    None</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Pick the fastest algorithm for the hardware</span>
-    <span class="n">torch</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">cudnn</span><span class="o">.</span><span class="n">benchmark</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="c1"># Pick the fastest deterministic algorithm for the hardware</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">cudnn</span><span class="o">.</span><span class="n">deterministic</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="c1"># %% Load the configuration file</span>
     <span class="n">config</span> <span class="o">=</span> <span class="n">load_safe_config</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span>
