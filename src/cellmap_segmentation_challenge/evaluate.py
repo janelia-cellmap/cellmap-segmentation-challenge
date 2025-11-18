@@ -8,7 +8,7 @@ import numpy as np
 import zarr
 from scipy.optimize import linear_sum_assignment
 from scipy.spatial.distance import dice
-from skimage.measure import label as relabel
+from fastremap import renumber, remap, unique
 from skimage.transform import rescale
 
 from pykdtree.kdtree import KDTree as cKDTree
@@ -56,7 +56,73 @@ PER_INSTANCE_THREADS = int(os.getenv("PER_INSTANCE_THREADS", 16))
 # submitted_# of instances / ground_truth_# of instances
 INSTANCE_RATIO_CUTOFF = float(os.getenv("INSTANCE_RATIO_CUTOFF", 50))
 PRECOMPUTE_LIMIT = int(os.getenv("PRECOMPUTE_LIMIT", 1e7))
-DEBUG = os.getenv("DEBUG", "False") != "False"
+DEBUG = os.getenv("DEBUG", "False").lower() != "false"
+
+
+def iou_matrix(gt: np.ndarray, pred: np.ndarray) -> np.ndarray | None:
+    """
+    Compute IoU between all GT and Pred instance IDs.
+    Assumes IDs are sequential starting at 1 (0 is background).
+    Returns float32 array of shape (num_gt_ids, num_pred_ids).
+
+    Args:
+        gt (np.ndarray): Ground truth instance segmentation array.
+        pred (np.ndarray): Predicted instance segmentation array.
+
+    Returns:
+        np.ndarray | None: IoU matrix or None if conditions are not met.
+    """
+    if gt.shape != pred.shape:
+        raise ValueError("gt and pred must have the same shape")
+
+    # Ensure contiguous 1D views
+    g = np.ravel(gt)
+    p = np.ravel(pred)
+
+    # Number of instances (sequential ids -> max id)
+    nG = int(g.max()) if g.size else 0
+    nP = int(p.max()) if p.size else 0
+
+    # Early exits / warnings that mirror your original behavior
+    if nG == 0 or nP == 0:
+        if nG == 0 and nP > 0:
+            logging.info("No GT instances; returning empty IoU with pred columns.")
+        if nP == 0 and nG > 0:
+            logging.info("No Pred instances; returning empty IoU with gt rows.")
+        return np.zeros((nG, nP), dtype=np.float32)
+
+    if nG > 0 and (nP / nG) > INSTANCE_RATIO_CUTOFF:
+        logging.warning(
+            f"WARNING: Skipping {nP} instances in submission, {nG} in ground truth, "
+            f"because there are too many instances in the submission."
+        )
+        return None
+
+    # Foreground masks
+    fg = (g > 0) & (p > 0)
+
+    # ---- Intersections via single bincount over paired ids ----
+    # Compact indices (0..nG-1) and (0..nP-1)
+    gi = g[fg] - 1
+    pj = p[fg] - 1
+    # Encode pair (gi, pj) -> key in [0 .. nG*nP-1]
+    key = gi.astype(np.int64) * nP + pj.astype(np.int64)
+    inter = np.bincount(key, minlength=nG * nP).reshape(nG, nP)
+
+    # ---- Per-object areas via bincount (foreground only) ----
+    gt_sizes = np.bincount((g[g > 0] - 1).astype(np.int64), minlength=nG).astype(
+        np.int64
+    )[:, None]
+    pr_sizes = np.bincount((p[p > 0] - 1).astype(np.int64), minlength=nP).astype(
+        np.int64
+    )[None, :]
+
+    # ---- IoU ----
+    union = gt_sizes + pr_sizes - inter
+    with np.errstate(divide="ignore", invalid="ignore"):
+        iou = np.where(union > 0, inter / union, 0.0)
+
+    return iou.astype(np.float32)
 
 
 class spoof_precomputed:
@@ -76,21 +142,22 @@ class spoof_precomputed:
 
 def optimized_hausdorff_distances(
     truth_label,
-    matched_pred_label,
+    pred_label,
     voxel_size,
     hausdorff_distance_max,
     method="standard",
 ):
     # Get unique truth IDs, excluding the background (0)
-    truth_ids = np.unique(truth_label)
+    truth_ids = unique(truth_label)
     truth_ids = truth_ids[truth_ids != 0]  # Exclude background
-    if len(truth_ids) == 0:
+    true_num = len(truth_ids)
+    if true_num == 0:
         return []
 
     def get_distance(i):
         # Skip if both masks are empty
         truth_mask = truth_label == truth_ids[i]
-        pred_mask = matched_pred_label == truth_ids[i]
+        pred_mask = pred_label == truth_ids[i]
         if not np.any(truth_mask) and not np.any(pred_mask):
             return 0
 
@@ -105,15 +172,15 @@ def optimized_hausdorff_distances(
         return i, h_dist
 
     # Initialize list for distances
-    hausdorff_distances = np.empty(len(truth_ids))
+    hausdorff_distances = np.empty(true_num)
     if DEBUG:
         # Use tqdm for progress tracking
         bar = tqdm(
-            range(len(truth_ids)),
+            range(true_num),
             desc="Computing Hausdorff distances",
             leave=True,
             dynamic_ncols=True,
-            total=len(truth_ids),
+            total=true_num,
         )
         # Compute the cost matrix
         for i in bar:
@@ -122,9 +189,9 @@ def optimized_hausdorff_distances(
     else:
         with ThreadPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
             for i, h_dist in tqdm(
-                executor.map(get_distance, range(len(truth_ids))),
+                executor.map(get_distance, range(true_num)),
                 desc="Computing Hausdorff distances",
-                total=len(truth_ids),
+                total=true_num,
                 dynamic_ncols=True,
             ):
                 hausdorff_distances[i] = h_dist
@@ -157,8 +224,8 @@ def compute_hausdorff_distance(image0, image1, voxel_size, max_distance, method)
     # Query distances
     # fwd = a_tree.query(b_points, k=1, distance_upper_bound=max_distance)[0]
     # bwd = b_tree.query(a_points, k=1, distance_upper_bound=max_distance)[0]
-    fwd = a_tree.query(b_points, k=1)[0]
-    bwd = b_tree.query(a_points, k=1)[0]
+    fwd = a_tree.query(b_points, k=1, workers=-1)[0]
+    bwd = b_tree.query(a_points, k=1, workers=-1)[0]
 
     # Replace "inf" with `max_distance` for numerical stability
     # fwd[fwd == np.inf] = max_distance
@@ -196,114 +263,40 @@ def score_instance(
     logging.info("Scoring instance segmentation...")
     # Relabel the predicted instance labels to be consistent with the ground truth instance labels
     logging.info("Relabeling predicted instance labels...")
-    pred_label = relabel(pred_label, connectivity=len(pred_label.shape))
+    pred_label, _ = renumber(
+        pred_label,
+        connectivity=len(pred_label.shape),
+        preserve_zero=True,
+        in_place=True,
+    )
 
-    # Get unique IDs, excluding background (assumed to be 0)
-    truth_ids = np.unique(truth_label)
-    truth_ids = truth_ids[truth_ids != 0]
+    # Compute the IoU cost matrix between the predicted and ground truth instance labels
+    cost_matrix = iou_matrix(truth_label, pred_label)
 
-    pred_ids = np.unique(pred_label)
-    pred_ids = pred_ids[pred_ids != 0]
-
-    # Skip if the submission has way too many instances
-    if len(truth_ids) > 0 and len(pred_ids) / len(truth_ids) > INSTANCE_RATIO_CUTOFF:
-        logging.warning(
-            f"WARNING: Skipping {len(pred_ids)} instances in submission, {len(truth_ids)} in ground truth, because there are too many instances in the submission."
-        )
+    if cost_matrix is None:
+        # Too many instances in submission, skip scoring
         return {
             "accuracy": 0,
             "hausdorff_distance": np.inf,
             "normalized_hausdorff_distance": 0,
             "combined_score": 0,
         }
-
-    # Flatten the labels for vectorized computation
-    truth_flat = truth_label.flatten()
-    pred_flat = pred_label.flatten()
-
-    matched_pred_label = np.zeros_like(pred_label)
-
-    if len(pred_ids) > 0:
-
-        # Precompute binary masks for all `truth_ids`
-        if len(truth_flat) * len(truth_ids) > PRECOMPUTE_LIMIT:
-            truth_binary_masks = spoof_precomputed(truth_flat, truth_ids)
-        else:
-            logging.info("Precomputing binary masks for all `truth_ids`...")
-            truth_binary_masks = np.array(
-                [(truth_flat == tid) for tid in truth_ids], dtype=bool
-            )
-
-        def get_cost(j):
-            # Find all `truth_ids` that overlap with this prediction mask
-            pred_mask = pred_flat == pred_ids[j]
-            relevant_truth_ids = np.unique(truth_flat[pred_mask])
-            relevant_truth_ids = relevant_truth_ids[relevant_truth_ids != 0]
-            relevant_truth_indices = np.where(np.isin(truth_ids, relevant_truth_ids))[0]
-            relevant_truth_masks = truth_binary_masks[relevant_truth_indices]
-
-            if relevant_truth_indices.size == 0:
-                return [], j, []
-
-            tp = relevant_truth_masks[:, pred_mask].sum(1)
-            fn = (relevant_truth_masks[:, pred_mask == 0]).sum(1)
-            fp = (relevant_truth_masks[:, pred_mask] == 0).sum(1)
-
-            # Compute Jaccard scores
-            jaccard_scores = tp / (tp + fp + fn)
-
-            # Fill in the cost matrix for this `j` (prediction)
-            return relevant_truth_indices, j, jaccard_scores
-
-        # Initialize the cost matrix
-        logging.info(
-            f"Initializing cost matrix of {len(truth_ids)} x {len(pred_ids)} (true x pred)..."
-        )
-        cost_matrix = np.zeros((len(truth_ids), len(pred_ids)))
-
-        # Compute the cost matrix
-        if DEBUG:
-            # Use tqdm for progress tracking
-            bar = tqdm(
-                range(pred_ids),
-                desc="Computing cost matrix",
-                leave=True,
-                dynamic_ncols=True,
-                total=len(pred_ids),
-            )
-            # Compute the cost matrix
-            for j in bar:
-                relevant_truth_indices, j, jaccard_scores = get_cost(j)
-                cost_matrix[relevant_truth_indices, j] = jaccard_scores
-        else:
-            with ThreadPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
-                for relevant_truth_indices, j, jaccard_scores in tqdm(
-                    executor.map(get_cost, range(len(pred_ids))),
-                    desc="Computing cost matrix in parallel",
-                    dynamic_ncols=True,
-                    total=len(pred_ids),
-                    leave=True,
-                ):
-                    cost_matrix[relevant_truth_indices, j] = jaccard_scores
-
+    elif cost_matrix.size > 0:
         # Match the predicted instances to the ground truth instances
         logging.info("Calculating linear sum assignment...")
         row_inds, col_inds = linear_sum_assignment(cost_matrix, maximize=True)
 
         # Contruct the volume for the matched instances
-        for i, j in tqdm(
-            zip(col_inds, row_inds),
-            desc="Relabeling matched instances",
-            dynamic_ncols=True,
-        ):
-            if pred_ids[i] == 0 or truth_ids[j] == 0:
-                # Don't score the background
-                continue
-            pred_mask = pred_label == pred_ids[i]
-            matched_pred_label[pred_mask] = truth_ids[j]
+        mapping = {0: 0}  # background maps to background
+        mapping.update(
+            {pred_id + 1: truth_id + 1 for truth_id, pred_id in zip(row_inds, col_inds)}
+        )
+        pred_label = remap(
+            pred_label, mapping, in_place=True, preserve_missing_labels=True
+        )
 
         hausdorff_distances = optimized_hausdorff_distances(
-            truth_label, matched_pred_label, voxel_size, hausdorff_distance_max
+            truth_label, pred_label, voxel_size, hausdorff_distance_max
         )
     else:
         # No predictions to match
@@ -311,12 +304,12 @@ def score_instance(
 
     # Compute the scores
     logging.info("Computing accuracy score...")
-    accuracy = accuracy_score(truth_flat, matched_pred_label.flatten())
+    accuracy = accuracy_score(truth_label.flatten(), pred_label.flatten())
     hausdorff_dist = np.mean(hausdorff_distances) if len(hausdorff_distances) > 0 else 0
     normalized_hausdorff_dist = 1.01 ** (
         -hausdorff_dist / np.linalg.norm(voxel_size)
     )  # normalize Hausdorff distance to [0, 1] using the maximum distance represented by a voxel. 32 is arbitrarily chosen to have a reasonable range
-    combined_score = (accuracy * normalized_hausdorff_dist) ** 0.5
+    combined_score = (accuracy * normalized_hausdorff_dist) ** 0.5  # geometric mean
     logging.info(f"Accuracy: {accuracy:.4f}")
     logging.info(f"Hausdorff Distance: {hausdorff_dist:.4f}")
     logging.info(f"Normalized Hausdorff Distance: {normalized_hausdorff_dist:.4f}")
@@ -326,7 +319,7 @@ def score_instance(
         "hausdorff_distance": hausdorff_dist,
         "normalized_hausdorff_distance": normalized_hausdorff_dist,
         "combined_score": combined_score,
-    }
+    }  # type: ignore
 
 
 def score_semantic(pred_label, truth_label) -> dict[str, float]:
@@ -347,16 +340,18 @@ def score_semantic(pred_label, truth_label) -> dict[str, float]:
     # Flatten the label volumes and convert to binary
     pred_label = (pred_label > 0.0).flatten()
     truth_label = (truth_label > 0.0).flatten()
-    # Compute the scores
 
+    # Compute the scores
     if np.sum(truth_label + pred_label) == 0:
         # If there are no true positives, set the scores to 1
         logging.debug("No true positives found. Setting scores to 1.")
         dice_score = 1
+        iou_score = 1
     else:
         dice_score = 1 - dice(truth_label, pred_label)
+        iou_score = jaccard_score(truth_label, pred_label, zero_division=1)
     scores = {
-        "iou": jaccard_score(truth_label, pred_label, zero_division=1),
+        "iou": iou_score,
         "dice_score": dice_score if not np.isnan(dice_score) else 1,
     }
 
