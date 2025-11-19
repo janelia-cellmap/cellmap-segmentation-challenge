@@ -168,7 +168,7 @@ def optimized_hausdorff_distances(
             dynamic_ncols=True,
             total=true_num,
         )
-        # Compute the cost matrix
+        # Compute Hausdorff distances
         for i in bar:
             i, h_dist = get_distance(i)
             hausdorff_distances[i] = h_dist
