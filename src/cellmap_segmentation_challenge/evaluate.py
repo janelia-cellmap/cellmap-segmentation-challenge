@@ -287,7 +287,7 @@ def score_instance(
         logging.info("Calculating linear sum assignment...")
         row_inds, col_inds = linear_sum_assignment(cost_matrix, maximize=True)
 
-        # Contruct the volume for the matched instances
+        # Construct the volume for the matched instances
         mapping = {0: 0}  # background maps to background
         mapping.update(
             {pred_id + 1: truth_id + 1 for truth_id, pred_id in zip(row_inds, col_inds)}
