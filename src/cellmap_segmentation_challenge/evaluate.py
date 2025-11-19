@@ -126,21 +126,6 @@ def iou_matrix(gt: np.ndarray, pred: np.ndarray) -> np.ndarray | None:
     return iou.astype(np.float32)
 
 
-class spoof_precomputed:
-    def __init__(self, array, ids):
-        self.array = array
-        self.ids = ids
-        self.index = -1
-
-    def __getitem__(self, ids):
-        if isinstance(ids, int):
-            return np.array(self.array == self.ids[ids], dtype=bool)
-        return np.array([self.array == self.ids[i] for i in ids], dtype=bool)
-
-    def __len__(self):
-        return len(self.ids)
-
-
 def optimized_hausdorff_distances(
     truth_label,
     pred_label,
@@ -183,7 +168,7 @@ def optimized_hausdorff_distances(
             dynamic_ncols=True,
             total=true_num,
         )
-        # Compute the cost matrix
+        # Compute Hausdorff distances
         for i in bar:
             i, h_dist = get_distance(i)
             hausdorff_distances[i] = h_dist
@@ -287,7 +272,7 @@ def score_instance(
         logging.info("Calculating linear sum assignment...")
         row_inds, col_inds = linear_sum_assignment(cost_matrix, maximize=True)
 
-        # Contruct the volume for the matched instances
+        # Construct the volume for the matched instances
         mapping = {0: 0}  # background maps to background
         mapping.update(
             {pred_id + 1: truth_id + 1 for truth_id, pred_id in zip(row_inds, col_inds)}
@@ -309,7 +294,7 @@ def score_instance(
     hausdorff_dist = np.mean(hausdorff_distances) if len(hausdorff_distances) > 0 else 0
     normalized_hausdorff_dist = 1.01 ** (
         -hausdorff_dist / np.linalg.norm(voxel_size)
-    )  # normalize Hausdorff distance to [0, 1] using the maximum distance represented by a voxel. 32 is arbitrarily chosen to have a reasonable range
+    )  # normalize Hausdorff distance to [0, 1] using the maximum distance represented by a voxel
     combined_score = (accuracy * normalized_hausdorff_dist) ** 0.5  # geometric mean
     logging.info(f"Accuracy: {accuracy:.4f}")
     logging.info(f"Hausdorff Distance: {hausdorff_dist:.4f}")

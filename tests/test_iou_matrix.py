@@ -1,11 +1,6 @@
 import os
 import numpy as np
-import pytest
-
-# Change this import to wherever your implementation lives
 from cellmap_segmentation_challenge.evaluate import iou_matrix
-
-INSTANCE_RATIO_CUTOFF = float(os.getenv("INSTANCE_RATIO_CUTOFF", 50))
 
 
 def test_basic_iou_small_grid(monkeypatch):

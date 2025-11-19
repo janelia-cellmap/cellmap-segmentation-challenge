@@ -441,3 +441,4 @@ def fetch_data_cli(
         log.unbind("save_location")
         log.info(f"Done after {time.time() - fetch_save_start:0.3f}s")
         log.info(f"Data saved to {dest_path_abs}")
+        pool.shutdown(wait=True)
