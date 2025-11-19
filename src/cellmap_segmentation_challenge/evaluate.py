@@ -54,7 +54,6 @@ MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 1))
 MAX_SEMANTIC_THREADS = int(os.getenv("MAX_SEMANTIC_THREADS", 20))
 PER_INSTANCE_THREADS = int(os.getenv("PER_INSTANCE_THREADS", 16))
 # submitted_# of instances / ground_truth_# of instances
-INSTANCE_RATIO_CUTOFF = float(os.getenv("INSTANCE_RATIO_CUTOFF", 50))
 PRECOMPUTE_LIMIT = int(os.getenv("PRECOMPUTE_LIMIT", 1e7))
 DEBUG = os.getenv("DEBUG", "False").lower() != "false"
 
@@ -72,6 +71,8 @@ def iou_matrix(gt: np.ndarray, pred: np.ndarray) -> np.ndarray | None:
     Returns:
         np.ndarray | None: IoU matrix or None if conditions are not met.
     """
+    INSTANCE_RATIO_CUTOFF = float(os.getenv("INSTANCE_RATIO_CUTOFF", 50))
+
     if gt.shape != pred.shape:
         raise ValueError("gt and pred must have the same shape")
 
