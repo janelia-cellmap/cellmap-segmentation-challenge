@@ -1,7 +1,5 @@
 import os
 import numpy as np
-import pytest
-
 from cellmap_segmentation_challenge.evaluate import iou_matrix
 
 
