@@ -126,21 +126,6 @@ def iou_matrix(gt: np.ndarray, pred: np.ndarray) -> np.ndarray | None:
     return iou.astype(np.float32)
 
 
-class spoof_precomputed:
-    def __init__(self, array, ids):
-        self.array = array
-        self.ids = ids
-        self.index = -1
-
-    def __getitem__(self, ids):
-        if isinstance(ids, int):
-            return np.array(self.array == self.ids[ids], dtype=bool)
-        return np.array([self.array == self.ids[i] for i in ids], dtype=bool)
-
-    def __len__(self):
-        return len(self.ids)
-
-
 def optimized_hausdorff_distances(
     truth_label,
     pred_label,
