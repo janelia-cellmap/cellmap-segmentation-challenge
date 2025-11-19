@@ -294,7 +294,7 @@ def score_instance(
     hausdorff_dist = np.mean(hausdorff_distances) if len(hausdorff_distances) > 0 else 0
     normalized_hausdorff_dist = 1.01 ** (
         -hausdorff_dist / np.linalg.norm(voxel_size)
-    )  # normalize Hausdorff distance to [0, 1] using the maximum distance represented by a voxel. 32 is arbitrarily chosen to have a reasonable range
+    )  # normalize Hausdorff distance to [0, 1] using the maximum distance represented by a voxel
     combined_score = (accuracy * normalized_hausdorff_dist) ** 0.5  # geometric mean
     logging.info(f"Accuracy: {accuracy:.4f}")
     logging.info(f"Hausdorff Distance: {hausdorff_dist:.4f}")
