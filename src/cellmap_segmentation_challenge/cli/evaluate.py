@@ -1,8 +1,8 @@
 import os
 import click
 
-from cellmap_segmentation_challenge.evaluate import (
-    INSTANCE_CLASSES,
+from cellmap_segmentation_challenge.evaluate import INSTANCE_CLASSES
+from cellmap_segmentation_challenge import (
     PROCESSED_PATH,
     SUBMISSION_PATH,
     TRUTH_PATH,

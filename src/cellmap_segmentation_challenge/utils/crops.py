@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import os
 
 import fsspec
+import numpy as np
 from upath import UPath
 from typing_extensions import Self
 from yarl import URL
