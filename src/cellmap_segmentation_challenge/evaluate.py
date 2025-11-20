@@ -1,17 +1,16 @@
 import argparse
 import json
 import os
-from time import time, sleep
+from time import time
 import zipfile
 
 import numpy as np
 import zarr
 from scipy.optimize import linear_sum_assignment
 from scipy.spatial.distance import dice
-from fastremap import renumber, remap, unique
+from fastremap import remap, unique
+import cc3d
 from skimage.transform import rescale
-
-from pykdtree.kdtree import KDTree as cKDTree
 
 from sklearn.metrics import accuracy_score, jaccard_score
 from tqdm import tqdm
@@ -21,7 +20,7 @@ from cellmap_data import CellMapImage
 
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 
-from .config import PROCESSED_PATH, SUBMISSION_PATH, TRUTH_PATH
+from .config import SUBMISSION_PATH, TRUTH_PATH
 from .utils import TEST_CROPS_DICT
 
 import logging
@@ -63,20 +62,13 @@ def iou_matrix(gt: np.ndarray, pred: np.ndarray) -> np.ndarray | None:
     Compute IoU between all GT and Pred instance IDs.
     Assumes IDs are sequential starting at 1 (0 is background).
     Returns float32 array of shape (num_gt_ids, num_pred_ids).
-
-    Args:
-        gt (np.ndarray): Ground truth instance segmentation array.
-        pred (np.ndarray): Predicted instance segmentation array.
-
-    Returns:
-        np.ndarray | None: IoU matrix or None if conditions are not met.
     """
     INSTANCE_RATIO_CUTOFF = float(os.getenv("INSTANCE_RATIO_CUTOFF", 50))
 
     if gt.shape != pred.shape:
         raise ValueError("gt and pred must have the same shape")
 
-    # Ensure contiguous 1D views
+    # 1D views without copying if possible
     g = np.ravel(gt)
     p = np.ravel(pred)
 
@@ -84,7 +76,7 @@ def iou_matrix(gt: np.ndarray, pred: np.ndarray) -> np.ndarray | None:
     nG = int(g.max()) if g.size else 0
     nP = int(p.max()) if p.size else 0
 
-    # Early exits / warnings that mirror your original behavior
+    # Early exits
     if nG == 0 or nP == 0:
         if nG == 0 and nP > 0:
             logging.info("No GT instances; returning empty IoU with pred columns.")
@@ -92,38 +84,51 @@ def iou_matrix(gt: np.ndarray, pred: np.ndarray) -> np.ndarray | None:
             logging.info("No Pred instances; returning empty IoU with gt rows.")
         return np.zeros((nG, nP), dtype=np.float32)
 
-    if nG > 0 and (nP / nG) > INSTANCE_RATIO_CUTOFF:
+    if (nP / nG) > INSTANCE_RATIO_CUTOFF:
         logging.warning(
             f"WARNING: Skipping {nP} instances in submission, {nG} in ground truth, "
             f"because there are too many instances in the submission."
         )
         return None
 
-    # Foreground masks
-    fg = (g > 0) & (p > 0)
+    # Foreground (non-background) mask for each side and for pairwise overlaps
+    g_fg = g > 0
+    p_fg = p > 0
+    fg = g_fg & p_fg
 
-    # ---- Intersections via single bincount over paired ids ----
-    # Compact indices (0..nG-1) and (0..nP-1)
-    gi = g[fg] - 1
-    pj = p[fg] - 1
-    # Encode pair (gi, pj) -> key in [0 .. nG*nP-1]
-    key = gi.astype(np.int64) * nP + pj.astype(np.int64)
-    inter = np.bincount(key, minlength=nG * nP).reshape(nG, nP)
+    # ---- Per-object areas (sizes) ----
+    # Use uint32 where possible to reduce memory; cast to int64 for safety if needed.
+    gt_sizes = np.bincount((g[g_fg].astype(np.int64) - 1), minlength=nG)[:, None]
+    pr_sizes = np.bincount((p[p_fg].astype(np.int64) - 1), minlength=nP)[None, :]
 
-    # ---- Per-object areas via bincount (foreground only) ----
-    gt_sizes = np.bincount((g[g > 0] - 1).astype(np.int64), minlength=nG).astype(
-        np.int64
-    )[:, None]
-    pr_sizes = np.bincount((p[p > 0] - 1).astype(np.int64), minlength=nP).astype(
-        np.int64
-    )[None, :]
+    # ---- Intersections for observed pairs only (sparse counting) ----
+    gi = g[fg].astype(np.int64) - 1
+    pj = p[fg].astype(np.int64) - 1
+    if gi.size == 0:
+        # No overlaps anywhere -> IoU is all zeros
+        return np.zeros((nG, nP), dtype=np.float32)
 
-    # ---- IoU ----
-    union = gt_sizes + pr_sizes - inter
+    # Encode pairs to a single 64-bit key and count only present pairs
+    # Use unsigned to avoid negative-overflow corner cases.
+    gi_u = gi.astype(np.uint64)
+    pj_u = pj.astype(np.uint64)
+    key = gi_u * np.uint64(nP) + pj_u
+
+    uniq_keys, counts = np.unique(key, return_counts=True)
+    rows = (uniq_keys // np.uint64(nP)).astype(np.int64)
+    cols = (uniq_keys % np.uint64(nP)).astype(np.int64)
+
+    # ---- IoU only for observed pairs, then scatter into dense matrix ----
+    # union_ij = gt_sizes[i] + pr_sizes[j] - inter_ij
+    inter_ij = counts.astype(np.int64)
+    union_ij = gt_sizes[rows, 0] + pr_sizes[0, cols] - inter_ij
     with np.errstate(divide="ignore", invalid="ignore"):
-        iou = np.where(union > 0, inter / union, 0.0)
+        iou_vals = (inter_ij / union_ij).astype(np.float32)
 
-    return iou.astype(np.float32)
+    iou = np.zeros((nG, nP), dtype=np.float32)
+    iou[rows, cols] = iou_vals  # all other entries remain 0
+
+    return iou
 
 
 def optimized_hausdorff_distances(
@@ -132,97 +137,152 @@ def optimized_hausdorff_distances(
     voxel_size,
     hausdorff_distance_max,
     method="standard",
+    percentile: float | None = None,
 ):
-    # Get unique truth IDs, excluding the background (0)
+    """
+    Compute per-truth-instance Hausdorff-like distances against the (already remapped)
+    prediction using multithreading. Returns a 1D float32 numpy array whose i-th
+    entry corresponds to truth_ids[i].
+
+    Parameters
+    ----------
+    truth_label : np.ndarray
+        Ground-truth instance label volume (0 == background).
+    pred_label : np.ndarray
+        Prediction instance label volume that has already been remapped to align
+        with the GT ids (0 == background).
+    voxel_size : Sequence[float]
+        Physical voxel sizes in Z, Y, X (or Y, X) order.
+    hausdorff_distance_max : float
+        Cap for distances (use np.inf for uncapped).
+    method : {"standard", "modified", "percentile"}
+        "standard" -> classic Hausdorff (max of directed maxima)
+        "modified" -> mean of directed distances, then max of the two means
+        "percentile" -> use the given percentile of directed distances (requires
+                         `percentile` to be provided).
+    percentile : float | None
+        Percentile (0-100) used when method=="percentile".
+    """
+    # Unique GT ids (exclude background = 0)
     truth_ids = unique(truth_label)
-    truth_ids = truth_ids[truth_ids != 0]  # Exclude background
-    true_num = len(truth_ids)
+    truth_ids = truth_ids[truth_ids != 0]
+    true_num = int(truth_ids.size)
     if true_num == 0:
-        return []
+        return np.empty((0,), dtype=np.float32)
 
-    def get_distance(i):
-        # Skip if both masks are empty
-        truth_mask = truth_label == truth_ids[i]
-        pred_mask = pred_label == truth_ids[i]
-        if not np.any(truth_mask) and not np.any(pred_mask):
-            return 0
+    voxel_size = np.asarray(voxel_size, dtype=np.float64)
 
-        # Compute Hausdorff distance for the current pair
+    def get_distance(i: int):
+        tid = int(truth_ids[i])
+        truth_mask = truth_label == tid
+        pred_mask = pred_label == tid
+        # Note: because tid comes from truth_label, truth_mask has at least one voxel
+        # Compute directed/undirected Hausdorff according to method
         h_dist = compute_hausdorff_distance(
             truth_mask,
             pred_mask,
             voxel_size,
             hausdorff_distance_max,
-            method,
+            method=method,
+            percentile=percentile,
         )
-        return i, h_dist
+        return i, float(h_dist)
 
-    # Initialize list for distances
-    hausdorff_distances = np.empty(true_num)
+    dists = np.empty((true_num,), dtype=np.float32)
+
     if DEBUG:
-        # Use tqdm for progress tracking
-        bar = tqdm(
+        for i in tqdm(
             range(true_num),
             desc="Computing Hausdorff distances",
             leave=True,
             dynamic_ncols=True,
             total=true_num,
-        )
-        # Compute Hausdorff distances
-        for i in bar:
-            i, h_dist = get_distance(i)
-            hausdorff_distances[i] = h_dist
+        ):
+            idx, h = get_distance(i)
+            dists[idx] = h
     else:
         with ThreadPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
-            for i, h_dist in tqdm(
+            for idx, h in tqdm(
                 executor.map(get_distance, range(true_num)),
                 desc="Computing Hausdorff distances",
                 total=true_num,
                 dynamic_ncols=True,
             ):
-                hausdorff_distances[i] = h_dist
+                dists[idx] = h
 
-    return hausdorff_distances
+    return dists
 
 
-def compute_hausdorff_distance(image0, image1, voxel_size, max_distance, method):
+def compute_hausdorff_distance(
+    image0,
+    image1,
+    voxel_size,
+    max_distance: float,
+    method: str = "standard",
+    percentile: float | None = None,
+):
     """
-    Compute the Hausdorff distance between two binary masks, optimized for pre-vectorized inputs.
+    Compute the (undirected) Hausdorff-like distance between two binary masks using
+    Euclidean distance transforms (EDT), which is generally faster and more memory
+    friendly than building KD-trees for large 3D volumes.
+
+    Parameters
+    ----------
+    image0, image1 : np.ndarray (bool or int)
+        Binary masks (True/1 = foreground). They should already be aligned to the
+        same voxel grid.
+    voxel_size : Sequence[float]
+        Physical voxel sizes in Z, Y, X (or Y, X) order; passed to EDT via
+        `sampling` to support anisotropy.
+    max_distance : float
+        Distances are clipped to this value (use np.inf for no clipping).
+    method : {"standard", "modified", "percentile"}
+        "standard": classic Hausdorff -> max(max(dist(A→B)), max(dist(B→A)))
+        "modified": robust mean -> max(mean(dist(A→B)), mean(dist(B→A)))
+        "percentile": robust percentile -> max(P(dist(A→B)), P(dist(B→A))) where P
+                       is the given percentile.
+    percentile : float | None
+        Percentile in [0, 100]; required if method == "percentile".
     """
-    # Extract nonzero points
-    a_points = np.argwhere(image0)
-    b_points = np.argwhere(image1)
+    from scipy.ndimage import distance_transform_edt
+
+    a = np.asarray(image0, dtype=bool)
+    b = np.asarray(image1, dtype=bool)
 
     # Handle empty sets
-    if len(a_points) == 0 and len(b_points) == 0:
-        return 0
-    elif len(a_points) == 0 or len(b_points) == 0:
-        return np.inf
+    a_n = int(a.sum())
+    b_n = int(b.sum())
+    if a_n == 0 and b_n == 0:
+        return 0.0
+    if a_n == 0 or b_n == 0:
+        return float(max_distance)
 
-    # Scale points by voxel size
-    a_points = a_points * np.array(voxel_size)
-    b_points = b_points * np.array(voxel_size)
+    voxel_size = np.asarray(voxel_size, dtype=np.float64)
 
-    # Build KD-trees once
-    a_tree = cKDTree(a_points)
-    b_tree = cKDTree(b_points)
+    # Directed distances via EDT to the *other* set's foreground
+    # distance_transform_edt computes distance to nearest zero -> pass ~mask so that
+    # zeros are at foreground voxels of the other set.
+    dist_to_b = distance_transform_edt(~b, sampling=voxel_size)
+    dist_to_a = distance_transform_edt(~a, sampling=voxel_size)
 
-    # Query distances
-    # fwd = a_tree.query(b_points, k=1, distance_upper_bound=max_distance)[0]
-    # bwd = b_tree.query(a_points, k=1, distance_upper_bound=max_distance)[0]
-    fwd = a_tree.query(b_points, k=1, workers=-1)[0]
-    bwd = b_tree.query(a_points, k=1, workers=-1)[0]
-
-    # Replace "inf" with `max_distance` for numerical stability
-    # fwd[fwd == np.inf] = max_distance
-    # bwd[bwd == np.inf] = max_distance
-    fwd[fwd > max_distance] = max_distance
-    bwd[bwd > max_distance] = max_distance
+    fwd = dist_to_b[a]
+    bwd = dist_to_a[b]
 
     if method == "standard":
-        return max(fwd.max(), bwd.max())
+        d = max(fwd.max(initial=0.0), bwd.max(initial=0.0))
     elif method == "modified":
-        return max(fwd.mean(), bwd.mean())
+        d = max(fwd.mean() if fwd.size else 0.0, bwd.mean() if bwd.size else 0.0)
+    elif method == "percentile":
+        if percentile is None:
+            raise ValueError("'percentile' must be provided when method='percentile'")
+        d = max(
+            float(np.percentile(fwd, percentile)) if fwd.size else 0.0,
+            float(np.percentile(bwd, percentile)) if bwd.size else 0.0,
+        )
+    else:
+        raise ValueError("method must be one of {'standard', 'modified', 'percentile'}")
+
+    return float(min(d, max_distance))
 
 
 def score_instance(
@@ -249,12 +309,7 @@ def score_instance(
     logging.info("Scoring instance segmentation...")
     # Relabel the predicted instance labels to be consistent with the ground truth instance labels
     logging.info("Relabeling predicted instance labels...")
-    pred_label, _ = renumber(
-        pred_label,
-        connectivity=len(pred_label.shape),
-        preserve_zero=True,
-        in_place=True,
-    )
+    pred_label = cc3d.connected_components(pred_label)
 
     # Compute the IoU cost matrix between the predicted and ground truth instance labels
     cost_matrix = iou_matrix(truth_label, pred_label)
@@ -425,6 +480,7 @@ def empty_label_score(
     label, crop_name, instance_classes=INSTANCE_CLASSES, truth_path=TRUTH_PATH
 ):
     if label in instance_classes:
+        truth_path = UPath(truth_path)
         return {
             "accuracy": 0,
             "hausdorff_distance": 0,

@@ -50,6 +50,7 @@ dependencies = [
   "cellmap-flow@git+https://github.com/janelia-cellmap/cellmap-flow@1ece404",
   "pykdtree",
   "fastremap",
+  "connected-components-3d",
   ]
 
 [project.optional-dependencies]
