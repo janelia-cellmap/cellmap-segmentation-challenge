@@ -219,15 +219,23 @@ def package_submission(
         overwrite=overwrite,
         input_search_path=input_search_path,
     )
+    successful_crops = 0
     for crop_path in tqdm(
         pool.map(partial_package_crop, TEST_CROPS),
         total=len(TEST_CROPS),
         dynamic_ncols=True,
         desc="Packaging crops...",
     ):
-        tqdm.write(f"Packaged {crop_path}")
-
+        if "skipping" in crop_path.lower():
+            tqdm.write(f"{crop_path} skipped.")
+        else:
+            tqdm.write(f"Packaged {crop_path}")
+            successful_crops += 1
+    logging.info(f"Packaged {successful_crops}/{len(TEST_CROPS)} crops.")
     logging.info(f"Saved submission to {output_path}")
+
+    if successful_crops == 0:
+        raise RuntimeError("No crops were packaged; submission zarr is empty.")
 
     logging.info("Zipping submission...")
     zip_submission(output_path)

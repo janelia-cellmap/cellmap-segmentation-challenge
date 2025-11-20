@@ -1,24 +1,13 @@
 # %%
-import json
 import pytest
-import shutil
 import os
 from upath import UPath
 
-import numpy as np
-from skimage.transform import rescale
 from cellmap_segmentation_challenge.utils import (
-    simulate_predictions_accuracy,
-    simulate_predictions_iou_binary,
     download_file,
 )
 
-
 from cellmap_segmentation_challenge import RAW_NAME, CROP_NAME
-from cellmap_segmentation_challenge.utils.submission import (
-    zip_submission,
-    save_numpy_class_arrays_to_zarr,
-)
 
 ERROR_TOLERANCE = 0.1
 
@@ -136,14 +125,26 @@ def test_train(setup_temp_path):
         classes=["mito", "er"],
         search_path=SEARCH_PATH,
         csv_path=REPO_ROOT / "datasplit.csv",
-        validation_prob=0.5,
+        validation_prob=0.0,
     )
+
+    # Now set one of the datasets to "validate" so that we have a validation set
+    with open(REPO_ROOT / "datasplit.csv", "r") as f:
+        lines = f.readlines()
+    with open(REPO_ROOT / "datasplit.csv", "w") as f:
+        for i, line in enumerate(lines):
+            if i == 0:
+                parts = line.strip().split(",")
+                parts[0] = '"validate"'
+                f.write(",".join(parts) + "\n")
+            else:
+                f.write(line)
 
     train_cli.callback(REPO_ROOT / "train_config.py")
 
 
 # %%
-@pytest.mark.dependency(depends=["test_fetch_data"])
+@pytest.mark.dependency(depends=["test_train"])
 def test_predict(setup_temp_path):
     from cellmap_segmentation_challenge.cli import predict_cli
 
@@ -235,7 +236,7 @@ def test_process(setup_temp_path):
 
 
 # %%
-@pytest.mark.dependency(depends=["test_fetch_data"])
+@pytest.mark.dependency(depends=["test_process"])
 def test_pack_results(setup_temp_path):
     from cellmap_segmentation_challenge.cli import package_submission_cli
 
@@ -248,8 +249,6 @@ def test_pack_results(setup_temp_path):
         SUBMISSION_PATH,
     ) = setup_temp_path
 
-    truth_path = REPO_ROOT / "data" / "truth.zarr"
-
     package_submission_cli.callback(
-        PROCESSED_PATH, truth_path.path, overwrite=True, max_workers=os.cpu_count()
+        PROCESSED_PATH, SUBMISSION_PATH, overwrite=True, max_workers=os.cpu_count()
     )
