@@ -178,7 +178,7 @@ def package_crop(crop, zarr_group, overwrite, input_search_path=PROCESSED_PATH):
     label_array.attrs["translation"] = crop.translation
     label_array.attrs["shape"] = crop.shape
 
-    return crop_path
+    return crop_path.path
 
 
 def package_submission(

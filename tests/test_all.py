@@ -157,10 +157,10 @@ def test_predict(setup_temp_path):
         SUBMISSION_PATH,
     ) = setup_temp_path
 
-    download_file(
-        "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/train_config.py",
-        REPO_ROOT / "train_config.py",
-    )
+    # download_file(
+    #     "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/train_config.py",
+    #     REPO_ROOT / "train_config.py",
+    # )
 
     predict_cli.callback(
         REPO_ROOT / "train_config.py",
@@ -188,10 +188,10 @@ def test_predict_test_crops(setup_temp_path):
         SUBMISSION_PATH,
     ) = setup_temp_path
 
-    download_file(
-        "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/train_config.py",
-        REPO_ROOT / "train_config.py",
-    )
+    # download_file(
+    #     "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/train_config.py",
+    #     REPO_ROOT / "train_config.py",
+    # )
 
     predict_cli.callback(
         REPO_ROOT / "train_config.py",
