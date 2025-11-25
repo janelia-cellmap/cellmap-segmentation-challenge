@@ -87,7 +87,7 @@ def test_fetch_data(setup_temp_path):
     ) = setup_temp_path
 
     fetch_data_cli.callback(
-        crops="116,118",
+        crops="9",
         raw_padding=0,
         dest=BASE_DATA_PATH.path,
         access_mode="append",
@@ -128,17 +128,14 @@ def test_train(setup_temp_path):
         validation_prob=0.0,
     )
 
-    # Now set one of the datasets to "validate" so that we have a validation set
+    # There's only one crop, so copy it to the validate set
+
     with open(REPO_ROOT / "datasplit.csv", "r") as f:
-        lines = f.readlines()
-    with open(REPO_ROOT / "datasplit.csv", "w") as f:
-        for i, line in enumerate(lines):
-            if i == 0:
-                parts = line.strip().split(",")
-                parts[0] = '"validate"'
-                f.write(",".join(parts) + "\n")
-            else:
-                f.write(line)
+        line = f.readlines()[0]
+    parts = line.strip().split(",")
+    parts[0] = '"validate"'
+    with open(REPO_ROOT / "datasplit.csv", "a") as f:
+        f.write(",".join(parts) + "\n")
 
     train_cli.callback(REPO_ROOT / "train_config.py")
 
@@ -164,7 +161,7 @@ def test_predict(setup_temp_path):
 
     predict_cli.callback(
         REPO_ROOT / "train_config.py",
-        crops="116",
+        crops="9",
         output_path=PREDICTIONS_PATH,
         skip_orthoplanes=True,
         overwrite=True,
