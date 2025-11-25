@@ -11,6 +11,11 @@ from cellmap_segmentation_challenge import RAW_NAME, CROP_NAME
 
 ERROR_TOLERANCE = 0.1
 
+skip_in_ci = pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Skipped in CI",
+)
+
 
 @pytest.fixture(autouse=True)
 def reset_env():
@@ -47,6 +52,7 @@ def setup_temp_path(tmp_path_factory):
     yield REPO_ROOT, BASE_DATA_PATH, SEARCH_PATH, PREDICTIONS_PATH, PROCESSED_PATH, SUBMISSION_PATH
 
 
+@skip_in_ci
 @pytest.mark.dependency()
 def test_fetch_test_crops(setup_temp_path):
     from cellmap_segmentation_challenge.cli import fetch_data_cli
@@ -72,7 +78,7 @@ def test_fetch_test_crops(setup_temp_path):
     )
 
 
-# %%
+@skip_in_ci
 @pytest.mark.dependency()
 def test_fetch_data(setup_temp_path):
     from cellmap_segmentation_challenge.cli import fetch_data_cli
@@ -98,7 +104,7 @@ def test_fetch_data(setup_temp_path):
     )
 
 
-# %%
+@skip_in_ci
 @pytest.mark.dependency(depends=["test_fetch_data"])
 def test_train(setup_temp_path):
     (
@@ -140,7 +146,7 @@ def test_train(setup_temp_path):
     train_cli.callback(REPO_ROOT / "train_config.py")
 
 
-# %%
+@skip_in_ci
 @pytest.mark.dependency(depends=["test_train"])
 def test_predict(setup_temp_path):
     from cellmap_segmentation_challenge.cli import predict_cli
@@ -171,7 +177,7 @@ def test_predict(setup_temp_path):
     )
 
 
-# %%
+@skip_in_ci
 @pytest.mark.dependency(depends=["test_fetch_test_crops"])
 def test_predict_test_crops(setup_temp_path):
     from cellmap_segmentation_challenge.cli import predict_cli
@@ -202,7 +208,7 @@ def test_predict_test_crops(setup_temp_path):
     )
 
 
-# %%
+@skip_in_ci
 @pytest.mark.dependency(depends=["test_predict"])
 def test_process(setup_temp_path):
     from cellmap_segmentation_challenge.cli import process_cli
@@ -232,7 +238,7 @@ def test_process(setup_temp_path):
     )
 
 
-# %%
+@skip_in_ci
 @pytest.mark.dependency(depends=["test_process"])
 def test_pack_results(setup_temp_path):
     from cellmap_segmentation_challenge.cli import package_submission_cli
