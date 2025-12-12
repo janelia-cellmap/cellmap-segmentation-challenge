@@ -4,7 +4,7 @@ import functools
 import torch
 import torchvision.transforms.v2 as T
 from cellmap_data import CellMapDataLoader, CellMapDataSplit
-from cellmap_data.transforms.augment import NaNtoNum, Normalize, Binarize
+from cellmap_data.transforms.augment import NaNtoNum, Binarize
 from cellmap_segmentation_challenge.utils import get_class_relations
 
 
@@ -22,14 +22,14 @@ def get_dataloader(
     train_raw_value_transforms: Optional[T.Transform] = T.Compose(
         [
             T.ToDtype(torch.float),
-            Normalize(),
+            T.Normalize([0.0], [255.0]),
             NaNtoNum({"nan": 0, "posinf": None, "neginf": None}),
         ],
     ),
     val_raw_value_transforms: Optional[T.Transform] = T.Compose(
         [
             T.ToDtype(torch.float),
-            Normalize(),
+            T.Normalize([0.0], [255.0]),
             NaNtoNum({"nan": 0, "posinf": None, "neginf": None}),
         ],
     ),
@@ -85,9 +85,9 @@ def get_dataloader(
     target_value_transforms : Optional[torchvision.transforms.v2.Transform]
         Transform to apply to the target values. Defaults to T.Compose([T.ToDtype(torch.float), Binarize()]) which converts the input masks to float32 and threshold at 0 (turning object ID's into binary masks for use with binary cross entropy loss).
     train_raw_value_transforms : Optional[torchvision.transforms.v2.Transform]
-        Transform to apply to the raw values for training. Defaults to T.Compose([T.ToDtype(torch.float), Normalize(), NaNtoNum({"nan": 0, "posinf": None, "neginf": None})]) which normalizes the input data, converts it to float32, and replaces NaNs with 0. This can be used to add augmentations such as random erasing, blur, noise, etc.
+        Transform to apply to the raw values for training. Defaults to T.Compose([T.ToDtype(torch.float), T.Normalize([0.0], [255.0]), NaNtoNum({"nan": 0, "posinf": None, "neginf": None})]) which normalizes the input data, converts it to float32, and replaces NaNs with 0. This can be used to add augmentations such as random erasing, blur, noise, etc.
     val_raw_value_transforms : Optional[torchvision.transforms.v2.Transform]
-        Transform to apply to the raw values for validation. Defaults to T.Compose([T.ToDtype(torch.float), Normalize(), NaNtoNum({"nan": 0, "posinf": None, "neginf": None})]) which normalizes the input data, converts it to float32, and replaces NaNs with 0.
+        Transform to apply to the raw values for validation. Defaults to T.Compose([T.ToDtype(torch.float), T.Normalize([0.0], [255.0]), NaNtoNum({"nan": 0, "posinf": None, "neginf": None})]) which normalizes the input data, converts it to float32, and replaces NaNs with 0.
     iterations_per_epoch : int
         Number of iterations per epoch.
     random_validation : bool

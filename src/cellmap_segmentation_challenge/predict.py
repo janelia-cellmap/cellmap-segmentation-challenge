@@ -12,7 +12,7 @@ from cellmap_data.utils import (
     is_array_2D,
     permute_singleton_dimension,
 )
-from cellmap_data.transforms.augment import NaNtoNum, Normalize
+from cellmap_data.transforms.augment import NaNtoNum
 from tqdm import tqdm
 from upath import UPath
 
@@ -113,7 +113,7 @@ def _predict(
 
     value_transforms = T.Compose(
         [
-            Normalize(),
+            T.Normalize([0.0], [255.0]),
             T.ToDtype(torch.float, scale=True),
             NaNtoNum({"nan": 0, "posinf": None, "neginf": None}),
         ],
