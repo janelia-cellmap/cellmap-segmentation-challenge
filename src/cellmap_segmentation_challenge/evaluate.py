@@ -774,7 +774,7 @@ def score_submission(
             "Failed to process submission file. Please ensure you submitted a valid .zip file containing a Zarr structure."
         )
 
-        # Find volumes to score
+    # Find volumes to score
     logging.info(f"Scoring volumes in {submission_path}...")
     try:
         pred_volumes = [d.name for d in UPath(submission_path).glob("*") if d.is_dir()]
