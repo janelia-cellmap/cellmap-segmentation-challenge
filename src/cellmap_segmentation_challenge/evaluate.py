@@ -389,7 +389,11 @@ def score_label(
     """
     try:
         if pred_label_path is None:
-            logging.info(f"Label {label_name} not found in submission volume {crop_name}.")
+            logging.info(
+                f"Label {label_name} not found in submission volume {crop_name}."
+            )
+                f"Label {label_name} not found in submission volume {crop_name}."
+            )
             return (
                 crop_name,
                 label_name,
@@ -408,8 +412,10 @@ def score_label(
             truth_label_ds = zarr.open(truth_label_path, mode="r")
             truth_label = truth_label_ds[:]
         except Exception:
-            raise ValueError(f"Failed to load ground truth data for {crop_name}/{label_name}. Please contact the challenge organizers.")
-        
+            raise ValueError(
+                f"Failed to load ground truth data for {crop_name}/{label_name}. Please contact the challenge organizers."
+            )
+
         crop = TEST_CROPS_DICT[int(crop_name.removeprefix("crop")), label_name]
         try:
             pred_label = match_crop_space(
@@ -420,7 +426,13 @@ def score_label(
                 crop.translation,
             )
         except Exception as e:
-            raise ValueError(f"Failed to process submission data for {crop_name}/{label_name}. Please verify your data format and coordinate transformations are correct.")
+            raise ValueError(
+                f"Failed to process submission data for {crop_name}/{label_name}. Please verify your data format and coordinate transformations are correct."
+            )
+    except Exception:
+        raise Exception(
+            "An unexpected error occurred during label scoring. Please check your submission and contact the challenge organizers if the issue persists."
+        )
 
     mask_path = truth_path / crop_name / f"{label_name}_mask"
     if mask_path.exists():
@@ -431,9 +443,10 @@ def score_label(
             pred_label = pred_label * mask
             truth_label = truth_label * mask
         except Exception:
-            raise ValueError(f"Failed to apply mask for {crop_name}/{label_name}. Please contact the challenge organizers.")
+            raise ValueError(
+                f"Failed to apply mask for {crop_name}/{label_name}. Please contact the challenge organizers."
+            )
 
-    
         # Compute the scores
     if label_name in instance_classes:
         logging.info(
@@ -443,7 +456,9 @@ def score_label(
         try:
             results = score_instance(pred_label, truth_label, crop.voxel_size)
         except Exception:
-            raise ValueError(f"Failed to compute instance scores for {crop_name}/{label_name}. Ensure your instance segmentation data has properly labeled instances with integer IDs.")
+            raise ValueError(
+                f"Failed to compute instance scores for {crop_name}/{label_name}. Ensure your instance segmentation data has properly labeled instances with integer IDs."
+            )
         logging.info(
             f"Finished instance evaluation for {label_name} in {crop_name} in {time() - timer:.2f} seconds..."
         )
@@ -451,12 +466,15 @@ def score_label(
         try:
             results = score_semantic(pred_label, truth_label)
         except Exception:
-            raise ValueError(f"Failed to compute semantic scores for {crop_name}/{label_name}. Ensure your data contains valid probability or binary values.")
+            raise ValueError(
+                f"Failed to compute semantic scores for {crop_name}/{label_name}. Ensure your data contains valid probability or binary values."
+            )
     results["num_voxels"] = int(np.prod(truth_label.shape))
     results["voxel_size"] = crop.voxel_size
     results["is_missing"] = False
     return crop_name, label_name, results
-    
+
+
 def empty_label_score(
     label, crop_name, instance_classes=INSTANCE_CLASSES, truth_path=TRUTH_PATH
 ):
@@ -752,7 +770,9 @@ def score_submission(
     try:
         submission_path = unzip_file(submission_path)
     except Exception:
-        raise ValueError("Failed to process submission file. Please ensure you submitted a valid .zip file containing a Zarr structure.")
+        raise ValueError(
+            "Failed to process submission file. Please ensure you submitted a valid .zip file containing a Zarr structure."
+        )
 
         # Find volumes to score
     logging.info(f"Scoring volumes in {submission_path}...")
@@ -764,7 +784,9 @@ def score_submission(
         truth_volumes = [d.name for d in truth_path.glob("*") if d.is_dir()]
         logging.info(f"Truth volumes: {truth_volumes}")
     except Exception:
-        raise ValueError("Failed to read submission structure. Ensure your submission contains crop folders (e.g., crop557, crop558, etc.) at the top level.")
+        raise ValueError(
+            "Failed to read submission structure. Ensure your submission contains crop folders (e.g., crop557, crop558, etc.) at the top level."
+        )
 
     found_volumes = list(set(pred_volumes) & set(truth_volumes))
     missing_volumes = list(set(truth_volumes) - set(pred_volumes))
@@ -990,7 +1012,9 @@ def match_crop_space(path, class_label, voxel_size, shape, translation) -> np.nd
     try:
         ds = zarr.open(str(path), mode="r")
     except Exception:
-        raise ValueError(f"Cannot open zarr array at path: {UPath(path).name}. Ensure your submission is a valid Zarr format.")
+        raise ValueError(
+            f"Cannot open zarr array at path: {UPath(path).name}. Ensure your submission is a valid Zarr format."
+        )
     if "multiscales" in ds.attrs:
         # Handle multiscale zarr files
         _image = CellMapImage(
@@ -1146,9 +1170,13 @@ def unzip_file(zip_path):
             logging.info(f"Unzipped {zip_path} to {saved_path}")
         return UPath(saved_path)
     except zipfile.BadZipFile:
-        raise ValueError(f"Invalid zip file. Please ensure you submitted a valid .zip file.")
+        raise ValueError(
+            f"Invalid zip file. Please ensure you submitted a valid .zip file."
+        )
     except Exception:
-        raise ValueError(f"Failed to extract submission file. Please verify the file is not corrupted.")
+        raise ValueError(
+            f"Failed to extract submission file. Please verify the file is not corrupted."
+        )
 
 
 if __name__ == "__main__":
