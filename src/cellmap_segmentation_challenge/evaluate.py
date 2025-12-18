@@ -392,8 +392,6 @@ def score_label(
             logging.info(
                 f"Label {label_name} not found in submission volume {crop_name}."
             )
-                f"Label {label_name} not found in submission volume {crop_name}."
-            )
             return (
                 crop_name,
                 label_name,
