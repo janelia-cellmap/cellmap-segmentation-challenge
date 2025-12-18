@@ -442,7 +442,7 @@ def score_label(
         timer = time()
         try:
             results = score_instance(pred_label, truth_label, crop.voxel_size)
-        except Exception as e:
+        except Exception:
             raise ValueError(f"Failed to compute instance scores for {crop_name}/{label_name}. Ensure your instance segmentation data has properly labeled instances with integer IDs.")
         logging.info(
             f"Finished instance evaluation for {label_name} in {crop_name} in {time() - timer:.2f} seconds..."
@@ -450,7 +450,7 @@ def score_label(
     else:
         try:
             results = score_semantic(pred_label, truth_label)
-        except Exception as e:
+        except Exception:
             raise ValueError(f"Failed to compute semantic scores for {crop_name}/{label_name}. Ensure your data contains valid probability or binary values.")
     results["num_voxels"] = int(np.prod(truth_label.shape))
     results["voxel_size"] = crop.voxel_size
