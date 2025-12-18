@@ -425,7 +425,7 @@ def score_label(
                 crop.shape,
                 crop.translation,
             )
-        except Exception as e:
+        except Exception:
             raise ValueError(
                 f"Failed to process submission data for {crop_name}/{label_name}. Please verify your data format and coordinate transformations are correct."
             )
