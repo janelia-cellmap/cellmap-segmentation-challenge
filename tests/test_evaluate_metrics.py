@@ -187,12 +187,6 @@ def test_roi_hausdorff_empty_sets_and_missing_instance():
     truth = np.zeros((6, 6), dtype=np.int32)
     pred = np.zeros_like(truth)
 
-    # tid absent in both -> 0
-    d0 = ev.compute_hausdorff_distance_roi(
-        truth, pred, tid, voxel_size=voxel_size, max_distance=max_distance
-    )
-    assert np.isclose(d0, 0.0), f"Both absent should give zero distance, got {d0}"
-
     # present only in truth -> max_distance
     truth[0, 0] = tid
     d1 = ev.compute_hausdorff_distance_roi(

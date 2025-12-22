@@ -140,9 +140,8 @@ def test_no_overlap_returns_empty_iou_matrix(monkeypatch):
     pred[2, 2] = 1  # disjoint => no overlap
 
     out = ev.match_instances(gt, pred)
-    assert isinstance(out, np.ndarray)
-    assert out.shape == (1, 1)
-    assert float(out[0, 0]) == 0.0
+    assert isinstance(out, dict)
+    assert out == {}
 
 
 def test_unmatched_allowed_hits_no_overlap_branch(monkeypatch):
@@ -159,9 +158,8 @@ def test_unmatched_allowed_hits_no_overlap_branch(monkeypatch):
     pred[2:4, 2:4] = 1
 
     out = ev.match_instances(gt, pred)
-    assert isinstance(out, np.ndarray)
-    assert out.shape == (1, 1)
-    assert float(out[0, 0]) == 0.0
+    assert isinstance(out, dict)
+    assert out == {}
 
 
 # -------------------------
