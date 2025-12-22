@@ -939,9 +939,9 @@ def update_scores(scores, results, result_file, instance_classes=INSTANCE_CLASSE
         with open(found_result_file, "w") as f:
             json.dump(found_scores, f, indent=4)
 
-    logging.info(
-        f"Scores updated in {result_file} and {found_result_file} in {time() - start_time:.2f} seconds"
-    )
+        logging.info(
+            f"Scores updated in {result_file} and {found_result_file} in {time() - start_time:.2f} seconds"
+        )
 
     return all_scores, found_scores
 
