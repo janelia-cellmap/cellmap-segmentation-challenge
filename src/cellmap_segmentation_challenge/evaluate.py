@@ -9,13 +9,10 @@ import zarr
 from scipy.spatial.distance import dice
 from fastremap import remap, unique
 import cc3d
-from skimage.transform import rescale
 
 from sklearn.metrics import accuracy_score, jaccard_score
 from tqdm import tqdm
 from upath import UPath
-
-from cellmap_data import CellMapImage
 
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 
