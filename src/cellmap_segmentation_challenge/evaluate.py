@@ -1160,6 +1160,9 @@ def unzip_file(zip_path):
         unzip_file('submission.zip')
     """
     saved_path = UPath(zip_path).with_suffix(".zarr").path
+    if UPath(saved_path).exists():
+        logging.info(f"Using existing unzipped path at {saved_path}")
+        return UPath(saved_path)
     with zipfile.ZipFile(zip_path, "r") as zip_ref:
         zip_ref.extractall(saved_path)
         logging.info(f"Unzipped {zip_path} to {saved_path}")
