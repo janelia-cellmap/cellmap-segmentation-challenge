@@ -449,7 +449,7 @@ def score_label(
                 f"Failed to apply mask for {crop_name}/{label_name}. Please contact the challenge organizers."
             )
 
-        # Compute the scores
+    # Compute the scores
     if label_name in instance_classes:
         logging.info(
             f"Starting an instance evaluation for {label_name} in {crop_name}..."
