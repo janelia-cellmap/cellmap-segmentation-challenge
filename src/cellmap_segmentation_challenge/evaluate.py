@@ -387,40 +387,67 @@ def score_label(
     Example usage:
         scores = score_label('pred.zarr/test_volume/label1')
     """
-    if pred_label_path is None:
-        logging.info(f"Label {label_name} not found in submission volume {crop_name}.")
-        return (
-            crop_name,
-            label_name,
-            empty_label_score(
-                label=label_name,
-                crop_name=crop_name,
-                instance_classes=instance_classes,
-                truth_path=truth_path,
-            ),
+    try:
+        if pred_label_path is None:
+            logging.info(
+                f"Label {label_name} not found in submission volume {crop_name}."
+            )
+            return (
+                crop_name,
+                label_name,
+                empty_label_score(
+                    label=label_name,
+                    crop_name=crop_name,
+                    instance_classes=instance_classes,
+                    truth_path=truth_path,
+                ),
+            )
+        logging.info(f"Scoring {crop_name}/{label_name}...")
+        truth_path = UPath(truth_path)
+        # Load the predicted and ground truth label volumes
+        truth_label_path = (truth_path / crop_name / label_name).path
+        try:
+            truth_label_ds = zarr.open(truth_label_path, mode="r")
+            truth_label = truth_label_ds[:]
+        except Exception:
+            raise ValueError(
+                f"Failed to load ground truth data for {crop_name}/{label_name}. Please contact the challenge organizers."
+            )
+
+        crop = TEST_CROPS_DICT[int(crop_name.removeprefix("crop")), label_name]
+        try:
+            pred_label = match_crop_space(
+                pred_label_path,
+                label_name,
+                crop.voxel_size,
+                crop.shape,
+                crop.translation,
+            )
+        except ValueError:
+            # Preserve specific ValueError raised by match_crop_space
+            raise
+        except Exception as e:
+            # Wrap only unexpected exceptions in a generic ValueError
+            raise ValueError(
+                f"Failed to process submission data for {crop_name}/{label_name}. Please verify your data format and coordinate transformations are correct."
+            ) from e
+    except Exception:
+        raise Exception(
+            "An unexpected error occurred during label scoring. Please check your submission and contact the challenge organizers if the issue persists."
         )
-    logging.info(f"Scoring {pred_label_path}...")
-    truth_path = UPath(truth_path)
-    # Load the predicted and ground truth label volumes
-    truth_label_path = (truth_path / crop_name / label_name).path
-    truth_label_ds = zarr.open(truth_label_path, mode="r")
-    truth_label = truth_label_ds[:]
-    crop = TEST_CROPS_DICT[int(crop_name.removeprefix("crop")), label_name]
-    pred_label = match_crop_space(
-        pred_label_path,
-        label_name,
-        crop.voxel_size,
-        crop.shape,
-        crop.translation,
-    )
 
     mask_path = truth_path / crop_name / f"{label_name}_mask"
     if mask_path.exists():
         # Mask out uncertain regions resulting from low-res ground truth annotations
         logging.info(f"Masking {label_name} with {mask_path}...")
-        mask = zarr.open(mask_path.path, mode="r")[:]
-        pred_label = pred_label * mask
-        truth_label = truth_label * mask
+        try:
+            mask = zarr.open(mask_path.path, mode="r")[:]
+            pred_label = pred_label * mask
+            truth_label = truth_label * mask
+        except Exception:
+            raise ValueError(
+                f"Failed to apply mask for {crop_name}/{label_name}. Please contact the challenge organizers."
+            )
 
     # Compute the scores
     if label_name in instance_classes:
@@ -428,12 +455,22 @@ def score_label(
             f"Starting an instance evaluation for {label_name} in {crop_name}..."
         )
         timer = time()
-        results = score_instance(pred_label, truth_label, crop.voxel_size)
+        try:
+            results = score_instance(pred_label, truth_label, crop.voxel_size)
+        except Exception:
+            raise ValueError(
+                f"Failed to compute instance scores for {crop_name}/{label_name}. Ensure your instance segmentation data has properly labeled instances with integer IDs."
+            )
         logging.info(
             f"Finished instance evaluation for {label_name} in {crop_name} in {time() - timer:.2f} seconds..."
         )
     else:
-        results = score_semantic(pred_label, truth_label)
+        try:
+            results = score_semantic(pred_label, truth_label)
+        except Exception:
+            raise ValueError(
+                f"Failed to compute semantic scores for {crop_name}/{label_name}. Ensure your data contains valid probability or binary values."
+            )
     results["num_voxels"] = int(np.prod(truth_label.shape))
     results["voxel_size"] = crop.voxel_size
     results["is_missing"] = False
@@ -732,22 +769,32 @@ def score_submission(
     logging.info(f"Scoring {submission_path}...")
     start_time = time()
     # Unzip the submission
-    submission_path = unzip_file(submission_path)
+    try:
+        submission_path = unzip_file(submission_path)
+    except Exception:
+        raise ValueError(
+            "Failed to process submission file. Please ensure you submitted a valid .zip file containing a Zarr structure."
+        )
 
     # Find volumes to score
     logging.info(f"Scoring volumes in {submission_path}...")
-    pred_volumes = [d.name for d in UPath(submission_path).glob("*") if d.is_dir()]
-    truth_path = UPath(truth_path)
-    logging.info(f"Volumes: {pred_volumes}")
-    logging.info(f"Truth path: {truth_path}")
-    truth_volumes = [d.name for d in truth_path.glob("*") if d.is_dir()]
-    logging.info(f"Truth volumes: {truth_volumes}")
+    try:
+        pred_volumes = [d.name for d in UPath(submission_path).glob("*") if d.is_dir()]
+        truth_path = UPath(truth_path)
+        logging.info(f"Volumes: {pred_volumes}")
+        logging.info(f"Truth path: {truth_path}")
+        truth_volumes = [d.name for d in truth_path.glob("*") if d.is_dir()]
+        logging.info(f"Truth volumes: {truth_volumes}")
+    except Exception:
+        raise ValueError(
+            "Failed to read submission structure. Ensure your submission contains crop folders (e.g., crop557, crop558, etc.) at the top level."
+        )
 
     found_volumes = list(set(pred_volumes) & set(truth_volumes))
     missing_volumes = list(set(truth_volumes) - set(pred_volumes))
     if len(found_volumes) == 0:
         raise ValueError(
-            "No volumes found to score. Make sure the submission is formatted correctly."
+            f"No valid test volumes found in submission. Expected volumes like: {', '.join(truth_volumes[:5])}. Please ensure your submission structure matches the required format."
         )
     logging.info(f"Scoring volumes: {found_volumes}")
     if len(missing_volumes) > 0:
@@ -896,9 +943,9 @@ def update_scores(scores, results, result_file, instance_classes=INSTANCE_CLASSE
         with open(found_result_file, "w") as f:
             json.dump(found_scores, f, indent=4)
 
-    logging.info(
-        f"Scores updated in {result_file} and {found_result_file} in {time() - start_time:.2f} seconds"
-    )
+        logging.info(
+            f"Scores updated in {result_file} and {found_result_file} in {time() - start_time:.2f} seconds"
+        )
 
     return all_scores, found_scores
 
@@ -964,7 +1011,12 @@ def match_crop_space(path, class_label, voxel_size, shape, translation) -> np.nd
     Returns:
         np.ndarray: The rescaled array.
     """
-    ds = zarr.open(str(path), mode="r")
+    try:
+        ds = zarr.open(str(path), mode="r")
+    except (zarr.errors.PathNotFoundError, OSError, PermissionError):
+        raise ValueError(
+            f"Cannot open zarr array at path: {UPath(path).name}. Ensure your submission is a valid Zarr format."
+        )
     if "multiscales" in ds.attrs:
         # Handle multiscale zarr files
         _image = CellMapImage(
@@ -1113,12 +1165,20 @@ def unzip_file(zip_path):
     Example usage:
         unzip_file('submission.zip')
     """
-    saved_path = UPath(zip_path).with_suffix(".zarr").path
-    with zipfile.ZipFile(zip_path, "r") as zip_ref:
-        zip_ref.extractall(saved_path)
-        logging.info(f"Unzipped {zip_path} to {saved_path}")
-
-    return UPath(saved_path)
+    try:
+        saved_path = UPath(zip_path).with_suffix(".zarr").path
+        with zipfile.ZipFile(zip_path, "r") as zip_ref:
+            zip_ref.extractall(saved_path)
+            logging.info(f"Unzipped {zip_path} to {saved_path}")
+        return UPath(saved_path)
+    except zipfile.BadZipFile:
+        raise ValueError(
+            f"Invalid zip file. Please ensure you submitted a valid .zip file."
+        )
+    except Exception:
+        raise ValueError(
+            f"Failed to extract submission file. Please verify the file is not corrupted."
+        )
 
 
 if __name__ == "__main__":
