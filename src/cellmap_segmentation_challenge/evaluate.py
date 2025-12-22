@@ -45,8 +45,8 @@ DEBUG = os.getenv("DEBUG", "False").lower() != "false"
 def iou_matrix(gt: np.ndarray, pred: np.ndarray) -> np.ndarray | None:
     """
     Compute IoU between all GT and Pred instance IDs.
-    Assumes IDs are sequential starting at 1 (0 is background).
-    Returns float32 array of shape (num_gt_ids, num_pred_ids).
+    Assumes IDs range from 1 to max(ID) (0 is background). If IDs are non-sequential (e.g., 1, 2, 5), the output matrix will contain empty rows/columns for missing IDs.
+    Returns float32 array of shape (max(gt) + 1, max(pred) + 1), where rows/columns for missing IDs will be empty.
     """
     INSTANCE_RATIO_CUTOFF = float(os.getenv("INSTANCE_RATIO_CUTOFF", 50))
 
