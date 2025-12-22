@@ -71,10 +71,10 @@ def match_instances(gt: np.ndarray, pred: np.ndarray) -> dict | None:
     # Early exits
     if nG == 0 or nP == 0:
         if nG == 0 and nP > 0:
-            logging.info("No GT instances; returning empty IoU with pred columns.")
+            logging.info("No GT instances; returning empty match.")
         if nP == 0 and nG > 0:
-            logging.info("No Pred instances; returning empty IoU with gt rows.")
-        return np.zeros((nG, nP), dtype=np.float32)
+            logging.info("No Pred instances; returning empty match.")
+        return {}
 
     if (nP / nG) > INSTANCE_RATIO_CUTOFF:
         logging.warning(
@@ -98,7 +98,7 @@ def match_instances(gt: np.ndarray, pred: np.ndarray) -> dict | None:
     pj = p[fg].astype(np.int64) - 1
     if gi.size == 0:
         # No overlaps anywhere -> IoU is all zeros
-        return np.zeros((nG, nP), dtype=np.float32)
+        return {}
 
     # Encode pairs to a single 64-bit key and count only present pairs
     # Use unsigned to avoid negative-overflow corner cases.
@@ -386,9 +386,6 @@ def compute_hausdorff_distance_roi(
     and builds masks only inside ROI.
     """
     from scipy.ndimage import distance_transform_edt
-
-    if not np.any(truth_label == tid) and not np.any(pred_label == tid):
-        return 0.0
 
     roi = roi_slices_for_pair(truth_label, pred_label, tid, voxel_size, max_distance)
     if roi is None:
