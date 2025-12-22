@@ -26,6 +26,7 @@ def safe_function():
 """
             )
             f.flush()
+            f.close()
             try:
                 is_safe, issues = analyze_script(f.name)
                 assert is_safe is True
@@ -46,6 +47,7 @@ def unsafe_function():
 """
             )
             f.flush()
+            f.close()
             try:
                 is_safe, issues = analyze_script(f.name)
                 assert is_safe is False
@@ -65,6 +67,7 @@ def unsafe_function():
 """
             )
             f.flush()
+            f.close()
             try:
                 is_safe, issues = analyze_script(f.name)
                 assert is_safe is False
@@ -85,6 +88,7 @@ def unsafe_function():
 """
             )
             f.flush()
+            f.close()
             try:
                 is_safe, issues = analyze_script(f.name)
                 assert is_safe is False

@@ -147,7 +147,7 @@ def test_train(setup_temp_path):
 
 
 @skip_in_ci
-@pytest.mark.dependency(depends=["test_train"])
+@pytest.mark.dependency(depends=["test_fetch_data"])
 def test_predict(setup_temp_path):
     from cellmap_segmentation_challenge.cli import predict_cli
 
