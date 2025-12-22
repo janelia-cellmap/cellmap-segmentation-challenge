@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 import zarr
 from fastremap import unique
+import pytest
 
 from cellmap_segmentation_challenge import evaluate as ev
 from cellmap_segmentation_challenge.utils import zip_submission
@@ -22,136 +23,278 @@ class DummyCrop:
     translation: tuple
 
 
-# ------------------------
-# iou_matrix tests
-# ------------------------
-
-
-def test_iou_matrix_basic():
+def _hausdorff_full_reference_labels(
+    truth_label: np.ndarray,
+    pred_label: np.ndarray,
+    tid: int,
+    voxel_size,
+    max_distance: float,
+    method: str = "standard",
+    percentile: float | None = None,
+) -> float:
     """
-    gt:
-      0 1
-      2 2
-
-    pred:
-      0 1
-      0 2
-
-    gt id 1: 1 voxel, pred id 1: 1 voxel, intersection 1 -> IoU 1
-    gt id 2: 2 voxels, pred id 2: 1 voxel, intersection 1 -> IoU 1/2
+    Full-volume reference for a single tid, matching the ROI version semantics.
     """
-    gt = np.array([[0, 1], [2, 2]], dtype=np.int32)
-    pred = np.array([[0, 1], [0, 2]], dtype=np.int32)
+    from scipy.ndimage import distance_transform_edt
 
-    iou = ev.iou_matrix(gt, pred)
+    a = truth_label == tid
+    b = pred_label == tid
 
-    assert iou.shape == (2, 2)
-    # (gt1, pred1)
-    assert np.isclose(iou[0, 0], 1.0)
-    # (gt2, pred2) = 1 / (2 + 1 - 1) = 0.5
-    assert np.isclose(iou[1, 1], 0.5)
-    # all other entries should be 0
-    assert np.isclose(iou[0, 1], 0.0)
-    assert np.isclose(iou[1, 0], 0.0)
+    a_n = int(a.sum())
+    b_n = int(b.sum())
+    if a_n == 0 and b_n == 0:
+        return 0.0
+    if a_n == 0 or b_n == 0:
+        return float(max_distance)
 
+    ndim = truth_label.ndim
+    vs = np.asarray(voxel_size, dtype=np.float64)
+    if vs.size != ndim:
+        vs = vs[-ndim:]
 
-def test_iou_matrix_no_gt_instances():
-    gt = np.zeros((3, 3), dtype=np.int32)
-    pred = np.array([[0, 1, 1], [0, 0, 2], [0, 0, 0]], dtype=np.int32)
+    dist_to_b = distance_transform_edt(~b, sampling=vs)
+    dist_to_a = distance_transform_edt(~a, sampling=vs)
 
-    iou = ev.iou_matrix(gt, pred)
-    # nG = 0, nP = 2 -> shape (0,2)
-    assert iou.shape == (0, 2)
+    fwd = dist_to_b[a]
+    bwd = dist_to_a[b]
 
+    if method == "standard":
+        d = max(fwd.max(initial=0.0), bwd.max(initial=0.0))
+    elif method == "modified":
+        d = max(fwd.mean() if fwd.size else 0.0, bwd.mean() if bwd.size else 0.0)
+    elif method == "percentile":
+        if percentile is None:
+            raise ValueError("'percentile' must be provided when method='percentile'")
+        d = max(
+            float(np.percentile(fwd, percentile)) if fwd.size else 0.0,
+            float(np.percentile(bwd, percentile)) if bwd.size else 0.0,
+        )
+    else:
+        raise ValueError("method must be one of {'standard', 'modified', 'percentile'}")
 
-def test_iou_matrix_no_pred_instances():
-    gt = np.array([[0, 1, 1], [0, 2, 2], [0, 0, 0]], dtype=np.int32)
-    pred = np.zeros_like(gt)
-
-    iou = ev.iou_matrix(gt, pred)
-    # nG = 2, nP = 0 -> shape (2,0)
-    assert iou.shape == (2, 0)
-
-
-def test_iou_matrix_too_many_pred_instances(monkeypatch):
-    # force INSTANCE_RATIO_CUTOFF low to trigger None
-    monkeypatch.setenv("INSTANCE_RATIO_CUTOFF", "1")
-    gt = np.array([[0, 1, 0, 0]], dtype=np.int32)  # 1 instance
-    pred = np.array([[0, 1, 2, 3]], dtype=np.int32)  # 3 instances
-
-    res = ev.iou_matrix(gt, pred)
-    assert res is None
+    return float(min(d, max_distance))
 
 
 # ------------------------
-# Hausdorff distance tests
+# ROI Hausdorff tests
 # ------------------------
 
 
-def test_compute_hausdorff_distance_identical_masks():
-    mask = np.array([[0, 1, 0], [0, 1, 0], [0, 0, 0]], dtype=bool)
-    d = ev.compute_hausdorff_distance(
-        mask, mask, voxel_size=(1.0, 1.0), max_distance=np.inf, method="standard"
+def test_roi_hausdorff_identical_instance_is_zero():
+    truth = np.zeros((5, 5), dtype=np.int32)
+    pred = np.zeros((5, 5), dtype=np.int32)
+    tid = 1
+
+    truth[2, 2] = tid
+    pred[2, 2] = tid
+
+    d = ev.compute_hausdorff_distance_roi(
+        truth, pred, tid, voxel_size=(1.0, 1.0), max_distance=10.0, method="standard"
     )
     assert np.isclose(d, 0.0)
 
 
-def test_compute_hausdorff_distance_separated_points():
-    a = np.zeros((1, 5), dtype=bool)
-    b = np.zeros((1, 5), dtype=bool)
-    a[0, 0] = True
-    b[0, 3] = True  # distance 3 along x
+def test_roi_hausdorff_matches_full_reference_standard_and_modified():
+    truth = np.zeros((1, 20), dtype=np.int32)
+    pred = np.zeros((1, 20), dtype=np.int32)
+    tid = 7
 
-    d_std = ev.compute_hausdorff_distance(
-        a, b, voxel_size=(1.0, 1.0), max_distance=np.inf, method="standard"
+    truth[0, 1] = tid
+    pred[0, 4] = tid  # distance 3
+
+    voxel_size = (1.0, 1.0)
+    max_distance = 100.0
+
+    d_roi = ev.compute_hausdorff_distance_roi(
+        truth,
+        pred,
+        tid,
+        voxel_size=voxel_size,
+        max_distance=max_distance,
+        method="standard",
     )
-    assert np.isclose(d_std, 3.0)
-
-    d_mod = ev.compute_hausdorff_distance(
-        a, b, voxel_size=(1.0, 1.0), max_distance=np.inf, method="modified"
+    d_ref = _hausdorff_full_reference_labels(
+        truth,
+        pred,
+        tid,
+        voxel_size=voxel_size,
+        max_distance=max_distance,
+        method="standard",
     )
-    # only one distance each direction -> mean == max == 3
-    assert np.isclose(d_mod, 3.0)
+    assert np.isclose(d_roi, d_ref)
+    assert np.isclose(d_roi, 3.0)
+
+    d_roi_mod = ev.compute_hausdorff_distance_roi(
+        truth,
+        pred,
+        tid,
+        voxel_size=voxel_size,
+        max_distance=max_distance,
+        method="modified",
+    )
+    d_ref_mod = _hausdorff_full_reference_labels(
+        truth,
+        pred,
+        tid,
+        voxel_size=voxel_size,
+        max_distance=max_distance,
+        method="modified",
+    )
+    assert np.isclose(d_roi_mod, d_ref_mod)
+    assert np.isclose(d_roi_mod, 3.0)
 
 
-def test_compute_hausdorff_distance_percentile():
-    a = np.zeros((1, 5), dtype=bool)
-    b = np.zeros((1, 5), dtype=bool)
-    # A has foreground at 0,1; B has at 3,4.
-    a[0, 0] = True
-    a[0, 1] = True
-    b[0, 3] = True
-    b[0, 4] = True
-    # Distances from each point in A to B:
-    # A(0)->3 = 3, A(1)->3 = 2 (closest).
-    # Similarly B->A: 3->1=2, 4->1=3.
-    # So forward distances [3,2], backward [2,3].
-    # 50th percentile is ~2.5 each side.
-    d_p50 = ev.compute_hausdorff_distance(
-        a,
-        b,
-        voxel_size=(1.0, 1.0),
-        max_distance=np.inf,
+def test_roi_hausdorff_percentile_matches_full_reference():
+    truth = np.zeros((1, 8), dtype=np.int32)
+    pred = np.zeros((1, 8), dtype=np.int32)
+    tid = 2
+
+    # truth tid at 0,1; pred tid at 4,5
+    truth[0, 0] = tid
+    truth[0, 1] = tid
+    pred[0, 4] = tid
+    pred[0, 5] = tid
+
+    voxel_size = (1.0, 1.0)
+    max_distance = 100.0
+
+    d_roi = ev.compute_hausdorff_distance_roi(
+        truth,
+        pred,
+        tid,
+        voxel_size=voxel_size,
+        max_distance=max_distance,
         method="percentile",
         percentile=50,
     )
-    assert np.isclose(d_p50, 2.5, atol=1e-6)
-
-
-def test_compute_hausdorff_distance_empty_sets():
-    max_distance = 5.0
-    a = np.zeros((4, 4), dtype=bool)
-    b = np.zeros_like(a)
-    d = ev.compute_hausdorff_distance(
-        a, b, voxel_size=(1.0, 1.0), max_distance=max_distance
+    d_ref = _hausdorff_full_reference_labels(
+        truth,
+        pred,
+        tid,
+        voxel_size=voxel_size,
+        max_distance=max_distance,
+        method="percentile",
+        percentile=50,
     )
-    assert np.isclose(d, 0.0)
+    assert np.isclose(d_roi, d_ref, atol=1e-6)
 
-    a[0, 0] = True
-    d2 = ev.compute_hausdorff_distance(
-        a, b, voxel_size=(1.0, 1.0), max_distance=max_distance
+
+def test_roi_hausdorff_empty_sets_and_missing_instance():
+    voxel_size = (1.0, 1.0)
+    max_distance = 5.0
+    tid = 3
+
+    truth = np.zeros((6, 6), dtype=np.int32)
+    pred = np.zeros_like(truth)
+
+    # tid absent in both -> 0
+    d0 = ev.compute_hausdorff_distance_roi(
+        truth, pred, tid, voxel_size=voxel_size, max_distance=max_distance
+    )
+    assert np.isclose(d0, 0.0), f"Both absent should give zero distance, got {d0}"
+
+    # present only in truth -> max_distance
+    truth[0, 0] = tid
+    d1 = ev.compute_hausdorff_distance_roi(
+        truth, pred, tid, voxel_size=voxel_size, max_distance=max_distance
+    )
+    assert np.isclose(d1, max_distance)
+
+    # present only in pred -> max_distance
+    truth[0, 0] = 0
+    pred[0, 0] = tid
+    d2 = ev.compute_hausdorff_distance_roi(
+        truth, pred, tid, voxel_size=voxel_size, max_distance=max_distance
     )
     assert np.isclose(d2, max_distance)
+
+
+def test_roi_hausdorff_clips_to_max_distance_matches_reference():
+    truth = np.zeros((1, 30), dtype=np.int32)
+    pred = np.zeros((1, 30), dtype=np.int32)
+    tid = 1
+
+    truth[0, 0] = tid
+    pred[0, 10] = tid  # true distance 10
+
+    voxel_size = (1.0, 1.0)
+    max_distance = 3.0
+
+    d_roi = ev.compute_hausdorff_distance_roi(
+        truth,
+        pred,
+        tid,
+        voxel_size=voxel_size,
+        max_distance=max_distance,
+        method="standard",
+    )
+    assert np.isclose(d_roi, max_distance)
+
+    d_ref = _hausdorff_full_reference_labels(
+        truth,
+        pred,
+        tid,
+        voxel_size=voxel_size,
+        max_distance=max_distance,
+        method="standard",
+    )
+    assert np.isclose(d_roi, d_ref)
+
+
+def test_roi_hausdorff_anisotropic_voxel_size_matches_reference():
+    truth = np.zeros((5, 5), dtype=np.int32)
+    pred = np.zeros((5, 5), dtype=np.int32)
+    tid = 9
+
+    truth[1, 1] = tid
+    pred[1, 3] = tid  # 2 steps along x
+
+    voxel_size = (2.0, 0.5)  # physical distance = 2 * 0.5 = 1.0
+    max_distance = 100.0
+
+    d_roi = ev.compute_hausdorff_distance_roi(
+        truth,
+        pred,
+        tid,
+        voxel_size=voxel_size,
+        max_distance=max_distance,
+        method="standard",
+    )
+    d_ref = _hausdorff_full_reference_labels(
+        truth,
+        pred,
+        tid,
+        voxel_size=voxel_size,
+        max_distance=max_distance,
+        method="standard",
+    )
+    assert np.isclose(d_roi, d_ref, atol=1e-6)
+    assert np.isclose(d_roi, 1.0, atol=1e-6)
+
+
+def test_roi_none_returns_max_distance(monkeypatch):
+    """
+    Forces roi_slices_for_pair to return None to exercise that branch.
+    Should return max_distance when the instance exists in truth or pred
+    (i.e. not the "both absent" case).
+    """
+
+    def _fake_roi(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr(ev, "roi_slices_for_pair", _fake_roi)
+
+    truth = np.zeros((5, 5), dtype=np.int32)
+    pred = np.zeros_like(truth)
+    tid = 1
+
+    # Make tid present in exactly one volume so we don't trigger the "both absent -> 0" shortcut
+    truth[2, 2] = tid  # present in truth only
+
+    d = ev.compute_hausdorff_distance_roi(
+        truth, pred, tid, voxel_size=(1.0, 1.0), max_distance=7.0
+    )
+    assert np.isclose(d, 7.0)
 
 
 def test_optimized_hausdorff_distances_per_instance():

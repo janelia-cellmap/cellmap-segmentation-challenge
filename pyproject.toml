@@ -51,6 +51,7 @@ dependencies = [
   "pykdtree",
   "fastremap",
   "connected-components-3d",
+  "ortools",
   ]
 
 [project.optional-dependencies]

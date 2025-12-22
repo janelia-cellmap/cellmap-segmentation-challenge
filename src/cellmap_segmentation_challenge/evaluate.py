@@ -6,7 +6,6 @@ import zipfile
 
 import numpy as np
 import zarr
-from scipy.optimize import linear_sum_assignment
 from scipy.spatial.distance import dice
 from fastremap import remap, unique
 import cc3d
@@ -21,7 +20,7 @@ from cellmap_data import CellMapImage
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 
 from .config import SUBMISSION_PATH, TRUTH_PATH, INSTANCE_CLASSES
-from .utils import TEST_CROPS_DICT
+from .utils import TEST_CROPS_DICT, MatchedCrop
 
 import logging
 
@@ -31,24 +30,35 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
-HAUSDORFF_DISTANCE_MAX = np.inf
 CAST_TO_NONE = [np.nan, np.inf, -np.inf]
 
 MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 1))
 MAX_SEMANTIC_THREADS = int(os.getenv("MAX_SEMANTIC_THREADS", 20))
 PER_INSTANCE_THREADS = int(os.getenv("PER_INSTANCE_THREADS", 16))
-# submitted_# of instances / ground_truth_# of instances
-PRECOMPUTE_LIMIT = int(os.getenv("PRECOMPUTE_LIMIT", 1e7))
+MAX_DISTANCE_CAP_EPS = float(os.getenv("MAX_DISTANCE_CAP_EPS", "1e-4"))
 DEBUG = os.getenv("DEBUG", "False").lower() != "false"
 
 
-def iou_matrix(gt: np.ndarray, pred: np.ndarray) -> np.ndarray | None:
+def normalize_distance(distance: float, voxel_size) -> float:
     """
-    Compute IoU between all GT and Pred instance IDs.
+    Normalize a distance value to [0, 1] using the maximum distance represented by a voxel
+    """
+    return float((1.01 ** (-distance / np.linalg.norm(voxel_size))))
+
+
+def compute_default_max_distance(voxel_size, eps=MAX_DISTANCE_CAP_EPS) -> float:
+    v = np.linalg.norm(np.asarray(voxel_size, dtype=float))
+    return float(v * (np.log(1.0 / eps) / np.log(1.01)))
+
+
+def match_instances(gt: np.ndarray, pred: np.ndarray) -> dict | None:
+    """
+    Matches instances between GT and Pred based on IoU.
     Assumes IDs range from 1 to max(ID) (0 is background). If IDs are non-sequential (e.g., 1, 2, 5), the output matrix will contain empty rows/columns for missing IDs.
-    Returns float32 array of shape (max(gt) + 1, max(pred) + 1), where rows/columns for missing IDs will be empty.
+    Returns a dictionary mapping pred IDs to gt IDs.
     """
-    INSTANCE_RATIO_CUTOFF = float(os.getenv("INSTANCE_RATIO_CUTOFF", 50))
+    INSTANCE_RATIO_CUTOFF = float(os.getenv("INSTANCE_RATIO_CUTOFF", 10))
+    MAX_OVERLAP_EDGES = int(os.getenv("MAX_OVERLAP_EDGES", "5000000"))  # safety
 
     if gt.shape != pred.shape:
         raise ValueError("gt and pred must have the same shape")
@@ -100,20 +110,106 @@ def iou_matrix(gt: np.ndarray, pred: np.ndarray) -> np.ndarray | None:
     key = gi_u * np.uint64(nP) + pj_u
 
     uniq_keys, counts = np.unique(key, return_counts=True)
+    if uniq_keys.size > MAX_OVERLAP_EDGES:
+        logging.warning(
+            f"WARNING: Too many overlap edges ({uniq_keys.size}) — skipping instance scoring."
+        )
+        return None
     rows = (uniq_keys // np.uint64(nP)).astype(np.int64)
     cols = (uniq_keys % np.uint64(nP)).astype(np.int64)
 
     # ---- IoU only for observed pairs, then scatter into dense matrix ----
-    # union_ij = gt_sizes[i] + pr_sizes[j] - inter_ij
-    inter_ij = counts.astype(np.int64)
-    union_ij = gt_sizes[rows, 0] + pr_sizes[0, cols] - inter_ij
+    inter = counts.astype(np.int64)
+    union = gt_sizes[rows, 0] + pr_sizes[0, cols] - inter
     with np.errstate(divide="ignore", invalid="ignore"):
-        iou_vals = (inter_ij / union_ij).astype(np.float32)
+        iou_vals = (inter / union).astype(np.float32)
 
-    iou = np.zeros((nG, nP), dtype=np.float32)
-    iou[rows, cols] = iou_vals  # all other entries remain 0
+    # Keep only IoU > 0 edges (should already be true, but explicit)
+    keep = iou_vals > 0.0
+    rows = rows[keep]
+    cols = cols[keep]
+    iou_vals = iou_vals[keep]
 
-    return iou
+    if rows.size == 0:
+        return {}
+
+    # ---------------- OR-Tools Min-Cost Flow ----------------
+    from ortools.graph.python import min_cost_flow
+
+    mcf = min_cost_flow.SimpleMinCostFlow()
+
+    # Node indexing:
+    # source(0), GT nodes [1..nG], Pred nodes [1+nG .. nG+nP], sink(last)
+    source = 0
+    gt0 = 1
+    pred0 = gt0 + nG
+    sink = pred0 + nP
+
+    COST_SCALE = int(os.getenv("MCMF_COST_SCALE", "1000000"))
+    UNMATCH_COST = COST_SCALE + 1  # worse than any match in [0, COST_SCALE]
+
+    # ---- Build arcs into numpy arrays (dtype matters) ----
+    tails = []
+    heads = []
+    caps = []
+    costs = []
+
+    def add_arc(u: int, v: int, cap: int, cost: int) -> None:
+        tails.append(u)
+        heads.append(v)
+        caps.append(cap)
+        costs.append(cost)
+
+    # Source -> GT (each GT emits 1 unit)
+    for i in range(nG):
+        add_arc(source, gt0 + i, 1, 0)
+
+    # GT -> Sink "unmatched" option
+    for i in range(nG):
+        add_arc(gt0 + i, sink, 1, UNMATCH_COST)
+
+    # GT -> Pred edges for IoU>0
+    # (rows, cols are 0-based instance indices; +1 happens later when making label ids)
+    for r, c, iou in zip(rows, cols, iou_vals):
+        u = gt0 + int(r)
+        v = pred0 + int(c)
+        cost = int((1.0 - float(iou)) * COST_SCALE)
+        add_arc(u, v, 1, cost)
+
+    # Pred -> Sink capacity 1
+    for j in range(nP):
+        add_arc(pred0 + j, sink, 1, 0)
+
+    # Bulk add (use correct dtypes per API)
+    mcf.add_arcs_with_capacity_and_unit_cost(
+        np.asarray(tails, dtype=np.int32),
+        np.asarray(heads, dtype=np.int32),
+        np.asarray(caps, dtype=np.int64),
+        np.asarray(costs, dtype=np.int64),
+    )
+
+    # Supplies: push nG units from source to sink
+    mcf.set_node_supply(source, int(nG))
+    mcf.set_node_supply(sink, -int(nG))
+
+    status = mcf.solve()
+    if status != mcf.OPTIMAL:
+        logging.warning(f"Min-cost flow did not solve optimally (status={status}).")
+        return {}
+
+    # Extract matches: arcs GT->Pred with flow==1
+    mapping: dict[int, int] = {}
+    for a in range(mcf.num_arcs()):
+        if mcf.flow(a) != 1:
+            continue
+        u = mcf.tail(a)
+        v = mcf.head(a)
+        if gt0 <= u < pred0 and pred0 <= v < sink:
+            gt_id = (u - gt0) + 1  # back to label IDs (1-based, 0 is background)
+            pred_id = (v - pred0) + 1
+            mapping[pred_id] = gt_id
+
+    return mapping
 
 
 def optimized_hausdorff_distances(
@@ -159,13 +255,10 @@ def optimized_hausdorff_distances(
 
     def get_distance(i: int):
         tid = int(truth_ids[i])
-        truth_mask = truth_label == tid
-        pred_mask = pred_label == tid
-        # Note: because tid comes from truth_label, truth_mask has at least one voxel
-        # Compute directed/undirected Hausdorff according to method
-        h_dist = compute_hausdorff_distance(
-            truth_mask,
-            pred_mask,
+        h_dist = compute_hausdorff_distance_roi(
+            truth_label,
+            pred_label,
+            tid,
             voxel_size,
             hausdorff_distance_max,
             method=method,
@@ -198,43 +291,118 @@ def optimized_hausdorff_distances(
     return dists
 
 
-def compute_hausdorff_distance(
-    image0,
-    image1,
+def bbox_for_label_cc3d(label_vol: np.ndarray, label_id: int):
+    """
+    Try to get bbox without allocating a full boolean mask using cc3d statistics.
+    Falls back to mask-based bbox if cc3d doesn't provide expected fields.
+    Returns (mins, maxs) inclusive-exclusive in voxel indices, or None if missing.
+    """
+    try:
+        stats = cc3d.statistics(label_vol)
+        # cc3d.statistics usually returns dict-like with keys per label id.
+        # There are multiple API variants; try common patterns.
+        if "bounding_boxes" in stats:
+            bb = stats["bounding_boxes"].get(label_id, None)
+            if bb is None:
+                return None
+            # bb might be (z0,z1,y0,y1,x0,x1) with end exclusive
+            ndim = label_vol.ndim
+            mins = [bb[2 * k] for k in range(ndim)]
+            maxs = [bb[2 * k + 1] for k in range(ndim)]
+            return mins, maxs
+
+        if label_id in stats:
+            s = stats[label_id]
+            if "bounding_box" in s:
+                bb = s["bounding_box"]
+                ndim = label_vol.ndim
+                mins = [bb[2 * k] for k in range(ndim)]
+                maxs = [bb[2 * k + 1] for k in range(ndim)]
+                return mins, maxs
+    except Exception:
+        pass
+
+    # Fallback: mask-based (allocates a temporary bool)
+    coords = np.where(label_vol == label_id)
+    if len(coords) == 0 or coords[0].size == 0:
+        return None
+    mins = [int(c.min()) for c in coords]
+    maxs = [int(c.max()) + 1 for c in coords]
+    return mins, maxs
+
+
+def roi_slices_for_pair(
+    truth_label: np.ndarray,
+    pred_label: np.ndarray,
+    tid: int,
+    voxel_size,
+    max_distance: float,
+):
+    """
+    ROI = union(bbox(truth==tid), bbox(pred==tid)) padded by P derived from max_distance.
+    Returns tuple of slices suitable for numpy indexing.
+    """
+    ndim = truth_label.ndim
+    vs = np.asarray(voxel_size, dtype=float)
+    if vs.size != ndim:
+        # tolerate vs longer (e.g. includes channel), take last ndim
+        vs = vs[-ndim:]
+
+    # padding per axis in voxels
+    pad = np.ceil(max_distance / vs).astype(int) + 2
+
+    tb = bbox_for_label_cc3d(truth_label, tid)
+    if tb is None:
+        return None  # should not happen for tid from truth_ids
+
+    tmins, tmaxs = tb
+    pb = bbox_for_label_cc3d(pred_label, tid)
+    if pb is None:
+        pmins, pmaxs = tmins, tmaxs
+    else:
+        pmins, pmaxs = pb
+
+    mins = [min(tmins[d], pmins[d]) for d in range(ndim)]
+    maxs = [max(tmaxs[d], pmaxs[d]) for d in range(ndim)]
+
+    # expand and clamp
+    shape = truth_label.shape
+    out_slices = []
+    for d in range(ndim):
+        a = max(0, mins[d] - int(pad[d]))
+        b = min(shape[d], maxs[d] + int(pad[d]))
+        out_slices.append(slice(a, b))
+    return tuple(out_slices)
+
+
+def compute_hausdorff_distance_roi(
+    truth_label: np.ndarray,
+    pred_label: np.ndarray,
+    tid: int,
     voxel_size,
     max_distance: float,
     method: str = "standard",
     percentile: float | None = None,
 ):
     """
-    Compute the (undirected) Hausdorff-like distance between two binary masks using
-    Euclidean distance transforms (EDT), which is generally faster and more memory
-    friendly than building KD-trees for large 3D volumes.
-
-    Parameters
-    ----------
-    image0, image1 : np.ndarray (bool or int)
-        Binary masks (True/1 = foreground). They should already be aligned to the
-        same voxel grid.
-    voxel_size : Sequence[float]
-        Physical voxel sizes in Z, Y, X (or Y, X) order; passed to EDT via
-        `sampling` to support anisotropy.
-    max_distance : float
-        Distances are clipped to this value (use np.inf for no clipping).
-    method : {"standard", "modified", "percentile"}
-        "standard": classic Hausdorff -> max(max(dist(A→B)), max(dist(B→A)))
-        "modified": robust mean -> max(mean(dist(A→B)), mean(dist(B→A)))
-        "percentile": robust percentile -> max(P(dist(A→B)), P(dist(B→A))) where P
-                       is the given percentile.
-    percentile : float | None
-        Percentile in [0, 100]; required if method == "percentile".
+    Same metric as compute_hausdorff_distance(), but operates on an ROI slice
+    and builds masks only inside ROI.
     """
     from scipy.ndimage import distance_transform_edt
 
-    a = np.asarray(image0, dtype=bool)
-    b = np.asarray(image1, dtype=bool)
+    if not np.any(truth_label == tid) and not np.any(pred_label == tid):
+        return 0.0
 
-    # Handle empty sets
+    roi = roi_slices_for_pair(truth_label, pred_label, tid, voxel_size, max_distance)
+    if roi is None:
+        return float(max_distance)
+
+    t_roi = truth_label[roi]
+    p_roi = pred_label[roi]
+
+    a = t_roi == tid
+    b = p_roi == tid
+
     a_n = int(a.sum())
     b_n = int(b.sum())
     if a_n == 0 and b_n == 0:
@@ -242,13 +410,13 @@ def compute_hausdorff_distance(
     if a_n == 0 or b_n == 0:
         return float(max_distance)
 
-    voxel_size = np.asarray(voxel_size, dtype=np.float64)
+    ndim = truth_label.ndim
+    vs = np.asarray(voxel_size, dtype=np.float64)
+    if vs.size != ndim:
+        vs = vs[-ndim:]
 
-    # Directed distances via EDT to the *other* set's foreground
-    # distance_transform_edt computes distance to nearest zero -> pass ~mask so that
-    # zeros are at foreground voxels of the other set.
-    dist_to_b = distance_transform_edt(~b, sampling=voxel_size)
-    dist_to_a = distance_transform_edt(~a, sampling=voxel_size)
+    dist_to_b = distance_transform_edt(~b, sampling=vs)
+    dist_to_a = distance_transform_edt(~a, sampling=vs)
 
     fwd = dist_to_b[a]
     bwd = dist_to_a[b]
@@ -274,7 +442,7 @@ def score_instance(
     pred_label,
     truth_label,
     voxel_size,
-    hausdorff_distance_max=HAUSDORFF_DISTANCE_MAX,
+    hausdorff_distance_max=None,
 ) -> dict[str, float]:
     """
     Score a single instance label volume against the ground truth instance label volume.
@@ -292,14 +460,20 @@ def score_instance(
         scores = score_instance(pred_label, truth_label)
     """
     logging.info("Scoring instance segmentation...")
+    if hausdorff_distance_max is None:
+        hausdorff_distance_max = compute_default_max_distance(voxel_size)
+        logging.info(
+            f"Using default maximum Hausdorff distance of {hausdorff_distance_max:.2f} for voxel size {voxel_size}."
+        )
+
     # Relabel the predicted instance labels to be consistent with the ground truth instance labels
     logging.info("Relabeling predicted instance labels...")
     pred_label = cc3d.connected_components(pred_label)
 
-    # Compute the IoU cost matrix between the predicted and ground truth instance labels
-    cost_matrix = iou_matrix(truth_label, pred_label)
+    # Match instances between ground truth and prediction
+    mapping = match_instances(truth_label, pred_label)
 
-    if cost_matrix is None:
+    if mapping is None:
         # Too many instances in submission, skip scoring
         return {
             "accuracy": 0,
@@ -307,16 +481,10 @@ def score_instance(
             "normalized_hausdorff_distance": 0,
             "combined_score": 0,
         }
-    elif cost_matrix.size > 0:
-        # Match the predicted instances to the ground truth instances
-        logging.info("Calculating linear sum assignment...")
-        row_inds, col_inds = linear_sum_assignment(cost_matrix, maximize=True)
-
+    elif len(mapping) > 0:
+        mapping[0] = 0  # background maps to background
         # Construct the volume for the matched instances
-        mapping = {0: 0}  # background maps to background
-        mapping.update(
-            {pred_id + 1: truth_id + 1 for truth_id, pred_id in zip(row_inds, col_inds)}
-        )
+        mapping[0] = 0  # background maps to background
         pred_label = remap(
             pred_label, mapping, in_place=True, preserve_missing_labels=True
         )
@@ -332,9 +500,7 @@ def score_instance(
     logging.info("Computing accuracy score...")
     accuracy = accuracy_score(truth_label.flatten(), pred_label.flatten())
     hausdorff_dist = np.mean(hausdorff_distances) if len(hausdorff_distances) > 0 else 0
-    normalized_hausdorff_dist = 1.01 ** (
-        -hausdorff_dist / np.linalg.norm(voxel_size)
-    )  # normalize Hausdorff distance to [0, 1] using the maximum distance represented by a voxel
+    normalized_hausdorff_dist = normalize_distance(hausdorff_dist, voxel_size)
     combined_score = (accuracy * normalized_hausdorff_dist) ** 0.5  # geometric mean
     logging.info(f"Accuracy: {accuracy:.4f}")
     logging.info(f"Hausdorff Distance: {hausdorff_dist:.4f}")
@@ -973,156 +1139,17 @@ def resize_array(arr, target_shape, pad_value=0):
 
 
 def match_crop_space(path, class_label, voxel_size, shape, translation) -> np.ndarray:
-    """
-    Match the resolution of a zarr array to a target resolution and shape, resampling as necessary with interpolation dependent on the class label. Instance segmentations will be resampled with nearest neighbor interpolation, while semantic segmentations will be resampled with linear interpolation and then thresholded.
-
-    Args:
-        path (str | UPath): The path to the zarr array to be adjusted. The zarr can be an OME-NGFF multiscale zarr file, or a traditional single scale formatted zarr.
-        class_label (str): The class label of the array.
-        voxel_size (tuple): The target voxel size.
-        shape (tuple): The target shape.
-        translation (tuple): The translation (i.e. offset) of the array in world units.
-
-    Returns:
-        np.ndarray: The rescaled array.
-    """
-    ds = zarr.open(str(path), mode="r")
-    if "multiscales" in ds.attrs:
-        # Handle multiscale zarr files
-        _image = CellMapImage(
-            path=path,
-            target_class=class_label,
-            target_scale=voxel_size,
-            target_voxel_shape=shape,
-            pad=True,
-            pad_value=0,
-        )
-        path = UPath(path) / _image.scale_level
-        for attr in ds.attrs["multiscales"][0]["datasets"]:
-            if attr["path"] == _image.scale_level:
-                for transform in attr["coordinateTransformations"]:
-                    if transform["type"] == "translation":
-                        input_translation = transform["translation"]
-                    elif transform["type"] == "scale":
-                        input_voxel_size = transform["scale"]
-                break
-        ds = zarr.open(path.path, mode="r")
-    elif (
-        ("voxel_size" in ds.attrs)
-        or ("resolution" in ds.attrs)
-        or ("scale" in ds.attrs)
-    ) or (("translation" in ds.attrs) or ("offset" in ds.attrs)):
-        # Handle single scale zarr files
-        if "voxel_size" in ds.attrs:
-            input_voxel_size = ds.attrs["voxel_size"]
-        elif "resolution" in ds.attrs:
-            input_voxel_size = ds.attrs["resolution"]
-        elif "scale" in ds.attrs:
-            input_voxel_size = ds.attrs["scale"]
-        else:
-            input_voxel_size = None
-
-        if "translation" in ds.attrs:
-            input_translation = ds.attrs["translation"]
-        elif "offset" in ds.attrs:
-            input_translation = ds.attrs["offset"]
-        else:
-            input_translation = None
-    else:
-        logging.info(f"Could not find voxel size and translation for {path}")
-        logging.info(
-            "Assuming voxel size matches target voxel size and will crop to target shape centering the volume."
-        )
-        image = ds[:]
-        # Crop the array if necessary
-        if any(s1 != s2 for s1, s2 in zip(image.shape, shape)):
-            return resize_array(image, shape)  # type: ignore
-        return image  # type: ignore
-
-    # Load the array
-    image = ds[:]
-
-    # Rescale the array if necessary
-    if input_voxel_size is not None and any(
-        r1 != r2 for r1, r2 in zip(input_voxel_size, voxel_size)
-    ):
-        if class_label in INSTANCE_CLASSES:
-            image = rescale(
-                image, np.divide(input_voxel_size, voxel_size), order=0, mode="constant"
-            )
-        else:
-            image = rescale(
-                image,
-                np.divide(input_voxel_size, voxel_size),
-                order=1,
-                mode="constant",
-                preserve_range=True,
-            )
-            image = image > 0.5
-
-    if input_translation is not None:
-        # Calculate the relative offset
-        adjusted_input_translation = (
-            np.array(input_translation) // np.array(voxel_size)
-        ) * np.array(voxel_size)
-
-        # Positive relative offset is the amount to crop from the start, negative is the amount to pad at the start
-        relative_offset = (
-            abs(np.subtract(adjusted_input_translation, translation))
-            // np.array(voxel_size)
-            * np.sign(np.subtract(adjusted_input_translation, translation))
-        )
-    else:
-        # TODO: Handle the case where the translation is not provided
-        relative_offset = np.zeros(len(shape))
-
-    # Translate and crop the array if necessary
-    if any(offset != 0 for offset in relative_offset) or any(
-        s1 != s2 for s1, s2 in zip(image.shape, shape)
-    ):
-        logging.info(
-            f"Translating and cropping {path} to {shape} with offset {relative_offset}"
-        )
-        # Make destination array
-        result = np.zeros(shape, dtype=image.dtype)
-
-        # Calculate the slices for the source and destination arrays
-        input_slices = []
-        output_slices = []
-        for i in range(len(shape)):
-            if relative_offset[i] < 0:
-                # Crop from the start
-                input_start = abs(relative_offset[i])
-                output_start = 0
-                input_end = min(input_start + shape[i], image.shape[i])
-                input_length = input_end - input_start
-                output_end = output_start + input_length
-            else:
-                # Pad at the start
-                input_start = 0
-                output_start = relative_offset[i]
-                output_end = min(shape[i], image.shape[i])
-                input_length = output_end - output_start
-                input_end = input_length
-
-            if input_length <= 0:
-                logging.info(
-                    "WARNING: Cropping to proper offset resulted in empty volume."
-                )
-                logging.info(f"\tInput shape: {image.shape}, Output shape: {shape}")
-                logging.info(
-                    f"\tInput offset: {input_start}, Output offset: {output_start}"
-                )
-                return result
-
-            input_slices.append(slice(int(input_start), int(input_end)))
-            output_slices.append(slice(int(output_start), int(output_end)))
-
-        # Copy the data
-        result[*output_slices] = image[*input_slices]
-        return result
-    else:
-        return image
+    mc = MatchedCrop(
+        path=path,
+        class_label=class_label,
+        target_voxel_size=voxel_size,
+        target_shape=shape,
+        target_translation=translation,
+        instance_classes=INSTANCE_CLASSES,
+        semantic_threshold=0.5,
+        pad_value=0,
+    )
+    return mc.load_aligned()
 
 
 def unzip_file(zip_path):
