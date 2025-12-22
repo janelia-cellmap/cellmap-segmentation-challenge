@@ -1009,7 +1009,7 @@ def match_crop_space(path, class_label, voxel_size, shape, translation) -> np.nd
     """
     try:
         ds = zarr.open(str(path), mode="r")
-    except Exception:
+    except (zarr.errors.PathNotFoundError, OSError, PermissionError):
         raise ValueError(
             f"Cannot open zarr array at path: {UPath(path).name}. Ensure your submission is a valid Zarr format."
         )
