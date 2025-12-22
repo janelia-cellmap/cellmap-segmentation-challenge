@@ -556,7 +556,7 @@ def score_label(
     crop_name,
     truth_path=TRUTH_PATH,
     instance_classes=INSTANCE_CLASSES,
-) -> dict[str, float]:
+):
     """
     Score a single label volume against the ground truth label volume.
 
