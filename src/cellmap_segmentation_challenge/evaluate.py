@@ -36,6 +36,8 @@ MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 1))
 MAX_SEMANTIC_THREADS = int(os.getenv("MAX_SEMANTIC_THREADS", 20))
 PER_INSTANCE_THREADS = int(os.getenv("PER_INSTANCE_THREADS", 16))
 MAX_DISTANCE_CAP_EPS = float(os.getenv("MAX_DISTANCE_CAP_EPS", "1e-4"))
+INSTANCE_RATIO_CUTOFF = float(os.getenv("INSTANCE_RATIO_CUTOFF", 10))
+MAX_OVERLAP_EDGES = int(os.getenv("MAX_OVERLAP_EDGES", "5000000"))
 DEBUG = os.getenv("DEBUG", "False").lower() != "false"
 
 
@@ -57,8 +59,6 @@ def match_instances(gt: np.ndarray, pred: np.ndarray) -> dict | None:
     Assumes IDs range from 1 to max(ID) (0 is background). If IDs are non-sequential (e.g., 1, 2, 5), the output matrix will contain empty rows/columns for missing IDs.
     Returns a dictionary mapping pred IDs to gt IDs.
     """
-    INSTANCE_RATIO_CUTOFF = float(os.getenv("INSTANCE_RATIO_CUTOFF", 10))
-    MAX_OVERLAP_EDGES = int(os.getenv("MAX_OVERLAP_EDGES", "5000000"))  # safety
 
     if gt.shape != pred.shape:
         raise ValueError("gt and pred must have the same shape")
