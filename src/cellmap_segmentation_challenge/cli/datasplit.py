@@ -1,6 +1,6 @@
 import click
 
-from cellmap_segmentation_challenge.utils.datasplit import (
+from cellmap_segmentation_challenge.config import (
     CROP_NAME,
     RAW_NAME,
     SEARCH_PATH,

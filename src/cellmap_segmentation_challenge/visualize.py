@@ -10,22 +10,9 @@ from upath import UPath
 from cellmap_flow.utils.scale_pyramid import ScalePyramid
 from cellmap_flow.utils.ds import open_ds_tensorstore
 
-from .config import (
-    CROP_NAME,
-    PREDICTIONS_PATH,
-    PROCESSED_PATH,
-    SEARCH_PATH,
-    SUBMISSION_PATH,
-)
+from .config import SEARCH_PATH, VIS_SEARCH_PATHS as SEARCH_PATHS
 from .utils import TEST_CROPS
 from .utils.datasplit import get_dataset_name, get_formatted_fields, get_raw_path
-
-SEARCH_PATHS = {
-    "gt": SEARCH_PATH.format(dataset="{dataset}", name=CROP_NAME),
-    "predictions": (UPath(PREDICTIONS_PATH) / "{label}").path,
-    "processed": (UPath(PROCESSED_PATH) / "{label}").path,
-    # "submission": (UPath(SUBMISSION_PATH) / "{crop}" / "{label}").path,
-}
 
 
 def visualize(

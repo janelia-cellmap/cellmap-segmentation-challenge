@@ -20,7 +20,7 @@ from cellmap_data import CellMapImage
 
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 
-from .config import SUBMISSION_PATH, TRUTH_PATH
+from .config import SUBMISSION_PATH, TRUTH_PATH, INSTANCE_CLASSES
 from .utils import TEST_CROPS_DICT
 
 import logging
@@ -30,21 +30,6 @@ logging.basicConfig(
     format="%(asctime)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
-
-INSTANCE_CLASSES = [
-    "nuc",
-    "vim",
-    "ves",
-    "endo",
-    "lyso",
-    "ld",
-    "perox",
-    "mito",
-    "np",
-    "mt",
-    "cell",
-    "instance",
-]
 
 HAUSDORFF_DISTANCE_MAX = np.inf
 CAST_TO_NONE = [np.nan, np.inf, -np.inf]

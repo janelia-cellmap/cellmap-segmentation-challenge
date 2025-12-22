@@ -1,11 +1,11 @@
 import os
 import click
 
-from cellmap_segmentation_challenge.evaluate import INSTANCE_CLASSES
-from cellmap_segmentation_challenge import (
+from cellmap_segmentation_challenge.config import (
     PROCESSED_PATH,
     SUBMISSION_PATH,
     TRUTH_PATH,
+    INSTANCE_CLASSES,
 )
 from upath import UPath
 
