@@ -423,10 +423,14 @@ def score_label(
                 crop.shape,
                 crop.translation,
             )
-        except Exception:
+        except ValueError:
+            # Preserve specific ValueError raised by match_crop_space
+            raise
+        except Exception as e:
+            # Wrap only unexpected exceptions in a generic ValueError
             raise ValueError(
                 f"Failed to process submission data for {crop_name}/{label_name}. Please verify your data format and coordinate transformations are correct."
-            )
+            ) from e
     except Exception:
         raise Exception(
             "An unexpected error occurred during label scoring. Please check your submission and contact the challenge organizers if the issue persists."
