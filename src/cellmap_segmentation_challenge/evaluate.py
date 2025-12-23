@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import shutil
 from time import time
 import zipfile
 import concurrent.futures
@@ -31,9 +32,9 @@ logging.basicConfig(
 
 CAST_TO_NONE = [np.nan, np.inf, -np.inf]
 
-MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 1))
-MAX_SEMANTIC_THREADS = int(os.getenv("MAX_SEMANTIC_THREADS", 20))
-PER_INSTANCE_THREADS = int(os.getenv("PER_INSTANCE_THREADS", 16))
+MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 5))
+MAX_SEMANTIC_THREADS = int(os.getenv("MAX_SEMANTIC_THREADS", 50))
+PER_INSTANCE_THREADS = int(os.getenv("PER_INSTANCE_THREADS", 10))
 MAX_DISTANCE_CAP_EPS = float(os.getenv("MAX_DISTANCE_CAP_EPS", "1e-4"))
 INSTANCE_RATIO_CUTOFF = float(os.getenv("INSTANCE_RATIO_CUTOFF", 10))
 MAX_OVERLAP_EDGES = int(os.getenv("MAX_OVERLAP_EDGES", "5000000"))
@@ -861,7 +862,7 @@ def combine_scores(
 
 def score_submission(
     submission_path=UPath(SUBMISSION_PATH).with_suffix(".zip").path,
-    result_file="results.json",
+    result_file=None,
     truth_path=TRUTH_PATH,
     instance_classes=INSTANCE_CLASSES,
 ):
@@ -993,7 +994,9 @@ def score_submission(
         else:
             return all_scores
     else:
-        logging.info("Scoring volumes in parallel...")
+        logging.info(
+            f"Scoring volumes in parallel, using {MAX_INSTANCE_THREADS} instance threads and {MAX_SEMANTIC_THREADS} semantic threads..."
+        )
         instance_pool = ProcessPoolExecutor(MAX_INSTANCE_THREADS)
         semantic_pool = ProcessPoolExecutor(MAX_SEMANTIC_THREADS)
         futures = []
