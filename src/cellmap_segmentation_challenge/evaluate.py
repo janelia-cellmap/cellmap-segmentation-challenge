@@ -1,9 +1,10 @@
 import argparse
 import json
 import os
+import shutil
+import threading
 from time import time
 import zipfile
-import concurrent.futures
 
 import numpy as np
 import zarr
@@ -26,6 +27,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
+    force=True,
 )
 
 CAST_TO_NONE = [np.nan, np.inf, -np.inf]
@@ -1087,7 +1089,8 @@ def update_scores(scores, results, result_file, instance_classes=INSTANCE_CLASSE
             f"Scores updated in {result_file} and {found_result_file} in {time() - start_time:.2f} seconds"
         )
     else:
-        print(all_scores)
+        logging.info("Final combined scores:")
+        logging.info(all_scores)
 
     return all_scores, found_scores
 
@@ -1154,25 +1157,145 @@ def match_crop_space(path, class_label, voxel_size, shape, translation) -> np.nd
 
 
 def unzip_file(zip_path):
-    """
-    Unzip a zip file to a specified directory.
-
-    Args:
-        zip_path (str): The path to the zip file.
-
-    Example usage:
-        unzip_file('submission.zip')
-    """
     logging.info(f"Unzipping {zip_path}...")
-    saved_path = UPath(zip_path).with_suffix(".zarr").path
-    if UPath(saved_path).exists():
-        logging.info(f"Using existing unzipped path at {saved_path}")
-        return UPath(saved_path)
-    with zipfile.ZipFile(zip_path, "r") as zip_ref:
-        zip_ref.extractall(saved_path)
-    logging.info(f"Unzipped {zip_path} to {saved_path}")
+    zip_path = UPath(zip_path)
+    out_dir = UPath(zip_path).with_suffix(".zarr")
 
-    return UPath(saved_path)
+    # If output exists, validate it (don’t just “exists() => good”)
+    if out_dir.exists():
+        try:
+            zarr.open(out_dir.path, mode="r")
+            logging.info(f"Using existing valid unzipped path at {out_dir}")
+            return out_dir
+        except Exception as e:
+            logging.warning(f"Existing {out_dir} looks invalid; re-unzipping. ({e})")
+            shutil.rmtree(out_dir.path, ignore_errors=True)
+
+    tmp_dir = UPath(str(out_dir) + f".tmp.{os.getpid()}")
+    if tmp_dir.exists():
+        shutil.rmtree(tmp_dir.path, ignore_errors=True)
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+
+    workers = os.getenv("UNZIP_WORKERS")
+    workers = int(workers) if workers is not None else 8
+
+    base = UPath(tmp_dir).resolve()
+    tls = threading.local()
+
+    def get_zip():
+        z = getattr(tls, "zf", None)
+        if z is None:
+            tls.zf = zipfile.ZipFile(zip_path.path)
+        return tls.zf
+
+    def is_symlink(info: zipfile.ZipInfo) -> bool:
+        return ((info.external_attr >> 16) & 0o170000) == 0o120000
+
+    def safe_member(name: str) -> bool:
+        p = UPath(name)
+        if p.is_absolute() or p.drive or str(p).startswith(("\\\\", "//")):
+            return False
+        dest = (tmp_dir / p).resolve()
+        return dest == base or base in dest.parents
+
+    def extract(name: str):
+        try:
+            if not safe_member(name):
+                logging.warning("Skipping unsafe path: %s", name)
+                return ("unsafe", name)
+
+            z = get_zip()
+            info = z.getinfo(name)
+
+            if is_symlink(info):
+                logging.info("Skipping symlink: %s", name)
+                return ("symlink", name)
+
+            # directory entry
+            if name.endswith("/"):
+                (tmp_dir / name).mkdir(parents=True, exist_ok=True)
+                return ("ok", name)
+
+            out_path = tmp_dir / name
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+
+            # stream copy (thread-safe per-thread ZipFile)
+            with z.open(info, "r") as src, open(out_path.path, "wb") as dst:
+                shutil.copyfileobj(src, dst, length=1024 * 1024)
+
+            return ("ok", name)
+
+        except Exception:
+            logging.exception("Failed extracting %s", name)
+            return ("error", name)
+
+    with zipfile.ZipFile(zip_path.path) as z:
+        names = z.namelist()
+
+    logging.info(
+        "Extracting %d members from %s -> %s using %d threads",
+        len(names),
+        zip_path,
+        tmp_dir,
+        workers,
+    )
+
+    counts = {"ok": 0, "symlink": 0, "unsafe": 0, "error": 0}
+    errors = []
+
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        futures = [ex.submit(extract, name) for name in names]
+        for fut in tqdm(as_completed(futures), total=len(futures), desc="Extracting"):
+            status, name = fut.result()
+            counts[status] += 1
+            if status == "error":
+                errors.append(name)
+
+    logging.info(
+        "Done. ok=%d symlink=%d unsafe=%d error=%d",
+        counts["ok"],
+        counts["symlink"],
+        counts["unsafe"],
+        counts["error"],
+    )
+
+    if errors:
+        shutil.rmtree(tmp_dir.path, ignore_errors=True)
+        raise RuntimeError(
+            f"Extraction had {len(errors)} errors (see logs). First: {errors[0]}"
+        )
+
+    # Validate store before publishing
+    zarr.open(tmp_dir.path, mode="r")
+
+    # Atomic publish
+    if out_dir.exists():
+        shutil.rmtree(out_dir.path, ignore_errors=True)
+    os.replace(tmp_dir.path, out_dir.path)
+
+    return out_dir
+
+
+# def unzip_file(zip_path):
+#     """
+#     Unzip a zip file sequentially to a specified directory.
+
+#     Args:
+#         zip_path (str): The path to the zip file.
+
+#     Example usage:
+#         unzip_file('submission.zip')
+#     """
+#     logging.info(f"Unzipping {zip_path}...")
+#     saved_path = UPath(zip_path).with_suffix(".zarr").path
+#     if UPath(saved_path).exists():
+#         logging.info(f"Using existing unzipped path at {saved_path}")
+#         return UPath(saved_path)
+#     with zipfile.ZipFile(zip_path, "r") as zip_ref:
+#         zip_ref.extractall(saved_path)
+#     logging.info(f"Unzipped {zip_path} to {saved_path}")
+
+#     return UPath(saved_path)
 
 
 if __name__ == "__main__":
