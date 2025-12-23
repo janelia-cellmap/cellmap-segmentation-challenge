@@ -3,6 +3,7 @@ import json
 import os
 from time import time
 import zipfile
+import concurrent.futures
 
 import numpy as np
 import zarr
@@ -1069,14 +1070,16 @@ def update_scores(scores, results, result_file, instance_classes=INSTANCE_CLASSE
     )
 
     if result_file is not None:
+        logging.info(f"Saving collected scores to {result_file}...")
+
         with open(result_file, "w") as f:
-            json.dump(all_scores, f, indent=4)
+            json.dump(all_scores, f, indent=4, default=float)
 
         found_result_file = str(result_file).replace(
             UPath(result_file).suffix, "_submitted_only" + UPath(result_file).suffix
         )
         with open(found_result_file, "w") as f:
-            json.dump(found_scores, f, indent=4)
+            json.dump(found_scores, f, indent=4, default=float)
 
         logging.info(
             f"Scores updated in {result_file} and {found_result_file} in {time() - start_time:.2f} seconds"
@@ -1156,13 +1159,14 @@ def unzip_file(zip_path):
     Example usage:
         unzip_file('submission.zip')
     """
+    logging.info(f"Unzipping {zip_path}...")
     saved_path = UPath(zip_path).with_suffix(".zarr").path
     if UPath(saved_path).exists():
         logging.info(f"Using existing unzipped path at {saved_path}")
         return UPath(saved_path)
     with zipfile.ZipFile(zip_path, "r") as zip_ref:
         zip_ref.extractall(saved_path)
-        logging.info(f"Unzipped {zip_path} to {saved_path}")
+    logging.info(f"Unzipped {zip_path} to {saved_path}")
 
     return UPath(saved_path)
 

@@ -9,6 +9,10 @@ from cellmap_segmentation_challenge.config import (
 )
 from upath import UPath
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 @click.command
 @click.option(
@@ -36,8 +40,8 @@ from upath import UPath
     "--instance_classes",
     "-ic",
     type=click.STRING,
-    default=None,
-    help="A comma-separated list of class names that should be evaluated as instances. Defaults to None",
+    default=INSTANCE_CLASSES,
+    help=f"A comma-separated list of class names that should be evaluated as instances. Defaults to {INSTANCE_CLASSES}",
 )
 def evaluate_cli(submission_path, result_file, truth_path, instance_classes):
     """
@@ -52,6 +56,7 @@ def evaluate_cli(submission_path, result_file, truth_path, instance_classes):
         instance_classes = instance_classes.split(",")
     else:
         instance_classes = INSTANCE_CLASSES
+    logger.info(f"Launching evaluation for submission: {submission_path}")
     score_submission(submission_path, result_file, truth_path, instance_classes)
 
 
@@ -92,4 +97,5 @@ def package_submission_cli(input_search_path, output_path, overwrite, max_worker
 
     from cellmap_segmentation_challenge.utils.submission import package_submission
 
+    logger.info(f"Packaging submission to: {output_path}")
     package_submission(input_search_path, output_path, overwrite, max_workers)
