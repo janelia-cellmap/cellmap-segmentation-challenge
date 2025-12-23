@@ -1,28 +1,24 @@
 import argparse
 import json
 import os
-from time import time, sleep
+from time import time
 import zipfile
+import concurrent.futures
 
 import numpy as np
 import zarr
-from scipy.optimize import linear_sum_assignment
 from scipy.spatial.distance import dice
-from skimage.measure import label as relabel
-from skimage.transform import rescale
-
-from pykdtree.kdtree import KDTree as cKDTree
+from fastremap import remap, unique
+import cc3d
 
 from sklearn.metrics import accuracy_score, jaccard_score
 from tqdm import tqdm
 from upath import UPath
 
-from cellmap_data import CellMapImage
-
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 
-from .config import PROCESSED_PATH, SUBMISSION_PATH, TRUTH_PATH
-from .utils import TEST_CROPS_DICT
+from .config import SUBMISSION_PATH, TRUTH_PATH, INSTANCE_CLASSES
+from .utils import TEST_CROPS_DICT, MatchedCrop
 
 import logging
 
@@ -30,153 +26,419 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
+    force=True,
 )
 
-INSTANCE_CLASSES = [
-    "nuc",
-    "vim",
-    "ves",
-    "endo",
-    "lyso",
-    "ld",
-    "perox",
-    "mito",
-    "np",
-    "mt",
-    "cell",
-    "instance",
-]
-
-HAUSDORFF_DISTANCE_MAX = np.inf
 CAST_TO_NONE = [np.nan, np.inf, -np.inf]
 
 MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 1))
 MAX_SEMANTIC_THREADS = int(os.getenv("MAX_SEMANTIC_THREADS", 20))
 PER_INSTANCE_THREADS = int(os.getenv("PER_INSTANCE_THREADS", 16))
-# submitted_# of instances / ground_truth_# of instances
-INSTANCE_RATIO_CUTOFF = float(os.getenv("INSTANCE_RATIO_CUTOFF", 50))
-PRECOMPUTE_LIMIT = int(os.getenv("PRECOMPUTE_LIMIT", 1e7))
-DEBUG = os.getenv("DEBUG", "False") != "False"
+MAX_DISTANCE_CAP_EPS = float(os.getenv("MAX_DISTANCE_CAP_EPS", "1e-4"))
+INSTANCE_RATIO_CUTOFF = float(os.getenv("INSTANCE_RATIO_CUTOFF", 10))
+MAX_OVERLAP_EDGES = int(os.getenv("MAX_OVERLAP_EDGES", "5000000"))
+DEBUG = os.getenv("DEBUG", "False").lower() != "false"
 
 
-class spoof_precomputed:
-    def __init__(self, array, ids):
-        self.array = array
-        self.ids = ids
-        self.index = -1
+def normalize_distance(distance: float, voxel_size) -> float:
+    """
+    Normalize a distance value to [0, 1] using the maximum distance represented by a voxel
+    """
+    return float((1.01 ** (-distance / np.linalg.norm(voxel_size))))
 
-    def __getitem__(self, ids):
-        if isinstance(ids, int):
-            return np.array(self.array == self.ids[ids], dtype=bool)
-        return np.array([self.array == self.ids[i] for i in ids], dtype=bool)
 
-    def __len__(self):
-        return len(self.ids)
+def compute_default_max_distance(voxel_size, eps=MAX_DISTANCE_CAP_EPS) -> float:
+    v = np.linalg.norm(np.asarray(voxel_size, dtype=float))
+    return float(v * (np.log(1.0 / eps) / np.log(1.01)))
+
+
+def match_instances(gt: np.ndarray, pred: np.ndarray) -> dict | None:
+    """
+    Matches instances between GT and Pred based on IoU.
+    Assumes IDs range from 1 to max(ID) (0 is background). If IDs are non-sequential (e.g., 1, 2, 5), the output matrix will contain empty rows/columns for missing IDs.
+    Returns a dictionary mapping pred IDs to gt IDs.
+    """
+
+    if gt.shape != pred.shape:
+        raise ValueError("gt and pred must have the same shape")
+
+    # 1D views without copying if possible
+    g = np.ravel(gt)
+    p = np.ravel(pred)
+
+    # Number of instances (sequential ids -> max id)
+    nG = int(g.max()) if g.size else 0
+    nP = int(p.max()) if p.size else 0
+
+    # Early exits
+    if nG == 0 or nP == 0:
+        if nG == 0 and nP > 0:
+            logging.info("No GT instances; returning empty match.")
+        if nP == 0 and nG > 0:
+            logging.info("No Pred instances; returning empty match.")
+        return {}
+
+    if (nP / nG) > INSTANCE_RATIO_CUTOFF:
+        logging.warning(
+            f"WARNING: Skipping {nP} instances in submission, {nG} in ground truth, "
+            f"because there are too many instances in the submission."
+        )
+        return None
+
+    # Foreground (non-background) mask for each side and for pairwise overlaps
+    g_fg = g > 0
+    p_fg = p > 0
+    fg = g_fg & p_fg
+
+    # ---- Per-object areas (sizes) ----
+    # Use uint32 where possible to reduce memory; cast to int64 for safety if needed.
+    gt_sizes = np.bincount((g[g_fg].astype(np.int64) - 1), minlength=nG)[:, None]
+    pr_sizes = np.bincount((p[p_fg].astype(np.int64) - 1), minlength=nP)[None, :]
+
+    # ---- Intersections for observed pairs only (sparse counting) ----
+    gi = g[fg].astype(np.int64) - 1
+    pj = p[fg].astype(np.int64) - 1
+    if gi.size == 0:
+        # No overlaps anywhere -> IoU is all zeros
+        return {}
+
+    # Encode pairs to a single 64-bit key and count only present pairs
+    # Use unsigned to avoid negative-overflow corner cases.
+    gi_u = gi.astype(np.uint64)
+    pj_u = pj.astype(np.uint64)
+    key = gi_u * np.uint64(nP) + pj_u
+
+    uniq_keys, counts = np.unique(key, return_counts=True)
+    if uniq_keys.size > MAX_OVERLAP_EDGES:
+        logging.warning(
+            f"WARNING: Too many overlap edges ({uniq_keys.size}) — skipping instance scoring."
+        )
+        return None
+    rows = (uniq_keys // np.uint64(nP)).astype(np.int64)
+    cols = (uniq_keys % np.uint64(nP)).astype(np.int64)
+
+    # ---- IoU only for observed pairs, then scatter into dense matrix ----
+    inter = counts.astype(np.int64)
+    union = gt_sizes[rows, 0] + pr_sizes[0, cols] - inter
+    with np.errstate(divide="ignore", invalid="ignore"):
+        iou_vals = (inter / union).astype(np.float32)
+
+    # Keep only IoU > 0 edges (should already be true, but explicit)
+    keep = iou_vals > 0.0
+    rows = rows[keep]
+    cols = cols[keep]
+    iou_vals = iou_vals[keep]
+
+    if rows.size == 0:
+        return {}
+
+    # ---------------- OR-Tools Min-Cost Flow ----------------
+    from ortools.graph.python import min_cost_flow
+
+    mcf = min_cost_flow.SimpleMinCostFlow()
+
+    # Node indexing:
+    # source(0), GT nodes [1..nG], Pred nodes [1+nG .. nG+nP], sink(last)
+    source = 0
+    gt0 = 1
+    pred0 = gt0 + nG
+    sink = pred0 + nP
+
+    COST_SCALE = int(os.getenv("MCMF_COST_SCALE", "1000000"))
+    UNMATCH_COST = COST_SCALE + 1  # worse than any match in [0, COST_SCALE]
+
+    # ---- Build arcs into numpy arrays (dtype matters) ----
+    tails = []
+    heads = []
+    caps = []
+    costs = []
+
+    def add_arc(u: int, v: int, cap: int, cost: int) -> None:
+        tails.append(u)
+        heads.append(v)
+        caps.append(cap)
+        costs.append(cost)
+
+    # Source -> GT (each GT emits 1 unit)
+    for i in range(nG):
+        add_arc(source, gt0 + i, 1, 0)
+
+    # GT -> Sink "unmatched" option
+    for i in range(nG):
+        add_arc(gt0 + i, sink, 1, UNMATCH_COST)
+
+    # GT -> Pred edges for IoU>0
+    # (rows, cols are 0-based instance indices; +1 happens later when making label ids)
+    for r, c, iou in zip(rows, cols, iou_vals):
+        u = gt0 + int(r)
+        v = pred0 + int(c)
+        cost = int((1.0 - float(iou)) * COST_SCALE)
+        add_arc(u, v, 1, cost)
+
+    # Pred -> Sink capacity 1
+    for j in range(nP):
+        add_arc(pred0 + j, sink, 1, 0)
+
+    # Bulk add (use correct dtypes per API)
+    mcf.add_arcs_with_capacity_and_unit_cost(
+        np.asarray(tails, dtype=np.int32),
+        np.asarray(heads, dtype=np.int32),
+        np.asarray(caps, dtype=np.int64),
+        np.asarray(costs, dtype=np.int64),
+    )
+
+    # Supplies: push nG units from source to sink
+    mcf.set_node_supply(source, int(nG))
+    mcf.set_node_supply(sink, -int(nG))
+
+    status = mcf.solve()
+    if status != mcf.OPTIMAL:
+        logging.warning(f"Min-cost flow did not solve optimally (status={status}).")
+        return {}
+
+    # Extract matches: arcs GT->Pred with flow==1
+    mapping: dict[int, int] = {}
+    for a in range(mcf.num_arcs()):
+        if mcf.flow(a) != 1:
+            continue
+        u = mcf.tail(a)
+        v = mcf.head(a)
+        if gt0 <= u < pred0 and pred0 <= v < sink:
+            gt_id = (u - gt0) + 1  # back to label IDs (1-based, 0 is background)
+            pred_id = (v - pred0) + 1
+            mapping[pred_id] = gt_id
+
+    return mapping
 
 
 def optimized_hausdorff_distances(
     truth_label,
-    matched_pred_label,
+    pred_label,
     voxel_size,
     hausdorff_distance_max,
     method="standard",
+    percentile: float | None = None,
 ):
-    # Get unique truth IDs, excluding the background (0)
-    truth_ids = np.unique(truth_label)
-    truth_ids = truth_ids[truth_ids != 0]  # Exclude background
-    if len(truth_ids) == 0:
-        return []
+    """
+    Compute per-truth-instance Hausdorff-like distances against the (already remapped)
+    prediction using multithreading. Returns a 1D float32 numpy array whose i-th
+    entry corresponds to truth_ids[i].
 
-    def get_distance(i):
-        # Skip if both masks are empty
-        truth_mask = truth_label == truth_ids[i]
-        pred_mask = matched_pred_label == truth_ids[i]
-        if not np.any(truth_mask) and not np.any(pred_mask):
-            return 0
+    Parameters
+    ----------
+    truth_label : np.ndarray
+        Ground-truth instance label volume (0 == background).
+    pred_label : np.ndarray
+        Prediction instance label volume that has already been remapped to align
+        with the GT ids (0 == background).
+    voxel_size : Sequence[float]
+        Physical voxel sizes in Z, Y, X (or Y, X) order.
+    hausdorff_distance_max : float
+        Cap for distances (use np.inf for uncapped).
+    method : {"standard", "modified", "percentile"}
+        "standard" -> classic Hausdorff (max of directed maxima)
+        "modified" -> mean of directed distances, then max of the two means
+        "percentile" -> use the given percentile of directed distances (requires
+                         `percentile` to be provided).
+    percentile : float | None
+        Percentile (0-100) used when method=="percentile".
+    """
+    # Unique GT ids (exclude background = 0)
+    truth_ids = unique(truth_label)
+    truth_ids = truth_ids[truth_ids != 0]
+    true_num = int(truth_ids.size)
+    if true_num == 0:
+        return np.empty((0,), dtype=np.float32)
 
-        # Compute Hausdorff distance for the current pair
-        h_dist = compute_hausdorff_distance(
-            truth_mask,
-            pred_mask,
+    voxel_size = np.asarray(voxel_size, dtype=np.float64)
+
+    def get_distance(i: int):
+        tid = int(truth_ids[i])
+        h_dist = compute_hausdorff_distance_roi(
+            truth_label,
+            pred_label,
+            tid,
             voxel_size,
             hausdorff_distance_max,
-            method,
+            method=method,
+            percentile=percentile,
         )
-        return i, h_dist
+        return i, float(h_dist)
 
-    # Initialize list for distances
-    hausdorff_distances = np.empty(len(truth_ids))
+    dists = np.empty((true_num,), dtype=np.float32)
+
     if DEBUG:
-        # Use tqdm for progress tracking
-        bar = tqdm(
-            range(len(truth_ids)),
+        for i in tqdm(
+            range(true_num),
             desc="Computing Hausdorff distances",
             leave=True,
             dynamic_ncols=True,
-            total=len(truth_ids),
-        )
-        # Compute the cost matrix
-        for i in bar:
-            i, h_dist = get_distance(i)
-            hausdorff_distances[i] = h_dist
+            total=true_num,
+        ):
+            idx, h = get_distance(i)
+            dists[idx] = h
     else:
         with ThreadPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
-            for i, h_dist in tqdm(
-                executor.map(get_distance, range(len(truth_ids))),
+            for idx, h in tqdm(
+                executor.map(get_distance, range(true_num)),
                 desc="Computing Hausdorff distances",
-                total=len(truth_ids),
+                total=true_num,
                 dynamic_ncols=True,
             ):
-                hausdorff_distances[i] = h_dist
+                dists[idx] = h
 
-    return hausdorff_distances
+    return dists
 
 
-def compute_hausdorff_distance(image0, image1, voxel_size, max_distance, method):
+def bbox_for_label_cc3d(label_vol: np.ndarray, label_id: int):
     """
-    Compute the Hausdorff distance between two binary masks, optimized for pre-vectorized inputs.
+    Try to get bbox without allocating a full boolean mask using cc3d statistics.
+    Falls back to mask-based bbox if cc3d doesn't provide expected fields.
+    Returns (mins, maxs) inclusive-exclusive in voxel indices, or None if missing.
     """
-    # Extract nonzero points
-    a_points = np.argwhere(image0)
-    b_points = np.argwhere(image1)
+    try:
+        stats = cc3d.statistics(label_vol)
+        # cc3d.statistics usually returns dict-like with keys per label id.
+        # There are multiple API variants; try common patterns.
+        if "bounding_boxes" in stats:
+            bb = stats["bounding_boxes"].get(label_id, None)
+            if bb is None:
+                return None
+            # bb might be (z0,z1,y0,y1,x0,x1) with end exclusive
+            ndim = label_vol.ndim
+            mins = [bb[2 * k] for k in range(ndim)]
+            maxs = [bb[2 * k + 1] for k in range(ndim)]
+            return mins, maxs
 
-    # Handle empty sets
-    if len(a_points) == 0 and len(b_points) == 0:
-        return 0
-    elif len(a_points) == 0 or len(b_points) == 0:
-        return np.inf
+        if label_id in stats:
+            s = stats[label_id]
+            if "bounding_box" in s:
+                bb = s["bounding_box"]
+                ndim = label_vol.ndim
+                mins = [bb[2 * k] for k in range(ndim)]
+                maxs = [bb[2 * k + 1] for k in range(ndim)]
+                return mins, maxs
+    except Exception:
+        pass
 
-    # Scale points by voxel size
-    a_points = a_points * np.array(voxel_size)
-    b_points = b_points * np.array(voxel_size)
+    # Fallback: mask-based (allocates a temporary bool)
+    coords = np.where(label_vol == label_id)
+    if len(coords) == 0 or coords[0].size == 0:
+        return None
+    mins = [int(c.min()) for c in coords]
+    maxs = [int(c.max()) + 1 for c in coords]
+    return mins, maxs
 
-    # Build KD-trees once
-    a_tree = cKDTree(a_points)
-    b_tree = cKDTree(b_points)
 
-    # Query distances
-    # fwd = a_tree.query(b_points, k=1, distance_upper_bound=max_distance)[0]
-    # bwd = b_tree.query(a_points, k=1, distance_upper_bound=max_distance)[0]
-    fwd = a_tree.query(b_points, k=1)[0]
-    bwd = b_tree.query(a_points, k=1)[0]
+def roi_slices_for_pair(
+    truth_label: np.ndarray,
+    pred_label: np.ndarray,
+    tid: int,
+    voxel_size,
+    max_distance: float,
+):
+    """
+    ROI = union(bbox(truth==tid), bbox(pred==tid)) padded by P derived from max_distance.
+    Returns tuple of slices suitable for numpy indexing.
+    """
+    ndim = truth_label.ndim
+    vs = np.asarray(voxel_size, dtype=float)
+    if vs.size != ndim:
+        # tolerate vs longer (e.g. includes channel), take last ndim
+        vs = vs[-ndim:]
 
-    # Replace "inf" with `max_distance` for numerical stability
-    # fwd[fwd == np.inf] = max_distance
-    # bwd[bwd == np.inf] = max_distance
-    fwd[fwd > max_distance] = max_distance
-    bwd[bwd > max_distance] = max_distance
+    # padding per axis in voxels
+    pad = np.ceil(max_distance / vs).astype(int) + 2
+
+    tb = bbox_for_label_cc3d(truth_label, tid)
+    if tb is None:
+        return None  # should not happen for tid from truth_ids
+
+    tmins, tmaxs = tb
+    pb = bbox_for_label_cc3d(pred_label, tid)
+    if pb is None:
+        pmins, pmaxs = tmins, tmaxs
+    else:
+        pmins, pmaxs = pb
+
+    mins = [min(tmins[d], pmins[d]) for d in range(ndim)]
+    maxs = [max(tmaxs[d], pmaxs[d]) for d in range(ndim)]
+
+    # expand and clamp
+    shape = truth_label.shape
+    out_slices = []
+    for d in range(ndim):
+        a = max(0, mins[d] - int(pad[d]))
+        b = min(shape[d], maxs[d] + int(pad[d]))
+        out_slices.append(slice(a, b))
+    return tuple(out_slices)
+
+
+def compute_hausdorff_distance_roi(
+    truth_label: np.ndarray,
+    pred_label: np.ndarray,
+    tid: int,
+    voxel_size,
+    max_distance: float,
+    method: str = "standard",
+    percentile: float | None = None,
+):
+    """
+    Same metric as compute_hausdorff_distance(), but operates on an ROI slice
+    and builds masks only inside ROI.
+    """
+    from scipy.ndimage import distance_transform_edt
+
+    roi = roi_slices_for_pair(truth_label, pred_label, tid, voxel_size, max_distance)
+    if roi is None:
+        return float(max_distance)
+
+    t_roi = truth_label[roi]
+    p_roi = pred_label[roi]
+
+    a = t_roi == tid
+    b = p_roi == tid
+
+    a_n = int(a.sum())
+    b_n = int(b.sum())
+    if a_n == 0 and b_n == 0:
+        return 0.0
+    if a_n == 0 or b_n == 0:
+        return float(max_distance)
+
+    ndim = truth_label.ndim
+    vs = np.asarray(voxel_size, dtype=np.float64)
+    if vs.size != ndim:
+        vs = vs[-ndim:]
+
+    dist_to_b = distance_transform_edt(~b, sampling=vs)
+    dist_to_a = distance_transform_edt(~a, sampling=vs)
+
+    fwd = dist_to_b[a]
+    bwd = dist_to_a[b]
 
     if method == "standard":
-        return max(fwd.max(), bwd.max())
+        d = max(fwd.max(initial=0.0), bwd.max(initial=0.0))
     elif method == "modified":
-        return max(fwd.mean(), bwd.mean())
+        d = max(fwd.mean() if fwd.size else 0.0, bwd.mean() if bwd.size else 0.0)
+    elif method == "percentile":
+        if percentile is None:
+            raise ValueError("'percentile' must be provided when method='percentile'")
+        d = max(
+            float(np.percentile(fwd, percentile)) if fwd.size else 0.0,
+            float(np.percentile(bwd, percentile)) if bwd.size else 0.0,
+        )
+    else:
+        raise ValueError("method must be one of {'standard', 'modified', 'percentile'}")
+
+    return float(min(d, max_distance))
 
 
 def score_instance(
     pred_label,
     truth_label,
     voxel_size,
-    hausdorff_distance_max=HAUSDORFF_DISTANCE_MAX,
+    hausdorff_distance_max=None,
 ) -> dict[str, float]:
     """
     Score a single instance label volume against the ground truth instance label volume.
@@ -194,116 +456,37 @@ def score_instance(
         scores = score_instance(pred_label, truth_label)
     """
     logging.info("Scoring instance segmentation...")
+    if hausdorff_distance_max is None:
+        hausdorff_distance_max = compute_default_max_distance(voxel_size)
+        logging.info(
+            f"Using default maximum Hausdorff distance of {hausdorff_distance_max:.2f} for voxel size {voxel_size}."
+        )
+
     # Relabel the predicted instance labels to be consistent with the ground truth instance labels
     logging.info("Relabeling predicted instance labels...")
-    pred_label = relabel(pred_label, connectivity=len(pred_label.shape))
+    pred_label = cc3d.connected_components(pred_label)
 
-    # Get unique IDs, excluding background (assumed to be 0)
-    truth_ids = np.unique(truth_label)
-    truth_ids = truth_ids[truth_ids != 0]
+    # Match instances between ground truth and prediction
+    mapping = match_instances(truth_label, pred_label)
 
-    pred_ids = np.unique(pred_label)
-    pred_ids = pred_ids[pred_ids != 0]
-
-    # Skip if the submission has way too many instances
-    if len(truth_ids) > 0 and len(pred_ids) / len(truth_ids) > INSTANCE_RATIO_CUTOFF:
-        logging.warning(
-            f"WARNING: Skipping {len(pred_ids)} instances in submission, {len(truth_ids)} in ground truth, because there are too many instances in the submission."
-        )
+    if mapping is None:
+        # Too many instances in submission, skip scoring
         return {
             "accuracy": 0,
             "hausdorff_distance": np.inf,
             "normalized_hausdorff_distance": 0,
             "combined_score": 0,
         }
-
-    # Flatten the labels for vectorized computation
-    truth_flat = truth_label.flatten()
-    pred_flat = pred_label.flatten()
-
-    matched_pred_label = np.zeros_like(pred_label)
-
-    if len(pred_ids) > 0:
-
-        # Precompute binary masks for all `truth_ids`
-        if len(truth_flat) * len(truth_ids) > PRECOMPUTE_LIMIT:
-            truth_binary_masks = spoof_precomputed(truth_flat, truth_ids)
-        else:
-            logging.info("Precomputing binary masks for all `truth_ids`...")
-            truth_binary_masks = np.array(
-                [(truth_flat == tid) for tid in truth_ids], dtype=bool
-            )
-
-        def get_cost(j):
-            # Find all `truth_ids` that overlap with this prediction mask
-            pred_mask = pred_flat == pred_ids[j]
-            relevant_truth_ids = np.unique(truth_flat[pred_mask])
-            relevant_truth_ids = relevant_truth_ids[relevant_truth_ids != 0]
-            relevant_truth_indices = np.where(np.isin(truth_ids, relevant_truth_ids))[0]
-            relevant_truth_masks = truth_binary_masks[relevant_truth_indices]
-
-            if relevant_truth_indices.size == 0:
-                return [], j, []
-
-            tp = relevant_truth_masks[:, pred_mask].sum(1)
-            fn = (relevant_truth_masks[:, pred_mask == 0]).sum(1)
-            fp = (relevant_truth_masks[:, pred_mask] == 0).sum(1)
-
-            # Compute Jaccard scores
-            jaccard_scores = tp / (tp + fp + fn)
-
-            # Fill in the cost matrix for this `j` (prediction)
-            return relevant_truth_indices, j, jaccard_scores
-
-        # Initialize the cost matrix
-        logging.info(
-            f"Initializing cost matrix of {len(truth_ids)} x {len(pred_ids)} (true x pred)..."
+    elif len(mapping) > 0:
+        mapping[0] = 0  # background maps to background
+        # Construct the volume for the matched instances
+        mapping[0] = 0  # background maps to background
+        pred_label = remap(
+            pred_label, mapping, in_place=True, preserve_missing_labels=True
         )
-        cost_matrix = np.zeros((len(truth_ids), len(pred_ids)))
-
-        # Compute the cost matrix
-        if DEBUG:
-            # Use tqdm for progress tracking
-            bar = tqdm(
-                range(pred_ids),
-                desc="Computing cost matrix",
-                leave=True,
-                dynamic_ncols=True,
-                total=len(pred_ids),
-            )
-            # Compute the cost matrix
-            for j in bar:
-                relevant_truth_indices, j, jaccard_scores = get_cost(j)
-                cost_matrix[relevant_truth_indices, j] = jaccard_scores
-        else:
-            with ThreadPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
-                for relevant_truth_indices, j, jaccard_scores in tqdm(
-                    executor.map(get_cost, range(len(pred_ids))),
-                    desc="Computing cost matrix in parallel",
-                    dynamic_ncols=True,
-                    total=len(pred_ids),
-                    leave=True,
-                ):
-                    cost_matrix[relevant_truth_indices, j] = jaccard_scores
-
-        # Match the predicted instances to the ground truth instances
-        logging.info("Calculating linear sum assignment...")
-        row_inds, col_inds = linear_sum_assignment(cost_matrix, maximize=True)
-
-        # Contruct the volume for the matched instances
-        for i, j in tqdm(
-            zip(col_inds, row_inds),
-            desc="Relabeling matched instances",
-            dynamic_ncols=True,
-        ):
-            if pred_ids[i] == 0 or truth_ids[j] == 0:
-                # Don't score the background
-                continue
-            pred_mask = pred_label == pred_ids[i]
-            matched_pred_label[pred_mask] = truth_ids[j]
 
         hausdorff_distances = optimized_hausdorff_distances(
-            truth_label, matched_pred_label, voxel_size, hausdorff_distance_max
+            truth_label, pred_label, voxel_size, hausdorff_distance_max
         )
     else:
         # No predictions to match
@@ -311,12 +494,10 @@ def score_instance(
 
     # Compute the scores
     logging.info("Computing accuracy score...")
-    accuracy = accuracy_score(truth_flat, matched_pred_label.flatten())
+    accuracy = accuracy_score(truth_label.flatten(), pred_label.flatten())
     hausdorff_dist = np.mean(hausdorff_distances) if len(hausdorff_distances) > 0 else 0
-    normalized_hausdorff_dist = 1.01 ** (
-        -hausdorff_dist / np.linalg.norm(voxel_size)
-    )  # normalize Hausdorff distance to [0, 1] using the maximum distance represented by a voxel. 32 is arbitrarily chosen to have a reasonable range
-    combined_score = (accuracy * normalized_hausdorff_dist) ** 0.5
+    normalized_hausdorff_dist = normalize_distance(hausdorff_dist, voxel_size)
+    combined_score = (accuracy * normalized_hausdorff_dist) ** 0.5  # geometric mean
     logging.info(f"Accuracy: {accuracy:.4f}")
     logging.info(f"Hausdorff Distance: {hausdorff_dist:.4f}")
     logging.info(f"Normalized Hausdorff Distance: {normalized_hausdorff_dist:.4f}")
@@ -326,7 +507,7 @@ def score_instance(
         "hausdorff_distance": hausdorff_dist,
         "normalized_hausdorff_distance": normalized_hausdorff_dist,
         "combined_score": combined_score,
-    }
+    }  # type: ignore
 
 
 def score_semantic(pred_label, truth_label) -> dict[str, float]:
@@ -347,16 +528,18 @@ def score_semantic(pred_label, truth_label) -> dict[str, float]:
     # Flatten the label volumes and convert to binary
     pred_label = (pred_label > 0.0).flatten()
     truth_label = (truth_label > 0.0).flatten()
-    # Compute the scores
 
+    # Compute the scores
     if np.sum(truth_label + pred_label) == 0:
         # If there are no true positives, set the scores to 1
         logging.debug("No true positives found. Setting scores to 1.")
         dice_score = 1
+        iou_score = 1
     else:
         dice_score = 1 - dice(truth_label, pred_label)
+        iou_score = jaccard_score(truth_label, pred_label, zero_division=1)
     scores = {
-        "iou": jaccard_score(truth_label, pred_label, zero_division=1),
+        "iou": iou_score,
         "dice_score": dice_score if not np.isnan(dice_score) else 1,
     }
 
@@ -372,7 +555,7 @@ def score_label(
     crop_name,
     truth_path=TRUTH_PATH,
     instance_classes=INSTANCE_CLASSES,
-) -> dict[str, float]:
+):
     """
     Score a single label volume against the ground truth label volume.
 
@@ -444,6 +627,7 @@ def empty_label_score(
     label, crop_name, instance_classes=INSTANCE_CLASSES, truth_path=TRUTH_PATH
 ):
     if label in instance_classes:
+        truth_path = UPath(truth_path)
         return {
             "accuracy": 0,
             "hausdorff_distance": 0,
@@ -677,7 +861,7 @@ def combine_scores(
 
 def score_submission(
     submission_path=UPath(SUBMISSION_PATH).with_suffix(".zip").path,
-    result_file=None,
+    result_file="results.json",
     truth_path=TRUTH_PATH,
     instance_classes=INSTANCE_CLASSES,
 ):
@@ -686,7 +870,9 @@ def score_submission(
 
     Args:
         submission_path (str): The path to the zipped submission Zarr-2 file.
-        result_file (str): The path to save the scores.
+        result_file (str): The path to save the scores. Default is 'results.json'.
+        truth_path (str): The path to the ground truth Zarr-2 file.
+        instance_classes (list): A list of instance classes.
 
     Returns:
         dict: A dictionary of scores for the submission.
@@ -887,18 +1073,23 @@ def update_scores(scores, results, result_file, instance_classes=INSTANCE_CLASSE
     )
 
     if result_file is not None:
+        logging.info(f"Saving collected scores to {result_file}...")
+
         with open(result_file, "w") as f:
-            json.dump(all_scores, f, indent=4)
+            json.dump(all_scores, f, indent=4, default=float)
 
         found_result_file = str(result_file).replace(
             UPath(result_file).suffix, "_submitted_only" + UPath(result_file).suffix
         )
         with open(found_result_file, "w") as f:
-            json.dump(found_scores, f, indent=4)
+            json.dump(found_scores, f, indent=4, default=float)
 
-    logging.info(
-        f"Scores updated in {result_file} and {found_result_file} in {time() - start_time:.2f} seconds"
-    )
+        logging.info(
+            f"Scores updated in {result_file} and {found_result_file} in {time() - start_time:.2f} seconds"
+        )
+    else:
+        logging.info("Final combined scores:")
+        logging.info(all_scores)
 
     return all_scores, found_scores
 
@@ -951,156 +1142,17 @@ def resize_array(arr, target_shape, pad_value=0):
 
 
 def match_crop_space(path, class_label, voxel_size, shape, translation) -> np.ndarray:
-    """
-    Match the resolution of a zarr array to a target resolution and shape, resampling as necessary with interpolation dependent on the class label. Instance segmentations will be resampled with nearest neighbor interpolation, while semantic segmentations will be resampled with linear interpolation and then thresholded.
-
-    Args:
-        path (str | UPath): The path to the zarr array to be adjusted. The zarr can be an OME-NGFF multiscale zarr file, or a traditional single scale formatted zarr.
-        class_label (str): The class label of the array.
-        voxel_size (tuple): The target voxel size.
-        shape (tuple): The target shape.
-        translation (tuple): The translation (i.e. offset) of the array in world units.
-
-    Returns:
-        np.ndarray: The rescaled array.
-    """
-    ds = zarr.open(str(path), mode="r")
-    if "multiscales" in ds.attrs:
-        # Handle multiscale zarr files
-        _image = CellMapImage(
-            path=path,
-            target_class=class_label,
-            target_scale=voxel_size,
-            target_voxel_shape=shape,
-            pad=True,
-            pad_value=0,
-        )
-        path = UPath(path) / _image.scale_level
-        for attr in ds.attrs["multiscales"][0]["datasets"]:
-            if attr["path"] == _image.scale_level:
-                for transform in attr["coordinateTransformations"]:
-                    if transform["type"] == "translation":
-                        input_translation = transform["translation"]
-                    elif transform["type"] == "scale":
-                        input_voxel_size = transform["scale"]
-                break
-        ds = zarr.open(path.path, mode="r")
-    elif (
-        ("voxel_size" in ds.attrs)
-        or ("resolution" in ds.attrs)
-        or ("scale" in ds.attrs)
-    ) or (("translation" in ds.attrs) or ("offset" in ds.attrs)):
-        # Handle single scale zarr files
-        if "voxel_size" in ds.attrs:
-            input_voxel_size = ds.attrs["voxel_size"]
-        elif "resolution" in ds.attrs:
-            input_voxel_size = ds.attrs["resolution"]
-        elif "scale" in ds.attrs:
-            input_voxel_size = ds.attrs["scale"]
-        else:
-            input_voxel_size = None
-
-        if "translation" in ds.attrs:
-            input_translation = ds.attrs["translation"]
-        elif "offset" in ds.attrs:
-            input_translation = ds.attrs["offset"]
-        else:
-            input_translation = None
-    else:
-        logging.info(f"Could not find voxel size and translation for {path}")
-        logging.info(
-            "Assuming voxel size matches target voxel size and will crop to target shape centering the volume."
-        )
-        image = ds[:]
-        # Crop the array if necessary
-        if any(s1 != s2 for s1, s2 in zip(image.shape, shape)):
-            return resize_array(image, shape)  # type: ignore
-        return image  # type: ignore
-
-    # Load the array
-    image = ds[:]
-
-    # Rescale the array if necessary
-    if input_voxel_size is not None and any(
-        r1 != r2 for r1, r2 in zip(input_voxel_size, voxel_size)
-    ):
-        if class_label in INSTANCE_CLASSES:
-            image = rescale(
-                image, np.divide(input_voxel_size, voxel_size), order=0, mode="constant"
-            )
-        else:
-            image = rescale(
-                image,
-                np.divide(input_voxel_size, voxel_size),
-                order=1,
-                mode="constant",
-                preserve_range=True,
-            )
-            image = image > 0.5
-
-    if input_translation is not None:
-        # Calculate the relative offset
-        adjusted_input_translation = (
-            np.array(input_translation) // np.array(voxel_size)
-        ) * np.array(voxel_size)
-
-        # Positive relative offset is the amount to crop from the start, negative is the amount to pad at the start
-        relative_offset = (
-            abs(np.subtract(adjusted_input_translation, translation))
-            // np.array(voxel_size)
-            * np.sign(np.subtract(adjusted_input_translation, translation))
-        )
-    else:
-        # TODO: Handle the case where the translation is not provided
-        relative_offset = np.zeros(len(shape))
-
-    # Translate and crop the array if necessary
-    if any(offset != 0 for offset in relative_offset) or any(
-        s1 != s2 for s1, s2 in zip(image.shape, shape)
-    ):
-        logging.info(
-            f"Translating and cropping {path} to {shape} with offset {relative_offset}"
-        )
-        # Make destination array
-        result = np.zeros(shape, dtype=image.dtype)
-
-        # Calculate the slices for the source and destination arrays
-        input_slices = []
-        output_slices = []
-        for i in range(len(shape)):
-            if relative_offset[i] < 0:
-                # Crop from the start
-                input_start = abs(relative_offset[i])
-                output_start = 0
-                input_end = min(input_start + shape[i], image.shape[i])
-                input_length = input_end - input_start
-                output_end = output_start + input_length
-            else:
-                # Pad at the start
-                input_start = 0
-                output_start = relative_offset[i]
-                output_end = min(shape[i], image.shape[i])
-                input_length = output_end - output_start
-                input_end = input_length
-
-            if input_length <= 0:
-                logging.info(
-                    "WARNING: Cropping to proper offset resulted in empty volume."
-                )
-                logging.info(f"\tInput shape: {image.shape}, Output shape: {shape}")
-                logging.info(
-                    f"\tInput offset: {input_start}, Output offset: {output_start}"
-                )
-                return result
-
-            input_slices.append(slice(int(input_start), int(input_end)))
-            output_slices.append(slice(int(output_start), int(output_end)))
-
-        # Copy the data
-        result[*output_slices] = image[*input_slices]
-        return result
-    else:
-        return image
+    mc = MatchedCrop(
+        path=path,
+        class_label=class_label,
+        target_voxel_size=voxel_size,
+        target_shape=shape,
+        target_translation=translation,
+        instance_classes=INSTANCE_CLASSES,
+        semantic_threshold=0.5,
+        pad_value=0,
+    )
+    return mc.load_aligned()
 
 
 def unzip_file(zip_path):
@@ -1113,10 +1165,14 @@ def unzip_file(zip_path):
     Example usage:
         unzip_file('submission.zip')
     """
+    logging.info(f"Unzipping {zip_path}...")
     saved_path = UPath(zip_path).with_suffix(".zarr").path
+    if UPath(saved_path).exists():
+        logging.info(f"Using existing unzipped path at {saved_path}")
+        return UPath(saved_path)
     with zipfile.ZipFile(zip_path, "r") as zip_ref:
         zip_ref.extractall(saved_path)
-        logging.info(f"Unzipped {zip_path} to {saved_path}")
+    logging.info(f"Unzipped {zip_path} to {saved_path}")
 
     return UPath(saved_path)
 

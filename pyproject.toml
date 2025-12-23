@@ -49,6 +49,9 @@ dependencies = [
   "pyreadline3; sys_platform == 'win32'",
   "cellmap-flow@git+https://github.com/janelia-cellmap/cellmap-flow@1ece404",
   "pykdtree",
+  "fastremap",
+  "connected-components-3d",
+  "ortools",
   ]
 
 [project.optional-dependencies]

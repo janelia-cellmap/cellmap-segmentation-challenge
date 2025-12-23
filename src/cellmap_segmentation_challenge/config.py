@@ -27,3 +27,26 @@ RAW_S3_BUCKET = "janelia-cosem-datasets"
 S3_SEARCH_PATH = "{dataset}/{dataset}.zarr/recon-1/{name}"
 S3_CROP_NAME = "labels/groundtruth/{crop}/{label}"
 S3_RAW_NAME = "em/fibsem-uint8"
+
+INSTANCE_CLASSES = [
+    "nuc",
+    "vim",
+    "ves",
+    "endo",
+    "lyso",
+    "ld",
+    "perox",
+    "mito",
+    "np",
+    "mt",
+    "cell",
+    "instance",
+]
+
+
+VIS_SEARCH_PATHS = {
+    "gt": SEARCH_PATH.format(dataset="{dataset}", name=CROP_NAME),
+    "predictions": (UPath(PREDICTIONS_PATH) / "{label}").path,
+    "processed": (UPath(PROCESSED_PATH) / "{label}").path,
+    # "submission": (UPath(SUBMISSION_PATH) / "{crop}" / "{label}").path,
+}

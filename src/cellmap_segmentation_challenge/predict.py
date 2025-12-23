@@ -12,7 +12,7 @@ from cellmap_data.utils import (
     is_array_2D,
     permute_singleton_dimension,
 )
-from cellmap_data.transforms.augment import NaNtoNum, Normalize
+from cellmap_data.transforms.augment import NaNtoNum
 from tqdm import tqdm
 from upath import UPath
 
@@ -113,7 +113,6 @@ def _predict(
 
     value_transforms = T.Compose(
         [
-            Normalize(),
             T.ToDtype(torch.float, scale=True),
             NaNtoNum({"nan": 0, "posinf": None, "neginf": None}),
         ],
@@ -134,7 +133,7 @@ def _predict(
     with torch.no_grad():
         for batch in tqdm(dataloader, dynamic_ncols=True):
             # Get the inputs and outputs
-            inputs = batch["input"]
+            inputs = batch["input"].to(dataset_writer_kwargs["device"])
             if singleton_dim is not None:
                 # Remove singleton dimension
                 inputs = inputs.squeeze(dim=singleton_dim + 2)

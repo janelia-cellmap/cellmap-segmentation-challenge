@@ -2,21 +2,21 @@
 from upath import UPath
 import torch
 
-from cellmap_segmentation_challenge.models import ResNet, UNet_2D
+from cellmap_segmentation_challenge.models import UNet_2D
 
 # %% Set hyperparameters and other configurations
 learning_rate = 0.0001  # learning rate for the optimizer
 batch_size = 1  # batch size for the dataloader
 input_array_info = {
-    "shape": (1, 64, 64),
-    "scale": (8, 8, 8),
+    "shape": (64, 64),
+    "scale": (8, 8),
 }  # shape and voxel size of the data to load for the input
 target_array_info = {
-    "shape": (1, 64, 64),
-    "scale": (8, 8, 8),
+    "shape": (64, 64),
+    "scale": (8, 8),
 }  # shape and voxel size of the data to load for the target
 epochs = 1  # number of epochs to train the model for
-iterations_per_epoch = 3  # number of iterations per epoch
+iterations_per_epoch = 2  # number of iterations per epoch
 random_seed = 42  # random seed for reproducibility
 
 classes = ["mito", "er"]  # list of classes to segment

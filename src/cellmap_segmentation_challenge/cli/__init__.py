@@ -15,12 +15,6 @@ def run():
     pass
 
 
-@click.command
-def echo():
-    click.echo("hello")
-
-
-run.add_command(echo, name="echo")
 run.add_command(fetch_data_cli, name="fetch-data")
 run.add_command(train_cli, name="train")
 run.add_command(predict_cli, name="predict")
