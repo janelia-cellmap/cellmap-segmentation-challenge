@@ -37,8 +37,8 @@
   <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
     <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
-    <script src="../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/cellmap_segmentation_challenge/evaluate';</script>
     <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
@@ -286,28 +286,24 @@ document.write(`
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">time</span><span class="p">,</span> <span class="n">sleep</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">zipfile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">concurrent.futures</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">zarr</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">linear_sum_assignment</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial.distance</span><span class="w"> </span><span class="kn">import</span> <span class="n">dice</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">skimage.measure</span><span class="w"> </span><span class="kn">import</span> <span class="n">label</span> <span class="k">as</span> <span class="n">relabel</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">skimage.transform</span><span class="w"> </span><span class="kn">import</span> <span class="n">rescale</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">pykdtree.kdtree</span><span class="w"> </span><span class="kn">import</span> <span class="n">KDTree</span> <span class="k">as</span> <span class="n">cKDTree</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fastremap</span><span class="w"> </span><span class="kn">import</span> <span class="n">remap</span><span class="p">,</span> <span class="n">unique</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">cc3d</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">accuracy_score</span><span class="p">,</span> <span class="n">jaccard_score</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">upath</span><span class="w"> </span><span class="kn">import</span> <span class="n">UPath</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_data</span><span class="w"> </span><span class="kn">import</span> <span class="n">CellMapImage</span>
-
 <span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span><span class="p">,</span> <span class="n">ProcessPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">PROCESSED_PATH</span><span class="p">,</span> <span class="n">SUBMISSION_PATH</span><span class="p">,</span> <span class="n">TRUTH_PATH</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">TEST_CROPS_DICT</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">SUBMISSION_PATH</span><span class="p">,</span> <span class="n">TRUTH_PATH</span><span class="p">,</span> <span class="n">INSTANCE_CLASSES</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">TEST_CROPS_DICT</span><span class="p">,</span> <span class="n">MatchedCrop</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
@@ -315,56 +311,197 @@ document.write(`
     <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
     <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%(asctime)s</span><span class="s2"> - </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">,</span>
     <span class="n">datefmt</span><span class="o">=</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">,</span>
+    <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span>
 
-<span class="n">INSTANCE_CLASSES</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">&quot;nuc&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;vim&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;ves&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;endo&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;lyso&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;ld&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;perox&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mito&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;np&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mt&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;cell&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;instance&quot;</span><span class="p">,</span>
-<span class="p">]</span>
-
-<span class="n">HAUSDORFF_DISTANCE_MAX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
 <span class="n">CAST_TO_NONE</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span>
 
 <span class="n">MAX_INSTANCE_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_INSTANCE_THREADS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
 <span class="n">MAX_SEMANTIC_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_SEMANTIC_THREADS&quot;</span><span class="p">,</span> <span class="mi">20</span><span class="p">))</span>
 <span class="n">PER_INSTANCE_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;PER_INSTANCE_THREADS&quot;</span><span class="p">,</span> <span class="mi">16</span><span class="p">))</span>
-<span class="c1"># submitted_# of instances / ground_truth_# of instances</span>
-<span class="n">INSTANCE_RATIO_CUTOFF</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;INSTANCE_RATIO_CUTOFF&quot;</span><span class="p">,</span> <span class="mi">50</span><span class="p">))</span>
-<span class="n">PRECOMPUTE_LIMIT</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;PRECOMPUTE_LIMIT&quot;</span><span class="p">,</span> <span class="mf">1e7</span><span class="p">))</span>
-<span class="n">DEBUG</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">,</span> <span class="s2">&quot;False&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">&quot;False&quot;</span>
+<span class="n">MAX_DISTANCE_CAP_EPS</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_DISTANCE_CAP_EPS&quot;</span><span class="p">,</span> <span class="s2">&quot;1e-4&quot;</span><span class="p">))</span>
+<span class="n">INSTANCE_RATIO_CUTOFF</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;INSTANCE_RATIO_CUTOFF&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+<span class="n">MAX_OVERLAP_EDGES</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_OVERLAP_EDGES&quot;</span><span class="p">,</span> <span class="s2">&quot;5000000&quot;</span><span class="p">))</span>
+<span class="n">DEBUG</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">,</span> <span class="s2">&quot;False&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;false&quot;</span>
 
 
-<div class="viewcode-block" id="spoof_precomputed">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.spoof_precomputed">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">spoof_precomputed</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">array</span><span class="p">,</span> <span class="n">ids</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">array</span> <span class="o">=</span> <span class="n">array</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span> <span class="o">=</span> <span class="n">ids</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-
-<div class="viewcode-block" id="spoof_precomputed.__getitem__">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.spoof_precomputed.__getitem__">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ids</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">array</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="p">[</span><span class="n">ids</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">array</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span></div>
+<div class="viewcode-block" id="normalize_distance">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.normalize_distance">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">normalize_distance</span><span class="p">(</span><span class="n">distance</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Normalize a distance value to [0, 1] using the maximum distance represented by a voxel</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">((</span><span class="mf">1.01</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="n">distance</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">))))</span></div>
 
 
-<div class="viewcode-block" id="spoof_precomputed.__len__">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.spoof_precomputed.__len__">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span></div>
-</div>
+
+<div class="viewcode-block" id="compute_default_max_distance">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.compute_default_max_distance">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_default_max_distance</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">MAX_DISTANCE_CAP_EPS</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">eps</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.01</span><span class="p">)))</span></div>
+
+
+
+<div class="viewcode-block" id="match_instances">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.match_instances">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">match_instances</span><span class="p">(</span><span class="n">gt</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pred</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Matches instances between GT and Pred based on IoU.</span>
+<span class="sd">    Assumes IDs range from 1 to max(ID) (0 is background). If IDs are non-sequential (e.g., 1, 2, 5), the output matrix will contain empty rows/columns for missing IDs.</span>
+<span class="sd">    Returns a dictionary mapping pred IDs to gt IDs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">gt</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">pred</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;gt and pred must have the same shape&quot;</span><span class="p">)</span>
+
+    <span class="c1"># 1D views without copying if possible</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">gt</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">pred</span><span class="p">)</span>
+
+    <span class="c1"># Number of instances (sequential ids -&gt; max id)</span>
+    <span class="n">nG</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="k">if</span> <span class="n">g</span><span class="o">.</span><span class="n">size</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="n">nP</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">size</span> <span class="k">else</span> <span class="mi">0</span>
+
+    <span class="c1"># Early exits</span>
+    <span class="k">if</span> <span class="n">nG</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">nP</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">nG</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">nP</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No GT instances; returning empty match.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nP</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">nG</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No Pred instances; returning empty match.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">nP</span> <span class="o">/</span> <span class="n">nG</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">INSTANCE_RATIO_CUTOFF</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;WARNING: Skipping </span><span class="si">{</span><span class="n">nP</span><span class="si">}</span><span class="s2"> instances in submission, </span><span class="si">{</span><span class="n">nG</span><span class="si">}</span><span class="s2"> in ground truth, &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;because there are too many instances in the submission.&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="c1"># Foreground (non-background) mask for each side and for pairwise overlaps</span>
+    <span class="n">g_fg</span> <span class="o">=</span> <span class="n">g</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="n">p_fg</span> <span class="o">=</span> <span class="n">p</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="n">fg</span> <span class="o">=</span> <span class="n">g_fg</span> <span class="o">&amp;</span> <span class="n">p_fg</span>
+
+    <span class="c1"># ---- Per-object areas (sizes) ----</span>
+    <span class="c1"># Use uint32 where possible to reduce memory; cast to int64 for safety if needed.</span>
+    <span class="n">gt_sizes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">((</span><span class="n">g</span><span class="p">[</span><span class="n">g_fg</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="n">minlength</span><span class="o">=</span><span class="n">nG</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">pr_sizes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">((</span><span class="n">p</span><span class="p">[</span><span class="n">p_fg</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="n">minlength</span><span class="o">=</span><span class="n">nP</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+
+    <span class="c1"># ---- Intersections for observed pairs only (sparse counting) ----</span>
+    <span class="n">gi</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="n">fg</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">pj</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">fg</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">gi</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># No overlaps anywhere -&gt; IoU is all zeros</span>
+        <span class="k">return</span> <span class="p">{}</span>
+
+    <span class="c1"># Encode pairs to a single 64-bit key and count only present pairs</span>
+    <span class="c1"># Use unsigned to avoid negative-overflow corner cases.</span>
+    <span class="n">gi_u</span> <span class="o">=</span> <span class="n">gi</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">)</span>
+    <span class="n">pj_u</span> <span class="o">=</span> <span class="n">pj</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">)</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">gi_u</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">(</span><span class="n">nP</span><span class="p">)</span> <span class="o">+</span> <span class="n">pj_u</span>
+
+    <span class="n">uniq_keys</span><span class="p">,</span> <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">return_counts</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">uniq_keys</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="n">MAX_OVERLAP_EDGES</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;WARNING: Too many overlap edges (</span><span class="si">{</span><span class="n">uniq_keys</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">) — skipping instance scoring.&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="p">(</span><span class="n">uniq_keys</span> <span class="o">//</span> <span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">(</span><span class="n">nP</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="p">(</span><span class="n">uniq_keys</span> <span class="o">%</span> <span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">(</span><span class="n">nP</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+
+    <span class="c1"># ---- IoU only for observed pairs, then scatter into dense matrix ----</span>
+    <span class="n">inter</span> <span class="o">=</span> <span class="n">counts</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+    <span class="n">union</span> <span class="o">=</span> <span class="n">gt_sizes</span><span class="p">[</span><span class="n">rows</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">pr_sizes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">cols</span><span class="p">]</span> <span class="o">-</span> <span class="n">inter</span>
+    <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">invalid</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">):</span>
+        <span class="n">iou_vals</span> <span class="o">=</span> <span class="p">(</span><span class="n">inter</span> <span class="o">/</span> <span class="n">union</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="c1"># Keep only IoU &gt; 0 edges (should already be true, but explicit)</span>
+    <span class="n">keep</span> <span class="o">=</span> <span class="n">iou_vals</span> <span class="o">&gt;</span> <span class="mf">0.0</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">rows</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="n">cols</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
+    <span class="n">iou_vals</span> <span class="o">=</span> <span class="n">iou_vals</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">rows</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{}</span>
+
+    <span class="c1"># ---------------- OR-Tools Min-Cost Flow ----------------</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">ortools.graph.python</span><span class="w"> </span><span class="kn">import</span> <span class="n">min_cost_flow</span>
+
+    <span class="n">mcf</span> <span class="o">=</span> <span class="n">min_cost_flow</span><span class="o">.</span><span class="n">SimpleMinCostFlow</span><span class="p">()</span>
+
+    <span class="c1"># Node indexing:</span>
+    <span class="c1"># source(0), GT nodes [1..nG], Pred nodes [1+nG .. nG+nP], sink(last)</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">gt0</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">pred0</span> <span class="o">=</span> <span class="n">gt0</span> <span class="o">+</span> <span class="n">nG</span>
+    <span class="n">sink</span> <span class="o">=</span> <span class="n">pred0</span> <span class="o">+</span> <span class="n">nP</span>
+
+    <span class="n">COST_SCALE</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MCMF_COST_SCALE&quot;</span><span class="p">,</span> <span class="s2">&quot;1000000&quot;</span><span class="p">))</span>
+    <span class="n">UNMATCH_COST</span> <span class="o">=</span> <span class="n">COST_SCALE</span> <span class="o">+</span> <span class="mi">1</span>  <span class="c1"># worse than any match in [0, COST_SCALE]</span>
+
+    <span class="c1"># ---- Build arcs into numpy arrays (dtype matters) ----</span>
+    <span class="n">tails</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">heads</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">caps</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">costs</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_arc</span><span class="p">(</span><span class="n">u</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">cap</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">cost</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">tails</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+        <span class="n">heads</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="n">caps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cap</span><span class="p">)</span>
+        <span class="n">costs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cost</span><span class="p">)</span>
+
+    <span class="c1"># Source -&gt; GT (each GT emits 1 unit)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nG</span><span class="p">):</span>
+        <span class="n">add_arc</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">gt0</span> <span class="o">+</span> <span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># GT -&gt; Sink &quot;unmatched&quot; option</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nG</span><span class="p">):</span>
+        <span class="n">add_arc</span><span class="p">(</span><span class="n">gt0</span> <span class="o">+</span> <span class="n">i</span><span class="p">,</span> <span class="n">sink</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">UNMATCH_COST</span><span class="p">)</span>
+
+    <span class="c1"># GT -&gt; Pred edges for IoU&gt;0</span>
+    <span class="c1"># (rows, cols are 0-based instance indices; +1 happens later when making label ids)</span>
+    <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">iou</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">iou_vals</span><span class="p">):</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">gt0</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">pred0</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+        <span class="n">cost</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="mf">1.0</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">iou</span><span class="p">))</span> <span class="o">*</span> <span class="n">COST_SCALE</span><span class="p">)</span>
+        <span class="n">add_arc</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">cost</span><span class="p">)</span>
+
+    <span class="c1"># Pred -&gt; Sink capacity 1</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nP</span><span class="p">):</span>
+        <span class="n">add_arc</span><span class="p">(</span><span class="n">pred0</span> <span class="o">+</span> <span class="n">j</span><span class="p">,</span> <span class="n">sink</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># Bulk add (use correct dtypes per API)</span>
+    <span class="n">mcf</span><span class="o">.</span><span class="n">add_arcs_with_capacity_and_unit_cost</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">tails</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">heads</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">caps</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">costs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Supplies: push nG units from source to sink</span>
+    <span class="n">mcf</span><span class="o">.</span><span class="n">set_node_supply</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">nG</span><span class="p">))</span>
+    <span class="n">mcf</span><span class="o">.</span><span class="n">set_node_supply</span><span class="p">(</span><span class="n">sink</span><span class="p">,</span> <span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="n">nG</span><span class="p">))</span>
+
+    <span class="n">status</span> <span class="o">=</span> <span class="n">mcf</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">status</span> <span class="o">!=</span> <span class="n">mcf</span><span class="o">.</span><span class="n">OPTIMAL</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Min-cost flow did not solve optimally (status=</span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">).&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{}</span>
+
+    <span class="c1"># Extract matches: arcs GT-&gt;Pred with flow==1</span>
+    <span class="n">mapping</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">mcf</span><span class="o">.</span><span class="n">num_arcs</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="n">mcf</span><span class="o">.</span><span class="n">flow</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">mcf</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">mcf</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">gt0</span> <span class="o">&lt;=</span> <span class="n">u</span> <span class="o">&lt;</span> <span class="n">pred0</span> <span class="ow">and</span> <span class="n">pred0</span> <span class="o">&lt;=</span> <span class="n">v</span> <span class="o">&lt;</span> <span class="n">sink</span><span class="p">:</span>
+            <span class="n">gt_id</span> <span class="o">=</span> <span class="p">(</span><span class="n">u</span> <span class="o">-</span> <span class="n">gt0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>  <span class="c1"># back to label IDs (1-based, 0 is background)</span>
+            <span class="n">pred_id</span> <span class="o">=</span> <span class="p">(</span><span class="n">v</span> <span class="o">-</span> <span class="n">pred0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">mapping</span><span class="p">[</span><span class="n">pred_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">gt_id</span>
+
+    <span class="k">return</span> <span class="n">mapping</span></div>
 
 
 
@@ -372,103 +509,234 @@ document.write(`
 <a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.optimized_hausdorff_distances">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">optimized_hausdorff_distances</span><span class="p">(</span>
     <span class="n">truth_label</span><span class="p">,</span>
-    <span class="n">matched_pred_label</span><span class="p">,</span>
+    <span class="n">pred_label</span><span class="p">,</span>
     <span class="n">voxel_size</span><span class="p">,</span>
     <span class="n">hausdorff_distance_max</span><span class="p">,</span>
     <span class="n">method</span><span class="o">=</span><span class="s2">&quot;standard&quot;</span><span class="p">,</span>
+    <span class="n">percentile</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
-    <span class="c1"># Get unique truth IDs, excluding the background (0)</span>
-    <span class="n">truth_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">truth_label</span><span class="p">)</span>
-    <span class="n">truth_ids</span> <span class="o">=</span> <span class="n">truth_ids</span><span class="p">[</span><span class="n">truth_ids</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span>  <span class="c1"># Exclude background</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">[]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute per-truth-instance Hausdorff-like distances against the (already remapped)</span>
+<span class="sd">    prediction using multithreading. Returns a 1D float32 numpy array whose i-th</span>
+<span class="sd">    entry corresponds to truth_ids[i].</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_distance</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
-        <span class="c1"># Skip if both masks are empty</span>
-        <span class="n">truth_mask</span> <span class="o">=</span> <span class="n">truth_label</span> <span class="o">==</span> <span class="n">truth_ids</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-        <span class="n">pred_mask</span> <span class="o">=</span> <span class="n">matched_pred_label</span> <span class="o">==</span> <span class="n">truth_ids</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">truth_mask</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">pred_mask</span><span class="p">):</span>
-            <span class="k">return</span> <span class="mi">0</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    truth_label : np.ndarray</span>
+<span class="sd">        Ground-truth instance label volume (0 == background).</span>
+<span class="sd">    pred_label : np.ndarray</span>
+<span class="sd">        Prediction instance label volume that has already been remapped to align</span>
+<span class="sd">        with the GT ids (0 == background).</span>
+<span class="sd">    voxel_size : Sequence[float]</span>
+<span class="sd">        Physical voxel sizes in Z, Y, X (or Y, X) order.</span>
+<span class="sd">    hausdorff_distance_max : float</span>
+<span class="sd">        Cap for distances (use np.inf for uncapped).</span>
+<span class="sd">    method : {&quot;standard&quot;, &quot;modified&quot;, &quot;percentile&quot;}</span>
+<span class="sd">        &quot;standard&quot; -&gt; classic Hausdorff (max of directed maxima)</span>
+<span class="sd">        &quot;modified&quot; -&gt; mean of directed distances, then max of the two means</span>
+<span class="sd">        &quot;percentile&quot; -&gt; use the given percentile of directed distances (requires</span>
+<span class="sd">                         `percentile` to be provided).</span>
+<span class="sd">    percentile : float | None</span>
+<span class="sd">        Percentile (0-100) used when method==&quot;percentile&quot;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Unique GT ids (exclude background = 0)</span>
+    <span class="n">truth_ids</span> <span class="o">=</span> <span class="n">unique</span><span class="p">(</span><span class="n">truth_label</span><span class="p">)</span>
+    <span class="n">truth_ids</span> <span class="o">=</span> <span class="n">truth_ids</span><span class="p">[</span><span class="n">truth_ids</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">true_num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">truth_ids</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">true_num</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
-        <span class="c1"># Compute Hausdorff distance for the current pair</span>
-        <span class="n">h_dist</span> <span class="o">=</span> <span class="n">compute_hausdorff_distance</span><span class="p">(</span>
-            <span class="n">truth_mask</span><span class="p">,</span>
-            <span class="n">pred_mask</span><span class="p">,</span>
+    <span class="n">voxel_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_distance</span><span class="p">(</span><span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">tid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">h_dist</span> <span class="o">=</span> <span class="n">compute_hausdorff_distance_roi</span><span class="p">(</span>
+            <span class="n">truth_label</span><span class="p">,</span>
+            <span class="n">pred_label</span><span class="p">,</span>
+            <span class="n">tid</span><span class="p">,</span>
             <span class="n">voxel_size</span><span class="p">,</span>
             <span class="n">hausdorff_distance_max</span><span class="p">,</span>
-            <span class="n">method</span><span class="p">,</span>
+            <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span>
+            <span class="n">percentile</span><span class="o">=</span><span class="n">percentile</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="n">i</span><span class="p">,</span> <span class="n">h_dist</span>
+        <span class="k">return</span> <span class="n">i</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">h_dist</span><span class="p">)</span>
 
-    <span class="c1"># Initialize list for distances</span>
-    <span class="n">hausdorff_distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">))</span>
+    <span class="n">dists</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">true_num</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span>
-        <span class="c1"># Use tqdm for progress tracking</span>
-        <span class="n">bar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span>
-            <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">)),</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
+            <span class="nb">range</span><span class="p">(</span><span class="n">true_num</span><span class="p">),</span>
             <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Computing Hausdorff distances&quot;</span><span class="p">,</span>
             <span class="n">leave</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">),</span>
-        <span class="p">)</span>
-        <span class="c1"># Compute the cost matrix</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">bar</span><span class="p">:</span>
-            <span class="n">i</span><span class="p">,</span> <span class="n">h_dist</span> <span class="o">=</span> <span class="n">get_distance</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-            <span class="n">hausdorff_distances</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">h_dist</span>
+            <span class="n">total</span><span class="o">=</span><span class="n">true_num</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="n">idx</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">get_distance</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">dists</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">h</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">PER_INSTANCE_THREADS</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">h_dist</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
-                <span class="n">executor</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">get_distance</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">))),</span>
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
+                <span class="n">executor</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">get_distance</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="n">true_num</span><span class="p">)),</span>
                 <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Computing Hausdorff distances&quot;</span><span class="p">,</span>
-                <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">),</span>
+                <span class="n">total</span><span class="o">=</span><span class="n">true_num</span><span class="p">,</span>
                 <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="p">):</span>
-                <span class="n">hausdorff_distances</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">h_dist</span>
+                <span class="n">dists</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">h</span>
 
-    <span class="k">return</span> <span class="n">hausdorff_distances</span></div>
+    <span class="k">return</span> <span class="n">dists</span></div>
 
 
 
-<div class="viewcode-block" id="compute_hausdorff_distance">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.compute_hausdorff_distance">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">compute_hausdorff_distance</span><span class="p">(</span><span class="n">image0</span><span class="p">,</span> <span class="n">image1</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span> <span class="n">max_distance</span><span class="p">,</span> <span class="n">method</span><span class="p">):</span>
+<div class="viewcode-block" id="bbox_for_label_cc3d">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.bbox_for_label_cc3d">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">bbox_for_label_cc3d</span><span class="p">(</span><span class="n">label_vol</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">label_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Compute the Hausdorff distance between two binary masks, optimized for pre-vectorized inputs.</span>
+<span class="sd">    Try to get bbox without allocating a full boolean mask using cc3d statistics.</span>
+<span class="sd">    Falls back to mask-based bbox if cc3d doesn&#39;t provide expected fields.</span>
+<span class="sd">    Returns (mins, maxs) inclusive-exclusive in voxel indices, or None if missing.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Extract nonzero points</span>
-    <span class="n">a_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">image0</span><span class="p">)</span>
-    <span class="n">b_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">image1</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="n">cc3d</span><span class="o">.</span><span class="n">statistics</span><span class="p">(</span><span class="n">label_vol</span><span class="p">)</span>
+        <span class="c1"># cc3d.statistics usually returns dict-like with keys per label id.</span>
+        <span class="c1"># There are multiple API variants; try common patterns.</span>
+        <span class="k">if</span> <span class="s2">&quot;bounding_boxes&quot;</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">:</span>
+            <span class="n">bb</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;bounding_boxes&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">label_id</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">bb</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="c1"># bb might be (z0,z1,y0,y1,x0,x1) with end exclusive</span>
+            <span class="n">ndim</span> <span class="o">=</span> <span class="n">label_vol</span><span class="o">.</span><span class="n">ndim</span>
+            <span class="n">mins</span> <span class="o">=</span> <span class="p">[</span><span class="n">bb</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndim</span><span class="p">)]</span>
+            <span class="n">maxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">bb</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndim</span><span class="p">)]</span>
+            <span class="k">return</span> <span class="n">mins</span><span class="p">,</span> <span class="n">maxs</span>
 
-    <span class="c1"># Handle empty sets</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">a_points</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">b_points</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">return</span> <span class="mi">0</span>
-    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">a_points</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">b_points</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="k">if</span> <span class="n">label_id</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="n">label_id</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;bounding_box&quot;</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+                <span class="n">bb</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s2">&quot;bounding_box&quot;</span><span class="p">]</span>
+                <span class="n">ndim</span> <span class="o">=</span> <span class="n">label_vol</span><span class="o">.</span><span class="n">ndim</span>
+                <span class="n">mins</span> <span class="o">=</span> <span class="p">[</span><span class="n">bb</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndim</span><span class="p">)]</span>
+                <span class="n">maxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">bb</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndim</span><span class="p">)]</span>
+                <span class="k">return</span> <span class="n">mins</span><span class="p">,</span> <span class="n">maxs</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
 
-    <span class="c1"># Scale points by voxel size</span>
-    <span class="n">a_points</span> <span class="o">=</span> <span class="n">a_points</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">)</span>
-    <span class="n">b_points</span> <span class="o">=</span> <span class="n">b_points</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">)</span>
+    <span class="c1"># Fallback: mask-based (allocates a temporary bool)</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">label_vol</span> <span class="o">==</span> <span class="n">label_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">mins</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">]</span>
+    <span class="n">maxs</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">mins</span><span class="p">,</span> <span class="n">maxs</span></div>
 
-    <span class="c1"># Build KD-trees once</span>
-    <span class="n">a_tree</span> <span class="o">=</span> <span class="n">cKDTree</span><span class="p">(</span><span class="n">a_points</span><span class="p">)</span>
-    <span class="n">b_tree</span> <span class="o">=</span> <span class="n">cKDTree</span><span class="p">(</span><span class="n">b_points</span><span class="p">)</span>
 
-    <span class="c1"># Query distances</span>
-    <span class="c1"># fwd = a_tree.query(b_points, k=1, distance_upper_bound=max_distance)[0]</span>
-    <span class="c1"># bwd = b_tree.query(a_points, k=1, distance_upper_bound=max_distance)[0]</span>
-    <span class="n">fwd</span> <span class="o">=</span> <span class="n">a_tree</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">b_points</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">bwd</span> <span class="o">=</span> <span class="n">b_tree</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">a_points</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
-    <span class="c1"># Replace &quot;inf&quot; with `max_distance` for numerical stability</span>
-    <span class="c1"># fwd[fwd == np.inf] = max_distance</span>
-    <span class="c1"># bwd[bwd == np.inf] = max_distance</span>
-    <span class="n">fwd</span><span class="p">[</span><span class="n">fwd</span> <span class="o">&gt;</span> <span class="n">max_distance</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_distance</span>
-    <span class="n">bwd</span><span class="p">[</span><span class="n">bwd</span> <span class="o">&gt;</span> <span class="n">max_distance</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_distance</span>
+<div class="viewcode-block" id="roi_slices_for_pair">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.roi_slices_for_pair">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">roi_slices_for_pair</span><span class="p">(</span>
+    <span class="n">truth_label</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">pred_label</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">tid</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">voxel_size</span><span class="p">,</span>
+    <span class="n">max_distance</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ROI = union(bbox(truth==tid), bbox(pred==tid)) padded by P derived from max_distance.</span>
+<span class="sd">    Returns tuple of slices suitable for numpy indexing.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ndim</span> <span class="o">=</span> <span class="n">truth_label</span><span class="o">.</span><span class="n">ndim</span>
+    <span class="n">vs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">vs</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">ndim</span><span class="p">:</span>
+        <span class="c1"># tolerate vs longer (e.g. includes channel), take last ndim</span>
+        <span class="n">vs</span> <span class="o">=</span> <span class="n">vs</span><span class="p">[</span><span class="o">-</span><span class="n">ndim</span><span class="p">:]</span>
+
+    <span class="c1"># padding per axis in voxels</span>
+    <span class="n">pad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">max_distance</span> <span class="o">/</span> <span class="n">vs</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span>
+
+    <span class="n">tb</span> <span class="o">=</span> <span class="n">bbox_for_label_cc3d</span><span class="p">(</span><span class="n">truth_label</span><span class="p">,</span> <span class="n">tid</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">tb</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># should not happen for tid from truth_ids</span>
+
+    <span class="n">tmins</span><span class="p">,</span> <span class="n">tmaxs</span> <span class="o">=</span> <span class="n">tb</span>
+    <span class="n">pb</span> <span class="o">=</span> <span class="n">bbox_for_label_cc3d</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">tid</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pb</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pmins</span><span class="p">,</span> <span class="n">pmaxs</span> <span class="o">=</span> <span class="n">tmins</span><span class="p">,</span> <span class="n">tmaxs</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">pmins</span><span class="p">,</span> <span class="n">pmaxs</span> <span class="o">=</span> <span class="n">pb</span>
+
+    <span class="n">mins</span> <span class="o">=</span> <span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">tmins</span><span class="p">[</span><span class="n">d</span><span class="p">],</span> <span class="n">pmins</span><span class="p">[</span><span class="n">d</span><span class="p">])</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndim</span><span class="p">)]</span>
+    <span class="n">maxs</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">tmaxs</span><span class="p">[</span><span class="n">d</span><span class="p">],</span> <span class="n">pmaxs</span><span class="p">[</span><span class="n">d</span><span class="p">])</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndim</span><span class="p">)]</span>
+
+    <span class="c1"># expand and clamp</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="n">truth_label</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">out_slices</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndim</span><span class="p">):</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">mins</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">pad</span><span class="p">[</span><span class="n">d</span><span class="p">]))</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="n">d</span><span class="p">],</span> <span class="n">maxs</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">pad</span><span class="p">[</span><span class="n">d</span><span class="p">]))</span>
+        <span class="n">out_slices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">out_slices</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="compute_hausdorff_distance_roi">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.compute_hausdorff_distance_roi">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_hausdorff_distance_roi</span><span class="p">(</span>
+    <span class="n">truth_label</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">pred_label</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">tid</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">voxel_size</span><span class="p">,</span>
+    <span class="n">max_distance</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;standard&quot;</span><span class="p">,</span>
+    <span class="n">percentile</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Same metric as compute_hausdorff_distance(), but operates on an ROI slice</span>
+<span class="sd">    and builds masks only inside ROI.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.ndimage</span><span class="w"> </span><span class="kn">import</span> <span class="n">distance_transform_edt</span>
+
+    <span class="n">roi</span> <span class="o">=</span> <span class="n">roi_slices_for_pair</span><span class="p">(</span><span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">,</span> <span class="n">tid</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span> <span class="n">max_distance</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">roi</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">max_distance</span><span class="p">)</span>
+
+    <span class="n">t_roi</span> <span class="o">=</span> <span class="n">truth_label</span><span class="p">[</span><span class="n">roi</span><span class="p">]</span>
+    <span class="n">p_roi</span> <span class="o">=</span> <span class="n">pred_label</span><span class="p">[</span><span class="n">roi</span><span class="p">]</span>
+
+    <span class="n">a</span> <span class="o">=</span> <span class="n">t_roi</span> <span class="o">==</span> <span class="n">tid</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">p_roi</span> <span class="o">==</span> <span class="n">tid</span>
+
+    <span class="n">a_n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+    <span class="n">b_n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">a_n</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">b_n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+    <span class="k">if</span> <span class="n">a_n</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">b_n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">max_distance</span><span class="p">)</span>
+
+    <span class="n">ndim</span> <span class="o">=</span> <span class="n">truth_label</span><span class="o">.</span><span class="n">ndim</span>
+    <span class="n">vs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">vs</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">ndim</span><span class="p">:</span>
+        <span class="n">vs</span> <span class="o">=</span> <span class="n">vs</span><span class="p">[</span><span class="o">-</span><span class="n">ndim</span><span class="p">:]</span>
+
+    <span class="n">dist_to_b</span> <span class="o">=</span> <span class="n">distance_transform_edt</span><span class="p">(</span><span class="o">~</span><span class="n">b</span><span class="p">,</span> <span class="n">sampling</span><span class="o">=</span><span class="n">vs</span><span class="p">)</span>
+    <span class="n">dist_to_a</span> <span class="o">=</span> <span class="n">distance_transform_edt</span><span class="p">(</span><span class="o">~</span><span class="n">a</span><span class="p">,</span> <span class="n">sampling</span><span class="o">=</span><span class="n">vs</span><span class="p">)</span>
+
+    <span class="n">fwd</span> <span class="o">=</span> <span class="n">dist_to_b</span><span class="p">[</span><span class="n">a</span><span class="p">]</span>
+    <span class="n">bwd</span> <span class="o">=</span> <span class="n">dist_to_a</span><span class="p">[</span><span class="n">b</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;standard&quot;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">fwd</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">bwd</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">fwd</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">initial</span><span class="o">=</span><span class="mf">0.0</span><span class="p">),</span> <span class="n">bwd</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">initial</span><span class="o">=</span><span class="mf">0.0</span><span class="p">))</span>
     <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;modified&quot;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">fwd</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">bwd</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span></div>
+        <span class="n">d</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">fwd</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="k">if</span> <span class="n">fwd</span><span class="o">.</span><span class="n">size</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">bwd</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="k">if</span> <span class="n">bwd</span><span class="o">.</span><span class="n">size</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;percentile&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">percentile</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;percentile&#39; must be provided when method=&#39;percentile&#39;&quot;</span><span class="p">)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+            <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">fwd</span><span class="p">,</span> <span class="n">percentile</span><span class="p">))</span> <span class="k">if</span> <span class="n">fwd</span><span class="o">.</span><span class="n">size</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">bwd</span><span class="p">,</span> <span class="n">percentile</span><span class="p">))</span> <span class="k">if</span> <span class="n">bwd</span><span class="o">.</span><span class="n">size</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;method must be one of {&#39;standard&#39;, &#39;modified&#39;, &#39;percentile&#39;}&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">max_distance</span><span class="p">))</span></div>
 
 
 
@@ -478,7 +746,7 @@ document.write(`
     <span class="n">pred_label</span><span class="p">,</span>
     <span class="n">truth_label</span><span class="p">,</span>
     <span class="n">voxel_size</span><span class="p">,</span>
-    <span class="n">hausdorff_distance_max</span><span class="o">=</span><span class="n">HAUSDORFF_DISTANCE_MAX</span><span class="p">,</span>
+    <span class="n">hausdorff_distance_max</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Score a single instance label volume against the ground truth instance label volume.</span>
@@ -496,116 +764,37 @@ document.write(`
 <span class="sd">        scores = score_instance(pred_label, truth_label)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Scoring instance segmentation...&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">hausdorff_distance_max</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">hausdorff_distance_max</span> <span class="o">=</span> <span class="n">compute_default_max_distance</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Using default maximum Hausdorff distance of </span><span class="si">{</span><span class="n">hausdorff_distance_max</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> for voxel size </span><span class="si">{</span><span class="n">voxel_size</span><span class="si">}</span><span class="s2">.&quot;</span>
+        <span class="p">)</span>
+
     <span class="c1"># Relabel the predicted instance labels to be consistent with the ground truth instance labels</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Relabeling predicted instance labels...&quot;</span><span class="p">)</span>
-    <span class="n">pred_label</span> <span class="o">=</span> <span class="n">relabel</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">pred_label</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+    <span class="n">pred_label</span> <span class="o">=</span> <span class="n">cc3d</span><span class="o">.</span><span class="n">connected_components</span><span class="p">(</span><span class="n">pred_label</span><span class="p">)</span>
 
-    <span class="c1"># Get unique IDs, excluding background (assumed to be 0)</span>
-    <span class="n">truth_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">truth_label</span><span class="p">)</span>
-    <span class="n">truth_ids</span> <span class="o">=</span> <span class="n">truth_ids</span><span class="p">[</span><span class="n">truth_ids</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># Match instances between ground truth and prediction</span>
+    <span class="n">mapping</span> <span class="o">=</span> <span class="n">match_instances</span><span class="p">(</span><span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">)</span>
 
-    <span class="n">pred_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">pred_label</span><span class="p">)</span>
-    <span class="n">pred_ids</span> <span class="o">=</span> <span class="n">pred_ids</span><span class="p">[</span><span class="n">pred_ids</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span>
-
-    <span class="c1"># Skip if the submission has way too many instances</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">INSTANCE_RATIO_CUTOFF</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;WARNING: Skipping </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> instances in submission, </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> in ground truth, because there are too many instances in the submission.&quot;</span>
-        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">mapping</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Too many instances in submission, skip scoring</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
             <span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
             <span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
             <span class="s2">&quot;combined_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
         <span class="p">}</span>
-
-    <span class="c1"># Flatten the labels for vectorized computation</span>
-    <span class="n">truth_flat</span> <span class="o">=</span> <span class="n">truth_label</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-    <span class="n">pred_flat</span> <span class="o">=</span> <span class="n">pred_label</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-
-    <span class="n">matched_pred_label</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">pred_label</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-
-        <span class="c1"># Precompute binary masks for all `truth_ids`</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">truth_flat</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">PRECOMPUTE_LIMIT</span><span class="p">:</span>
-            <span class="n">truth_binary_masks</span> <span class="o">=</span> <span class="n">spoof_precomputed</span><span class="p">(</span><span class="n">truth_flat</span><span class="p">,</span> <span class="n">truth_ids</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Precomputing binary masks for all `truth_ids`...&quot;</span><span class="p">)</span>
-            <span class="n">truth_binary_masks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-                <span class="p">[(</span><span class="n">truth_flat</span> <span class="o">==</span> <span class="n">tid</span><span class="p">)</span> <span class="k">for</span> <span class="n">tid</span> <span class="ow">in</span> <span class="n">truth_ids</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span>
-            <span class="p">)</span>
-
-        <span class="k">def</span><span class="w"> </span><span class="nf">get_cost</span><span class="p">(</span><span class="n">j</span><span class="p">):</span>
-            <span class="c1"># Find all `truth_ids` that overlap with this prediction mask</span>
-            <span class="n">pred_mask</span> <span class="o">=</span> <span class="n">pred_flat</span> <span class="o">==</span> <span class="n">pred_ids</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
-            <span class="n">relevant_truth_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">truth_flat</span><span class="p">[</span><span class="n">pred_mask</span><span class="p">])</span>
-            <span class="n">relevant_truth_ids</span> <span class="o">=</span> <span class="n">relevant_truth_ids</span><span class="p">[</span><span class="n">relevant_truth_ids</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span>
-            <span class="n">relevant_truth_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">,</span> <span class="n">relevant_truth_ids</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">relevant_truth_masks</span> <span class="o">=</span> <span class="n">truth_binary_masks</span><span class="p">[</span><span class="n">relevant_truth_indices</span><span class="p">]</span>
-
-            <span class="k">if</span> <span class="n">relevant_truth_indices</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">return</span> <span class="p">[],</span> <span class="n">j</span><span class="p">,</span> <span class="p">[]</span>
-
-            <span class="n">tp</span> <span class="o">=</span> <span class="n">relevant_truth_masks</span><span class="p">[:,</span> <span class="n">pred_mask</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-            <span class="n">fn</span> <span class="o">=</span> <span class="p">(</span><span class="n">relevant_truth_masks</span><span class="p">[:,</span> <span class="n">pred_mask</span> <span class="o">==</span> <span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-            <span class="n">fp</span> <span class="o">=</span> <span class="p">(</span><span class="n">relevant_truth_masks</span><span class="p">[:,</span> <span class="n">pred_mask</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-
-            <span class="c1"># Compute Jaccard scores</span>
-            <span class="n">jaccard_scores</span> <span class="o">=</span> <span class="n">tp</span> <span class="o">/</span> <span class="p">(</span><span class="n">tp</span> <span class="o">+</span> <span class="n">fp</span> <span class="o">+</span> <span class="n">fn</span><span class="p">)</span>
-
-            <span class="c1"># Fill in the cost matrix for this `j` (prediction)</span>
-            <span class="k">return</span> <span class="n">relevant_truth_indices</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">jaccard_scores</span>
-
-        <span class="c1"># Initialize the cost matrix</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Initializing cost matrix of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> x </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> (true x pred)...&quot;</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">mapping</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">mapping</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># background maps to background</span>
+        <span class="c1"># Construct the volume for the matched instances</span>
+        <span class="n">mapping</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># background maps to background</span>
+        <span class="n">pred_label</span> <span class="o">=</span> <span class="n">remap</span><span class="p">(</span>
+            <span class="n">pred_label</span><span class="p">,</span> <span class="n">mapping</span><span class="p">,</span> <span class="n">in_place</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">preserve_missing_labels</span><span class="o">=</span><span class="kc">True</span>
         <span class="p">)</span>
-        <span class="n">cost_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">)))</span>
-
-        <span class="c1"># Compute the cost matrix</span>
-        <span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span>
-            <span class="c1"># Use tqdm for progress tracking</span>
-            <span class="n">bar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span>
-                <span class="nb">range</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">),</span>
-                <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Computing cost matrix&quot;</span><span class="p">,</span>
-                <span class="n">leave</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">),</span>
-            <span class="p">)</span>
-            <span class="c1"># Compute the cost matrix</span>
-            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">bar</span><span class="p">:</span>
-                <span class="n">relevant_truth_indices</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">jaccard_scores</span> <span class="o">=</span> <span class="n">get_cost</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
-                <span class="n">cost_matrix</span><span class="p">[</span><span class="n">relevant_truth_indices</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">jaccard_scores</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">PER_INSTANCE_THREADS</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">relevant_truth_indices</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">jaccard_scores</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
-                    <span class="n">executor</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">get_cost</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">))),</span>
-                    <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Computing cost matrix in parallel&quot;</span><span class="p">,</span>
-                    <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                    <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">pred_ids</span><span class="p">),</span>
-                    <span class="n">leave</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                <span class="p">):</span>
-                    <span class="n">cost_matrix</span><span class="p">[</span><span class="n">relevant_truth_indices</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">jaccard_scores</span>
-
-        <span class="c1"># Match the predicted instances to the ground truth instances</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Calculating linear sum assignment...&quot;</span><span class="p">)</span>
-        <span class="n">row_inds</span><span class="p">,</span> <span class="n">col_inds</span> <span class="o">=</span> <span class="n">linear_sum_assignment</span><span class="p">(</span><span class="n">cost_matrix</span><span class="p">,</span> <span class="n">maximize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-        <span class="c1"># Contruct the volume for the matched instances</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
-            <span class="nb">zip</span><span class="p">(</span><span class="n">col_inds</span><span class="p">,</span> <span class="n">row_inds</span><span class="p">),</span>
-            <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Relabeling matched instances&quot;</span><span class="p">,</span>
-            <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="p">):</span>
-            <span class="k">if</span> <span class="n">pred_ids</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">truth_ids</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="c1"># Don&#39;t score the background</span>
-                <span class="k">continue</span>
-            <span class="n">pred_mask</span> <span class="o">=</span> <span class="n">pred_label</span> <span class="o">==</span> <span class="n">pred_ids</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-            <span class="n">matched_pred_label</span><span class="p">[</span><span class="n">pred_mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">truth_ids</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
 
         <span class="n">hausdorff_distances</span> <span class="o">=</span> <span class="n">optimized_hausdorff_distances</span><span class="p">(</span>
-            <span class="n">truth_label</span><span class="p">,</span> <span class="n">matched_pred_label</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span> <span class="n">hausdorff_distance_max</span>
+            <span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span> <span class="n">hausdorff_distance_max</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># No predictions to match</span>
@@ -613,12 +802,10 @@ document.write(`
 
     <span class="c1"># Compute the scores</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Computing accuracy score...&quot;</span><span class="p">)</span>
-    <span class="n">accuracy</span> <span class="o">=</span> <span class="n">accuracy_score</span><span class="p">(</span><span class="n">truth_flat</span><span class="p">,</span> <span class="n">matched_pred_label</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+    <span class="n">accuracy</span> <span class="o">=</span> <span class="n">accuracy_score</span><span class="p">(</span><span class="n">truth_label</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">pred_label</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
     <span class="n">hausdorff_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">hausdorff_distances</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hausdorff_distances</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
-    <span class="n">normalized_hausdorff_dist</span> <span class="o">=</span> <span class="mf">1.01</span> <span class="o">**</span> <span class="p">(</span>
-        <span class="o">-</span><span class="n">hausdorff_dist</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">)</span>
-    <span class="p">)</span>  <span class="c1"># normalize Hausdorff distance to [0, 1] using the maximum distance represented by a voxel. 32 is arbitrarily chosen to have a reasonable range</span>
-    <span class="n">combined_score</span> <span class="o">=</span> <span class="p">(</span><span class="n">accuracy</span> <span class="o">*</span> <span class="n">normalized_hausdorff_dist</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span>
+    <span class="n">normalized_hausdorff_dist</span> <span class="o">=</span> <span class="n">normalize_distance</span><span class="p">(</span><span class="n">hausdorff_dist</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">)</span>
+    <span class="n">combined_score</span> <span class="o">=</span> <span class="p">(</span><span class="n">accuracy</span> <span class="o">*</span> <span class="n">normalized_hausdorff_dist</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span>  <span class="c1"># geometric mean</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Accuracy: </span><span class="si">{</span><span class="n">accuracy</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hausdorff Distance: </span><span class="si">{</span><span class="n">hausdorff_dist</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Normalized Hausdorff Distance: </span><span class="si">{</span><span class="n">normalized_hausdorff_dist</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -628,7 +815,7 @@ document.write(`
         <span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">:</span> <span class="n">hausdorff_dist</span><span class="p">,</span>
         <span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">:</span> <span class="n">normalized_hausdorff_dist</span><span class="p">,</span>
         <span class="s2">&quot;combined_score&quot;</span><span class="p">:</span> <span class="n">combined_score</span><span class="p">,</span>
-    <span class="p">}</span></div>
+    <span class="p">}</span>  <span class="c1"># type: ignore</span></div>
 
 
 
@@ -652,16 +839,18 @@ document.write(`
     <span class="c1"># Flatten the label volumes and convert to binary</span>
     <span class="n">pred_label</span> <span class="o">=</span> <span class="p">(</span><span class="n">pred_label</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
     <span class="n">truth_label</span> <span class="o">=</span> <span class="p">(</span><span class="n">truth_label</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-    <span class="c1"># Compute the scores</span>
 
+    <span class="c1"># Compute the scores</span>
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">truth_label</span> <span class="o">+</span> <span class="n">pred_label</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="c1"># If there are no true positives, set the scores to 1</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;No true positives found. Setting scores to 1.&quot;</span><span class="p">)</span>
         <span class="n">dice_score</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">iou_score</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">dice_score</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">dice</span><span class="p">(</span><span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">)</span>
+        <span class="n">iou_score</span> <span class="o">=</span> <span class="n">jaccard_score</span><span class="p">(</span><span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">,</span> <span class="n">zero_division</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">scores</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="n">jaccard_score</span><span class="p">(</span><span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">,</span> <span class="n">zero_division</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+        <span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="n">iou_score</span><span class="p">,</span>
         <span class="s2">&quot;dice_score&quot;</span><span class="p">:</span> <span class="n">dice_score</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">dice_score</span><span class="p">)</span> <span class="k">else</span> <span class="mi">1</span><span class="p">,</span>
     <span class="p">}</span>
 
@@ -680,7 +869,7 @@ document.write(`
     <span class="n">crop_name</span><span class="p">,</span>
     <span class="n">truth_path</span><span class="o">=</span><span class="n">TRUTH_PATH</span><span class="p">,</span>
     <span class="n">instance_classes</span><span class="o">=</span><span class="n">INSTANCE_CLASSES</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Score a single label volume against the ground truth label volume.</span>
 
@@ -755,6 +944,7 @@ document.write(`
     <span class="n">label</span><span class="p">,</span> <span class="n">crop_name</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">INSTANCE_CLASSES</span><span class="p">,</span> <span class="n">truth_path</span><span class="o">=</span><span class="n">TRUTH_PATH</span>
 <span class="p">):</span>
     <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
+        <span class="n">truth_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
             <span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
@@ -1000,7 +1190,7 @@ document.write(`
 <a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.score_submission">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">score_submission</span><span class="p">(</span>
     <span class="n">submission_path</span><span class="o">=</span><span class="n">UPath</span><span class="p">(</span><span class="n">SUBMISSION_PATH</span><span class="p">)</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;.zip&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
-    <span class="n">result_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">result_file</span><span class="o">=</span><span class="s2">&quot;results.json&quot;</span><span class="p">,</span>
     <span class="n">truth_path</span><span class="o">=</span><span class="n">TRUTH_PATH</span><span class="p">,</span>
     <span class="n">instance_classes</span><span class="o">=</span><span class="n">INSTANCE_CLASSES</span><span class="p">,</span>
 <span class="p">):</span>
@@ -1009,7 +1199,9 @@ document.write(`
 
 <span class="sd">    Args:</span>
 <span class="sd">        submission_path (str): The path to the zipped submission Zarr-2 file.</span>
-<span class="sd">        result_file (str): The path to save the scores.</span>
+<span class="sd">        result_file (str): The path to save the scores. Default is &#39;results.json&#39;.</span>
+<span class="sd">        truth_path (str): The path to the ground truth Zarr-2 file.</span>
+<span class="sd">        instance_classes (list): A list of instance classes.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        dict: A dictionary of scores for the submission.</span>
@@ -1216,18 +1408,23 @@ document.write(`
     <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">result_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving collected scores to </span><span class="si">{</span><span class="n">result_file</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">result_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">all_scores</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">all_scores</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
 
         <span class="n">found_result_file</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">result_file</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
             <span class="n">UPath</span><span class="p">(</span><span class="n">result_file</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span><span class="p">,</span> <span class="s2">&quot;_submitted_only&quot;</span> <span class="o">+</span> <span class="n">UPath</span><span class="p">(</span><span class="n">result_file</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span>
         <span class="p">)</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">found_result_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">found_scores</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">found_scores</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
 
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;Scores updated in </span><span class="si">{</span><span class="n">result_file</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">found_result_file</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds&quot;</span>
-    <span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Scores updated in </span><span class="si">{</span><span class="n">result_file</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">found_result_file</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds&quot;</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Final combined scores:&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">all_scores</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">all_scores</span><span class="p">,</span> <span class="n">found_scores</span></div>
 
@@ -1286,156 +1483,17 @@ document.write(`
 <div class="viewcode-block" id="match_crop_space">
 <a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.match_crop_space">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">match_crop_space</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">class_label</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">translation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Match the resolution of a zarr array to a target resolution and shape, resampling as necessary with interpolation dependent on the class label. Instance segmentations will be resampled with nearest neighbor interpolation, while semantic segmentations will be resampled with linear interpolation and then thresholded.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        path (str | UPath): The path to the zarr array to be adjusted. The zarr can be an OME-NGFF multiscale zarr file, or a traditional single scale formatted zarr.</span>
-<span class="sd">        class_label (str): The class label of the array.</span>
-<span class="sd">        voxel_size (tuple): The target voxel size.</span>
-<span class="sd">        shape (tuple): The target shape.</span>
-<span class="sd">        translation (tuple): The translation (i.e. offset) of the array in world units.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        np.ndarray: The rescaled array.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">ds</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="s2">&quot;multiscales&quot;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
-        <span class="c1"># Handle multiscale zarr files</span>
-        <span class="n">_image</span> <span class="o">=</span> <span class="n">CellMapImage</span><span class="p">(</span>
-            <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span>
-            <span class="n">target_class</span><span class="o">=</span><span class="n">class_label</span><span class="p">,</span>
-            <span class="n">target_scale</span><span class="o">=</span><span class="n">voxel_size</span><span class="p">,</span>
-            <span class="n">target_voxel_shape</span><span class="o">=</span><span class="n">shape</span><span class="p">,</span>
-            <span class="n">pad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">pad_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">/</span> <span class="n">_image</span><span class="o">.</span><span class="n">scale_level</span>
-        <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;multiscales&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;datasets&quot;</span><span class="p">]:</span>
-            <span class="k">if</span> <span class="n">attr</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">_image</span><span class="o">.</span><span class="n">scale_level</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">transform</span> <span class="ow">in</span> <span class="n">attr</span><span class="p">[</span><span class="s2">&quot;coordinateTransformations&quot;</span><span class="p">]:</span>
-                    <span class="k">if</span> <span class="n">transform</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;translation&quot;</span><span class="p">:</span>
-                        <span class="n">input_translation</span> <span class="o">=</span> <span class="n">transform</span><span class="p">[</span><span class="s2">&quot;translation&quot;</span><span class="p">]</span>
-                    <span class="k">elif</span> <span class="n">transform</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;scale&quot;</span><span class="p">:</span>
-                        <span class="n">input_voxel_size</span> <span class="o">=</span> <span class="n">transform</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">]</span>
-                <span class="k">break</span>
-        <span class="n">ds</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="p">(</span>
-        <span class="p">(</span><span class="s2">&quot;voxel_size&quot;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span>
-        <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;resolution&quot;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span>
-        <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;scale&quot;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span>
-    <span class="p">)</span> <span class="ow">or</span> <span class="p">((</span><span class="s2">&quot;translation&quot;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;offset&quot;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">)):</span>
-        <span class="c1"># Handle single scale zarr files</span>
-        <span class="k">if</span> <span class="s2">&quot;voxel_size&quot;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
-            <span class="n">input_voxel_size</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="s2">&quot;resolution&quot;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
-            <span class="n">input_voxel_size</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;resolution&quot;</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="s2">&quot;scale&quot;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
-            <span class="n">input_voxel_size</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">input_voxel_size</span> <span class="o">=</span> <span class="kc">None</span>
-
-        <span class="k">if</span> <span class="s2">&quot;translation&quot;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
-            <span class="n">input_translation</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;translation&quot;</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="s2">&quot;offset&quot;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
-            <span class="n">input_translation</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;offset&quot;</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">input_translation</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not find voxel size and translation for </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="s2">&quot;Assuming voxel size matches target voxel size and will crop to target shape centering the volume.&quot;</span>
-        <span class="p">)</span>
-        <span class="n">image</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[:]</span>
-        <span class="c1"># Crop the array if necessary</span>
-        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">s1</span> <span class="o">!=</span> <span class="n">s2</span> <span class="k">for</span> <span class="n">s1</span><span class="p">,</span> <span class="n">s2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">shape</span><span class="p">)):</span>
-            <span class="k">return</span> <span class="n">resize_array</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
-        <span class="k">return</span> <span class="n">image</span>  <span class="c1"># type: ignore</span>
-
-    <span class="c1"># Load the array</span>
-    <span class="n">image</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[:]</span>
-
-    <span class="c1"># Rescale the array if necessary</span>
-    <span class="k">if</span> <span class="n">input_voxel_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span>
-        <span class="n">r1</span> <span class="o">!=</span> <span class="n">r2</span> <span class="k">for</span> <span class="n">r1</span><span class="p">,</span> <span class="n">r2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">input_voxel_size</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">)</span>
-    <span class="p">):</span>
-        <span class="k">if</span> <span class="n">class_label</span> <span class="ow">in</span> <span class="n">INSTANCE_CLASSES</span><span class="p">:</span>
-            <span class="n">image</span> <span class="o">=</span> <span class="n">rescale</span><span class="p">(</span>
-                <span class="n">image</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">input_voxel_size</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;constant&quot;</span>
-            <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">image</span> <span class="o">=</span> <span class="n">rescale</span><span class="p">(</span>
-                <span class="n">image</span><span class="p">,</span>
-                <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">input_voxel_size</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">),</span>
-                <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span>
-                <span class="n">preserve_range</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="n">image</span> <span class="o">=</span> <span class="n">image</span> <span class="o">&gt;</span> <span class="mf">0.5</span>
-
-    <span class="k">if</span> <span class="n">input_translation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="c1"># Calculate the relative offset</span>
-        <span class="n">adjusted_input_translation</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">input_translation</span><span class="p">)</span> <span class="o">//</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">)</span>
-        <span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">)</span>
-
-        <span class="c1"># Positive relative offset is the amount to crop from the start, negative is the amount to pad at the start</span>
-        <span class="n">relative_offset</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">adjusted_input_translation</span><span class="p">,</span> <span class="n">translation</span><span class="p">))</span>
-            <span class="o">//</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">)</span>
-            <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">adjusted_input_translation</span><span class="p">,</span> <span class="n">translation</span><span class="p">))</span>
-        <span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="c1"># TODO: Handle the case where the translation is not provided</span>
-        <span class="n">relative_offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">))</span>
-
-    <span class="c1"># Translate and crop the array if necessary</span>
-    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">offset</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">offset</span> <span class="ow">in</span> <span class="n">relative_offset</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span>
-        <span class="n">s1</span> <span class="o">!=</span> <span class="n">s2</span> <span class="k">for</span> <span class="n">s1</span><span class="p">,</span> <span class="n">s2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
-    <span class="p">):</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Translating and cropping </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">shape</span><span class="si">}</span><span class="s2"> with offset </span><span class="si">{</span><span class="n">relative_offset</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="p">)</span>
-        <span class="c1"># Make destination array</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">image</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
-
-        <span class="c1"># Calculate the slices for the source and destination arrays</span>
-        <span class="n">input_slices</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">output_slices</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)):</span>
-            <span class="k">if</span> <span class="n">relative_offset</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="c1"># Crop from the start</span>
-                <span class="n">input_start</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">relative_offset</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-                <span class="n">output_start</span> <span class="o">=</span> <span class="mi">0</span>
-                <span class="n">input_end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">input_start</span> <span class="o">+</span> <span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-                <span class="n">input_length</span> <span class="o">=</span> <span class="n">input_end</span> <span class="o">-</span> <span class="n">input_start</span>
-                <span class="n">output_end</span> <span class="o">=</span> <span class="n">output_start</span> <span class="o">+</span> <span class="n">input_length</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># Pad at the start</span>
-                <span class="n">input_start</span> <span class="o">=</span> <span class="mi">0</span>
-                <span class="n">output_start</span> <span class="o">=</span> <span class="n">relative_offset</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-                <span class="n">output_end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-                <span class="n">input_length</span> <span class="o">=</span> <span class="n">output_end</span> <span class="o">-</span> <span class="n">output_start</span>
-                <span class="n">input_end</span> <span class="o">=</span> <span class="n">input_length</span>
-
-            <span class="k">if</span> <span class="n">input_length</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                    <span class="s2">&quot;WARNING: Cropping to proper offset resulted in empty volume.&quot;</span>
-                <span class="p">)</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Input shape: </span><span class="si">{</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, Output shape: </span><span class="si">{</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Input offset: </span><span class="si">{</span><span class="n">input_start</span><span class="si">}</span><span class="s2">, Output offset: </span><span class="si">{</span><span class="n">output_start</span><span class="si">}</span><span class="s2">&quot;</span>
-                <span class="p">)</span>
-                <span class="k">return</span> <span class="n">result</span>
-
-            <span class="n">input_slices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">input_start</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">input_end</span><span class="p">)))</span>
-            <span class="n">output_slices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">output_start</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">output_end</span><span class="p">)))</span>
-
-        <span class="c1"># Copy the data</span>
-        <span class="n">result</span><span class="p">[</span><span class="o">*</span><span class="n">output_slices</span><span class="p">]</span> <span class="o">=</span> <span class="n">image</span><span class="p">[</span><span class="o">*</span><span class="n">input_slices</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">result</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">image</span></div>
+    <span class="n">mc</span> <span class="o">=</span> <span class="n">MatchedCrop</span><span class="p">(</span>
+        <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span>
+        <span class="n">class_label</span><span class="o">=</span><span class="n">class_label</span><span class="p">,</span>
+        <span class="n">target_voxel_size</span><span class="o">=</span><span class="n">voxel_size</span><span class="p">,</span>
+        <span class="n">target_shape</span><span class="o">=</span><span class="n">shape</span><span class="p">,</span>
+        <span class="n">target_translation</span><span class="o">=</span><span class="n">translation</span><span class="p">,</span>
+        <span class="n">instance_classes</span><span class="o">=</span><span class="n">INSTANCE_CLASSES</span><span class="p">,</span>
+        <span class="n">semantic_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">pad_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">mc</span><span class="o">.</span><span class="n">load_aligned</span><span class="p">()</span></div>
 
 
 
@@ -1451,10 +1509,14 @@ document.write(`
 <span class="sd">    Example usage:</span>
 <span class="sd">        unzip_file(&#39;submission.zip&#39;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unzipping </span><span class="si">{</span><span class="n">zip_path</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
     <span class="n">saved_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">zip_path</span><span class="p">)</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;.zarr&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span>
+    <span class="k">if</span> <span class="n">UPath</span><span class="p">(</span><span class="n">saved_path</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using existing unzipped path at </span><span class="si">{</span><span class="n">saved_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">UPath</span><span class="p">(</span><span class="n">saved_path</span><span class="p">)</span>
     <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">zip_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">zip_ref</span><span class="p">:</span>
         <span class="n">zip_ref</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">saved_path</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unzipped </span><span class="si">{</span><span class="n">zip_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">saved_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unzipped </span><span class="si">{</span><span class="n">zip_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">saved_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">UPath</span><span class="p">(</span><span class="n">saved_path</span><span class="p">)</span></div>
 

@@ -44,6 +44,14 @@ cellmap\_segmentation\_challenge.utils.loss module
    :show-inheritance:
    :undoc-members:
 
+cellmap\_segmentation\_challenge.utils.matched\_crop module
+-----------------------------------------------------------
+
+.. automodule:: cellmap_segmentation_challenge.utils.matched_crop
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 cellmap\_segmentation\_challenge.utils.security module
 ------------------------------------------------------
 

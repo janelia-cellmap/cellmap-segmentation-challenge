@@ -37,8 +37,8 @@
   <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
     <script src="../../../_static/documentation_options.js?v=9eb32ce0"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/cellmap_segmentation_challenge/utils/dataloader';</script>
     <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
@@ -289,7 +289,7 @@ document.write(`
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torchvision.transforms.v2</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">T</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_data</span><span class="w"> </span><span class="kn">import</span> <span class="n">CellMapDataLoader</span><span class="p">,</span> <span class="n">CellMapDataSplit</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_data.transforms.augment</span><span class="w"> </span><span class="kn">import</span> <span class="n">NaNtoNum</span><span class="p">,</span> <span class="n">Normalize</span><span class="p">,</span> <span class="n">Binarize</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_data.transforms.augment</span><span class="w"> </span><span class="kn">import</span> <span class="n">NaNtoNum</span><span class="p">,</span> <span class="n">Binarize</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_segmentation_challenge.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_class_relations</span>
 
 
@@ -308,15 +308,13 @@ document.write(`
     <span class="p">),</span>
     <span class="n">train_raw_value_transforms</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">T</span><span class="o">.</span><span class="n">Transform</span><span class="p">]</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">Compose</span><span class="p">(</span>
         <span class="p">[</span>
-            <span class="n">T</span><span class="o">.</span><span class="n">ToDtype</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">),</span>
-            <span class="n">Normalize</span><span class="p">(),</span>
+            <span class="n">T</span><span class="o">.</span><span class="n">ToDtype</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
             <span class="n">NaNtoNum</span><span class="p">({</span><span class="s2">&quot;nan&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;posinf&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;neginf&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}),</span>
         <span class="p">],</span>
     <span class="p">),</span>
     <span class="n">val_raw_value_transforms</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">T</span><span class="o">.</span><span class="n">Transform</span><span class="p">]</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">Compose</span><span class="p">(</span>
         <span class="p">[</span>
-            <span class="n">T</span><span class="o">.</span><span class="n">ToDtype</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">),</span>
-            <span class="n">Normalize</span><span class="p">(),</span>
+            <span class="n">T</span><span class="o">.</span><span class="n">ToDtype</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
             <span class="n">NaNtoNum</span><span class="p">({</span><span class="s2">&quot;nan&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;posinf&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;neginf&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}),</span>
         <span class="p">],</span>
     <span class="p">),</span>
@@ -370,11 +368,11 @@ document.write(`
 <span class="sd">            # &quot;rotate&quot;: {&quot;axes&quot;: {&quot;x&quot;: [-180, 180], &quot;y&quot;: [-180, 180]}},</span>
 <span class="sd">        }</span>
 <span class="sd">    target_value_transforms : Optional[torchvision.transforms.v2.Transform]</span>
-<span class="sd">        Transform to apply to the target values. Defaults to T.Compose([T.ToDtype(torch.float), Binarize()]) which converts the input masks to float32 and threshold at 0 (turning object ID&#39;s into binary masks for use with binary cross entropy loss).</span>
+<span class="sd">        Transform to apply to the target values. Defaults to T.Compose([T.ToDtype(torch.float, scale=True), Binarize()]) which converts the input masks to float32 and threshold at 0 (turning object ID&#39;s into binary masks for use with binary cross entropy loss).</span>
 <span class="sd">    train_raw_value_transforms : Optional[torchvision.transforms.v2.Transform]</span>
-<span class="sd">        Transform to apply to the raw values for training. Defaults to T.Compose([T.ToDtype(torch.float), Normalize(), NaNtoNum({&quot;nan&quot;: 0, &quot;posinf&quot;: None, &quot;neginf&quot;: None})]) which normalizes the input data, converts it to float32, and replaces NaNs with 0. This can be used to add augmentations such as random erasing, blur, noise, etc.</span>
+<span class="sd">        Transform to apply to the raw values for training. Defaults to T.Compose([T.ToDtype(torch.float, scale=True), NaNtoNum({&quot;nan&quot;: 0, &quot;posinf&quot;: None, &quot;neginf&quot;: None})]) which normalizes the input data, converts it to float32, and replaces NaNs with 0. This can be used to add augmentations such as random erasing, blur, noise, etc.</span>
 <span class="sd">    val_raw_value_transforms : Optional[torchvision.transforms.v2.Transform]</span>
-<span class="sd">        Transform to apply to the raw values for validation. Defaults to T.Compose([T.ToDtype(torch.float), Normalize(), NaNtoNum({&quot;nan&quot;: 0, &quot;posinf&quot;: None, &quot;neginf&quot;: None})]) which normalizes the input data, converts it to float32, and replaces NaNs with 0.</span>
+<span class="sd">        Transform to apply to the raw values for validation. Defaults to T.Compose([T.ToDtype(torch.float, scale=True), NaNtoNum({&quot;nan&quot;: 0, &quot;posinf&quot;: None, &quot;neginf&quot;: None})]) which normalizes the input data, converts it to float32, and replaces NaNs with 0.</span>
 <span class="sd">    iterations_per_epoch : int</span>
 <span class="sd">        Number of iterations per epoch.</span>
 <span class="sd">    random_validation : bool</span>

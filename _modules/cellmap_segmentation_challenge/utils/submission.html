@@ -37,8 +37,8 @@
   <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
     <script src="../../../_static/documentation_options.js?v=9eb32ce0"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/cellmap_segmentation_challenge/utils/submission';</script>
     <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
@@ -474,7 +474,7 @@ document.write(`
     <span class="n">label_array</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;translation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span><span class="o">.</span><span class="n">translation</span>
     <span class="n">label_array</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span><span class="o">.</span><span class="n">shape</span>
 
-    <span class="k">return</span> <span class="n">crop_path</span></div>
+    <span class="k">return</span> <span class="n">crop_path</span><span class="o">.</span><span class="n">path</span></div>
 
 
 
@@ -518,15 +518,23 @@ document.write(`
         <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span>
         <span class="n">input_search_path</span><span class="o">=</span><span class="n">input_search_path</span><span class="p">,</span>
     <span class="p">)</span>
+    <span class="n">successful_crops</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">crop_path</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
         <span class="n">pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">partial_package_crop</span><span class="p">,</span> <span class="n">TEST_CROPS</span><span class="p">),</span>
         <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">TEST_CROPS</span><span class="p">),</span>
         <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Packaging crops...&quot;</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="n">tqdm</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Packaged </span><span class="si">{</span><span class="n">crop_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
+        <span class="k">if</span> <span class="s2">&quot;skipping&quot;</span> <span class="ow">in</span> <span class="n">crop_path</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+            <span class="n">tqdm</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">crop_path</span><span class="si">}</span><span class="s2"> skipped.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tqdm</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Packaged </span><span class="si">{</span><span class="n">crop_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">successful_crops</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Packaged </span><span class="si">{</span><span class="n">successful_crops</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">TEST_CROPS</span><span class="p">)</span><span class="si">}</span><span class="s2"> crops.&quot;</span><span class="p">)</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved submission to </span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">successful_crops</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No crops were packaged; submission zarr is empty.&quot;</span><span class="p">)</span>
 
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Zipping submission...&quot;</span><span class="p">)</span>
     <span class="n">zip_submission</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>

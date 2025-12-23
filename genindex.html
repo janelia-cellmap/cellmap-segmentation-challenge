@@ -37,8 +37,8 @@
   <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
-    <script src="_static/doctools.js?v=9bcbadda"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'genindex';</script>
     <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
@@ -286,8 +286,7 @@ document.write(`
 <h1 id="index">Index</h1>
 
 <div class="genindex-jumpbox">
- <a href="#_"><strong>_</strong></a>
- | <a href="#A"><strong>A</strong></a>
+ <a href="#A"><strong>A</strong></a>
  | <a href="#B"><strong>B</strong></a>
  | <a href="#C"><strong>C</strong></a>
  | <a href="#D"><strong>D</strong></a>
@@ -308,18 +307,6 @@ document.write(`
  | <a href="#Z"><strong>Z</strong></a>
  
 </div>
-<h2 id="_">_</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.spoof_precomputed.__getitem__">__getitem__() (cellmap_segmentation_challenge.evaluate.spoof_precomputed method)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.spoof_precomputed.__len__">__len__() (cellmap_segmentation_challenge.evaluate.spoof_precomputed method)</a>
-</li>
-  </ul></td>
-</tr></table>
-
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -349,6 +336,8 @@ document.write(`
 <h2 id="B">B</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.bbox_for_label_cc3d">bbox_for_label_cc3d() (in module cellmap_segmentation_challenge.evaluate)</a>
+</li>
       <li><a href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Block">Block (class in cellmap_segmentation_challenge.models.vitnet)</a>
 </li>
   </ul></td>
@@ -511,8 +500,6 @@ document.write(`
         <li><a href="cellmap_segmentation_challenge.html#module-cellmap_segmentation_challenge.process">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     cellmap_segmentation_challenge.train
 
@@ -520,6 +507,8 @@ document.write(`
         <li><a href="cellmap_segmentation_challenge.html#module-cellmap_segmentation_challenge.train">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     cellmap_segmentation_challenge.utils
 
@@ -563,6 +552,13 @@ document.write(`
 </li>
       </ul></li>
       <li>
+    cellmap_segmentation_challenge.utils.matched_crop
+
+      <ul>
+        <li><a href="cellmap_segmentation_challenge.utils.html#module-cellmap_segmentation_challenge.utils.matched_crop">module</a>
+</li>
+      </ul></li>
+      <li>
     cellmap_segmentation_challenge.utils.security
 
       <ul>
@@ -601,6 +597,10 @@ document.write(`
       <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.TestCropRow.class_label">class_label (cellmap_segmentation_challenge.utils.crops.TestCropRow attribute)</a>
 
       <ul>
+        <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.matched_crop.MatchedCrop.class_label">(cellmap_segmentation_challenge.utils.matched_crop.MatchedCrop attribute)</a>
+</li>
+        <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.MatchedCrop.class_label">(cellmap_segmentation_challenge.utils.MatchedCrop attribute)</a>
+</li>
         <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.TestCropRow.class_label">(cellmap_segmentation_challenge.utils.TestCropRow attribute)</a>
 </li>
       </ul></li>
@@ -608,7 +608,9 @@ document.write(`
 </li>
       <li><a href="cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.combine_scores">combine_scores() (in module cellmap_segmentation_challenge.evaluate)</a>
 </li>
-      <li><a href="cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.compute_hausdorff_distance">compute_hausdorff_distance() (in module cellmap_segmentation_challenge.evaluate)</a>
+      <li><a href="cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.compute_default_max_distance">compute_default_max_distance() (in module cellmap_segmentation_challenge.evaluate)</a>
+</li>
+      <li><a href="cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.compute_hausdorff_distance_roi">compute_hausdorff_distance_roi() (in module cellmap_segmentation_challenge.evaluate)</a>
 </li>
       <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.security.Config">Config (class in cellmap_segmentation_challenge.utils.security)</a>
 </li>
@@ -905,17 +907,31 @@ document.write(`
 </li>
       </ul></li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.matched_crop.MatchedCrop.instance_classes">instance_classes (cellmap_segmentation_challenge.utils.matched_crop.MatchedCrop attribute)</a>
+
+      <ul>
+        <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.MatchedCrop.instance_classes">(cellmap_segmentation_challenge.utils.MatchedCrop attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
 </tr></table>
 
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.model_load.load_best_val">load_best_val() (in module cellmap_segmentation_challenge.models.model_load)</a>
+      <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.matched_crop.MatchedCrop.load_aligned">load_aligned() (cellmap_segmentation_challenge.utils.matched_crop.MatchedCrop method)</a>
+
+      <ul>
+        <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.MatchedCrop.load_aligned">(cellmap_segmentation_challenge.utils.MatchedCrop method)</a>
 </li>
-      <li><a href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.model_load.load_latest">load_latest() (in module cellmap_segmentation_challenge.models.model_load)</a>
+      </ul></li>
+      <li><a href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.model_load.load_best_val">load_best_val() (in module cellmap_segmentation_challenge.models.model_load)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.model_load.load_latest">load_latest() (in module cellmap_segmentation_challenge.models.model_load)</a>
+</li>
       <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.load_safe_config">load_safe_config() (in module cellmap_segmentation_challenge.utils)</a>
 
       <ul>
@@ -944,6 +960,14 @@ document.write(`
 
       <ul>
         <li><a href="cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.match_crop_space">(in module cellmap_segmentation_challenge.evaluate)</a>
+</li>
+      </ul></li>
+      <li><a href="cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.match_instances">match_instances() (in module cellmap_segmentation_challenge.evaluate)</a>
+</li>
+      <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.MatchedCrop">MatchedCrop (class in cellmap_segmentation_challenge.utils)</a>
+
+      <ul>
+        <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.matched_crop.MatchedCrop">(class in cellmap_segmentation_challenge.utils.matched_crop)</a>
 </li>
       </ul></li>
       <li><a href="cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.missing_volume_score">missing_volume_score() (in module cellmap_segmentation_challenge.evaluate)</a>
@@ -1008,6 +1032,8 @@ document.write(`
 </li>
         <li><a href="cellmap_segmentation_challenge.utils.html#module-cellmap_segmentation_challenge.utils.loss">cellmap_segmentation_challenge.utils.loss</a>
 </li>
+        <li><a href="cellmap_segmentation_challenge.utils.html#module-cellmap_segmentation_challenge.utils.matched_crop">cellmap_segmentation_challenge.utils.matched_crop</a>
+</li>
         <li><a href="cellmap_segmentation_challenge.utils.html#module-cellmap_segmentation_challenge.utils.security">cellmap_segmentation_challenge.utils.security</a>
 </li>
         <li><a href="cellmap_segmentation_challenge.utils.html#module-cellmap_segmentation_challenge.utils.submission">cellmap_segmentation_challenge.utils.submission</a>
@@ -1029,6 +1055,8 @@ document.write(`
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.normalize_distance">normalize_distance() (in module cellmap_segmentation_challenge.evaluate)</a>
+</li>
       <li><a href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.np2th">np2th() (in module cellmap_segmentation_challenge.models.vitnet)</a>
 </li>
       <li><a href="cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.num_evals_done">num_evals_done() (in module cellmap_segmentation_challenge.evaluate)</a>
@@ -1063,6 +1091,12 @@ document.write(`
         <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.submission.package_submission">(in module cellmap_segmentation_challenge.utils.submission)</a>
 </li>
       </ul></li>
+      <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.matched_crop.MatchedCrop.pad_value">pad_value (cellmap_segmentation_challenge.utils.matched_crop.MatchedCrop attribute)</a>
+
+      <ul>
+        <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.MatchedCrop.pad_value">(cellmap_segmentation_challenge.utils.MatchedCrop attribute)</a>
+</li>
+      </ul></li>
       <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.ZipDatasetRow.padding">padding (cellmap_segmentation_challenge.utils.crops.ZipDatasetRow attribute)</a>
 </li>
       <li><a href="cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.visualize.parse_multiscale_metadata">parse_multiscale_metadata() (in module cellmap_segmentation_challenge.visualize)</a>
@@ -1073,6 +1107,12 @@ document.write(`
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.matched_crop.MatchedCrop.path">path (cellmap_segmentation_challenge.utils.matched_crop.MatchedCrop attribute)</a>
+
+      <ul>
+        <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.MatchedCrop.path">(cellmap_segmentation_challenge.utils.MatchedCrop attribute)</a>
+</li>
+      </ul></li>
       <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.perturb_instance_mask">perturb_instance_mask() (in module cellmap_segmentation_challenge.utils)</a>
 
       <ul>
@@ -1107,10 +1147,10 @@ document.write(`
 </li>
       <li><a href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.ResNet">ResNet (class in cellmap_segmentation_challenge.models.resnet)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.Resnet2D">Resnet2D (class in cellmap_segmentation_challenge.models.resnet)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.Resnet3D">Resnet3D (class in cellmap_segmentation_challenge.models.resnet)</a>
 </li>
       <li><a href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.ResnetBlock2D">ResnetBlock2D (class in cellmap_segmentation_challenge.models.resnet)</a>
@@ -1118,6 +1158,8 @@ document.write(`
       <li><a href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.resnet.ResnetBlock3D">ResnetBlock3D (class in cellmap_segmentation_challenge.models.resnet)</a>
 </li>
       <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.fetch_data.resolve_em_url">resolve_em_url() (in module cellmap_segmentation_challenge.utils.fetch_data)</a>
+</li>
+      <li><a href="cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.roi_slices_for_pair">roi_slices_for_pair() (in module cellmap_segmentation_challenge.evaluate)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -1149,10 +1191,16 @@ document.write(`
         <li><a href="cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.score_submission">(in module cellmap_segmentation_challenge.evaluate)</a>
 </li>
       </ul></li>
-      <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.security.Config.serialize">serialize() (cellmap_segmentation_challenge.utils.security.Config method)</a>
+      <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.matched_crop.MatchedCrop.semantic_threshold">semantic_threshold (cellmap_segmentation_challenge.utils.matched_crop.MatchedCrop attribute)</a>
+
+      <ul>
+        <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.MatchedCrop.semantic_threshold">(cellmap_segmentation_challenge.utils.MatchedCrop attribute)</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.security.Config.serialize">serialize() (cellmap_segmentation_challenge.utils.security.Config method)</a>
+</li>
       <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.TestCropRow.shape">shape (cellmap_segmentation_challenge.utils.crops.TestCropRow attribute)</a>
 
       <ul>
@@ -1177,8 +1225,6 @@ document.write(`
         <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.utils.simulate_predictions_iou_binary">(in module cellmap_segmentation_challenge.utils.utils)</a>
 </li>
       </ul></li>
-      <li><a href="cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.spoof_precomputed">spoof_precomputed (class in cellmap_segmentation_challenge.evaluate)</a>
-</li>
       <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.fetch_data.subset_to_slice">subset_to_slice() (in module cellmap_segmentation_challenge.utils.fetch_data)</a>
 </li>
       <li><a href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.swish">swish() (in module cellmap_segmentation_challenge.models.vitnet)</a>
@@ -1189,12 +1235,32 @@ document.write(`
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.matched_crop.MatchedCrop.target_shape">target_shape (cellmap_segmentation_challenge.utils.matched_crop.MatchedCrop attribute)</a>
+
+      <ul>
+        <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.MatchedCrop.target_shape">(cellmap_segmentation_challenge.utils.MatchedCrop attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.matched_crop.MatchedCrop.target_translation">target_translation (cellmap_segmentation_challenge.utils.matched_crop.MatchedCrop attribute)</a>
+
+      <ul>
+        <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.MatchedCrop.target_translation">(cellmap_segmentation_challenge.utils.MatchedCrop attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.matched_crop.MatchedCrop.target_voxel_size">target_voxel_size (cellmap_segmentation_challenge.utils.matched_crop.MatchedCrop attribute)</a>
+
+      <ul>
+        <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.MatchedCrop.target_voxel_size">(cellmap_segmentation_challenge.utils.MatchedCrop attribute)</a>
+</li>
+      </ul></li>
       <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.TestCropRow">TestCropRow (class in cellmap_segmentation_challenge.utils)</a>
 
       <ul>
         <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.TestCropRow">(class in cellmap_segmentation_challenge.utils.crops)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.security.Config.to_dict">to_dict() (cellmap_segmentation_challenge.utils.security.Config method)</a>
 </li>
       <li><a href="cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.train">train() (in module cellmap_segmentation_challenge)</a>
@@ -1203,8 +1269,6 @@ document.write(`
         <li><a href="cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.train.train">(in module cellmap_segmentation_challenge.train)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="cellmap_segmentation_challenge.models.html#cellmap_segmentation_challenge.models.vitnet.Transformer">Transformer (class in cellmap_segmentation_challenge.models.vitnet)</a>
 </li>
       <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.TestCropRow.translation">translation (cellmap_segmentation_challenge.utils.crops.TestCropRow attribute)</a>
@@ -1263,8 +1327,12 @@ document.write(`
 <h2 id="Z">Z</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.submission.zip_submission">zip_submission() (in module cellmap_segmentation_challenge.utils.submission)</a>
+      <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.zip_submission">zip_submission() (in module cellmap_segmentation_challenge.utils)</a>
+
+      <ul>
+        <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.submission.zip_submission">(in module cellmap_segmentation_challenge.utils.submission)</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.ZipDatasetRow">ZipDatasetRow (class in cellmap_segmentation_challenge.utils.crops)</a>

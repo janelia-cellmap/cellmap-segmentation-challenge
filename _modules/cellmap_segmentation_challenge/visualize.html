@@ -37,8 +37,8 @@
   <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
     <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
-    <script src="../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/cellmap_segmentation_challenge/visualize';</script>
     <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
@@ -295,22 +295,9 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_flow.utils.scale_pyramid</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScalePyramid</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_flow.utils.ds</span><span class="w"> </span><span class="kn">import</span> <span class="n">open_ds_tensorstore</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">CROP_NAME</span><span class="p">,</span>
-    <span class="n">PREDICTIONS_PATH</span><span class="p">,</span>
-    <span class="n">PROCESSED_PATH</span><span class="p">,</span>
-    <span class="n">SEARCH_PATH</span><span class="p">,</span>
-    <span class="n">SUBMISSION_PATH</span><span class="p">,</span>
-<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">SEARCH_PATH</span><span class="p">,</span> <span class="n">VIS_SEARCH_PATHS</span> <span class="k">as</span> <span class="n">SEARCH_PATHS</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">TEST_CROPS</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.utils.datasplit</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_dataset_name</span><span class="p">,</span> <span class="n">get_formatted_fields</span><span class="p">,</span> <span class="n">get_raw_path</span>
-
-<span class="n">SEARCH_PATHS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;gt&quot;</span><span class="p">:</span> <span class="n">SEARCH_PATH</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{dataset}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">CROP_NAME</span><span class="p">),</span>
-    <span class="s2">&quot;predictions&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">PREDICTIONS_PATH</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;</span><span class="si">{label}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
-    <span class="s2">&quot;processed&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">PROCESSED_PATH</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;</span><span class="si">{label}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
-    <span class="c1"># &quot;submission&quot;: (UPath(SUBMISSION_PATH) / &quot;{crop}&quot; / &quot;{label}&quot;).path,</span>
-<span class="p">}</span>
 
 
 <div class="viewcode-block" id="visualize">
