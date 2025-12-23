@@ -286,6 +286,7 @@ document.write(`
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">zipfile</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">concurrent.futures</span>
@@ -316,9 +317,9 @@ document.write(`
 
 <span class="n">CAST_TO_NONE</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span>
 
-<span class="n">MAX_INSTANCE_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_INSTANCE_THREADS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-<span class="n">MAX_SEMANTIC_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_SEMANTIC_THREADS&quot;</span><span class="p">,</span> <span class="mi">20</span><span class="p">))</span>
-<span class="n">PER_INSTANCE_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;PER_INSTANCE_THREADS&quot;</span><span class="p">,</span> <span class="mi">16</span><span class="p">))</span>
+<span class="n">MAX_INSTANCE_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_INSTANCE_THREADS&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="n">MAX_SEMANTIC_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_SEMANTIC_THREADS&quot;</span><span class="p">,</span> <span class="mi">50</span><span class="p">))</span>
+<span class="n">PER_INSTANCE_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;PER_INSTANCE_THREADS&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
 <span class="n">MAX_DISTANCE_CAP_EPS</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_DISTANCE_CAP_EPS&quot;</span><span class="p">,</span> <span class="s2">&quot;1e-4&quot;</span><span class="p">))</span>
 <span class="n">INSTANCE_RATIO_CUTOFF</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;INSTANCE_RATIO_CUTOFF&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
 <span class="n">MAX_OVERLAP_EDGES</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_OVERLAP_EDGES&quot;</span><span class="p">,</span> <span class="s2">&quot;5000000&quot;</span><span class="p">))</span>
@@ -1190,7 +1191,7 @@ document.write(`
 <a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.score_submission">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">score_submission</span><span class="p">(</span>
     <span class="n">submission_path</span><span class="o">=</span><span class="n">UPath</span><span class="p">(</span><span class="n">SUBMISSION_PATH</span><span class="p">)</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;.zip&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
-    <span class="n">result_file</span><span class="o">=</span><span class="s2">&quot;results.json&quot;</span><span class="p">,</span>
+    <span class="n">result_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">truth_path</span><span class="o">=</span><span class="n">TRUTH_PATH</span><span class="p">,</span>
     <span class="n">instance_classes</span><span class="o">=</span><span class="n">INSTANCE_CLASSES</span><span class="p">,</span>
 <span class="p">):</span>
@@ -1322,7 +1323,9 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">all_scores</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Scoring volumes in parallel...&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Scoring volumes in parallel, using </span><span class="si">{</span><span class="n">MAX_INSTANCE_THREADS</span><span class="si">}</span><span class="s2"> instance threads and </span><span class="si">{</span><span class="n">MAX_SEMANTIC_THREADS</span><span class="si">}</span><span class="s2"> semantic threads...&quot;</span>
+        <span class="p">)</span>
         <span class="n">instance_pool</span> <span class="o">=</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">MAX_INSTANCE_THREADS</span><span class="p">)</span>
         <span class="n">semantic_pool</span> <span class="o">=</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">MAX_SEMANTIC_THREADS</span><span class="p">)</span>
         <span class="n">futures</span> <span class="o">=</span> <span class="p">[]</span>
