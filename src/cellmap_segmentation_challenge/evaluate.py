@@ -1038,6 +1038,8 @@ def score_submission(
     logging.info(f"Submission scored in {time() - start_time:.2f} seconds")
 
     if result_file is None:
+        logging.info("Final combined scores:")
+        logging.info(all_scores)
         return all_scores
 
 
@@ -1047,6 +1049,29 @@ def num_evals_done(all_scores):
         if "crop" in volume:
             num_evals_done += len(scores.keys())
     return num_evals_done
+
+
+def sanitize_scores(scores):
+    """
+    Sanitize scores by converting NaN values to None.
+
+    Args:
+        scores (dict): A dictionary of scores.
+
+    Returns:
+        dict: A sanitized dictionary of scores.
+    """
+    for volume, volume_scores in scores.items():
+        if isinstance(volume_scores, dict):
+            for label, label_scores in volume_scores.items():
+                if isinstance(label_scores, dict):
+                    for key, value in label_scores.items():
+                        if isinstance(value, float):
+                            if np.isnan(value):
+                                scores[volume][label][key] = None
+                            if np.isinf(value):
+                                scores[volume][label][key] = "inf"
+    return scores
 
 
 def update_scores(scores, results, result_file, instance_classes=INSTANCE_CLASSES):
@@ -1079,13 +1104,13 @@ def update_scores(scores, results, result_file, instance_classes=INSTANCE_CLASSE
         logging.info(f"Saving collected scores to {result_file}...")
 
         with open(result_file, "w") as f:
-            json.dump(all_scores, f, indent=4, default=float)
+            json.dump(sanitize_scores(all_scores), f, indent=4)
 
         found_result_file = str(result_file).replace(
             UPath(result_file).suffix, "_submitted_only" + UPath(result_file).suffix
         )
         with open(found_result_file, "w") as f:
-            json.dump(found_scores, f, indent=4, default=float)
+            json.dump(sanitize_scores(found_scores), f, indent=4)
 
         logging.info(
             f"Scores updated in {result_file} and {found_result_file} in {time() - start_time:.2f} seconds"
