@@ -860,7 +860,7 @@ def combine_scores(
 
 def score_submission(
     submission_path=UPath(SUBMISSION_PATH).with_suffix(".zip").path,
-    result_file=None,
+    result_file="results.json",
     truth_path=TRUTH_PATH,
     instance_classes=INSTANCE_CLASSES,
 ):
@@ -869,7 +869,9 @@ def score_submission(
 
     Args:
         submission_path (str): The path to the zipped submission Zarr-2 file.
-        result_file (str): The path to save the scores.
+        result_file (str): The path to save the scores. Default is 'results.json'.
+        truth_path (str): The path to the ground truth Zarr-2 file.
+        instance_classes (list): A list of instance classes.
 
     Returns:
         dict: A dictionary of scores for the submission.
@@ -1084,6 +1086,8 @@ def update_scores(scores, results, result_file, instance_classes=INSTANCE_CLASSE
         logging.info(
             f"Scores updated in {result_file} and {found_result_file} in {time() - start_time:.2f} seconds"
         )
+    else:
+        print(all_scores)
 
     return all_scores, found_scores
 
