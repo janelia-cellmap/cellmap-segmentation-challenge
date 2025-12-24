@@ -32,13 +32,12 @@ logging.basicConfig(
 
 CAST_TO_NONE = [np.nan, np.inf, -np.inf]
 
-MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 5))
+MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 3))
 MAX_SEMANTIC_THREADS = int(os.getenv("MAX_SEMANTIC_THREADS", 50))
-PER_INSTANCE_THREADS = int(os.getenv("PER_INSTANCE_THREADS", 10))
+PER_INSTANCE_THREADS = int(os.getenv("PER_INSTANCE_THREADS", 50))
 MAX_DISTANCE_CAP_EPS = float(os.getenv("MAX_DISTANCE_CAP_EPS", "1e-4"))
 INSTANCE_RATIO_CUTOFF = float(os.getenv("INSTANCE_RATIO_CUTOFF", 10))
 MAX_OVERLAP_EDGES = int(os.getenv("MAX_OVERLAP_EDGES", "5000000"))
-DEBUG = os.getenv("DEBUG", "False").lower() != "false"
 
 
 def normalize_distance(distance: float, voxel_size) -> float:
@@ -268,25 +267,14 @@ def optimized_hausdorff_distances(
 
     dists = np.empty((true_num,), dtype=np.float32)
 
-    if DEBUG:
-        for i in tqdm(
-            range(true_num),
+    with ThreadPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
+        for idx, h in tqdm(
+            executor.map(get_distance, range(true_num)),
             desc="Computing Hausdorff distances",
-            leave=True,
-            dynamic_ncols=True,
             total=true_num,
+            dynamic_ncols=True,
         ):
-            idx, h = get_distance(i)
             dists[idx] = h
-    else:
-        with ThreadPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
-            for idx, h in tqdm(
-                executor.map(get_distance, range(true_num)),
-                desc="Computing Hausdorff distances",
-                total=true_num,
-                dynamic_ncols=True,
-            ):
-                dists[idx] = h
 
     return dists
 
@@ -820,10 +808,9 @@ def combine_scores(
             for key in label_scores[label].keys():
                 if this_score[key] is None:
                     continue
+                label_scores[label][key] += this_score[key] * this_score["num_voxels"]
                 if this_score[key] in cast_to_none:
                     scores[ds][label][key] = None
-                    continue
-                label_scores[label][key] += this_score[key] * this_score["num_voxels"]
             total_voxels[label] += this_score["num_voxels"]
 
     # Normalize back to the total number of voxels
@@ -851,8 +838,12 @@ def combine_scores(
             overall_instance_scores += [label_scores[label]["combined_score"]]
         else:
             overall_semantic_scores += [label_scores[label]["iou"]]
-    scores["overall_instance_score"] = np.nanmean(overall_instance_scores)
-    scores["overall_semantic_score"] = np.nanmean(overall_semantic_scores)
+    scores["overall_instance_score"] = (
+        np.nanmean(overall_instance_scores) if overall_instance_scores else 0
+    )
+    scores["overall_semantic_score"] = (
+        np.nanmean(overall_semantic_scores) if overall_semantic_scores else 0
+    )
     scores["overall_score"] = (
         scores["overall_instance_score"] * scores["overall_semantic_score"]
     ) ** 0.5  # geometric mean
@@ -957,66 +948,29 @@ def score_submission(
     )
 
     # Score each volume
-    if DEBUG:
-        logging.info("Scoring volumes in serial for debugging...")
-        results = [score_label(*args) for args in evaluation_args]
-        # Combine the results into a dictionary
-        for crop_name, label_name, result in results:
-            if crop_name not in scores:
-                scores[crop_name] = {}
-            scores[crop_name][label_name] = result
-
-        # Combine label scores across volumes, normalizing by the number of voxels
-        all_scores = combine_scores(
-            scores, include_missing=True, instance_classes=instance_classes
-        )
-        found_scores = combine_scores(
-            scores, include_missing=False, instance_classes=instance_classes
-        )
-
-        # Save the scores
-        if result_file:
-            logging.info(f"Saving collected scores to {result_file}...")
-            with open(result_file, "w") as f:
-                json.dump(all_scores, f, indent=4)
-
-            found_result_file = str(result_file).replace(
-                UPath(result_file).suffix, "_submitted_only" + UPath(result_file).suffix
-            )
-            logging.info(
-                f"Saving scores for only submitted data to {found_result_file}..."
-            )
-            with open(found_result_file, "w") as f:
-                json.dump(found_scores, f, indent=4)
-            logging.info(
-                f"Scores saved to {result_file} and {found_result_file} in {time() - start_time:.2f} seconds"
-            )
+    logging.info(
+        f"Scoring volumes in parallel, using {MAX_INSTANCE_THREADS} instance threads and {MAX_SEMANTIC_THREADS} semantic threads..."
+    )
+    instance_pool = ProcessPoolExecutor(MAX_INSTANCE_THREADS)
+    semantic_pool = ProcessPoolExecutor(MAX_SEMANTIC_THREADS)
+    futures = []
+    for args in evaluation_args:
+        if args[1] in instance_classes:
+            futures.append(instance_pool.submit(score_label, *args))
         else:
-            return all_scores
-    else:
-        logging.info(
-            f"Scoring volumes in parallel, using {MAX_INSTANCE_THREADS} instance threads and {MAX_SEMANTIC_THREADS} semantic threads..."
+            futures.append(semantic_pool.submit(score_label, *args))
+    results = []
+    for future in tqdm(
+        as_completed(futures),
+        desc="Scoring volumes",
+        total=len(futures),
+        dynamic_ncols=True,
+        leave=True,
+    ):
+        results.append(future.result())
+        all_scores, found_scores = update_scores(
+            scores, results, result_file, instance_classes=instance_classes
         )
-        instance_pool = ProcessPoolExecutor(MAX_INSTANCE_THREADS)
-        semantic_pool = ProcessPoolExecutor(MAX_SEMANTIC_THREADS)
-        futures = []
-        for args in evaluation_args:
-            if args[1] in instance_classes:
-                futures.append(instance_pool.submit(score_label, *args))
-            else:
-                futures.append(semantic_pool.submit(score_label, *args))
-        results = []
-        for future in tqdm(
-            as_completed(futures),
-            desc="Scoring volumes",
-            total=len(futures),
-            dynamic_ncols=True,
-            leave=True,
-        ):
-            results.append(future.result())
-            all_scores, found_scores = update_scores(
-                scores, results, result_file, instance_classes=instance_classes
-            )
 
     logging.info("Scores combined across all test volumes:")
     logging.info(
@@ -1066,14 +1020,23 @@ def sanitize_scores(scores):
             for label, label_scores in volume_scores.items():
                 if isinstance(label_scores, dict):
                     for key, value in label_scores.items():
-                        if np.isnan(value):
-                            scores[volume][label][key] = None
-                        elif np.isinf(value):
-                            scores[volume][label][key] = "inf"
-                        elif np.isneginf(value):
-                            scores[volume][label][key] = "-inf"
-                        elif isinstance(value, np.floating):
-                            scores[volume][label][key] = float(value)
+                        if not np.isscalar(value) and len(value) == 1:
+                            value = value[0]
+                        if np.isscalar(value):
+                            if np.isnan(value) or np.isinf(value) or np.isneginf(value):
+                                scores[volume][label][key] = None
+                            elif isinstance(value, np.floating):
+                                scores[volume][label][key] = float(value)
+                        else:
+                            if any(
+                                [
+                                    np.isnan(v) or np.isinf(v) or np.isneginf(v)
+                                    for v in value
+                                ]
+                            ):
+                                scores[volume][label][key] = None
+                            elif any([isinstance(v, np.floating) for v in value]):
+                                scores[volume][label][key] = [float(v) for v in value]
     return scores
 
 

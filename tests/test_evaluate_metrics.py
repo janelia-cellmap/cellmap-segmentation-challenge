@@ -618,16 +618,13 @@ def test_score_label_instance_integration(monkeypatch, tmp_path):
     assert results["is_missing"] is False
 
 
-def test_score_submission_debug_serial(monkeypatch, tmp_path):
+def test_score_submission(monkeypatch, tmp_path):
     """
     End-to-end-ish test:
       - create a truth volume with a single crop and label
       - create matching prediction volume
       - zip it
-      - run score_submission in DEBUG mode (serial scoring)
     """
-    # ensure DEBUG=True so score_submission uses serial path
-    monkeypatch.setattr(ev, "DEBUG", True)
 
     # Create truth.zarr/crop1/instance
     truth_root = tmp_path / "truth.zarr"
@@ -670,3 +667,51 @@ def test_score_submission_debug_serial(monkeypatch, tmp_path):
     # just ensure label_scores present and correct.
     assert "label_scores" in scores
     assert np.isclose(scores["label_scores"][label_name]["accuracy"], 1.0)
+
+
+def test_score_submission_json_output(monkeypatch, tmp_path):
+    """
+    Test that score_submission results can be written to a JSON file and read back successfully.
+    """
+    import json
+
+    # Create truth.zarr/crop1/instance
+    truth_root = tmp_path / "truth.zarr"
+    crop_name = "crop1"
+    label_name = "instance"
+    arr = np.array([[[0, 1], [1, 0]], [[0, 1], [1, 0]]], dtype=np.uint8)
+    _create_simple_volume(truth_root, crop_name, label_name, arr)
+
+    # Create submission zarr directory structure: submission_root/crop1/instance
+    submission_root = tmp_path / "submission.zarr"
+    _create_simple_volume(submission_root, crop_name, label_name, arr)
+
+    # Patch TEST_CROPS_DICT
+    dummy_crop = DummyCrop(
+        voxel_size=(1.0, 1.0, 1.0), shape=arr.shape, translation=(0.0, 0.0, 0.0)
+    )
+    monkeypatch.setattr(
+        ev,
+        "TEST_CROPS_DICT",
+        {(1, label_name): dummy_crop},
+        raising=False,
+    )
+
+    # Zip the submission_root contents
+    zip_path = zip_submission(submission_root)
+
+    # Write results to a file
+    result_file = tmp_path / "results.json"
+    ev.score_submission(
+        submission_path=zip_path.as_posix(),
+        result_file=result_file.as_posix(),
+        truth_path=truth_root.as_posix(),
+        instance_classes=[label_name],
+    )
+
+    # Check that the file exists and contains valid JSON
+    assert result_file.exists()
+    with open(result_file, "r") as f:
+        loaded = json.load(f)
+    assert isinstance(loaded, dict)
+    assert "label_scores" in loaded
