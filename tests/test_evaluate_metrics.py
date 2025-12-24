@@ -266,6 +266,7 @@ def test_roi_hausdorff_anisotropic_voxel_size_matches_reference():
     assert np.isclose(d_roi, 1.0, atol=1e-6)
 
 
+@pytest.mark.usefixtures("monkeypatch")
 def test_roi_none_returns_max_distance(monkeypatch):
     """
     Forces roi_slices_for_pair to return None to exercise that branch.
@@ -572,6 +573,7 @@ def test_combine_scores_instance_and_semantic():
 # ------------------------
 
 
+@pytest.mark.usefixtures("monkeypatch")
 def test_score_label_instance_integration(monkeypatch, tmp_path):
     """
     Small integration test: zarr truth + pred, dummy TEST_CROPS_DICT entry,
@@ -582,16 +584,16 @@ def test_score_label_instance_integration(monkeypatch, tmp_path):
     label_name = "instance"
     truth_root = tmp_path / "truth.zarr"
 
-    arr3d = np.array([[[0, 1], [1, 0]], [[0, 1], [1, 0]]], dtype=np.uint8)
-    _create_simple_volume(truth_root, crop_name, label_name, arr3d)
+    arr = np.array([[[0, 1], [1, 0]], [[0, 1], [1, 0]]], dtype=np.uint8)
+    _create_simple_volume(truth_root, crop_name, label_name, arr)
 
     # matching pred volume with same data
     pred_root = tmp_path / "pred.zarr"
-    _create_simple_volume(pred_root, crop_name, label_name, arr3d)
+    _create_simple_volume(pred_root, crop_name, label_name, arr)
 
     # monkeypatch TEST_CROPS_DICT for this one crop/label
     dummy_crop = DummyCrop(
-        voxel_size=(1.0, 1.0, 1.0), shape=arr3d.shape, translation=(0.0, 0.0, 0.0)
+        voxel_size=(1.0, 1.0, 1.0), shape=arr.shape, translation=(0.0, 0.0, 0.0)
     )
     monkeypatch.setattr(
         ev,
@@ -618,6 +620,7 @@ def test_score_label_instance_integration(monkeypatch, tmp_path):
     assert results["is_missing"] is False
 
 
+@pytest.mark.usefixtures("monkeypatch")
 def test_score_submission(monkeypatch, tmp_path):
     """
     End-to-end-ish test:
@@ -649,6 +652,11 @@ def test_score_submission(monkeypatch, tmp_path):
         raising=False,
     )
 
+    assert (
+        1,
+        label_name,
+    ) in ev.TEST_CROPS_DICT, f"Key (1, {label_name}) is missing in TEST_CROPS_DICT"
+
     # Zip the submission_root contents so that unzip_file will create
     # a directory with crop1 directly inside.
     zip_path = zip_submission(submission_root)
@@ -669,6 +677,7 @@ def test_score_submission(monkeypatch, tmp_path):
     assert np.isclose(scores["label_scores"][label_name]["accuracy"], 1.0)
 
 
+@pytest.mark.usefixtures("monkeypatch")
 def test_score_submission_json_output(monkeypatch, tmp_path):
     """
     Test that score_submission results can be written to a JSON file and read back successfully.
@@ -696,6 +705,11 @@ def test_score_submission_json_output(monkeypatch, tmp_path):
         {(1, label_name): dummy_crop},
         raising=False,
     )
+
+    assert (
+        1,
+        label_name,
+    ) in ev.TEST_CROPS_DICT, f"Key (1, {label_name}) is missing in TEST_CROPS_DICT"
 
     # Zip the submission_root contents
     zip_path = zip_submission(submission_root)
