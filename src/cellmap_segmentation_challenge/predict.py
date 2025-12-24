@@ -212,14 +212,25 @@ def predict(
     ):
         # If the model is a 2D model, compute the average of predictions from x, y, and z orthogonal planes
         predict_func = predict_orthoplanes
+    elif is_array_2D(input_array_info, summary=any) or is_array_2D(
+        target_array_info, summary=any
+    ):
+        if is_array_2D(input_array_info, summary=any):
+            permute_singleton_dimension(input_array_info, axis=0)
+        if is_array_2D(target_array_info, summary=any):
+            permute_singleton_dimension(target_array_info, axis=0)
+        print(
+            "Warning: Model appears to be 2D, but do_orthoplanes is set to False. Predictions will be made only on z slices."
+        )
+        predict_func = _predict
     else:
         predict_func = _predict
 
+    assert (
+        input_array_info is not None and target_array_info is not None
+    ), "No array info provided"
     input_arrays = {"input": input_array_info}
     target_arrays = {"output": target_array_info}
-    assert (
-        input_arrays is not None and target_arrays is not None
-    ), "No array info provided"
 
     # Get the crops to predict on
     if crops == "test":

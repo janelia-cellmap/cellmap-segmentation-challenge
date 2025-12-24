@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
     "--instance_classes",
     "-ic",
     type=click.STRING,
-    default=INSTANCE_CLASSES,
+    default=None,
     help=f"A comma-separated list of class names that should be evaluated as instances. Defaults to {INSTANCE_CLASSES}",
 )
 def evaluate_cli(submission_path, result_file, truth_path, instance_classes):

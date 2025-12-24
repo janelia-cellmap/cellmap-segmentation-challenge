@@ -798,13 +798,12 @@ def combine_scores(
     logging.info(f"Combining label scores...")
     scores = scores.copy()
     label_scores = {}
-    total_volumes = {}
+    total_voxels = {}
     for ds, these_scores in scores.items():
         for label, this_score in these_scores.items():
             # logging.info(this_score)
             if this_score["is_missing"] and not include_missing:
                 continue
-            total_volume = np.prod(this_score["voxel_size"]) * this_score["num_voxels"]
             if label in instance_classes:
                 if label not in label_scores:
                     label_scores[label] = {
@@ -813,29 +812,30 @@ def combine_scores(
                         "normalized_hausdorff_distance": 0,
                         "combined_score": 0,
                     }
-                    total_volumes[label] = 0
+                    total_voxels[label] = 0
             else:
                 if label not in label_scores:
                     label_scores[label] = {"iou": 0, "dice_score": 0}
-                    total_volumes[label] = 0
+                    total_voxels[label] = 0
             for key in label_scores[label].keys():
                 if this_score[key] is None:
                     continue
-                label_scores[label][key] += this_score[key] * total_volume
                 if this_score[key] in cast_to_none:
                     scores[ds][label][key] = None
-            total_volumes[label] += total_volume
+                    continue
+                label_scores[label][key] += this_score[key] * this_score["num_voxels"]
+            total_voxels[label] += this_score["num_voxels"]
 
     # Normalize back to the total number of voxels
     for label in label_scores:
         if label in instance_classes:
-            label_scores[label]["accuracy"] /= total_volumes[label]
-            label_scores[label]["hausdorff_distance"] /= total_volumes[label]
-            label_scores[label]["normalized_hausdorff_distance"] /= total_volumes[label]
-            label_scores[label]["combined_score"] /= total_volumes[label]
+            label_scores[label]["accuracy"] /= total_voxels[label]
+            label_scores[label]["hausdorff_distance"] /= total_voxels[label]
+            label_scores[label]["normalized_hausdorff_distance"] /= total_voxels[label]
+            label_scores[label]["combined_score"] /= total_voxels[label]
         else:
-            label_scores[label]["iou"] /= total_volumes[label]
-            label_scores[label]["dice_score"] /= total_volumes[label]
+            label_scores[label]["iou"] /= total_voxels[label]
+            label_scores[label]["dice_score"] /= total_voxels[label]
         # Cast to None if the value is in `cast_to_none`
         for key in label_scores[label]:
             if label_scores[label][key] in cast_to_none:
@@ -851,8 +851,8 @@ def combine_scores(
             overall_instance_scores += [label_scores[label]["combined_score"]]
         else:
             overall_semantic_scores += [label_scores[label]["iou"]]
-    scores["overall_instance_score"] = np.mean(overall_instance_scores)
-    scores["overall_semantic_score"] = np.mean(overall_semantic_scores)
+    scores["overall_instance_score"] = np.nanmean(overall_instance_scores)
+    scores["overall_semantic_score"] = np.nanmean(overall_semantic_scores)
     scores["overall_score"] = (
         scores["overall_instance_score"] * scores["overall_semantic_score"]
     ) ** 0.5  # geometric mean

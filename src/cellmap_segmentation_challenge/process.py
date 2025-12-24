@@ -13,6 +13,11 @@ from .config import PREDICTIONS_PATH, PROCESSED_PATH
 from .utils import load_safe_config, fetch_test_crop_manifest
 from .utils.datasplit import get_formatted_fields
 
+from cellmap_data.utils import (
+    is_array_2D,
+    permute_singleton_dimension,
+)
+
 
 def _process(
     dataset_writer_kwargs: dict[str, Any], process_func: Callable, batch_size: int = 8
@@ -91,6 +96,14 @@ def process(
             device = "mps"
         else:
             device = "cpu"
+
+    if is_array_2D(input_array_info, summary=any) or is_array_2D(
+        target_array_info, summary=any
+    ):
+        if is_array_2D(input_array_info, summary=any):
+            permute_singleton_dimension(input_array_info, axis=0)
+        if is_array_2D(target_array_info, summary=any):
+            permute_singleton_dimension(target_array_info, axis=0)
 
     input_arrays = {"input": input_array_info}
     target_arrays = {"output": target_array_info}

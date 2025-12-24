@@ -43,7 +43,6 @@ INSTANCE_CLASSES = [
     "instance",
 ]
 
-
 VIS_SEARCH_PATHS = {
     "gt": SEARCH_PATH.format(dataset="{dataset}", name=CROP_NAME),
     "predictions": (UPath(PREDICTIONS_PATH) / "{label}").path,
