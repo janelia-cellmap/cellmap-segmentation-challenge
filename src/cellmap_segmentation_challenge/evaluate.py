@@ -1066,11 +1066,14 @@ def sanitize_scores(scores):
             for label, label_scores in volume_scores.items():
                 if isinstance(label_scores, dict):
                     for key, value in label_scores.items():
-                        if isinstance(value, float):
-                            if np.isnan(value):
-                                scores[volume][label][key] = None
-                            if np.isinf(value):
-                                scores[volume][label][key] = "inf"
+                        if np.isnan(value):
+                            scores[volume][label][key] = None
+                        elif np.isinf(value):
+                            scores[volume][label][key] = "inf"
+                        elif np.isneginf(value):
+                            scores[volume][label][key] = "-inf"
+                        elif isinstance(value, np.floating):
+                            scores[volume][label][key] = float(value)
     return scores
 
 
