@@ -502,14 +502,25 @@ document.write(`
     <span class="p">):</span>
         <span class="c1"># If the model is a 2D model, compute the average of predictions from x, y, and z orthogonal planes</span>
         <span class="n">predict_func</span> <span class="o">=</span> <span class="n">predict_orthoplanes</span>
+    <span class="k">elif</span> <span class="n">is_array_2D</span><span class="p">(</span><span class="n">input_array_info</span><span class="p">,</span> <span class="n">summary</span><span class="o">=</span><span class="nb">any</span><span class="p">)</span> <span class="ow">or</span> <span class="n">is_array_2D</span><span class="p">(</span>
+        <span class="n">target_array_info</span><span class="p">,</span> <span class="n">summary</span><span class="o">=</span><span class="nb">any</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="n">is_array_2D</span><span class="p">(</span><span class="n">input_array_info</span><span class="p">,</span> <span class="n">summary</span><span class="o">=</span><span class="nb">any</span><span class="p">):</span>
+            <span class="n">permute_singleton_dimension</span><span class="p">(</span><span class="n">input_array_info</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">is_array_2D</span><span class="p">(</span><span class="n">target_array_info</span><span class="p">,</span> <span class="n">summary</span><span class="o">=</span><span class="nb">any</span><span class="p">):</span>
+            <span class="n">permute_singleton_dimension</span><span class="p">(</span><span class="n">target_array_info</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">&quot;Warning: Model appears to be 2D, but do_orthoplanes is set to False. Predictions will be made only on z slices.&quot;</span>
+        <span class="p">)</span>
+        <span class="n">predict_func</span> <span class="o">=</span> <span class="n">_predict</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">predict_func</span> <span class="o">=</span> <span class="n">_predict</span>
 
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="n">input_array_info</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">target_array_info</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="p">),</span> <span class="s2">&quot;No array info provided&quot;</span>
     <span class="n">input_arrays</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;input&quot;</span><span class="p">:</span> <span class="n">input_array_info</span><span class="p">}</span>
     <span class="n">target_arrays</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="n">target_array_info</span><span class="p">}</span>
-    <span class="k">assert</span> <span class="p">(</span>
-        <span class="n">input_arrays</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">target_arrays</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-    <span class="p">),</span> <span class="s2">&quot;No array info provided&quot;</span>
 
     <span class="c1"># Get the crops to predict on</span>
     <span class="k">if</span> <span class="n">crops</span> <span class="o">==</span> <span class="s2">&quot;test&quot;</span><span class="p">:</span>
