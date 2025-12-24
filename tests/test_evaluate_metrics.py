@@ -1,4 +1,3 @@
-from concurrent.futures import Future
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -6,17 +5,13 @@ import numpy as np
 import zarr
 from fastremap import unique
 import pytest
-
-from cellmap_segmentation_challenge import evaluate as ev
-from cellmap_segmentation_challenge.utils import zip_submission
-
-
-# ------------------------
-# Helpers / tiny dataclasses
-# ------------------------
+from concurrent.futures import Future
 
 
 class DummySerialExecutor:
+    def __init__(self, *args, **kwargs):
+        pass
+
     def __enter__(self):
         return self
 
@@ -36,6 +31,14 @@ class DummySerialExecutor:
         pass
 
 
+@pytest.fixture(autouse=True)
+def patch_executor(monkeypatch):
+    monkeypatch.setattr("concurrent.futures.ProcessPoolExecutor", DummySerialExecutor)
+
+
+# ------------------------
+# Helpers / tiny dataclasses
+# ------------------------
 @dataclass
 class DummyCrop:
     voxel_size: tuple
@@ -55,6 +58,7 @@ def _hausdorff_full_reference_labels(
     """
     Full-volume reference for a single tid, matching the ROI version semantics.
     """
+    from cellmap_segmentation_challenge import evaluate as ev
     from scipy.ndimage import distance_transform_edt
 
     a = truth_label == tid
@@ -101,6 +105,8 @@ def _hausdorff_full_reference_labels(
 
 
 def test_roi_hausdorff_identical_instance_is_zero():
+    from cellmap_segmentation_challenge import evaluate as ev
+
     truth = np.zeros((5, 5), dtype=np.int32)
     pred = np.zeros((5, 5), dtype=np.int32)
     tid = 1
@@ -115,6 +121,8 @@ def test_roi_hausdorff_identical_instance_is_zero():
 
 
 def test_roi_hausdorff_matches_full_reference_standard_and_modified():
+    from cellmap_segmentation_challenge import evaluate as ev
+
     truth = np.zeros((1, 20), dtype=np.int32)
     pred = np.zeros((1, 20), dtype=np.int32)
     tid = 7
@@ -165,6 +173,8 @@ def test_roi_hausdorff_matches_full_reference_standard_and_modified():
 
 
 def test_roi_hausdorff_percentile_matches_full_reference():
+    from cellmap_segmentation_challenge import evaluate as ev
+
     truth = np.zeros((1, 8), dtype=np.int32)
     pred = np.zeros((1, 8), dtype=np.int32)
     tid = 2
@@ -200,6 +210,8 @@ def test_roi_hausdorff_percentile_matches_full_reference():
 
 
 def test_roi_hausdorff_empty_sets_and_missing_instance():
+    from cellmap_segmentation_challenge import evaluate as ev
+
     voxel_size = (1.0, 1.0)
     max_distance = 5.0
     tid = 3
@@ -224,6 +236,8 @@ def test_roi_hausdorff_empty_sets_and_missing_instance():
 
 
 def test_roi_hausdorff_clips_to_max_distance_matches_reference():
+    from cellmap_segmentation_challenge import evaluate as ev
+
     truth = np.zeros((1, 30), dtype=np.int32)
     pred = np.zeros((1, 30), dtype=np.int32)
     tid = 1
@@ -256,6 +270,8 @@ def test_roi_hausdorff_clips_to_max_distance_matches_reference():
 
 
 def test_roi_hausdorff_anisotropic_voxel_size_matches_reference():
+    from cellmap_segmentation_challenge import evaluate as ev
+
     truth = np.zeros((5, 5), dtype=np.int32)
     pred = np.zeros((5, 5), dtype=np.int32)
     tid = 9
@@ -293,6 +309,7 @@ def test_roi_none_returns_max_distance(monkeypatch):
     Should return max_distance when the instance exists in truth or pred
     (i.e. not the "both absent" case).
     """
+    from cellmap_segmentation_challenge import evaluate as ev
 
     def _fake_roi(*args, **kwargs):
         return None
@@ -313,6 +330,8 @@ def test_roi_none_returns_max_distance(monkeypatch):
 
 
 def test_optimized_hausdorff_distances_per_instance():
+    from cellmap_segmentation_challenge import evaluate as ev
+
     # two instances, perfectly matched
     truth = np.array([[0, 1, 1], [0, 2, 2]], dtype=np.int32)
     pred = truth.copy()
@@ -334,6 +353,8 @@ def test_optimized_hausdorff_distances_per_instance():
 
 
 def test_score_instance_perfect_match():
+    from cellmap_segmentation_challenge import evaluate as ev
+
     label = np.array([[0, 1, 1], [0, 2, 2]], dtype=np.int32)
     scores = ev.score_instance(label, label, voxel_size=(1.0, 1.0))
 
@@ -344,6 +365,8 @@ def test_score_instance_perfect_match():
 
 
 def test_score_instance_simple_shift():
+    from cellmap_segmentation_challenge import evaluate as ev
+
     # GT has one instance [0,0] and [0,1]
     truth = np.array([[1, 1, 0], [0, 0, 0]], dtype=np.int32)
     # Prediction shifted one voxel to the right: [0,1],[0,2] (and needs renumbering)
@@ -363,6 +386,8 @@ def test_score_instance_simple_shift():
 
 
 def test_score_semantic_perfect_match():
+    from cellmap_segmentation_challenge import evaluate as ev
+
     truth = np.array([[0, 1], [1, 1]], dtype=float)
     pred = truth.copy()
     scores = ev.score_semantic(pred, truth)
@@ -371,6 +396,8 @@ def test_score_semantic_perfect_match():
 
 
 def test_score_semantic_partial_overlap():
+    from cellmap_segmentation_challenge import evaluate as ev
+
     truth = np.array([[0, 1], [1, 1]], dtype=float)
     # prediction misses one positive voxel
     pred = np.array([[0, 1], [0, 1]], dtype=float)
@@ -384,6 +411,8 @@ def test_score_semantic_partial_overlap():
 
 
 def test_score_semantic_no_foreground():
+    from cellmap_segmentation_challenge import evaluate as ev
+
     truth = np.zeros((3, 3), dtype=float)
     pred = np.zeros_like(truth)
     scores = ev.score_semantic(pred, truth)
@@ -397,6 +426,8 @@ def test_score_semantic_no_foreground():
 
 
 def test_resize_array_pad_and_crop():
+    from cellmap_segmentation_challenge import evaluate as ev
+
     arr = np.ones((2, 2), dtype=np.int32)
     # First confirm padding up to (4,4)
     padded = ev.resize_array(arr, (4, 4), pad_value=0)
@@ -411,6 +442,8 @@ def test_resize_array_pad_and_crop():
 
 
 def test_resize_array_only_crop():
+    from cellmap_segmentation_challenge import evaluate as ev
+
     arr = np.arange(16).reshape(4, 4)
     target = (2, 2)
     out = ev.resize_array(arr, target)
@@ -428,6 +461,8 @@ def test_resize_array_only_crop():
 
 def test_match_crop_space_no_rescale_no_translation(tmp_path):
     """Single-scale array with matching voxel size and translation=0: should just crop/pad."""
+    from cellmap_segmentation_challenge import evaluate as ev
+
     arr = np.arange(16, dtype=np.uint8).reshape(4, 4)
     root = tmp_path / "vol.zarr"
     ds = zarr.open(str(root), mode="w", shape=arr.shape, dtype=arr.dtype)
@@ -462,6 +497,8 @@ def test_match_crop_space_rescale_instance(tmp_path):
     Simple rescale case for instance label:
     input voxel_size=(2,2), target=(1,1). We expect a 2x upsample along each axis.
     """
+    from cellmap_segmentation_challenge import evaluate as ev
+
     arr = np.zeros((2, 2), dtype=np.uint8)
     arr[0, 0] = 1
     root = tmp_path / "inst.zarr"
@@ -507,6 +544,8 @@ def _create_simple_volume(
 
 
 def test_empty_label_score_instance(tmp_path):
+    from cellmap_segmentation_challenge import evaluate as ev
+
     truth_root = tmp_path / "truth.zarr"
     arr = np.zeros((2, 2, 2), dtype=np.uint8)
     _create_simple_volume(truth_root, "crop1", "instance", arr)
@@ -524,6 +563,8 @@ def test_empty_label_score_instance(tmp_path):
 
 
 def test_missing_volume_score_mixed_labels(tmp_path):
+    from cellmap_segmentation_challenge import evaluate as ev
+
     truth_root = tmp_path / "truth_volume.zarr"
     arr_inst = np.zeros((2, 2, 2), dtype=np.uint8)
     arr_sem = np.zeros((2, 2, 2), dtype=np.uint8)
@@ -549,6 +590,8 @@ def test_missing_volume_score_mixed_labels(tmp_path):
 
 
 def test_combine_scores_instance_and_semantic():
+    from cellmap_segmentation_challenge import evaluate as ev
+
     # Two volumes, one instance, one semantic
     scores = {
         "crop1": {
@@ -599,6 +642,8 @@ def test_score_label_instance_integration(monkeypatch, tmp_path):
     Small integration test: zarr truth + pred, dummy TEST_CROPS_DICT entry,
     score_label should return instance metrics consistent with score_instance.
     """
+    from cellmap_segmentation_challenge import evaluate as ev
+
     # Arrange mini truth volume
     crop_name = "crop1"
     label_name = "instance"
@@ -648,8 +693,8 @@ def test_score_submission(monkeypatch, tmp_path):
       - create matching prediction volume
       - zip it
     """
-
-    monkeypatch.setattr("concurrent.futures.ProcessPoolExecutor", DummySerialExecutor)
+    from cellmap_segmentation_challenge import evaluate as ev
+    from cellmap_segmentation_challenge.utils import zip_submission
 
     # Create truth.zarr/crop1/instance
     truth_root = tmp_path / "truth.zarr"
@@ -705,8 +750,8 @@ def test_score_submission_json_output(monkeypatch, tmp_path):
     Test that score_submission results can be written to a JSON file and read back successfully.
     """
     import json
-
-    monkeypatch.setattr("concurrent.futures.ProcessPoolExecutor", DummySerialExecutor)
+    from cellmap_segmentation_challenge import evaluate as ev
+    from cellmap_segmentation_challenge.utils import zip_submission
 
     # Create truth.zarr/crop1/instance
     truth_root = tmp_path / "truth.zarr"
