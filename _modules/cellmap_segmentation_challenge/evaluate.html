@@ -317,13 +317,12 @@ document.write(`
 
 <span class="n">CAST_TO_NONE</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span>
 
-<span class="n">MAX_INSTANCE_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_INSTANCE_THREADS&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="n">MAX_INSTANCE_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_INSTANCE_THREADS&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 <span class="n">MAX_SEMANTIC_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_SEMANTIC_THREADS&quot;</span><span class="p">,</span> <span class="mi">50</span><span class="p">))</span>
-<span class="n">PER_INSTANCE_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;PER_INSTANCE_THREADS&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+<span class="n">PER_INSTANCE_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;PER_INSTANCE_THREADS&quot;</span><span class="p">,</span> <span class="mi">50</span><span class="p">))</span>
 <span class="n">MAX_DISTANCE_CAP_EPS</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_DISTANCE_CAP_EPS&quot;</span><span class="p">,</span> <span class="s2">&quot;1e-4&quot;</span><span class="p">))</span>
 <span class="n">INSTANCE_RATIO_CUTOFF</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;INSTANCE_RATIO_CUTOFF&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
 <span class="n">MAX_OVERLAP_EDGES</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_OVERLAP_EDGES&quot;</span><span class="p">,</span> <span class="s2">&quot;5000000&quot;</span><span class="p">))</span>
-<span class="n">DEBUG</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">,</span> <span class="s2">&quot;False&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;false&quot;</span>
 
 
 <div class="viewcode-block" id="normalize_distance">
@@ -564,25 +563,14 @@ document.write(`
 
     <span class="n">dists</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">true_num</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
-            <span class="nb">range</span><span class="p">(</span><span class="n">true_num</span><span class="p">),</span>
+    <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">PER_INSTANCE_THREADS</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
+            <span class="n">executor</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">get_distance</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="n">true_num</span><span class="p">)),</span>
             <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Computing Hausdorff distances&quot;</span><span class="p">,</span>
-            <span class="n">leave</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">total</span><span class="o">=</span><span class="n">true_num</span><span class="p">,</span>
+            <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">):</span>
-            <span class="n">idx</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">get_distance</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
             <span class="n">dists</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">h</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">PER_INSTANCE_THREADS</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
-                <span class="n">executor</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">get_distance</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="n">true_num</span><span class="p">)),</span>
-                <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Computing Hausdorff distances&quot;</span><span class="p">,</span>
-                <span class="n">total</span><span class="o">=</span><span class="n">true_num</span><span class="p">,</span>
-                <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="p">):</span>
-                <span class="n">dists</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">h</span>
 
     <span class="k">return</span> <span class="n">dists</span></div>
 
@@ -1146,10 +1134,9 @@ document.write(`
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">this_score</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">continue</span>
+                <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">+=</span> <span class="n">this_score</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">*</span> <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span>
                 <span class="k">if</span> <span class="n">this_score</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="ow">in</span> <span class="n">cast_to_none</span><span class="p">:</span>
                     <span class="n">scores</span><span class="p">[</span><span class="n">ds</span><span class="p">][</span><span class="n">label</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-                    <span class="k">continue</span>
-                <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">+=</span> <span class="n">this_score</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">*</span> <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span>
             <span class="n">total_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">+=</span> <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span>
 
     <span class="c1"># Normalize back to the total number of voxels</span>
@@ -1177,8 +1164,12 @@ document.write(`
             <span class="n">overall_instance_scores</span> <span class="o">+=</span> <span class="p">[</span><span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;combined_score&quot;</span><span class="p">]]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">overall_semantic_scores</span> <span class="o">+=</span> <span class="p">[</span><span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;iou&quot;</span><span class="p">]]</span>
-    <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;overall_instance_score&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">overall_instance_scores</span><span class="p">)</span>
-    <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;overall_semantic_score&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">overall_semantic_scores</span><span class="p">)</span>
+    <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;overall_instance_score&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">overall_instance_scores</span><span class="p">)</span> <span class="k">if</span> <span class="n">overall_instance_scores</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="p">)</span>
+    <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;overall_semantic_score&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">overall_semantic_scores</span><span class="p">)</span> <span class="k">if</span> <span class="n">overall_semantic_scores</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="p">)</span>
     <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;overall_score&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;overall_instance_score&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;overall_semantic_score&quot;</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span>  <span class="c1"># geometric mean</span>
@@ -1286,66 +1277,29 @@ document.write(`
     <span class="p">)</span>
 
     <span class="c1"># Score each volume</span>
-    <span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Scoring volumes in serial for debugging...&quot;</span><span class="p">)</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">score_label</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="k">for</span> <span class="n">args</span> <span class="ow">in</span> <span class="n">evaluation_args</span><span class="p">]</span>
-        <span class="c1"># Combine the results into a dictionary</span>
-        <span class="k">for</span> <span class="n">crop_name</span><span class="p">,</span> <span class="n">label_name</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">crop_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">:</span>
-                <span class="n">scores</span><span class="p">[</span><span class="n">crop_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="n">scores</span><span class="p">[</span><span class="n">crop_name</span><span class="p">][</span><span class="n">label_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span>
-
-        <span class="c1"># Combine label scores across volumes, normalizing by the number of voxels</span>
-        <span class="n">all_scores</span> <span class="o">=</span> <span class="n">combine_scores</span><span class="p">(</span>
-            <span class="n">scores</span><span class="p">,</span> <span class="n">include_missing</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span>
-        <span class="p">)</span>
-        <span class="n">found_scores</span> <span class="o">=</span> <span class="n">combine_scores</span><span class="p">(</span>
-            <span class="n">scores</span><span class="p">,</span> <span class="n">include_missing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span>
-        <span class="p">)</span>
-
-        <span class="c1"># Save the scores</span>
-        <span class="k">if</span> <span class="n">result_file</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving collected scores to </span><span class="si">{</span><span class="n">result_file</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">result_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">all_scores</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-
-            <span class="n">found_result_file</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">result_file</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
-                <span class="n">UPath</span><span class="p">(</span><span class="n">result_file</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span><span class="p">,</span> <span class="s2">&quot;_submitted_only&quot;</span> <span class="o">+</span> <span class="n">UPath</span><span class="p">(</span><span class="n">result_file</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span>
-            <span class="p">)</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Saving scores for only submitted data to </span><span class="si">{</span><span class="n">found_result_file</span><span class="si">}</span><span class="s2">...&quot;</span>
-            <span class="p">)</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">found_result_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">found_scores</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Scores saved to </span><span class="si">{</span><span class="n">result_file</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">found_result_file</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds&quot;</span>
-            <span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Scoring volumes in parallel, using </span><span class="si">{</span><span class="n">MAX_INSTANCE_THREADS</span><span class="si">}</span><span class="s2"> instance threads and </span><span class="si">{</span><span class="n">MAX_SEMANTIC_THREADS</span><span class="si">}</span><span class="s2"> semantic threads...&quot;</span>
+    <span class="p">)</span>
+    <span class="n">instance_pool</span> <span class="o">=</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">MAX_INSTANCE_THREADS</span><span class="p">)</span>
+    <span class="n">semantic_pool</span> <span class="o">=</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">MAX_SEMANTIC_THREADS</span><span class="p">)</span>
+    <span class="n">futures</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">args</span> <span class="ow">in</span> <span class="n">evaluation_args</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
+            <span class="n">futures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instance_pool</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">score_label</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">all_scores</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Scoring volumes in parallel, using </span><span class="si">{</span><span class="n">MAX_INSTANCE_THREADS</span><span class="si">}</span><span class="s2"> instance threads and </span><span class="si">{</span><span class="n">MAX_SEMANTIC_THREADS</span><span class="si">}</span><span class="s2"> semantic threads...&quot;</span>
+            <span class="n">futures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">semantic_pool</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">score_label</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">))</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
+        <span class="n">as_completed</span><span class="p">(</span><span class="n">futures</span><span class="p">),</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Scoring volumes&quot;</span><span class="p">,</span>
+        <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">futures</span><span class="p">),</span>
+        <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">leave</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">())</span>
+        <span class="n">all_scores</span><span class="p">,</span> <span class="n">found_scores</span> <span class="o">=</span> <span class="n">update_scores</span><span class="p">(</span>
+            <span class="n">scores</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">result_file</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span>
         <span class="p">)</span>
-        <span class="n">instance_pool</span> <span class="o">=</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">MAX_INSTANCE_THREADS</span><span class="p">)</span>
-        <span class="n">semantic_pool</span> <span class="o">=</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">MAX_SEMANTIC_THREADS</span><span class="p">)</span>
-        <span class="n">futures</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">args</span> <span class="ow">in</span> <span class="n">evaluation_args</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
-                <span class="n">futures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instance_pool</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">score_label</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">))</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">futures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">semantic_pool</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">score_label</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">))</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
-            <span class="n">as_completed</span><span class="p">(</span><span class="n">futures</span><span class="p">),</span>
-            <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Scoring volumes&quot;</span><span class="p">,</span>
-            <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">futures</span><span class="p">),</span>
-            <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">leave</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="p">):</span>
-            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">())</span>
-            <span class="n">all_scores</span><span class="p">,</span> <span class="n">found_scores</span> <span class="o">=</span> <span class="n">update_scores</span><span class="p">(</span>
-                <span class="n">scores</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">result_file</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span>
-            <span class="p">)</span>
 
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Scores combined across all test volumes:&quot;</span><span class="p">)</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
@@ -1401,14 +1355,23 @@ document.write(`
             <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">label_scores</span> <span class="ow">in</span> <span class="n">volume_scores</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">label_scores</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
                     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">label_scores</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
-                            <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">][</span><span class="n">label</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-                        <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
-                            <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">][</span><span class="n">label</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;inf&quot;</span>
-                        <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">isneginf</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
-                            <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">][</span><span class="n">label</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;-inf&quot;</span>
-                        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">):</span>
-                            <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">][</span><span class="n">label</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+                            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">isneginf</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+                                <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">][</span><span class="n">label</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+                            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">):</span>
+                                <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">][</span><span class="n">label</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span>
+                                <span class="p">[</span>
+                                    <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">isneginf</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                                    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span>
+                                <span class="p">]</span>
+                            <span class="p">):</span>
+                                <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">][</span><span class="n">label</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+                            <span class="k">elif</span> <span class="nb">any</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="p">]):</span>
+                                <span class="n">scores</span><span class="p">[</span><span class="n">volume</span><span class="p">][</span><span class="n">label</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">scores</span></div>
 
 
