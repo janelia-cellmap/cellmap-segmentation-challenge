@@ -1,4 +1,4 @@
-import zipfile
+from concurrent.futures import Future
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -14,6 +14,26 @@ from cellmap_segmentation_challenge.utils import zip_submission
 # ------------------------
 # Helpers / tiny dataclasses
 # ------------------------
+
+
+class DummySerialExecutor:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+    def submit(self, fn, *args, **kwargs):
+        f = Future()
+        try:
+            result = fn(*args, **kwargs)
+            f.set_result(result)
+        except Exception as e:
+            f.set_exception(e)
+        return f
+
+    def shutdown(self, wait=True):
+        pass
 
 
 @dataclass
@@ -629,6 +649,8 @@ def test_score_submission(monkeypatch, tmp_path):
       - zip it
     """
 
+    monkeypatch.setattr("concurrent.futures.ProcessPoolExecutor", DummySerialExecutor)
+
     # Create truth.zarr/crop1/instance
     truth_root = tmp_path / "truth.zarr"
     crop_name = "crop1"
@@ -683,6 +705,8 @@ def test_score_submission_json_output(monkeypatch, tmp_path):
     Test that score_submission results can be written to a JSON file and read back successfully.
     """
     import json
+
+    monkeypatch.setattr("concurrent.futures.ProcessPoolExecutor", DummySerialExecutor)
 
     # Create truth.zarr/crop1/instance
     truth_root = tmp_path / "truth.zarr"
