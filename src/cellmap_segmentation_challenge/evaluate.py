@@ -30,7 +30,7 @@ logging.basicConfig(
     force=True,
 )
 
-CAST_TO_NONE = [np.nan, np.inf, -np.inf]
+CAST_TO_NONE = [np.nan, np.inf, -np.inf, float("inf"), float("-inf")]
 
 MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 3))
 MAX_SEMANTIC_THREADS = int(os.getenv("MAX_SEMANTIC_THREADS", 50))
@@ -1020,6 +1020,8 @@ def sanitize_scores(scores):
             for label, label_scores in volume_scores.items():
                 if isinstance(label_scores, dict):
                     for key, value in label_scores.items():
+                        if value is None:
+                            continue
                         if not np.isscalar(value) and len(value) == 1:
                             value = value[0]
                         if np.isscalar(value):
