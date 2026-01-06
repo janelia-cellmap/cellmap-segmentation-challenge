@@ -121,8 +121,8 @@ def eval_batch(csv_path, cluster=False, cmd_template=CMD_TEMPLATE, num_cpus=48):
     jobs = []
     df = pd.read_csv(csv_path)
     for _, row in df.iterrows():
-        submission_path = row["submission_path"]
-        eval_ID = row["eval_ID"]
+        submission_path = row["data_path"]
+        eval_ID = row["evaluation_id"]
 
         if cluster:
             job_log = _eval_one_cluster(
