@@ -1,7 +1,7 @@
 import click
 
 from .datasplit import get_dataset_counts_cli, make_datasplit_csv_cli
-from .evaluate import evaluate_cli, package_submission_cli
+from .evaluate import evaluate_cli, package_submission_cli, batch_evaluate_cli
 from .fetch_data import fetch_data_cli
 from .predict import predict_cli
 from .process import process_cli
@@ -25,3 +25,4 @@ run.add_command(get_dataset_counts_cli, name="get-counts")
 run.add_command(visualize_cli, name="visualize")
 run.add_command(package_submission_cli, name="pack-results")
 run.add_command(speedtest_cli, name="speedtest")
+run.add_command(batch_evaluate_cli, name="batch-eval")

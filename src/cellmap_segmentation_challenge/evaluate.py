@@ -995,6 +995,8 @@ def score_submission(
         logging.info("Final combined scores:")
         logging.info(all_scores)
         return all_scores
+    else:
+        logging.info("Evaluation successful.")
 
 
 def num_evals_done(all_scores):

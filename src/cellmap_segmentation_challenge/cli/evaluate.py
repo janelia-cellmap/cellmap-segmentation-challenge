@@ -99,3 +99,30 @@ def package_submission_cli(input_search_path, output_path, overwrite, max_worker
 
     logger.info(f"Packaging submission to: {output_path}")
     package_submission(input_search_path, output_path, overwrite, max_workers)
+
+
+@click.command
+@click.option(
+    "--csv-path",
+    "-c",
+    type=click.Path(exists=True),
+    help="Path to the CSV file containing submission paths and eval_IDs",
+    required=True,
+)
+@click.option(
+    "--cluster",
+    "-C",
+    is_flag=True,
+    help="If set, submit evaluation jobs to a cluster instead of running locally. Will use default bsub command template.",
+)
+@click.option(
+    "--num_cpus",
+    "-n",
+    type=click.INT,
+    default=48,
+    help="Number of CPUs to request per job when submitting to cluster. Default is 48.",
+)
+def batch_evaluate_cli(csv_path, cluster, num_cpus):
+    from cellmap_segmentation_challenge.utils.batch_eval import eval_batch
+
+    eval_batch(csv_path, cluster=cluster, num_cpus=num_cpus)

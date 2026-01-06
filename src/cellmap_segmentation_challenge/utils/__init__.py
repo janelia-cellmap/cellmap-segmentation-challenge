@@ -40,5 +40,10 @@ __getattr__, __dir__, __all__ = lazy.attach(
             "save_numpy_class_labels_to_zarr",
         ],
         "matched_crop": ["MatchedCrop"],
+        "batch_eval": [
+            "get_result_file",
+            "monitor_jobs",
+            "eval_batch",
+        ],
     },
 )
