@@ -414,8 +414,8 @@ document.write(`
     <span class="n">jobs</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">csv_path</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
-        <span class="n">submission_path</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;submission_path&quot;</span><span class="p">]</span>
-        <span class="n">eval_ID</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;eval_ID&quot;</span><span class="p">]</span>
+        <span class="n">submission_path</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;data_path&quot;</span><span class="p">]</span>
+        <span class="n">eval_ID</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;evaluation_id&quot;</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">cluster</span><span class="p">:</span>
             <span class="n">job_log</span> <span class="o">=</span> <span class="n">_eval_one_cluster</span><span class="p">(</span>
