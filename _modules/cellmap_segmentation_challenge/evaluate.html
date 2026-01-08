@@ -286,16 +286,15 @@ document.write(`
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">zipfile</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">concurrent.futures</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">zarr</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial.distance</span><span class="w"> </span><span class="kn">import</span> <span class="n">dice</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fastremap</span><span class="w"> </span><span class="kn">import</span> <span class="n">remap</span><span class="p">,</span> <span class="n">unique</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">cc3d</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cc3d.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">StatisticsDict</span><span class="p">,</span> <span class="n">StatisticsSlicesDict</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">accuracy_score</span><span class="p">,</span> <span class="n">jaccard_score</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
@@ -578,14 +577,18 @@ document.write(`
 
 <div class="viewcode-block" id="bbox_for_label_cc3d">
 <a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.bbox_for_label_cc3d">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">bbox_for_label_cc3d</span><span class="p">(</span><span class="n">label_vol</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">label_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">bbox_for_label_cc3d</span><span class="p">(</span>
+    <span class="n">stats</span><span class="p">:</span> <span class="n">StatisticsDict</span> <span class="o">|</span> <span class="n">StatisticsSlicesDict</span><span class="p">,</span>
+    <span class="n">label_vol</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">label_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Try to get bbox without allocating a full boolean mask using cc3d statistics.</span>
 <span class="sd">    Falls back to mask-based bbox if cc3d doesn&#39;t provide expected fields.</span>
 <span class="sd">    Returns (mins, maxs) inclusive-exclusive in voxel indices, or None if missing.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">stats</span> <span class="o">=</span> <span class="n">cc3d</span><span class="o">.</span><span class="n">statistics</span><span class="p">(</span><span class="n">label_vol</span><span class="p">)</span>
+        <span class="c1"># stats = cc3d.statistics(label_vol)</span>
         <span class="c1"># cc3d.statistics usually returns dict-like with keys per label id.</span>
         <span class="c1"># There are multiple API variants; try common patterns.</span>
         <span class="k">if</span> <span class="s2">&quot;bounding_boxes&quot;</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">:</span>
@@ -641,12 +644,14 @@ document.write(`
     <span class="c1"># padding per axis in voxels</span>
     <span class="n">pad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">max_distance</span> <span class="o">/</span> <span class="n">vs</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span>
 
-    <span class="n">tb</span> <span class="o">=</span> <span class="n">bbox_for_label_cc3d</span><span class="p">(</span><span class="n">truth_label</span><span class="p">,</span> <span class="n">tid</span><span class="p">)</span>
+    <span class="n">truth_stats</span> <span class="o">=</span> <span class="n">cc3d</span><span class="o">.</span><span class="n">statistics</span><span class="p">(</span><span class="n">truth_label</span><span class="p">)</span>
+    <span class="n">tb</span> <span class="o">=</span> <span class="n">bbox_for_label_cc3d</span><span class="p">(</span><span class="n">truth_stats</span><span class="p">,</span> <span class="n">truth_label</span><span class="p">,</span> <span class="n">tid</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">tb</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># should not happen for tid from truth_ids</span>
 
     <span class="n">tmins</span><span class="p">,</span> <span class="n">tmaxs</span> <span class="o">=</span> <span class="n">tb</span>
-    <span class="n">pb</span> <span class="o">=</span> <span class="n">bbox_for_label_cc3d</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">tid</span><span class="p">)</span>
+    <span class="n">pred_stats</span> <span class="o">=</span> <span class="n">cc3d</span><span class="o">.</span><span class="n">statistics</span><span class="p">(</span><span class="n">pred_label</span><span class="p">)</span>
+    <span class="n">pb</span> <span class="o">=</span> <span class="n">bbox_for_label_cc3d</span><span class="p">(</span><span class="n">pred_stats</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">,</span> <span class="n">tid</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">pb</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">pmins</span><span class="p">,</span> <span class="n">pmaxs</span> <span class="o">=</span> <span class="n">tmins</span><span class="p">,</span> <span class="n">tmaxs</span>
     <span class="k">else</span><span class="p">:</span>
@@ -791,7 +796,7 @@ document.write(`
 
     <span class="c1"># Compute the scores</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Computing accuracy score...&quot;</span><span class="p">)</span>
-    <span class="n">accuracy</span> <span class="o">=</span> <span class="n">accuracy_score</span><span class="p">(</span><span class="n">truth_label</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">pred_label</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+    <span class="n">accuracy</span> <span class="o">=</span> <span class="n">accuracy_score</span><span class="p">(</span><span class="n">truth_label</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">pred_label</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span>
     <span class="n">hausdorff_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">hausdorff_distances</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hausdorff_distances</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
     <span class="n">normalized_hausdorff_dist</span> <span class="o">=</span> <span class="n">normalize_distance</span><span class="p">(</span><span class="n">hausdorff_dist</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">)</span>
     <span class="n">combined_score</span> <span class="o">=</span> <span class="p">(</span><span class="n">accuracy</span> <span class="o">*</span> <span class="n">normalized_hausdorff_dist</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span>  <span class="c1"># geometric mean</span>
@@ -826,8 +831,8 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Scoring semantic segmentation...&quot;</span><span class="p">)</span>
     <span class="c1"># Flatten the label volumes and convert to binary</span>
-    <span class="n">pred_label</span> <span class="o">=</span> <span class="p">(</span><span class="n">pred_label</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-    <span class="n">truth_label</span> <span class="o">=</span> <span class="p">(</span><span class="n">truth_label</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">pred_label</span> <span class="o">=</span> <span class="p">(</span><span class="n">pred_label</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">truth_label</span> <span class="o">=</span> <span class="p">(</span><span class="n">truth_label</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
 
     <span class="c1"># Compute the scores</span>
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">truth_label</span> <span class="o">+</span> <span class="n">pred_label</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>

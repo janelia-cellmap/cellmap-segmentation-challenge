@@ -323,6 +323,12 @@ document.write(`
     <span class="n">result_file</span> <span class="o">=</span> <span class="n">get_result_file</span><span class="p">(</span><span class="n">submission_path</span><span class="p">,</span> <span class="n">eval_ID</span><span class="p">)</span>
     <span class="n">out</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">eval_ID</span><span class="si">}</span><span class="s2">.out&quot;</span><span class="p">)</span>
     <span class="n">err</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">eval_ID</span><span class="si">}</span><span class="s2">.err&quot;</span><span class="p">)</span>
+    <span class="c1"># Remove any existing output files</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">err</span><span class="p">,</span> <span class="n">result_file</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="k">pass</span>
     <span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd_template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
         <span class="n">eval_ID</span><span class="o">=</span><span class="n">eval_ID</span><span class="p">,</span>
         <span class="n">submission_path</span><span class="o">=</span><span class="n">submission_path</span><span class="p">,</span>
