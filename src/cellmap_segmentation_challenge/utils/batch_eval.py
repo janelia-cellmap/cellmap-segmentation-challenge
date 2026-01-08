@@ -35,6 +35,12 @@ def _eval_one_cluster(
     result_file = get_result_file(submission_path, eval_ID)
     out = os.path.abspath(f"{eval_ID}.out")
     err = os.path.abspath(f"{eval_ID}.err")
+    # Remove any existing output files
+    for f in (out, err, result_file):
+        try:
+            os.remove(f)
+        except FileNotFoundError:
+            pass
     cmd = cmd_template.format(
         eval_ID=eval_ID,
         submission_path=submission_path,

@@ -1,16 +1,15 @@
 import argparse
 import json
 import os
-import shutil
 from time import time
 import zipfile
-import concurrent.futures
 
 import numpy as np
 import zarr
 from scipy.spatial.distance import dice
 from fastremap import remap, unique
 import cc3d
+from cc3d.types import StatisticsDict, StatisticsSlicesDict
 
 from sklearn.metrics import accuracy_score, jaccard_score
 from tqdm import tqdm
@@ -279,14 +278,18 @@ def optimized_hausdorff_distances(
     return dists
 
 
-def bbox_for_label_cc3d(label_vol: np.ndarray, label_id: int):
+def bbox_for_label_cc3d(
+    stats: StatisticsDict | StatisticsSlicesDict,
+    label_vol: np.ndarray,
+    label_id: int,
+):
     """
     Try to get bbox without allocating a full boolean mask using cc3d statistics.
     Falls back to mask-based bbox if cc3d doesn't provide expected fields.
     Returns (mins, maxs) inclusive-exclusive in voxel indices, or None if missing.
     """
     try:
-        stats = cc3d.statistics(label_vol)
+        # stats = cc3d.statistics(label_vol)
         # cc3d.statistics usually returns dict-like with keys per label id.
         # There are multiple API variants; try common patterns.
         if "bounding_boxes" in stats:
@@ -339,12 +342,14 @@ def roi_slices_for_pair(
     # padding per axis in voxels
     pad = np.ceil(max_distance / vs).astype(int) + 2
 
-    tb = bbox_for_label_cc3d(truth_label, tid)
+    truth_stats = cc3d.statistics(truth_label)
+    tb = bbox_for_label_cc3d(truth_stats, truth_label, tid)
     if tb is None:
         return None  # should not happen for tid from truth_ids
 
     tmins, tmaxs = tb
-    pb = bbox_for_label_cc3d(pred_label, tid)
+    pred_stats = cc3d.statistics(pred_label)
+    pb = bbox_for_label_cc3d(pred_stats, pred_label, tid)
     if pb is None:
         pmins, pmaxs = tmins, tmaxs
     else:
@@ -483,7 +488,7 @@ def score_instance(
 
     # Compute the scores
     logging.info("Computing accuracy score...")
-    accuracy = accuracy_score(truth_label.flatten(), pred_label.flatten())
+    accuracy = accuracy_score(truth_label.ravel(), pred_label.ravel())
     hausdorff_dist = np.mean(hausdorff_distances) if len(hausdorff_distances) > 0 else 0
     normalized_hausdorff_dist = normalize_distance(hausdorff_dist, voxel_size)
     combined_score = (accuracy * normalized_hausdorff_dist) ** 0.5  # geometric mean
@@ -515,8 +520,8 @@ def score_semantic(pred_label, truth_label) -> dict[str, float]:
     """
     logging.info("Scoring semantic segmentation...")
     # Flatten the label volumes and convert to binary
-    pred_label = (pred_label > 0.0).flatten()
-    truth_label = (truth_label > 0.0).flatten()
+    pred_label = (pred_label > 0.0).ravel()
+    truth_label = (truth_label > 0.0).ravel()
 
     # Compute the scores
     if np.sum(truth_label + pred_label) == 0:
