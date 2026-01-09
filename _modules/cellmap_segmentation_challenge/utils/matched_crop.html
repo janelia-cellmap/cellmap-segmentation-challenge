@@ -370,7 +370,7 @@ document.write(`
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Heuristic: choose among arrays like s0/s1/... (or any array keys) by voxel_size attrs.</span>
-<span class="sd">        Preference: pick the level whose voxel_size is &lt;= target_voxel_size (not finer than target)</span>
+<span class="sd">        Preference: pick the level whose voxel_size is &lt;= target_voxel_size (finer or equal to target resolution)</span>
 <span class="sd">        and closest to target; else closest overall.</span>
 <span class="sd">        Returns (array_key, voxel_size, translation)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -397,12 +397,12 @@ document.write(`
                 <span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">tgt</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
                     <span class="n">v</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="o">-</span><span class="n">tgt</span><span class="o">.</span><span class="n">size</span> <span class="p">:]</span>
-                <span class="c1"># prefer v &gt;= tgt? (coarser) or v &lt;= tgt? depends on definition.</span>
-                <span class="c1"># Here: voxel_size larger =&gt; coarser. We want not finer than target =&gt; v &gt;= tgt</span>
+                <span class="c1"># prefer v &lt;= tgt</span>
+                <span class="c1"># Here: voxel_size larger =&gt; coarser. We want not coarser than target =&gt; v &lt;= tgt</span>
                 <span class="c1"># If your convention is reversed, adjust this rule.</span>
-                <span class="n">not_finer</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">v</span> <span class="o">&gt;=</span> <span class="n">tgt</span><span class="p">)</span>
+                <span class="n">not_coarser</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">v</span> <span class="o">&lt;=</span> <span class="n">tgt</span><span class="p">)</span>
                 <span class="n">dist</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">v</span> <span class="o">-</span> <span class="n">tgt</span><span class="p">))</span>
-                <span class="n">score</span> <span class="o">=</span> <span class="n">dist</span> <span class="o">+</span> <span class="p">(</span><span class="mf">0.0</span> <span class="k">if</span> <span class="n">not_finer</span> <span class="k">else</span> <span class="mf">1e6</span><span class="p">)</span>
+                <span class="n">score</span> <span class="o">=</span> <span class="n">dist</span> <span class="o">+</span> <span class="p">(</span><span class="mf">0.0</span> <span class="k">if</span> <span class="n">not_coarser</span> <span class="k">else</span> <span class="mf">1e6</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">best_score</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">score</span> <span class="o">&lt;</span> <span class="n">best_score</span><span class="p">:</span>
                 <span class="n">best_score</span> <span class="o">=</span> <span class="n">score</span>
@@ -495,6 +495,8 @@ document.write(`
                         <span class="n">preserve_range</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                     <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">image</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">bool</span><span class="p">:</span>
+                        <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
                     <span class="n">imgf</span> <span class="o">=</span> <span class="n">rescale</span><span class="p">(</span>
                         <span class="n">image</span><span class="p">,</span>
                         <span class="n">scale_factors</span><span class="p">,</span>
