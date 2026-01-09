@@ -147,7 +147,7 @@ def eval_batch(csv_path, cluster=False, cmd_template=CMD_TEMPLATE, num_cpus=48):
                 print(f" - {job}")
             # Print to timestamped file
             timestamp = time.strftime("%Y%m%d_%H%M%S")
-            fail_log = f"failed_jobs_{timestamp}.txt"
+            fail_log = f"failed_jobs_{timestamp}.out"
             with open(fail_log, "w") as f:
                 for job in failed:
                     f.write(f"{job}\n")
