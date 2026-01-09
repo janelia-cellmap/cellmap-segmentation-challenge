@@ -83,7 +83,7 @@ class MatchedCrop:
     ) -> Tuple[str, Optional[Tuple[float, ...]], Optional[Tuple[float, ...]]]:
         """
         Heuristic: choose among arrays like s0/s1/... (or any array keys) by voxel_size attrs.
-        Preference: pick the level whose voxel_size is <= target_voxel_size (not finer than target)
+        Preference: pick the level whose voxel_size is <= target_voxel_size (finer or equal to target resolution)
         and closest to target; else closest overall.
         Returns (array_key, voxel_size, translation)
         """
@@ -110,12 +110,12 @@ class MatchedCrop:
                 v = np.asarray(vs, dtype=float)
                 if v.size != tgt.size:
                     v = v[-tgt.size :]
-                # prefer v >= tgt? (coarser) or v <= tgt? depends on definition.
-                # Here: voxel_size larger => coarser. We want not finer than target => v >= tgt
+                # prefer v <= tgt
+                # Here: voxel_size larger => coarser. We want not coarser than target => v <= tgt
                 # If your convention is reversed, adjust this rule.
-                not_finer = np.all(v >= tgt)
+                not_coarser = np.all(v <= tgt)
                 dist = float(np.linalg.norm(v - tgt))
-                score = dist + (0.0 if not_finer else 1e6)
+                score = dist + (0.0 if not_coarser else 1e6)
 
             if best_score is None or score < best_score:
                 best_score = score
@@ -206,6 +206,8 @@ class MatchedCrop:
                         preserve_range=True,
                     ).astype(image.dtype)
                 else:
+                    if image.dtype == bool:
+                        image = image.astype(np.float32)
                     imgf = rescale(
                         image,
                         scale_factors,
