@@ -37,9 +37,13 @@ def fetch_manifest(
         fs, path = fsspec.url_to_fs(str(url))
 
         # Open the file using the filesystem and save locally
-        with fs.open(path, "rb") as src, open(local_path, "wb") as dst:
-            dst.write(src.read())
-    except:
+        with fs.open(path, "rb") as src:
+            content = src.read()
+            if not content:
+                raise ValueError("Downloaded manifest is empty.")
+        with open(local_path, "wb") as dst:
+            dst.write(content)
+    except Exception:
         if local_path.exists():
             print(
                 f"Failed to download manifest file from {url}, using local file {local_path}."
@@ -49,8 +53,13 @@ def fetch_manifest(
                 f"Failed to download manifest file from {url} and no local file exists."
             )
 
-    fs, path = fsspec.url_to_fs(str(local_path))
-    head, *rows = fs.cat_file(path).decode().splitlines()
+    with open(local_path, "r") as f:
+        lines = f.read().splitlines()
+
+    if not lines:
+        raise ValueError(f"Manifest file at {local_path} is empty.")
+
+    head, *rows = lines
     return tuple(object.from_csv_row(row) for row in rows)
 
 

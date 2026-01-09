@@ -32,8 +32,8 @@ logging.basicConfig(
 CAST_TO_NONE = [np.nan, np.inf, -np.inf, float("inf"), float("-inf")]
 
 MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 3))
-MAX_SEMANTIC_THREADS = int(os.getenv("MAX_SEMANTIC_THREADS", 50))
-PER_INSTANCE_THREADS = int(os.getenv("PER_INSTANCE_THREADS", 50))
+MAX_SEMANTIC_THREADS = int(os.getenv("MAX_SEMANTIC_THREADS", 25))
+PER_INSTANCE_THREADS = int(os.getenv("PER_INSTANCE_THREADS", 25))
 MAX_DISTANCE_CAP_EPS = float(os.getenv("MAX_DISTANCE_CAP_EPS", "1e-4"))
 INSTANCE_RATIO_CUTOFF = float(os.getenv("INSTANCE_RATIO_CUTOFF", 10))
 MAX_OVERLAP_EDGES = int(os.getenv("MAX_OVERLAP_EDGES", "5000000"))
