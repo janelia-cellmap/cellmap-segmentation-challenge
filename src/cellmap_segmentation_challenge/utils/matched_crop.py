@@ -1,6 +1,7 @@
 import logging
 from dataclasses import dataclass
 from typing import Optional, Sequence, Tuple
+import os
 
 import numpy as np
 import zarr
@@ -11,6 +12,11 @@ from cellmap_data import CellMapImage
 
 
 logger = logging.getLogger(__name__)
+
+# Maximum allowed size ratio between source and target arrays
+# Can be set via environment variable for flexibility
+# Default is 8x in each dimension (512x total volume size ratio)
+MAX_VOLUME_SIZE_RATIO = float(os.environ.get("MAX_VOLUME_SIZE_RATIO", 8**3))
 
 
 def _get_attr_any(attrs, keys):
@@ -126,6 +132,20 @@ class MatchedCrop:
         assert best_key is not None
         return best_key, best_vs, best_tr
 
+    def _check_size_ratio(self, source_shape: Tuple[int, ...]):
+        tgt_size = np.prod(self.target_shape)
+        if tgt_size == 0:
+            raise ValueError(
+                f"Invalid target shape {tuple(self.target_shape)}: product of dimensions is zero."
+            )
+        src_size = np.prod(source_shape)
+        ratio = src_size / tgt_size
+        if ratio > MAX_VOLUME_SIZE_RATIO:
+            raise ValueError(
+                f"Source array at {self.path} is too large compared to target shape: "
+                f"source size {src_size}, target size {tgt_size}, ratio {ratio:.1f} > {MAX_VOLUME_SIZE_RATIO}"
+            )
+
     def _load_source_array(self):
         """
         Returns (image, input_voxel_size, input_translation)
@@ -160,6 +180,7 @@ class MatchedCrop:
                     break
 
             arr = zarr.open(level_path.path, mode="r")
+            self._check_size_ratio(arr.shape)
             image = arr[:]
             return image, input_voxel_size, input_translation
 
@@ -169,11 +190,13 @@ class MatchedCrop:
             # zarr.open on an array path usually returns an Array, not Group. If we got Group, pick a level.
             key, vs, tr = self._select_non_ome_level(ds)
             arr = ds[key]
+            self._check_size_ratio(arr.shape)
             image = arr[:]
             return image, vs, tr
 
         # Single-scale zarr array
         if isinstance(ds, zarr.Array):
+            self._check_size_ratio(ds.shape)
             image = ds[:]
             return image, _parse_voxel_size(ds.attrs), _parse_translation(ds.attrs)
 
@@ -183,11 +206,11 @@ class MatchedCrop:
         """
         Return full aligned volume in target space (target_shape).
         """
-        image, input_voxel_size, input_translation = self._load_source_array()
-
         tgt_vs = np.asarray(self.target_voxel_size, dtype=float)
         tgt_shape = tuple(int(x) for x in self.target_shape)
         tgt_tr = np.asarray(self.target_translation, dtype=float)
+
+        image, input_voxel_size, input_translation = self._load_source_array()
 
         # Resample if needed
         if input_voxel_size is not None:
