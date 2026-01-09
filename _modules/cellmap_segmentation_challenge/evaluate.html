@@ -286,6 +286,7 @@ document.write(`
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">zipfile</span>
 
@@ -296,6 +297,7 @@ document.write(`
 <span class="kn">import</span><span class="w"> </span><span class="nn">cc3d</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cc3d.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">StatisticsDict</span><span class="p">,</span> <span class="n">StatisticsSlicesDict</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">zarr.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">PathNotFoundError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">accuracy_score</span><span class="p">,</span> <span class="n">jaccard_score</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">upath</span><span class="w"> </span><span class="kn">import</span> <span class="n">UPath</span>
@@ -971,6 +973,23 @@ document.write(`
 
 
 
+<div class="viewcode-block" id="ensure_zgroup">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.ensure_zgroup">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ensure_zgroup</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">UPath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">zarr</span><span class="o">.</span><span class="n">Group</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ensure that the given path can be opened as a zarr Group. If a .zgroup is not present, add it.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">PathNotFoundError</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Path </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> is not a directory.&quot;</span><span class="p">)</span>
+        <span class="c1"># Add a .zgroup file to force Zarr-2 format</span>
+        <span class="p">(</span><span class="n">path</span> <span class="o">/</span> <span class="s2">&quot;.zgroup&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="s1">&#39;{&quot;zarr_format&quot;: 2}&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span></div>
+
+
+
 <div class="viewcode-block" id="get_evaluation_args">
 <a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.get_evaluation_args">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_evaluation_args</span><span class="p">(</span>
@@ -978,7 +997,7 @@ document.write(`
     <span class="n">submission_path</span><span class="p">,</span>
     <span class="n">truth_path</span><span class="o">=</span><span class="n">TRUTH_PATH</span><span class="p">,</span>
     <span class="n">instance_classes</span><span class="o">=</span><span class="n">INSTANCE_CLASSES</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get the arguments for scoring each label in the submission.</span>
 <span class="sd">    Args:</span>
@@ -999,14 +1018,10 @@ document.write(`
         <span class="n">truth_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span>
 
         <span class="c1"># Find labels to score</span>
-        <span class="n">pred_labels</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">pred_volume_path</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">array_keys</span><span class="p">()</span>
-        <span class="p">]</span>
+        <span class="n">pred_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">ensure_zgroup</span><span class="p">(</span><span class="n">pred_volume_path</span><span class="p">)</span><span class="o">.</span><span class="n">array_keys</span><span class="p">()]</span>
 
         <span class="n">crop_name</span> <span class="o">=</span> <span class="n">pred_volume_path</span><span class="o">.</span><span class="n">name</span>
-        <span class="n">truth_labels</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">((</span><span class="n">truth_path</span> <span class="o">/</span> <span class="n">crop_name</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">array_keys</span><span class="p">()</span>
-        <span class="p">]</span>
+        <span class="n">truth_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">ensure_zgroup</span><span class="p">(</span><span class="n">truth_path</span> <span class="o">/</span> <span class="n">crop_name</span><span class="p">)</span><span class="o">.</span><span class="n">array_keys</span><span class="p">()]</span>
 
         <span class="n">found_labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">pred_labels</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">truth_labels</span><span class="p">))</span>
         <span class="n">missing_labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">truth_labels</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">pred_labels</span><span class="p">))</span>
@@ -1034,7 +1049,7 @@ document.write(`
 <a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.missing_volume_score">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">missing_volume_score</span><span class="p">(</span>
     <span class="n">truth_volume_path</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">INSTANCE_CLASSES</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Score a missing volume as 0&#39;s, congruent with the score_volume function.</span>
 
@@ -1051,7 +1066,7 @@ document.write(`
     <span class="n">truth_volume_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">truth_volume_path</span><span class="p">)</span>
 
     <span class="c1"># Find labels to score</span>
-    <span class="n">truth_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">truth_volume_path</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">array_keys</span><span class="p">()]</span>
+    <span class="n">truth_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">ensure_zgroup</span><span class="p">(</span><span class="n">truth_volume_path</span><span class="p">)</span><span class="o">.</span><span class="n">array_keys</span><span class="p">()]</span>
 
     <span class="c1"># Score each label</span>
     <span class="n">scores</span> <span class="o">=</span> <span class="p">{</span>
@@ -1183,6 +1198,82 @@ document.write(`
 
 
 
+<div class="viewcode-block" id="ensure_valid_submission">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.ensure_valid_submission">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ensure_valid_submission</span><span class="p">(</span><span class="n">submission_path</span><span class="p">:</span> <span class="n">UPath</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ensure that the unzipped submission path is a valid Zarr-2 file.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        submission_path (str): The path to the unzipped submission Zarr-2 file.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If the submission is not a valid unzipped Zarr-2 file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">zarr_group</span><span class="p">,</span> <span class="n">zarr</span><span class="o">.</span><span class="n">Group</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Submission at </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2"> is not a valid unzipped Zarr-2 file.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">zarr_group</span><span class="p">,</span> <span class="n">zarr</span><span class="o">.</span><span class="n">Group</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="c1"># See if a Zarr was incorrectly zipped inside other folder(s)</span>
+        <span class="c1"># If so, move contents from .zarr folder to submission_path and warn user</span>
+        <span class="n">zarr_folders</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">submission_path</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;**/*.zarr&quot;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">zarr_folders</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Try forcing Zarr-2 format by adding .zgroup if missing</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">ensure_zgroup</span><span class="p">(</span><span class="n">submission_path</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Submission at </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2"> did not contain a .zgroup file. Added one to force Zarr-2 format.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Submission at </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2"> is not a valid unzipped Zarr-2 file.&quot;</span>
+                <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e2</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">zarr_folders</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">zarr_folder</span> <span class="o">=</span> <span class="n">zarr_folders</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Submission at </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2"> contains a Zarr folder inside subfolder(s) at </span><span class="si">{</span><span class="n">zarr_folder</span><span class="si">}</span><span class="s2">. Moving contents to the root submission folder.&quot;</span>
+            <span class="p">)</span>
+            <span class="c1"># Move contents of zarr_folder to submission_path</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">zarr_folder</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
+                <span class="n">target</span> <span class="o">=</span> <span class="n">submission_path</span> <span class="o">/</span> <span class="n">item</span><span class="o">.</span><span class="n">name</span>
+                <span class="k">if</span> <span class="n">target</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">target</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+                        <span class="n">target</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">submission_path</span><span class="p">))</span>
+            <span class="c1"># Remove empty folders</span>
+            <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">zarr_folder</span><span class="o">.</span><span class="n">parents</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">parent</span> <span class="o">==</span> <span class="n">submission_path</span><span class="p">:</span>
+                    <span class="k">break</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">parent</span><span class="o">.</span><span class="n">rmdir</span><span class="p">()</span>
+                <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="s2">&quot;Failed to remove directory </span><span class="si">%s</span><span class="s2"> while cleaning nested Zarr submission: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="n">parent</span><span class="p">,</span>
+                        <span class="n">exc</span><span class="p">,</span>
+                    <span class="p">)</span>
+            <span class="c1"># Try opening again</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">ensure_zgroup</span><span class="p">(</span><span class="n">submission_path</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Submission at </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2"> did not contain a .zgroup file. Added one to force Zarr-2 format.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Submission at </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2"> is not a valid unzipped Zarr-2 file.&quot;</span>
+                <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e2</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">zarr_folders</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Submission at </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2"> contains multiple Zarr folders. Please ensure only one Zarr-2 file is submitted.&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+
+
+
 <div class="viewcode-block" id="score_submission">
 <a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.score_submission">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">score_submission</span><span class="p">(</span>
@@ -1248,6 +1339,7 @@ document.write(`
 
     <span class="c1"># Find volumes to score</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scoring volumes in </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+    <span class="n">ensure_valid_submission</span><span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">submission_path</span><span class="p">))</span>
     <span class="n">pred_volumes</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">UPath</span><span class="p">(</span><span class="n">submission_path</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()]</span>
     <span class="n">truth_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Volumes: </span><span class="si">{</span><span class="n">pred_volumes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>

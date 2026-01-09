@@ -342,9 +342,11 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.score_semantic"><code class="docutils literal notranslate"><span class="pre">score_semantic()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.score_label"><code class="docutils literal notranslate"><span class="pre">score_label()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.empty_label_score"><code class="docutils literal notranslate"><span class="pre">empty_label_score()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.ensure_zgroup"><code class="docutils literal notranslate"><span class="pre">ensure_zgroup()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.get_evaluation_args"><code class="docutils literal notranslate"><span class="pre">get_evaluation_args()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.missing_volume_score"><code class="docutils literal notranslate"><span class="pre">missing_volume_score()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.combine_scores"><code class="docutils literal notranslate"><span class="pre">combine_scores()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.ensure_valid_submission"><code class="docutils literal notranslate"><span class="pre">ensure_valid_submission()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.score_submission"><code class="docutils literal notranslate"><span class="pre">score_submission()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.num_evals_done"><code class="docutils literal notranslate"><span class="pre">num_evals_done()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.sanitize_scores"><code class="docutils literal notranslate"><span class="pre">sanitize_scores()</span></code></a></li>
@@ -967,8 +969,22 @@ and builds masks only inside ROI.</p>
 <dd></dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.ensure_zgroup">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">ensure_zgroup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">UPath</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Group</span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#ensure_zgroup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.ensure_zgroup" title="Link to this definition">#</a></dt>
+<dd><p>Ensure that the given path can be opened as a zarr Group. If a .zgroup is not present, add it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>UPath</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Group</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.get_evaluation_args">
-<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">get_evaluation_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">volumes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">submission_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">truth_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/data/ground_truth.zarr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['nuc',</span> <span class="pre">'vim',</span> <span class="pre">'ves',</span> <span class="pre">'endo',</span> <span class="pre">'lyso',</span> <span class="pre">'ld',</span> <span class="pre">'perox',</span> <span class="pre">'mito',</span> <span class="pre">'np',</span> <span class="pre">'mt',</span> <span class="pre">'cell',</span> <span class="pre">'instance']</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#get_evaluation_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.get_evaluation_args" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">get_evaluation_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">volumes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">submission_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">truth_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/data/ground_truth.zarr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['nuc',</span> <span class="pre">'vim',</span> <span class="pre">'ves',</span> <span class="pre">'endo',</span> <span class="pre">'lyso',</span> <span class="pre">'ld',</span> <span class="pre">'perox',</span> <span class="pre">'mito',</span> <span class="pre">'np',</span> <span class="pre">'mt',</span> <span class="pre">'cell',</span> <span class="pre">'instance']</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#get_evaluation_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.get_evaluation_args" title="Link to this definition">#</a></dt>
 <dd><p>Get the arguments for scoring each label in the submission.
 :param volumes: A list of volumes to score.
 :type volumes: list
@@ -983,14 +999,14 @@ and builds masks only inside ROI.</p>
 <dd class="field-odd"><p>A list of tuples containing the arguments for each label to be scored.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>dict[str, dict[str, float]]</p>
+<dd class="field-even"><p>list[tuple]</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.missing_volume_score">
-<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">missing_volume_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">truth_volume_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['nuc',</span> <span class="pre">'vim',</span> <span class="pre">'ves',</span> <span class="pre">'endo',</span> <span class="pre">'lyso',</span> <span class="pre">'ld',</span> <span class="pre">'perox',</span> <span class="pre">'mito',</span> <span class="pre">'np',</span> <span class="pre">'mt',</span> <span class="pre">'cell',</span> <span class="pre">'instance']</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#missing_volume_score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.missing_volume_score" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">missing_volume_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">truth_volume_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['nuc',</span> <span class="pre">'vim',</span> <span class="pre">'ves',</span> <span class="pre">'endo',</span> <span class="pre">'lyso',</span> <span class="pre">'ld',</span> <span class="pre">'perox',</span> <span class="pre">'mito',</span> <span class="pre">'np',</span> <span class="pre">'mt',</span> <span class="pre">'cell',</span> <span class="pre">'instance']</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#missing_volume_score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.missing_volume_score" title="Link to this definition">#</a></dt>
 <dd><p>Score a missing volume as 0’s, congruent with the score_volume function.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1031,6 +1047,20 @@ and builds masks only inside ROI.</p>
 </dl>
 <dl class="simple">
 <dt>Example usage:</dt><dd><p>combined_scores = combine_scores(scores)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.ensure_valid_submission">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">ensure_valid_submission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">submission_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">UPath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/evaluate.html#ensure_valid_submission"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.ensure_valid_submission" title="Link to this definition">#</a></dt>
+<dd><p>Ensure that the unzipped submission path is a valid Zarr-2 file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>submission_path</strong> (<em>str</em>) – The path to the unzipped submission Zarr-2 file.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the submission is not a valid unzipped Zarr-2 file.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1625,9 +1655,11 @@ The process function should take an array as input and return an array as output
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.score_semantic"><code class="docutils literal notranslate"><span class="pre">score_semantic()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.score_label"><code class="docutils literal notranslate"><span class="pre">score_label()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.empty_label_score"><code class="docutils literal notranslate"><span class="pre">empty_label_score()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.ensure_zgroup"><code class="docutils literal notranslate"><span class="pre">ensure_zgroup()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.get_evaluation_args"><code class="docutils literal notranslate"><span class="pre">get_evaluation_args()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.missing_volume_score"><code class="docutils literal notranslate"><span class="pre">missing_volume_score()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.combine_scores"><code class="docutils literal notranslate"><span class="pre">combine_scores()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.ensure_valid_submission"><code class="docutils literal notranslate"><span class="pre">ensure_valid_submission()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.score_submission"><code class="docutils literal notranslate"><span class="pre">score_submission()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.num_evals_done"><code class="docutils literal notranslate"><span class="pre">num_evals_done()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.sanitize_scores"><code class="docutils literal notranslate"><span class="pre">sanitize_scores()</span></code></a></li>
