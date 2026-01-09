@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import shutil
 from time import time
 import zipfile
 
@@ -11,6 +12,7 @@ from fastremap import remap, unique
 import cc3d
 from cc3d.types import StatisticsDict, StatisticsSlicesDict
 
+from zarr.errors import PathNotFoundError
 from sklearn.metrics import accuracy_score, jaccard_score
 from tqdm import tqdm
 from upath import UPath
@@ -653,12 +655,26 @@ def empty_label_score(
         }
 
 
+def ensure_zgroup(path: UPath) -> zarr.Group:
+    """
+    Ensure that the given path can be opened as a zarr Group. If a .zgroup is not present, add it.
+    """
+    try:
+        return zarr.open(path.path, mode="r")
+    except PathNotFoundError:
+        if not path.is_dir():
+            raise ValueError(f"Path {path} is not a directory.")
+        # Add a .zgroup file to force Zarr-2 format
+        (path / ".zgroup").write_text('{"zarr_format": 2}')
+        return zarr.open(path.path, mode="r")
+
+
 def get_evaluation_args(
     volumes,
     submission_path,
     truth_path=TRUTH_PATH,
     instance_classes=INSTANCE_CLASSES,
-) -> dict[str, dict[str, float]]:
+) -> list[tuple]:
     """
     Get the arguments for scoring each label in the submission.
     Args:
@@ -679,14 +695,10 @@ def get_evaluation_args(
         truth_path = UPath(truth_path)
 
         # Find labels to score
-        pred_labels = [
-            a for a in zarr.open(pred_volume_path.path, mode="r").array_keys()
-        ]
+        pred_labels = [a for a in ensure_zgroup(pred_volume_path).array_keys()]
 
         crop_name = pred_volume_path.name
-        truth_labels = [
-            a for a in zarr.open((truth_path / crop_name).path, mode="r").array_keys()
-        ]
+        truth_labels = [a for a in ensure_zgroup(truth_path / crop_name).array_keys()]
 
         found_labels = list(set(pred_labels) & set(truth_labels))
         missing_labels = list(set(truth_labels) - set(pred_labels))
@@ -711,7 +723,7 @@ def get_evaluation_args(
 
 def missing_volume_score(
     truth_volume_path, instance_classes=INSTANCE_CLASSES
-) -> dict[str, dict[str, float]]:
+) -> list[tuple]:
     """
     Score a missing volume as 0's, congruent with the score_volume function.
 
@@ -728,7 +740,7 @@ def missing_volume_score(
     truth_volume_path = UPath(truth_volume_path)
 
     # Find labels to score
-    truth_labels = [a for a in zarr.open(truth_volume_path.path, mode="r").array_keys()]
+    truth_labels = [a for a in ensure_zgroup(truth_volume_path).array_keys()]
 
     # Score each label
     scores = {
@@ -856,6 +868,79 @@ def combine_scores(
     return scores
 
 
+def ensure_valid_submission(submission_path: UPath):
+    """
+    Ensure that the unzipped submission path is a valid Zarr-2 file.
+
+    Args:
+        submission_path (str): The path to the unzipped submission Zarr-2 file.
+
+    Raises:
+        ValueError: If the submission is not a valid unzipped Zarr-2 file.
+    """
+    try:
+        if not isinstance(zarr_group, zarr.Group):
+            raise ValueError(
+                f"Submission at {submission_path} is not a valid unzipped Zarr-2 file."
+            )
+        assert isinstance(zarr_group, zarr.Group)
+    except Exception as e:
+        # See if a Zarr was incorrectly zipped inside other folder(s)
+        # If so, move contents from .zarr folder to submission_path and warn user
+        zarr_folders = list(submission_path.glob("**/*.zarr"))
+        if len(zarr_folders) == 0:
+            # Try forcing Zarr-2 format by adding .zgroup if missing
+            try:
+                ensure_zgroup(submission_path)
+                logging.warning(
+                    f"Submission at {submission_path} did not contain a .zgroup file. Added one to force Zarr-2 format."
+                )
+            except Exception as e2:
+                raise ValueError(
+                    f"Submission at {submission_path} is not a valid unzipped Zarr-2 file."
+                ) from e2
+        elif len(zarr_folders) == 1:
+            zarr_folder = zarr_folders[0]
+            logging.warning(
+                f"Submission at {submission_path} contains a Zarr folder inside subfolder(s) at {zarr_folder}. Moving contents to the root submission folder."
+            )
+            # Move contents of zarr_folder to submission_path
+            for item in zarr_folder.iterdir():
+                target = submission_path / item.name
+                if target.exists():
+                    if target.is_file():
+                        target.unlink()
+                    else:
+                        shutil.rmtree(target)
+                shutil.move(str(item), str(submission_path))
+            # Remove empty folders
+            for parent in zarr_folder.parents:
+                if parent == submission_path:
+                    break
+                try:
+                    parent.rmdir()
+                except OSError as exc:
+                    logging.warning(
+                        "Failed to remove directory %s while cleaning nested Zarr submission: %s",
+                        parent,
+                        exc,
+                    )
+            # Try opening again
+            try:
+                ensure_zgroup(submission_path)
+                logging.warning(
+                    f"Submission at {submission_path} did not contain a .zgroup file. Added one to force Zarr-2 format."
+                )
+            except Exception as e2:
+                raise ValueError(
+                    f"Submission at {submission_path} is not a valid unzipped Zarr-2 file."
+                ) from e2
+        elif len(zarr_folders) > 1:
+            raise ValueError(
+                f"Submission at {submission_path} contains multiple Zarr folders. Please ensure only one Zarr-2 file is submitted."
+            ) from e
+
+
 def score_submission(
     submission_path=UPath(SUBMISSION_PATH).with_suffix(".zip").path,
     result_file=None,
@@ -919,6 +1004,7 @@ def score_submission(
 
     # Find volumes to score
     logging.info(f"Scoring volumes in {submission_path}...")
+    ensure_valid_submission(UPath(submission_path))
     pred_volumes = [d.name for d in UPath(submission_path).glob("*") if d.is_dir()]
     truth_path = UPath(truth_path)
     logging.info(f"Volumes: {pred_volumes}")
