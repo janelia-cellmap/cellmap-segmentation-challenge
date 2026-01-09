@@ -286,6 +286,7 @@ document.write(`
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">zarr</span>
@@ -296,6 +297,11 @@ document.write(`
 
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1"># Maximum allowed size ratio between source and target arrays</span>
+<span class="c1"># Can be set via environment variable for flexibility</span>
+<span class="c1"># Default is 8x in each dimension (512x total volume size ratio)</span>
+<span class="n">MAX_VOLUME_SIZE_RATIO</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;MAX_VOLUME_SIZE_RATIO&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="o">**</span><span class="mi">3</span><span class="p">))</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_attr_any</span><span class="p">(</span><span class="n">attrs</span><span class="p">,</span> <span class="n">keys</span><span class="p">):</span>
@@ -413,6 +419,20 @@ document.write(`
         <span class="k">assert</span> <span class="n">best_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="n">best_key</span><span class="p">,</span> <span class="n">best_vs</span><span class="p">,</span> <span class="n">best_tr</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">_check_size_ratio</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]):</span>
+        <span class="n">tgt_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_shape</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tgt_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Invalid target shape </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_shape</span><span class="p">)</span><span class="si">}</span><span class="s2">: product of dimensions is zero.&quot;</span>
+            <span class="p">)</span>
+        <span class="n">src_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">source_shape</span><span class="p">)</span>
+        <span class="n">ratio</span> <span class="o">=</span> <span class="n">src_size</span> <span class="o">/</span> <span class="n">tgt_size</span>
+        <span class="k">if</span> <span class="n">ratio</span> <span class="o">&gt;</span> <span class="n">MAX_VOLUME_SIZE_RATIO</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Source array at </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2"> is too large compared to target shape: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;source size </span><span class="si">{</span><span class="n">src_size</span><span class="si">}</span><span class="s2">, target size </span><span class="si">{</span><span class="n">tgt_size</span><span class="si">}</span><span class="s2">, ratio </span><span class="si">{</span><span class="n">ratio</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> &gt; </span><span class="si">{</span><span class="n">MAX_VOLUME_SIZE_RATIO</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">_load_source_array</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns (image, input_voxel_size, input_translation)</span>
@@ -447,6 +467,7 @@ document.write(`
                     <span class="k">break</span>
 
             <span class="n">arr</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">level_path</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_check_size_ratio</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
             <span class="n">image</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[:]</span>
             <span class="k">return</span> <span class="n">image</span><span class="p">,</span> <span class="n">input_voxel_size</span><span class="p">,</span> <span class="n">input_translation</span>
 
@@ -456,11 +477,13 @@ document.write(`
             <span class="c1"># zarr.open on an array path usually returns an Array, not Group. If we got Group, pick a level.</span>
             <span class="n">key</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">tr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_non_ome_level</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
             <span class="n">arr</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_check_size_ratio</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
             <span class="n">image</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[:]</span>
             <span class="k">return</span> <span class="n">image</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">tr</span>
 
         <span class="c1"># Single-scale zarr array</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">zarr</span><span class="o">.</span><span class="n">Array</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_check_size_ratio</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
             <span class="n">image</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[:]</span>
             <span class="k">return</span> <span class="n">image</span><span class="p">,</span> <span class="n">_parse_voxel_size</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">),</span> <span class="n">_parse_translation</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span>
 
@@ -472,11 +495,11 @@ document.write(`
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return full aligned volume in target space (target_shape).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">image</span><span class="p">,</span> <span class="n">input_voxel_size</span><span class="p">,</span> <span class="n">input_translation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_source_array</span><span class="p">()</span>
-
         <span class="n">tgt_vs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_voxel_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
         <span class="n">tgt_shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_shape</span><span class="p">)</span>
         <span class="n">tgt_tr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_translation</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="n">image</span><span class="p">,</span> <span class="n">input_voxel_size</span><span class="p">,</span> <span class="n">input_translation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_source_array</span><span class="p">()</span>
 
         <span class="c1"># Resample if needed</span>
         <span class="k">if</span> <span class="n">input_voxel_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
