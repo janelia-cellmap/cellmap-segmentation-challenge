@@ -41,8 +41,19 @@ def fetch_manifest(
             content = src.read()
             if not content:
                 raise ValueError("Downloaded manifest is empty.")
-        with open(local_path, "wb") as dst:
-            dst.write(content)
+        # Only write if content differs from existing file
+        write_content = True
+        if local_path.exists():
+            try:
+                with open(local_path, "rb") as existing:
+                    existing_content = existing.read()
+                if existing_content == content:
+                    write_content = False
+            except Exception:
+                pass
+        if write_content:
+            with open(local_path, "wb") as dst:
+                dst.write(content)
     except Exception:
         if local_path.exists():
             print(
