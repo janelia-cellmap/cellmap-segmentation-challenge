@@ -45,6 +45,8 @@ def normalize_distance(distance: float, voxel_size) -> float:
     """
     Normalize a distance value to [0, 1] using the maximum distance represented by a voxel
     """
+    if distance == np.inf:
+        return 0.0
     return float((1.01 ** (-distance / np.linalg.norm(voxel_size))))
 
 
@@ -72,12 +74,15 @@ def match_instances(gt: np.ndarray, pred: np.ndarray) -> dict | None:
     nP = int(p.max()) if p.size else 0
 
     # Early exits
-    if nG == 0 or nP == 0:
+    if (nG == 0 and nP > 0) or (nP == 0 and nG > 0):
         if nG == 0 and nP > 0:
             logging.info("No GT instances; returning empty match.")
         if nP == 0 and nG > 0:
             logging.info("No Pred instances; returning empty match.")
         return {}
+    elif nG == 0 and nP == 0:
+        logging.info("No GT or Pred instances; returning only background match.")
+        return {0: 0}
 
     if (nP / nG) > INSTANCE_RATIO_CUTOFF:
         logging.warning(
@@ -473,8 +478,10 @@ def score_instance(
             "normalized_hausdorff_distance": 0,
             "combined_score": 0,
         }
+    elif len(mapping) == 1 and 0 in mapping:
+        # Only background present in both ground truth and prediction
+        hausdorff_distances = [0.0]
     elif len(mapping) > 0:
-        mapping[0] = 0  # background maps to background
         # Construct the volume for the matched instances
         mapping[0] = 0  # background maps to background
         pred_label = remap(
@@ -485,13 +492,18 @@ def score_instance(
             truth_label, pred_label, voxel_size, hausdorff_distance_max
         )
     else:
-        # No predictions to match
+        # No predictions to match (no GT XOR no Pred instances)
         hausdorff_distances = []
 
     # Compute the scores
     logging.info("Computing accuracy score...")
     accuracy = accuracy_score(truth_label.ravel(), pred_label.ravel())
-    hausdorff_dist = np.mean(hausdorff_distances) if len(hausdorff_distances) > 0 else 0
+    # When there are no Hausdorff distances, use np.inf so that
+    # normalize_distance(hausdorff_dist, voxel_size) returns 0.0. This encodes
+    # the absence of matched instances and ensures the combined_score is 0.0.
+    hausdorff_dist = (
+        np.mean(hausdorff_distances) if len(hausdorff_distances) > 0 else np.inf
+    )
     normalized_hausdorff_dist = normalize_distance(hausdorff_dist, voxel_size)
     combined_score = (accuracy * normalized_hausdorff_dist) ** 0.5  # geometric mean
     logging.info(f"Accuracy: {accuracy:.4f}")
@@ -527,8 +539,8 @@ def score_semantic(pred_label, truth_label) -> dict[str, float]:
 
     # Compute the scores
     if np.sum(truth_label + pred_label) == 0:
-        # If there are no true positives, set the scores to 1
-        logging.debug("No true positives found. Setting scores to 1.")
+        # If there are no true or false positives, set the scores to 1
+        logging.debug("No true or false positives found. Setting scores to 1.")
         dice_score = 1
         iou_score = 1
     else:
