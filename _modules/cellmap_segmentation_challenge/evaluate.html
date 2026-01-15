@@ -284,6 +284,7 @@ document.write(`
                   
   <h1>Source code for cellmap_segmentation_challenge.evaluate</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">gc</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
@@ -293,12 +294,13 @@ document.write(`
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">zarr</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial.distance</span><span class="w"> </span><span class="kn">import</span> <span class="n">dice</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.ndimage</span><span class="w"> </span><span class="kn">import</span> <span class="n">distance_transform_edt</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fastremap</span><span class="w"> </span><span class="kn">import</span> <span class="n">remap</span><span class="p">,</span> <span class="n">unique</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">cc3d</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cc3d.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">StatisticsDict</span><span class="p">,</span> <span class="n">StatisticsSlicesDict</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">zarr.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">PathNotFoundError</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">accuracy_score</span><span class="p">,</span> <span class="n">jaccard_score</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">jaccard_score</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">upath</span><span class="w"> </span><span class="kn">import</span> <span class="n">UPath</span>
 
@@ -553,12 +555,16 @@ document.write(`
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
     <span class="n">voxel_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">truth_stats</span> <span class="o">=</span> <span class="n">cc3d</span><span class="o">.</span><span class="n">statistics</span><span class="p">(</span><span class="n">truth_label</span><span class="p">)</span>
+    <span class="n">pred_stats</span> <span class="o">=</span> <span class="n">cc3d</span><span class="o">.</span><span class="n">statistics</span><span class="p">(</span><span class="n">pred_label</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_distance</span><span class="p">(</span><span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="n">tid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
         <span class="n">h_dist</span> <span class="o">=</span> <span class="n">compute_hausdorff_distance_roi</span><span class="p">(</span>
             <span class="n">truth_label</span><span class="p">,</span>
+            <span class="n">truth_stats</span><span class="p">,</span>
             <span class="n">pred_label</span><span class="p">,</span>
+            <span class="n">pred_stats</span><span class="p">,</span>
             <span class="n">tid</span><span class="p">,</span>
             <span class="n">voxel_size</span><span class="p">,</span>
             <span class="n">hausdorff_distance_max</span><span class="p">,</span>
@@ -582,11 +588,11 @@ document.write(`
 
 
 
-<div class="viewcode-block" id="bbox_for_label_cc3d">
-<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.bbox_for_label_cc3d">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">bbox_for_label_cc3d</span><span class="p">(</span>
+<div class="viewcode-block" id="bbox_for_label">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.bbox_for_label">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">bbox_for_label</span><span class="p">(</span>
     <span class="n">stats</span><span class="p">:</span> <span class="n">StatisticsDict</span> <span class="o">|</span> <span class="n">StatisticsSlicesDict</span><span class="p">,</span>
-    <span class="n">label_vol</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">ndim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">label_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -594,55 +600,52 @@ document.write(`
 <span class="sd">    Falls back to mask-based bbox if cc3d doesn&#39;t provide expected fields.</span>
 <span class="sd">    Returns (mins, maxs) inclusive-exclusive in voxel indices, or None if missing.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="c1"># stats = cc3d.statistics(label_vol)</span>
-        <span class="c1"># cc3d.statistics usually returns dict-like with keys per label id.</span>
-        <span class="c1"># There are multiple API variants; try common patterns.</span>
-        <span class="k">if</span> <span class="s2">&quot;bounding_boxes&quot;</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">:</span>
-            <span class="n">bb</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;bounding_boxes&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">label_id</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">bb</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">return</span> <span class="kc">None</span>
-            <span class="c1"># bb might be (z0,z1,y0,y1,x0,x1) with end exclusive</span>
-            <span class="n">ndim</span> <span class="o">=</span> <span class="n">label_vol</span><span class="o">.</span><span class="n">ndim</span>
+    <span class="c1"># stats = cc3d.statistics(label_vol)</span>
+    <span class="c1"># cc3d.statistics usually returns dict-like with keys per label id.</span>
+    <span class="c1"># There are multiple API variants; try common patterns.</span>
+    <span class="k">if</span> <span class="s2">&quot;bounding_boxes&quot;</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">:</span>
+        <span class="c1"># bounding_boxes is a list where index corresponds to label_id</span>
+        <span class="n">bounding_boxes</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;bounding_boxes&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">label_id</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bounding_boxes</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">bb</span> <span class="o">=</span> <span class="n">bounding_boxes</span><span class="p">[</span><span class="n">label_id</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">bb</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="c1"># bb is a tuple of slices, convert to (mins, maxs)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bb</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">slice</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">bb</span><span class="p">):</span>
+            <span class="n">mins</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">start</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">bb</span><span class="p">]</span>
+            <span class="n">maxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">stop</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">bb</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">mins</span><span class="p">,</span> <span class="n">maxs</span>
+        <span class="c1"># bb might be (z0,z1,y0,y1,x0,x1) with end exclusive</span>
+        <span class="n">mins</span> <span class="o">=</span> <span class="p">[</span><span class="n">bb</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndim</span><span class="p">)]</span>
+        <span class="n">maxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">bb</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndim</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">mins</span><span class="p">,</span> <span class="n">maxs</span>
+
+    <span class="k">if</span> <span class="n">label_id</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="n">label_id</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;bounding_box&quot;</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+            <span class="n">bb</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s2">&quot;bounding_box&quot;</span><span class="p">]</span>
             <span class="n">mins</span> <span class="o">=</span> <span class="p">[</span><span class="n">bb</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndim</span><span class="p">)]</span>
             <span class="n">maxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">bb</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndim</span><span class="p">)]</span>
-            <span class="k">return</span> <span class="n">mins</span><span class="p">,</span> <span class="n">maxs</span>
-
-        <span class="k">if</span> <span class="n">label_id</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">:</span>
-            <span class="n">s</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="n">label_id</span><span class="p">]</span>
-            <span class="k">if</span> <span class="s2">&quot;bounding_box&quot;</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
-                <span class="n">bb</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s2">&quot;bounding_box&quot;</span><span class="p">]</span>
-                <span class="n">ndim</span> <span class="o">=</span> <span class="n">label_vol</span><span class="o">.</span><span class="n">ndim</span>
-                <span class="n">mins</span> <span class="o">=</span> <span class="p">[</span><span class="n">bb</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndim</span><span class="p">)]</span>
-                <span class="n">maxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">bb</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndim</span><span class="p">)]</span>
-                <span class="k">return</span> <span class="n">mins</span><span class="p">,</span> <span class="n">maxs</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-        <span class="k">pass</span>
-
-    <span class="c1"># Fallback: mask-based (allocates a temporary bool)</span>
-    <span class="n">coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">label_vol</span> <span class="o">==</span> <span class="n">label_id</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span>
-    <span class="n">mins</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">]</span>
-    <span class="n">maxs</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">mins</span><span class="p">,</span> <span class="n">maxs</span></div>
+            <span class="k">return</span> <span class="n">mins</span><span class="p">,</span> <span class="n">maxs</span></div>
 
 
 
 <div class="viewcode-block" id="roi_slices_for_pair">
 <a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.roi_slices_for_pair">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">roi_slices_for_pair</span><span class="p">(</span>
-    <span class="n">truth_label</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-    <span class="n">pred_label</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">truth_stats</span><span class="p">:</span> <span class="n">StatisticsDict</span> <span class="o">|</span> <span class="n">StatisticsSlicesDict</span><span class="p">,</span>
+    <span class="n">pred_stats</span><span class="p">:</span> <span class="n">StatisticsDict</span> <span class="o">|</span> <span class="n">StatisticsSlicesDict</span><span class="p">,</span>
     <span class="n">tid</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">voxel_size</span><span class="p">,</span>
+    <span class="n">ndim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
     <span class="n">max_distance</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    ROI = union(bbox(truth==tid), bbox(pred==tid)) padded by P derived from max_distance.</span>
 <span class="sd">    Returns tuple of slices suitable for numpy indexing.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">ndim</span> <span class="o">=</span> <span class="n">truth_label</span><span class="o">.</span><span class="n">ndim</span>
     <span class="n">vs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">vs</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">ndim</span><span class="p">:</span>
         <span class="c1"># tolerate vs longer (e.g. includes channel), take last ndim</span>
@@ -651,14 +654,12 @@ document.write(`
     <span class="c1"># padding per axis in voxels</span>
     <span class="n">pad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">max_distance</span> <span class="o">/</span> <span class="n">vs</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span>
 
-    <span class="n">truth_stats</span> <span class="o">=</span> <span class="n">cc3d</span><span class="o">.</span><span class="n">statistics</span><span class="p">(</span><span class="n">truth_label</span><span class="p">)</span>
-    <span class="n">tb</span> <span class="o">=</span> <span class="n">bbox_for_label_cc3d</span><span class="p">(</span><span class="n">truth_stats</span><span class="p">,</span> <span class="n">truth_label</span><span class="p">,</span> <span class="n">tid</span><span class="p">)</span>
+    <span class="n">tb</span> <span class="o">=</span> <span class="n">bbox_for_label</span><span class="p">(</span><span class="n">truth_stats</span><span class="p">,</span> <span class="n">ndim</span><span class="p">,</span> <span class="n">tid</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">tb</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># should not happen for tid from truth_ids</span>
 
     <span class="n">tmins</span><span class="p">,</span> <span class="n">tmaxs</span> <span class="o">=</span> <span class="n">tb</span>
-    <span class="n">pred_stats</span> <span class="o">=</span> <span class="n">cc3d</span><span class="o">.</span><span class="n">statistics</span><span class="p">(</span><span class="n">pred_label</span><span class="p">)</span>
-    <span class="n">pb</span> <span class="o">=</span> <span class="n">bbox_for_label_cc3d</span><span class="p">(</span><span class="n">pred_stats</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">,</span> <span class="n">tid</span><span class="p">)</span>
+    <span class="n">pb</span> <span class="o">=</span> <span class="n">bbox_for_label</span><span class="p">(</span><span class="n">pred_stats</span><span class="p">,</span> <span class="n">ndim</span><span class="p">,</span> <span class="n">tid</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">pb</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">pmins</span><span class="p">,</span> <span class="n">pmaxs</span> <span class="o">=</span> <span class="n">tmins</span><span class="p">,</span> <span class="n">tmaxs</span>
     <span class="k">else</span><span class="p">:</span>
@@ -668,7 +669,6 @@ document.write(`
     <span class="n">maxs</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">tmaxs</span><span class="p">[</span><span class="n">d</span><span class="p">],</span> <span class="n">pmaxs</span><span class="p">[</span><span class="n">d</span><span class="p">])</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndim</span><span class="p">)]</span>
 
     <span class="c1"># expand and clamp</span>
-    <span class="n">shape</span> <span class="o">=</span> <span class="n">truth_label</span><span class="o">.</span><span class="n">shape</span>
     <span class="n">out_slices</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndim</span><span class="p">):</span>
         <span class="n">a</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">mins</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">pad</span><span class="p">[</span><span class="n">d</span><span class="p">]))</span>
@@ -682,7 +682,9 @@ document.write(`
 <a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.compute_hausdorff_distance_roi">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">compute_hausdorff_distance_roi</span><span class="p">(</span>
     <span class="n">truth_label</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">truth_stats</span><span class="p">:</span> <span class="n">StatisticsDict</span> <span class="o">|</span> <span class="n">StatisticsSlicesDict</span><span class="p">,</span>
     <span class="n">pred_label</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">pred_stats</span><span class="p">:</span> <span class="n">StatisticsDict</span> <span class="o">|</span> <span class="n">StatisticsSlicesDict</span><span class="p">,</span>
     <span class="n">tid</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">voxel_size</span><span class="p">,</span>
     <span class="n">max_distance</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -693,9 +695,17 @@ document.write(`
 <span class="sd">    Same metric as compute_hausdorff_distance(), but operates on an ROI slice</span>
 <span class="sd">    and builds masks only inside ROI.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.ndimage</span><span class="w"> </span><span class="kn">import</span> <span class="n">distance_transform_edt</span>
+    <span class="n">ndim</span> <span class="o">=</span> <span class="n">truth_label</span><span class="o">.</span><span class="n">ndim</span>
 
-    <span class="n">roi</span> <span class="o">=</span> <span class="n">roi_slices_for_pair</span><span class="p">(</span><span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">,</span> <span class="n">tid</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span> <span class="n">max_distance</span><span class="p">)</span>
+    <span class="n">roi</span> <span class="o">=</span> <span class="n">roi_slices_for_pair</span><span class="p">(</span>
+        <span class="n">truth_stats</span><span class="p">,</span>
+        <span class="n">pred_stats</span><span class="p">,</span>
+        <span class="n">tid</span><span class="p">,</span>
+        <span class="n">voxel_size</span><span class="p">,</span>
+        <span class="n">ndim</span><span class="p">,</span>
+        <span class="n">truth_label</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+        <span class="n">max_distance</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">if</span> <span class="n">roi</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">max_distance</span><span class="p">)</span>
 
@@ -712,7 +722,6 @@ document.write(`
     <span class="k">if</span> <span class="n">a_n</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">b_n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">max_distance</span><span class="p">)</span>
 
-    <span class="n">ndim</span> <span class="o">=</span> <span class="n">truth_label</span><span class="o">.</span><span class="n">ndim</span>
     <span class="n">vs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">vs</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">ndim</span><span class="p">:</span>
         <span class="n">vs</span> <span class="o">=</span> <span class="n">vs</span><span class="p">[</span><span class="o">-</span><span class="n">ndim</span><span class="p">:]</span>
@@ -805,7 +814,7 @@ document.write(`
 
     <span class="c1"># Compute the scores</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Computing accuracy score...&quot;</span><span class="p">)</span>
-    <span class="n">accuracy</span> <span class="o">=</span> <span class="n">accuracy_score</span><span class="p">(</span><span class="n">truth_label</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">pred_label</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span>
+    <span class="n">accuracy</span> <span class="o">=</span> <span class="nb">float</span><span class="p">((</span><span class="n">truth_label</span> <span class="o">==</span> <span class="n">pred_label</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
     <span class="c1"># When there are no Hausdorff distances, use np.inf so that</span>
     <span class="c1"># normalize_distance(hausdorff_dist, voxel_size) returns 0.0. This encodes</span>
     <span class="c1"># the absence of matched instances and ensures the combined_score is 0.0.</span>
@@ -926,6 +935,7 @@ document.write(`
         <span class="n">mask</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">mask_path</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)[:]</span>
         <span class="n">pred_label</span> <span class="o">=</span> <span class="n">pred_label</span> <span class="o">*</span> <span class="n">mask</span>
         <span class="n">truth_label</span> <span class="o">=</span> <span class="n">truth_label</span> <span class="o">*</span> <span class="n">mask</span>
+        <span class="k">del</span> <span class="n">mask</span>
 
     <span class="c1"># Compute the scores</span>
     <span class="k">if</span> <span class="n">label_name</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
@@ -942,6 +952,9 @@ document.write(`
     <span class="n">results</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">truth_label</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
     <span class="n">results</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span>
     <span class="n">results</span><span class="p">[</span><span class="s2">&quot;is_missing&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="c1"># drop big arrays before returning</span>
+    <span class="k">del</span> <span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">,</span> <span class="n">truth_label_ds</span>
+    <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">crop_name</span><span class="p">,</span> <span class="n">label_name</span><span class="p">,</span> <span class="n">results</span></div>
 
 
