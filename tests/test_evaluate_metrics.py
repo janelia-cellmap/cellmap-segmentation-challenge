@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 
+import cc3d
 import numpy as np
 import zarr
 from fastremap import unique
@@ -114,8 +115,18 @@ def test_roi_hausdorff_identical_instance_is_zero():
     truth[2, 2] = tid
     pred[2, 2] = tid
 
+    truth_stats = cc3d.statistics(truth)
+    pred_stats = cc3d.statistics(pred)
+
     d = ev.compute_hausdorff_distance_roi(
-        truth, pred, tid, voxel_size=(1.0, 1.0), max_distance=10.0, method="standard"
+        truth,
+        truth_stats,
+        pred,
+        pred_stats,
+        tid,
+        voxel_size=(1.0, 1.0),
+        max_distance=10.0,
+        method="standard",
     )
     assert np.isclose(d, 0.0)
 
@@ -133,9 +144,14 @@ def test_roi_hausdorff_matches_full_reference_standard_and_modified():
     voxel_size = (1.0, 1.0)
     max_distance = 100.0
 
+    truth_stats = cc3d.statistics(truth)
+    pred_stats = cc3d.statistics(pred)
+
     d_roi = ev.compute_hausdorff_distance_roi(
         truth,
+        truth_stats,
         pred,
+        pred_stats,
         tid,
         voxel_size=voxel_size,
         max_distance=max_distance,
@@ -154,7 +170,9 @@ def test_roi_hausdorff_matches_full_reference_standard_and_modified():
 
     d_roi_mod = ev.compute_hausdorff_distance_roi(
         truth,
+        truth_stats,
         pred,
+        pred_stats,
         tid,
         voxel_size=voxel_size,
         max_distance=max_distance,
@@ -188,9 +206,14 @@ def test_roi_hausdorff_percentile_matches_full_reference():
     voxel_size = (1.0, 1.0)
     max_distance = 100.0
 
+    truth_stats = cc3d.statistics(truth)
+    pred_stats = cc3d.statistics(pred)
+
     d_roi = ev.compute_hausdorff_distance_roi(
         truth,
+        truth_stats,
         pred,
+        pred_stats,
         tid,
         voxel_size=voxel_size,
         max_distance=max_distance,
@@ -221,16 +244,32 @@ def test_roi_hausdorff_empty_sets_and_missing_instance():
 
     # present only in truth -> max_distance
     truth[0, 0] = tid
+    truth_stats = cc3d.statistics(truth)
+    pred_stats = cc3d.statistics(pred)
     d1 = ev.compute_hausdorff_distance_roi(
-        truth, pred, tid, voxel_size=voxel_size, max_distance=max_distance
+        truth,
+        truth_stats,
+        pred,
+        pred_stats,
+        tid,
+        voxel_size=voxel_size,
+        max_distance=max_distance,
     )
     assert np.isclose(d1, max_distance)
 
     # present only in pred -> max_distance
     truth[0, 0] = 0
     pred[0, 0] = tid
+    truth_stats = cc3d.statistics(truth)
+    pred_stats = cc3d.statistics(pred)
     d2 = ev.compute_hausdorff_distance_roi(
-        truth, pred, tid, voxel_size=voxel_size, max_distance=max_distance
+        truth,
+        truth_stats,
+        pred,
+        pred_stats,
+        tid,
+        voxel_size=voxel_size,
+        max_distance=max_distance,
     )
     assert np.isclose(d2, max_distance)
 
@@ -248,9 +287,14 @@ def test_roi_hausdorff_clips_to_max_distance_matches_reference():
     voxel_size = (1.0, 1.0)
     max_distance = 3.0
 
+    truth_stats = cc3d.statistics(truth)
+    pred_stats = cc3d.statistics(pred)
+
     d_roi = ev.compute_hausdorff_distance_roi(
         truth,
+        truth_stats,
         pred,
+        pred_stats,
         tid,
         voxel_size=voxel_size,
         max_distance=max_distance,
@@ -282,9 +326,14 @@ def test_roi_hausdorff_anisotropic_voxel_size_matches_reference():
     voxel_size = (2.0, 0.5)  # physical distance = 2 * 0.5 = 1.0
     max_distance = 100.0
 
+    truth_stats = cc3d.statistics(truth)
+    pred_stats = cc3d.statistics(pred)
+
     d_roi = ev.compute_hausdorff_distance_roi(
         truth,
+        truth_stats,
         pred,
+        pred_stats,
         tid,
         voxel_size=voxel_size,
         max_distance=max_distance,
@@ -323,8 +372,17 @@ def test_roi_none_returns_max_distance(monkeypatch):
     # Make tid present in exactly one volume so we don't trigger the "both absent -> 0" shortcut
     truth[2, 2] = tid  # present in truth only
 
+    truth_stats = cc3d.statistics(truth)
+    pred_stats = cc3d.statistics(pred)
+
     d = ev.compute_hausdorff_distance_roi(
-        truth, pred, tid, voxel_size=(1.0, 1.0), max_distance=7.0
+        truth,
+        truth_stats,
+        pred,
+        pred_stats,
+        tid,
+        voxel_size=(1.0, 1.0),
+        max_distance=7.0,
     )
     assert np.isclose(d, 7.0)
 

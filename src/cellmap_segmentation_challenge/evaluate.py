@@ -1,4 +1,5 @@
 import argparse
+import gc
 import json
 import os
 import shutil
@@ -8,12 +9,13 @@ import zipfile
 import numpy as np
 import zarr
 from scipy.spatial.distance import dice
+from scipy.ndimage import distance_transform_edt
 from fastremap import remap, unique
 import cc3d
 from cc3d.types import StatisticsDict, StatisticsSlicesDict
 
 from zarr.errors import PathNotFoundError
-from sklearn.metrics import accuracy_score, jaccard_score
+from sklearn.metrics import jaccard_score
 from tqdm import tqdm
 from upath import UPath
 
@@ -257,12 +259,16 @@ def optimized_hausdorff_distances(
         return np.empty((0,), dtype=np.float32)
 
     voxel_size = np.asarray(voxel_size, dtype=np.float64)
+    truth_stats = cc3d.statistics(truth_label)
+    pred_stats = cc3d.statistics(pred_label)
 
     def get_distance(i: int):
         tid = int(truth_ids[i])
         h_dist = compute_hausdorff_distance_roi(
             truth_label,
+            truth_stats,
             pred_label,
+            pred_stats,
             tid,
             voxel_size,
             hausdorff_distance_max,
@@ -285,9 +291,9 @@ def optimized_hausdorff_distances(
     return dists
 
 
-def bbox_for_label_cc3d(
+def bbox_for_label(
     stats: StatisticsDict | StatisticsSlicesDict,
-    label_vol: np.ndarray,
+    ndim: int,
     label_id: int,
 ):
     """
@@ -295,52 +301,49 @@ def bbox_for_label_cc3d(
     Falls back to mask-based bbox if cc3d doesn't provide expected fields.
     Returns (mins, maxs) inclusive-exclusive in voxel indices, or None if missing.
     """
-    try:
-        # stats = cc3d.statistics(label_vol)
-        # cc3d.statistics usually returns dict-like with keys per label id.
-        # There are multiple API variants; try common patterns.
-        if "bounding_boxes" in stats:
-            bb = stats["bounding_boxes"].get(label_id, None)
-            if bb is None:
-                return None
-            # bb might be (z0,z1,y0,y1,x0,x1) with end exclusive
-            ndim = label_vol.ndim
+    # stats = cc3d.statistics(label_vol)
+    # cc3d.statistics usually returns dict-like with keys per label id.
+    # There are multiple API variants; try common patterns.
+    if "bounding_boxes" in stats:
+        # bounding_boxes is a list where index corresponds to label_id
+        bounding_boxes = stats["bounding_boxes"]
+        if label_id >= len(bounding_boxes):
+            return None
+        bb = bounding_boxes[label_id]
+        if bb is None:
+            return None
+        # bb is a tuple of slices, convert to (mins, maxs)
+        if isinstance(bb, tuple) and all(isinstance(s, slice) for s in bb):
+            mins = [s.start for s in bb]
+            maxs = [s.stop for s in bb]
+            return mins, maxs
+        # bb might be (z0,z1,y0,y1,x0,x1) with end exclusive
+        mins = [bb[2 * k] for k in range(ndim)]
+        maxs = [bb[2 * k + 1] for k in range(ndim)]
+        return mins, maxs
+
+    if label_id in stats:
+        s = stats[label_id]
+        if "bounding_box" in s:
+            bb = s["bounding_box"]
             mins = [bb[2 * k] for k in range(ndim)]
             maxs = [bb[2 * k + 1] for k in range(ndim)]
             return mins, maxs
 
-        if label_id in stats:
-            s = stats[label_id]
-            if "bounding_box" in s:
-                bb = s["bounding_box"]
-                ndim = label_vol.ndim
-                mins = [bb[2 * k] for k in range(ndim)]
-                maxs = [bb[2 * k + 1] for k in range(ndim)]
-                return mins, maxs
-    except Exception:
-        pass
-
-    # Fallback: mask-based (allocates a temporary bool)
-    coords = np.where(label_vol == label_id)
-    if len(coords) == 0 or coords[0].size == 0:
-        return None
-    mins = [int(c.min()) for c in coords]
-    maxs = [int(c.max()) + 1 for c in coords]
-    return mins, maxs
-
 
 def roi_slices_for_pair(
-    truth_label: np.ndarray,
-    pred_label: np.ndarray,
+    truth_stats: StatisticsDict | StatisticsSlicesDict,
+    pred_stats: StatisticsDict | StatisticsSlicesDict,
     tid: int,
     voxel_size,
+    ndim: int,
+    shape: tuple[int, ...],
     max_distance: float,
 ):
     """
     ROI = union(bbox(truth==tid), bbox(pred==tid)) padded by P derived from max_distance.
     Returns tuple of slices suitable for numpy indexing.
     """
-    ndim = truth_label.ndim
     vs = np.asarray(voxel_size, dtype=float)
     if vs.size != ndim:
         # tolerate vs longer (e.g. includes channel), take last ndim
@@ -349,14 +352,12 @@ def roi_slices_for_pair(
     # padding per axis in voxels
     pad = np.ceil(max_distance / vs).astype(int) + 2
 
-    truth_stats = cc3d.statistics(truth_label)
-    tb = bbox_for_label_cc3d(truth_stats, truth_label, tid)
+    tb = bbox_for_label(truth_stats, ndim, tid)
     if tb is None:
         return None  # should not happen for tid from truth_ids
 
     tmins, tmaxs = tb
-    pred_stats = cc3d.statistics(pred_label)
-    pb = bbox_for_label_cc3d(pred_stats, pred_label, tid)
+    pb = bbox_for_label(pred_stats, ndim, tid)
     if pb is None:
         pmins, pmaxs = tmins, tmaxs
     else:
@@ -366,7 +367,6 @@ def roi_slices_for_pair(
     maxs = [max(tmaxs[d], pmaxs[d]) for d in range(ndim)]
 
     # expand and clamp
-    shape = truth_label.shape
     out_slices = []
     for d in range(ndim):
         a = max(0, mins[d] - int(pad[d]))
@@ -377,7 +377,9 @@ def roi_slices_for_pair(
 
 def compute_hausdorff_distance_roi(
     truth_label: np.ndarray,
+    truth_stats: StatisticsDict | StatisticsSlicesDict,
     pred_label: np.ndarray,
+    pred_stats: StatisticsDict | StatisticsSlicesDict,
     tid: int,
     voxel_size,
     max_distance: float,
@@ -388,9 +390,17 @@ def compute_hausdorff_distance_roi(
     Same metric as compute_hausdorff_distance(), but operates on an ROI slice
     and builds masks only inside ROI.
     """
-    from scipy.ndimage import distance_transform_edt
+    ndim = truth_label.ndim
 
-    roi = roi_slices_for_pair(truth_label, pred_label, tid, voxel_size, max_distance)
+    roi = roi_slices_for_pair(
+        truth_stats,
+        pred_stats,
+        tid,
+        voxel_size,
+        ndim,
+        truth_label.shape,
+        max_distance,
+    )
     if roi is None:
         return float(max_distance)
 
@@ -407,7 +417,6 @@ def compute_hausdorff_distance_roi(
     if a_n == 0 or b_n == 0:
         return float(max_distance)
 
-    ndim = truth_label.ndim
     vs = np.asarray(voxel_size, dtype=np.float64)
     if vs.size != ndim:
         vs = vs[-ndim:]
@@ -497,7 +506,7 @@ def score_instance(
 
     # Compute the scores
     logging.info("Computing accuracy score...")
-    accuracy = accuracy_score(truth_label.ravel(), pred_label.ravel())
+    accuracy = float((truth_label == pred_label).mean())
     # When there are no Hausdorff distances, use np.inf so that
     # normalize_distance(hausdorff_dist, voxel_size) returns 0.0. This encodes
     # the absence of matched instances and ensures the combined_score is 0.0.
@@ -612,6 +621,7 @@ def score_label(
         mask = zarr.open(mask_path.path, mode="r")[:]
         pred_label = pred_label * mask
         truth_label = truth_label * mask
+        del mask
 
     # Compute the scores
     if label_name in instance_classes:
@@ -628,6 +638,9 @@ def score_label(
     results["num_voxels"] = int(np.prod(truth_label.shape))
     results["voxel_size"] = crop.voxel_size
     results["is_missing"] = False
+    # drop big arrays before returning
+    del truth_label, pred_label, truth_label_ds
+    gc.collect()
     return crop_name, label_name, results
 
 
