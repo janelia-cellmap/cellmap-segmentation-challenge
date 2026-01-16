@@ -10,7 +10,7 @@ import numpy as np
 import zarr
 from scipy.spatial.distance import dice
 from scipy.ndimage import distance_transform_edt
-from fastremap import remap, unique
+from fastremap import remap, unique, renumber
 import cc3d
 from cc3d.types import StatisticsDict, StatisticsSlicesDict
 
@@ -39,8 +39,20 @@ MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 3))
 MAX_SEMANTIC_THREADS = int(os.getenv("MAX_SEMANTIC_THREADS", 25))
 PER_INSTANCE_THREADS = int(os.getenv("PER_INSTANCE_THREADS", 25))
 MAX_DISTANCE_CAP_EPS = float(os.getenv("MAX_DISTANCE_CAP_EPS", "1e-4"))
-INSTANCE_RATIO_CUTOFF = float(os.getenv("INSTANCE_RATIO_CUTOFF", 10))
+FINAL_INSTANCE_RATIO_CUTOFF = float(os.getenv("FINAL_INSTANCE_RATIO_CUTOFF", 10))
+INITIAL_INSTANCE_RATIO_CUTOFF = float(os.getenv("INITIAL_INSTANCE_RATIO_CUTOFF", 50))
+INSTANCE_RATIO_FACTOR = float(os.getenv("INSTANCE_RATIO_FACTOR", 5.0))
 MAX_OVERLAP_EDGES = int(os.getenv("MAX_OVERLAP_EDGES", "5000000"))
+
+
+def ratio_cutoff(
+    nG: int,
+    R_base: float = FINAL_INSTANCE_RATIO_CUTOFF,
+    R_extra: float = INITIAL_INSTANCE_RATIO_CUTOFF,
+    k: float = INSTANCE_RATIO_FACTOR,
+) -> float:
+    # nG==0 handled upstream (ratio undefined); return max tolerance for completeness
+    return float(R_base + R_extra * np.exp(-nG / k))
 
 
 def normalize_distance(distance: float, voxel_size) -> float:
@@ -86,7 +98,7 @@ def match_instances(gt: np.ndarray, pred: np.ndarray) -> dict | None:
         logging.info("No GT or Pred instances; returning only background match.")
         return {0: 0}
 
-    if (nP / nG) > INSTANCE_RATIO_CUTOFF:
+    if (nP / nG) > ratio_cutoff(nG):
         logging.warning(
             f"WARNING: Skipping {nP} instances in submission, {nG} in ground truth, "
             f"because there are too many instances in the submission."
@@ -412,7 +424,7 @@ def compute_hausdorff_distance_roi(
     if a_n == 0 and b_n == 0:
         return 0.0
     elif a_n == 0 or b_n == 0:
-        return np.inf
+        return max_distance
 
     vs = np.asarray(voxel_size, dtype=np.float64)
     if vs.size != ndim:
@@ -446,7 +458,7 @@ def score_instance(
     truth_label,
     voxel_size,
     hausdorff_distance_max=None,
-) -> dict[str, float]:
+) -> dict[str, float | str]:
     """
     Score a single instance label volume against the ground truth instance label volume.
 
@@ -465,13 +477,15 @@ def score_instance(
     logging.info("Scoring instance segmentation...")
     if hausdorff_distance_max is None:
         hausdorff_distance_max = compute_default_max_distance(voxel_size)
-        logging.info(
+        logging.debug(
             f"Using default maximum Hausdorff distance of {hausdorff_distance_max:.2f} for voxel size {voxel_size}."
         )
 
     # Relabel the predicted instance labels to be consistent with the ground truth instance labels
     logging.info("Relabeling predicted instance labels...")
-    pred_label, n_pred = cc3d.connected_components(pred_label, return_N=True)
+    # pred_label, n_pred = cc3d.connected_components(pred_label, return_N=True)
+    pred_label, remapping = renumber(pred_label, in_place=True)
+    n_pred = len(remapping) - 1  # exclude background
 
     # Match instances between ground truth and prediction
     mapping = match_instances(truth_label, pred_label)
@@ -480,9 +494,13 @@ def score_instance(
         # Too many instances in submission, skip scoring
         return {
             "accuracy": 0,
-            "hausdorff_distance": np.inf,
-            "normalized_hausdorff_distance": 0,
+            "binary_accuracy": ((truth_label > 0) == (pred_label > 0)).mean(),
+            "hausdorff_distance": hausdorff_distance_max,
+            "normalized_hausdorff_distance": normalize_distance(
+                hausdorff_distance_max, voxel_size
+            ),
             "combined_score": 0,
+            "status": "skipped_too_many_instances",
         }
     elif len(mapping) == 1 and 0 in mapping:
         # Only background present in both ground truth and prediction
@@ -504,23 +522,24 @@ def score_instance(
             hausdorff_distances = np.concatenate(
                 [
                     hausdorff_distances,
-                    np.full(len(unmatched_pred), np.inf, dtype=np.float32),
+                    np.full(
+                        len(unmatched_pred), hausdorff_distance_max, dtype=np.float32
+                    ),
                 ]
             )
     else:
         # No predictions to match (no GT XOR no Pred instances)
-        hausdorff_distances = []
+        hausdorff_distances = [hausdorff_distance_max]
+
+    if len(hausdorff_distances) == 0:
+        hausdorff_distances = [hausdorff_distance_max]
 
     # Compute the scores
     logging.info("Computing accuracy score...")
     accuracy = float((truth_label == pred_label).mean())
-    hausdorff_dist = (
-        np.mean(hausdorff_distances) if len(hausdorff_distances) > 0 else np.inf
-    )
-    normalized_hausdorff_dist = (
-        np.mean([normalize_distance(hd, voxel_size) for hd in hausdorff_distances])
-        if len(hausdorff_distances) > 0
-        else 0.0
+    hausdorff_dist = np.mean(hausdorff_distances)
+    normalized_hausdorff_dist = np.mean(
+        [normalize_distance(hd, voxel_size) for hd in hausdorff_distances]
     )
     combined_score = (accuracy * normalized_hausdorff_dist) ** 0.5  # geometric mean
     logging.info(f"Accuracy: {accuracy:.4f}")
@@ -532,6 +551,7 @@ def score_instance(
         "hausdorff_distance": hausdorff_dist,
         "normalized_hausdorff_distance": normalized_hausdorff_dist,
         "combined_score": combined_score,
+        "status": "scored",
     }  # type: ignore
 
 
@@ -566,6 +586,7 @@ def score_semantic(pred_label, truth_label) -> dict[str, float]:
     scores = {
         "iou": iou_score,
         "dice_score": dice_score if not np.isnan(dice_score) else 1,
+        "status": "scored",
     }
 
     logging.info(f"IoU: {scores['iou']:.4f}")
@@ -655,36 +676,29 @@ def score_label(
 def empty_label_score(
     label, crop_name, instance_classes=INSTANCE_CLASSES, truth_path=TRUTH_PATH
 ):
+    truth_path = UPath(truth_path)
+    ds = zarr.open((truth_path / crop_name / label).path, mode="r")
+    voxel_size = ds.attrs["voxel_size"]
     if label in instance_classes:
         truth_path = UPath(truth_path)
         return {
             "accuracy": 0,
-            "hausdorff_distance": 0,
+            "hausdorff_distance": compute_default_max_distance(voxel_size),
             "normalized_hausdorff_distance": 0,
             "combined_score": 0,
-            "num_voxels": int(
-                np.prod(
-                    zarr.open((truth_path / crop_name / label).path, mode="r").shape
-                )
-            ),
-            "voxel_size": zarr.open(
-                (truth_path / crop_name / label).path, mode="r"
-            ).attrs["voxel_size"],
+            "num_voxels": int(np.prod(ds.shape)),
+            "voxel_size": voxel_size,
             "is_missing": True,
+            "status": "missing",
         }
     else:
         return {
             "iou": 0,
             "dice_score": 0,
-            "num_voxels": int(
-                np.prod(
-                    zarr.open((truth_path / crop_name / label).path, mode="r").shape
-                )
-            ),
-            "voxel_size": zarr.open(
-                (truth_path / crop_name / label).path, mode="r"
-            ).attrs["voxel_size"],
+            "num_voxels": int(np.prod(ds.shape)),
+            "voxel_size": voxel_size,
             "is_missing": True,
+            "status": "missing",
         }
 
 
@@ -755,13 +769,15 @@ def get_evaluation_args(
 
 
 def missing_volume_score(
-    truth_volume_path, instance_classes=INSTANCE_CLASSES
+    truth_path, volume, instance_classes=INSTANCE_CLASSES
 ) -> list[tuple]:
     """
     Score a missing volume as 0's, congruent with the score_volume function.
 
     Args:
-        truth_volume_path (str): The path to the ground truth volume.
+        truth_path (str): The path to the ground truth volume.
+        volume (str): The name of the volume.
+        instance_classes (list): A list of instance classes.
 
     Returns:
         dict: A dictionary of scores for the volume.
@@ -769,41 +785,16 @@ def missing_volume_score(
     Example usage:
         scores = missing_volume_score('truth.zarr/test_volume')
     """
-    logging.info(f"Scoring missing volume {truth_volume_path}...")
-    truth_volume_path = UPath(truth_volume_path)
+    logging.info(f"Scoring missing volume {volume}...")
+    truth_path = UPath(truth_path)
+    truth_volume_path = truth_path / volume
 
     # Find labels to score
     truth_labels = [a for a in ensure_zgroup(truth_volume_path).array_keys()]
 
     # Score each label
     scores = {
-        label: (
-            {
-                "accuracy": 0.0,
-                "hausdorff_distance": 0.0,
-                "normalized_hausdorff_distance": 0.0,
-                "combined_score": 0.0,
-                "num_voxels": int(
-                    np.prod(zarr.open((truth_volume_path / label).path, mode="r").shape)
-                ),
-                "voxel_size": zarr.open(
-                    (truth_volume_path / label).path, mode="r"
-                ).attrs["voxel_size"],
-                "is_missing": True,
-            }
-            if label in instance_classes
-            else {
-                "iou": 0.0,
-                "dice_score": 0.0,
-                "num_voxels": int(
-                    np.prod(zarr.open((truth_volume_path / label).path, mode="r").shape)
-                ),
-                "voxel_size": zarr.open(
-                    (truth_volume_path / label).path, mode="r"
-                ).attrs["voxel_size"],
-                "is_missing": True,
-            }
-        )
+        label: empty_label_score(label, volume, instance_classes, truth_path)
         for label in truth_labels
     }
 
@@ -883,16 +874,30 @@ def combine_scores(
     logging.info("Computing overall scores...")
     overall_instance_scores = []
     overall_semantic_scores = []
+    instance_total_voxels = sum(
+        total_voxels[label] for label in label_scores if label in instance_classes
+    )
+    semantic_total_voxels = sum(
+        total_voxels[label] for label in label_scores if label not in instance_classes
+    )
     for label in label_scores:
         if label in instance_classes:
-            overall_instance_scores += [label_scores[label]["combined_score"]]
+            overall_instance_scores += [
+                label_scores[label]["combined_score"] * total_voxels[label]
+            ]
         else:
-            overall_semantic_scores += [label_scores[label]["iou"]]
+            overall_semantic_scores += [
+                label_scores[label]["iou"] * total_voxels[label]
+            ]
     scores["overall_instance_score"] = (
-        np.nanmean(overall_instance_scores) if overall_instance_scores else 0
+        np.nansum(overall_instance_scores) / instance_total_voxels
+        if overall_instance_scores
+        else 0
     )
     scores["overall_semantic_score"] = (
-        np.nanmean(overall_semantic_scores) if overall_semantic_scores else 0
+        np.nansum(overall_semantic_scores) / semantic_total_voxels
+        if overall_semantic_scores
+        else 0
     )
     scores["overall_score"] = (
         scores["overall_instance_score"] * scores["overall_semantic_score"]
@@ -1058,7 +1063,7 @@ def score_submission(
 
     scores = {
         volume: missing_volume_score(
-            truth_path / volume, instance_classes=instance_classes
+            truth_path, volume, instance_classes=instance_classes
         )
         for volume in missing_volumes
     }
@@ -1147,6 +1152,8 @@ def sanitize_scores(scores):
                 if isinstance(label_scores, dict):
                     for key, value in label_scores.items():
                         if value is None:
+                            continue
+                        if isinstance(value, str):
                             continue
                         if not np.isscalar(value) and len(value) == 1:
                             value = value[0]

@@ -255,7 +255,7 @@ def test_roi_hausdorff_empty_sets_and_missing_instance():
         voxel_size=voxel_size,
         max_distance=max_distance,
     )
-    assert np.isclose(d1, np.inf)
+    assert np.isclose(d1, max_distance)
 
 
 def test_roi_hausdorff_clips_to_max_distance_matches_reference():
@@ -358,6 +358,7 @@ def test_roi_none_returns_inf(monkeypatch):
 
     truth_stats = cc3d.statistics(truth)
     pred_stats = cc3d.statistics(pred)
+    max_distance = 7.0
 
     d = ev.compute_hausdorff_distance_roi(
         truth,
@@ -366,9 +367,9 @@ def test_roi_none_returns_inf(monkeypatch):
         pred_stats,
         tid,
         voxel_size=(1.0, 1.0),
-        max_distance=7.0,
+        max_distance=max_distance,
     )
-    assert np.isclose(d, np.inf)
+    assert np.isclose(d, max_distance)
 
 
 def test_optimized_hausdorff_distances_per_instance():
@@ -615,7 +616,8 @@ def test_missing_volume_score_mixed_labels(tmp_path):
     _create_simple_volume(truth_root, "crop1", "sem", arr_sem)
 
     scores = ev.missing_volume_score(
-        truth_volume_path=(truth_root / "crop1").as_posix(),
+        truth_path=truth_root,
+        volume="crop1",
         instance_classes=["instance"],
     )
 

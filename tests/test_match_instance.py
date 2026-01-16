@@ -92,6 +92,9 @@ def test_ratio_cutoff_returns_none(monkeypatch):
     We reload the module after setting env to avoid import-time caching issues.
     """
     monkeypatch.setenv("INSTANCE_RATIO_CUTOFF", "1.0")
+    monkeypatch.setenv("INITIAL_INSTANCE_RATIO_CUTOFF", "1.0")
+    monkeypatch.setenv("FINAL_INSTANCE_RATIO_CUTOFF", "1.0")
+    monkeypatch.setenv("INSTANCE_RATIO_FACTOR", "1.0")
     monkeypatch.setenv("MAX_OVERLAP_EDGES", "5000000")
     ev = _reload_module()
 
