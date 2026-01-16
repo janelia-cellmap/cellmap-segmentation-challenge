@@ -5,8 +5,6 @@ import zarr
 from tqdm import tqdm
 from upath import UPath
 
-import zarr.errors
-
 import functools
 from concurrent.futures import ThreadPoolExecutor
 
@@ -17,8 +15,6 @@ from cellmap_segmentation_challenge.config import (
 )
 from cellmap_segmentation_challenge.utils import (
     TEST_CROPS,
-    perturb_instance_mask,
-    simulate_predictions_iou_binary,
     format_string,
 )
 from cellmap_segmentation_challenge.evaluate import (
@@ -26,17 +22,24 @@ from cellmap_segmentation_challenge.evaluate import (
     match_crop_space,
 )
 from cellmap_segmentation_challenge.utils.submission import zip_submission
+from cellmap_segmentation_challenge.utils.simulate import (
+    perturb_mask_iou_3d,
+    perturb_gt_instances_to_mean_norm_hd,
+)
 
-CONFIGURED_ACCURACY = 0.8
+CONFIGURED_HAUSDORFF = 0.8
 CONFIGURED_IOU = 0.8
+OUTPUT_PATH = UPath(SUBMISSION_PATH).with_suffix(
+    "_hd_{configured_hausdorff}_iou_{configured_iou}.zarr"
+)
 
 
 def mock_submission(
     input_search_path: str | UPath = (UPath(TRUTH_PATH) / "{crop}").path,
-    output_path: str | UPath = SUBMISSION_PATH,
+    output_path: str | UPath = OUTPUT_PATH,
     overwrite: bool = True,
     max_workers: int = os.cpu_count(),
-    configured_accuracy: float = CONFIGURED_ACCURACY,
+    configured_hausdorff: float = CONFIGURED_HAUSDORFF,
     configured_iou: float = CONFIGURED_IOU,
 ):
     """
@@ -51,6 +54,13 @@ def mock_submission(
         configured_iou (float): The configured IOU to simulate errors with. Defaults to 0.8.
     """
     input_search_path = str(input_search_path)
+    output_path = format_string(
+        output_path,
+        format_kwargs={
+            "configured_hausdorff": configured_hausdorff,
+            "configured_iou": configured_iou,
+        },
+    )
     output_path = UPath(output_path)
     output_path = output_path.with_suffix(".zarr")
 
@@ -73,7 +83,7 @@ def mock_submission(
         zarr_group=zarr_group,
         overwrite=overwrite,
         input_search_path=input_search_path,
-        configured_accuracy=configured_accuracy,
+        configured_hausdorff=configured_hausdorff,
         configured_iou=configured_iou,
     )
     for crop_path in tqdm(
@@ -90,7 +100,7 @@ def mock_submission(
     zip_submission(output_path)
 
     print(
-        f"Done packaging mock submission with configured accuracy: {CONFIGURED_ACCURACY} and configured IOU: {CONFIGURED_IOU}"
+        f"Done packaging mock submission with configured Hausdorff: {CONFIGURED_HAUSDORFF} and configured IOU: {CONFIGURED_IOU}"
     )
 
 
@@ -99,7 +109,7 @@ def mock_crop(
     zarr_group,
     overwrite,
     input_search_path=PROCESSED_PATH,
-    configured_accuracy=CONFIGURED_ACCURACY,
+    configured_hausdorff=CONFIGURED_HAUSDORFF,
     configured_iou=CONFIGURED_IOU,
 ):
     input_path = format_string(
@@ -135,10 +145,23 @@ def mock_crop(
     # Add errors to the ground truth to simulate a submission
     if crop.class_label in INSTANCE_CLASSES:
         # Add errors to the instance segmentation
-        image = perturb_instance_mask(image, configured_accuracy)
+        image = perturb_gt_instances_to_mean_norm_hd(
+            image,
+            target_mean_norm=configured_hausdorff,
+            voxel_size=crop.voxel_size,
+            mode="in",
+            band_vox=2,
+            avoid_instance_overlap=True,
+            report=False,
+            rng=np.random.default_rng(0),
+        )
     else:
         # Add errors to the semantic segmentation
-        image = simulate_predictions_iou_binary(image, configured_iou)
+        image = perturb_mask_iou_3d(
+            image,
+            target_iou=configured_iou,
+            rng=np.random.default_rng(0),
+        )
 
     label_array[:] = image
 
