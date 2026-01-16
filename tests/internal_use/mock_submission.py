@@ -29,8 +29,9 @@ from cellmap_segmentation_challenge.utils.simulate import (
 
 CONFIGURED_HAUSDORFF = 0.8
 CONFIGURED_IOU = 0.8
-OUTPUT_PATH = UPath(SUBMISSION_PATH).with_suffix(
-    "_hd_{configured_hausdorff}_iou_{configured_iou}.zarr"
+OUTPUT_PATH = (
+    SUBMISSION_PATH.removesuffix(".zarr")
+    + "_hd_{configured_hausdorff}_iou_{configured_iou}.zarr"
 )
 
 
