@@ -292,9 +292,286 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_segmentation_challenge.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_tested_classes</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cellmap_segmentation_challenge</span><span class="w"> </span><span class="kn">import</span> <span class="n">TRUTH_PATH</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">zarr</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">skimage.measure</span><span class="w"> </span><span class="kn">import</span> <span class="n">label</span> <span class="k">as</span> <span class="n">relabel</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">upath</span><span class="w"> </span><span class="kn">import</span> <span class="n">UPath</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ndimage</span> <span class="k">as</span> <span class="n">ndi</span>
+
+
+<div class="viewcode-block" id="iou">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.utils.iou">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">iou</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">inter</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">union</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">inter</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">union</span><span class="p">)</span> <span class="k">if</span> <span class="n">union</span> <span class="k">else</span> <span class="mf">1.0</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_disk</span><span class="p">(</span><span class="n">radius</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Binary disk structuring element.&quot;&quot;&quot;</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span>
+    <span class="n">y</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ogrid</span><span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="p">:</span> <span class="n">r</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="n">r</span> <span class="p">:</span> <span class="n">r</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">*</span> <span class="n">y</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">r</span> <span class="o">*</span> <span class="n">r</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_boundary_bands</span><span class="p">(</span><span class="n">G</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">band</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">connectivity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">      inner_band: pixels in G near boundary (preferred FN removal candidates)</span>
+<span class="sd">      outer_band: pixels outside G near boundary (preferred FP addition candidates)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">G</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">band</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">inner</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">outer</span> <span class="o">=</span> <span class="p">(</span><span class="o">~</span><span class="n">G</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">inner</span><span class="p">,</span> <span class="n">outer</span>
+
+    <span class="c1"># Use disk SE for spatial realism</span>
+    <span class="n">se</span> <span class="o">=</span> <span class="n">_disk</span><span class="p">(</span><span class="n">band</span><span class="p">)</span>
+
+    <span class="c1"># Inner band = G minus an eroded version of G</span>
+    <span class="n">G_er</span> <span class="o">=</span> <span class="n">ndi</span><span class="o">.</span><span class="n">binary_erosion</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">structure</span><span class="o">=</span><span class="n">se</span><span class="p">,</span> <span class="n">iterations</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">border_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">inner_band</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="o">~</span><span class="n">G_er</span><span class="p">)</span>
+
+    <span class="c1"># Outer band = dilated G minus G</span>
+    <span class="n">G_di</span> <span class="o">=</span> <span class="n">ndi</span><span class="o">.</span><span class="n">binary_dilation</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">structure</span><span class="o">=</span><span class="n">se</span><span class="p">,</span> <span class="n">iterations</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">outer_band</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">G_di</span><span class="p">,</span> <span class="o">~</span><span class="n">G</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">inner_band</span><span class="p">,</span> <span class="n">outer_band</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_sample_indices</span><span class="p">(</span><span class="n">mask</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">rng</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">Generator</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Uniformly sample k True locations (flat indices) without replacement.&quot;&quot;&quot;</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">k</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">idx</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">idx</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_add_blob</span><span class="p">(</span>
+    <span class="n">P</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">candidate</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">add_k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">rng</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">Generator</span><span class="p">,</span>
+    <span class="n">blob_radius</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
+    <span class="n">n_seeds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds &#39;blob-like&#39; FP pixels by planting random seeds and dilating them.</span>
+<span class="sd">    Returns how many pixels were actually added.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">add_k</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    <span class="n">cand_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">candidate</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cand_idx</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="c1"># Create seed map</span>
+    <span class="n">seeds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">seeds_n</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">n_seeds</span><span class="p">,</span> <span class="n">cand_idx</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+    <span class="n">seed_idx</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">cand_idx</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">seeds_n</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">seeds</span><span class="o">.</span><span class="n">flat</span><span class="p">[</span><span class="n">seed_idx</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="c1"># Grow seeds into blobs</span>
+    <span class="n">se</span> <span class="o">=</span> <span class="n">_disk</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">blob_radius</span><span class="p">))</span>
+    <span class="n">blob</span> <span class="o">=</span> <span class="n">ndi</span><span class="o">.</span><span class="n">binary_dilation</span><span class="p">(</span><span class="n">seeds</span><span class="p">,</span> <span class="n">structure</span><span class="o">=</span><span class="n">se</span><span class="p">,</span> <span class="n">iterations</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Restrict to candidate region + not already in P</span>
+    <span class="n">blob</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">blob</span><span class="p">,</span> <span class="n">candidate</span><span class="p">)</span>
+    <span class="n">blob</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">blob</span><span class="p">,</span> <span class="o">~</span><span class="n">P</span><span class="p">)</span>
+
+    <span class="c1"># If blob too big, randomly subsample to exact add_k</span>
+    <span class="n">blob_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">blob</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">blob_idx</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="n">choose</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">blob_idx</span>
+        <span class="k">if</span> <span class="n">blob_idx</span><span class="o">.</span><span class="n">size</span> <span class="o">&lt;=</span> <span class="n">add_k</span>
+        <span class="k">else</span> <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">blob_idx</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">add_k</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">before</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">P</span><span class="o">.</span><span class="n">flat</span><span class="p">[</span><span class="n">choose</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">P</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">-</span> <span class="n">before</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_remove_blob</span><span class="p">(</span>
+    <span class="n">P</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">candidate</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">rem_k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">rng</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">Generator</span><span class="p">,</span>
+    <span class="n">blob_radius</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
+    <span class="n">n_seeds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Removes &#39;blob-like&#39; FN pixels by planting seeds inside candidate and dilating them.</span>
+<span class="sd">    Returns how many pixels were actually removed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">rem_k</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    <span class="n">cand_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">candidate</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cand_idx</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="n">seeds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">seeds_n</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">n_seeds</span><span class="p">,</span> <span class="n">cand_idx</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+    <span class="n">seed_idx</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">cand_idx</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">seeds_n</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">seeds</span><span class="o">.</span><span class="n">flat</span><span class="p">[</span><span class="n">seed_idx</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">se</span> <span class="o">=</span> <span class="n">_disk</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">blob_radius</span><span class="p">))</span>
+    <span class="n">blob</span> <span class="o">=</span> <span class="n">ndi</span><span class="o">.</span><span class="n">binary_dilation</span><span class="p">(</span><span class="n">seeds</span><span class="p">,</span> <span class="n">structure</span><span class="o">=</span><span class="n">se</span><span class="p">,</span> <span class="n">iterations</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Restrict to candidate region + currently in P</span>
+    <span class="n">blob</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">blob</span><span class="p">,</span> <span class="n">candidate</span><span class="p">)</span>
+    <span class="n">blob</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">blob</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span>
+
+    <span class="n">blob_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">blob</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">blob_idx</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="n">choose</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">blob_idx</span>
+        <span class="k">if</span> <span class="n">blob_idx</span><span class="o">.</span><span class="n">size</span> <span class="o">&lt;=</span> <span class="n">rem_k</span>
+        <span class="k">else</span> <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">blob_idx</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">rem_k</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">before</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">P</span><span class="o">.</span><span class="n">flat</span><span class="p">[</span><span class="n">choose</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">before</span> <span class="o">-</span> <span class="n">P</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+
+
+<div class="viewcode-block" id="perturb_mask_realistic">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.utils.perturb_mask_realistic">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">perturb_mask_realistic</span><span class="p">(</span>
+    <span class="n">G</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">target_iou</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">p_fn</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">band</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="n">style</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ring&quot;</span><span class="p">,</span>  <span class="c1"># &quot;ring&quot; or &quot;blob&quot;</span>
+    <span class="n">blob_radius</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
+    <span class="n">blob_seeds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span>
+    <span class="n">rng</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">Generator</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">max_tries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4000</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Make a perturbed mask P from ground-truth G with approx target IoU, using spatially realistic errors.</span>
+
+<span class="sd">    Construction:</span>
+<span class="sd">      Start P = G</span>
+<span class="sd">      Remove r pixels (FN) mostly from inner boundary band</span>
+<span class="sd">      Add a pixels (FP) mostly from outer boundary band</span>
+
+<span class="sd">    Exact-count IoU relationship (counts):</span>
+<span class="sd">      IoU = (g - r) / (g + a)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">rng</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">()</span>
+
+    <span class="n">G</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">g</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Ground-truth mask is empty; cannot target IoU reliably.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="mf">0.0</span> <span class="o">&lt;</span> <span class="n">target_iou</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;target_iou must be in (0, 1].&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">target_iou</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">G</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="n">bg</span> <span class="o">=</span> <span class="o">~</span><span class="n">G</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">bg</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+
+    <span class="c1"># Choose r then compute a = (g - r)/t - g</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">a_from_r</span><span class="p">(</span><span class="n">r</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">((</span><span class="n">g</span> <span class="o">-</span> <span class="n">r</span><span class="p">)</span> <span class="o">/</span> <span class="n">target_iou</span> <span class="o">-</span> <span class="n">g</span><span class="p">))</span>
+
+    <span class="c1"># Prefer both FP and FN: try to find r such that a&gt;0 and feasible</span>
+    <span class="n">r0</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">p_fn</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">target_iou</span><span class="p">)),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">g</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">best</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">jitter</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">g</span> <span class="o">//</span> <span class="mi">80</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_tries</span><span class="p">):</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">r0</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">integers</span><span class="p">(</span><span class="o">-</span><span class="n">jitter</span><span class="p">,</span> <span class="n">jitter</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">g</span><span class="p">))</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">a_from_r</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">a</span> <span class="o">&lt;=</span> <span class="n">b</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">r</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">a</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">best</span> <span class="o">=</span> <span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+                <span class="k">break</span>
+            <span class="k">if</span> <span class="n">best</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">best</span> <span class="o">=</span> <span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">best</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">&quot;Could not find feasible (FN removals r, FP adds a). Try different target_iou.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">r</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">best</span>
+
+    <span class="n">P</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="c1"># Candidate bands near boundary</span>
+    <span class="n">inner_band</span><span class="p">,</span> <span class="n">outer_band</span> <span class="o">=</span> <span class="n">_boundary_bands</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">band</span><span class="o">=</span><span class="n">band</span><span class="p">)</span>
+
+    <span class="c1"># If band degenerates (tiny objects), fall back to whole regions</span>
+    <span class="n">inner_cand</span> <span class="o">=</span> <span class="n">inner_band</span> <span class="k">if</span> <span class="n">inner_band</span><span class="o">.</span><span class="n">any</span><span class="p">()</span> <span class="k">else</span> <span class="n">G</span>
+    <span class="n">outer_cand</span> <span class="o">=</span> <span class="n">outer_band</span> <span class="k">if</span> <span class="n">outer_band</span><span class="o">.</span><span class="n">any</span><span class="p">()</span> <span class="k">else</span> <span class="p">(</span><span class="o">~</span><span class="n">G</span><span class="p">)</span>
+
+    <span class="c1"># --- Apply FN removals ---</span>
+    <span class="k">if</span> <span class="n">style</span> <span class="o">==</span> <span class="s2">&quot;ring&quot;</span><span class="p">:</span>
+        <span class="c1"># remove from inner band first</span>
+        <span class="n">rem_idx</span> <span class="o">=</span> <span class="n">_sample_indices</span><span class="p">(</span><span class="n">inner_cand</span> <span class="o">&amp;</span> <span class="n">P</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">rng</span><span class="p">)</span>
+        <span class="n">P</span><span class="o">.</span><span class="n">flat</span><span class="p">[</span><span class="n">rem_idx</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># If not enough (rare), remove remaining from anywhere inside</span>
+        <span class="n">remaining</span> <span class="o">=</span> <span class="n">r</span> <span class="o">-</span> <span class="n">rem_idx</span><span class="o">.</span><span class="n">size</span>
+        <span class="k">if</span> <span class="n">remaining</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">rem2</span> <span class="o">=</span> <span class="n">_sample_indices</span><span class="p">(</span><span class="n">G</span> <span class="o">&amp;</span> <span class="n">P</span><span class="p">,</span> <span class="n">remaining</span><span class="p">,</span> <span class="n">rng</span><span class="p">)</span>
+            <span class="n">P</span><span class="o">.</span><span class="n">flat</span><span class="p">[</span><span class="n">rem2</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">elif</span> <span class="n">style</span> <span class="o">==</span> <span class="s2">&quot;blob&quot;</span><span class="p">:</span>
+        <span class="n">removed</span> <span class="o">=</span> <span class="n">_remove_blob</span><span class="p">(</span>
+            <span class="n">P</span><span class="p">,</span> <span class="n">inner_cand</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">rng</span><span class="p">,</span> <span class="n">blob_radius</span><span class="o">=</span><span class="n">blob_radius</span><span class="p">,</span> <span class="n">n_seeds</span><span class="o">=</span><span class="n">blob_seeds</span>
+        <span class="p">)</span>
+        <span class="n">remaining</span> <span class="o">=</span> <span class="n">r</span> <span class="o">-</span> <span class="n">removed</span>
+        <span class="k">if</span> <span class="n">remaining</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># finish by ring-like sampling if blobs didn&#39;t hit exact count</span>
+            <span class="n">rem_idx</span> <span class="o">=</span> <span class="n">_sample_indices</span><span class="p">((</span><span class="n">G</span> <span class="o">&amp;</span> <span class="n">P</span><span class="p">),</span> <span class="n">remaining</span><span class="p">,</span> <span class="n">rng</span><span class="p">)</span>
+            <span class="n">P</span><span class="o">.</span><span class="n">flat</span><span class="p">[</span><span class="n">rem_idx</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;style must be &#39;ring&#39; or &#39;blob&#39;&quot;</span><span class="p">)</span>
+
+    <span class="c1"># --- Apply FP additions ---</span>
+    <span class="k">if</span> <span class="n">style</span> <span class="o">==</span> <span class="s2">&quot;ring&quot;</span><span class="p">:</span>
+        <span class="n">add_idx</span> <span class="o">=</span> <span class="n">_sample_indices</span><span class="p">(</span><span class="n">outer_cand</span> <span class="o">&amp;</span> <span class="p">(</span><span class="o">~</span><span class="n">P</span><span class="p">),</span> <span class="n">a</span><span class="p">,</span> <span class="n">rng</span><span class="p">)</span>
+        <span class="n">P</span><span class="o">.</span><span class="n">flat</span><span class="p">[</span><span class="n">add_idx</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="n">remaining</span> <span class="o">=</span> <span class="n">a</span> <span class="o">-</span> <span class="n">add_idx</span><span class="o">.</span><span class="n">size</span>
+        <span class="k">if</span> <span class="n">remaining</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">add2</span> <span class="o">=</span> <span class="n">_sample_indices</span><span class="p">((</span><span class="o">~</span><span class="n">G</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="o">~</span><span class="n">P</span><span class="p">),</span> <span class="n">remaining</span><span class="p">,</span> <span class="n">rng</span><span class="p">)</span>
+            <span class="n">P</span><span class="o">.</span><span class="n">flat</span><span class="p">[</span><span class="n">add2</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">elif</span> <span class="n">style</span> <span class="o">==</span> <span class="s2">&quot;blob&quot;</span><span class="p">:</span>
+        <span class="n">added</span> <span class="o">=</span> <span class="n">_add_blob</span><span class="p">(</span>
+            <span class="n">P</span><span class="p">,</span> <span class="n">outer_cand</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">rng</span><span class="p">,</span> <span class="n">blob_radius</span><span class="o">=</span><span class="n">blob_radius</span><span class="p">,</span> <span class="n">n_seeds</span><span class="o">=</span><span class="n">blob_seeds</span>
+        <span class="p">)</span>
+        <span class="n">remaining</span> <span class="o">=</span> <span class="n">a</span> <span class="o">-</span> <span class="n">added</span>
+        <span class="k">if</span> <span class="n">remaining</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">add_idx</span> <span class="o">=</span> <span class="n">_sample_indices</span><span class="p">(((</span><span class="o">~</span><span class="n">G</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="o">~</span><span class="n">P</span><span class="p">)),</span> <span class="n">remaining</span><span class="p">,</span> <span class="n">rng</span><span class="p">)</span>
+            <span class="n">P</span><span class="o">.</span><span class="n">flat</span><span class="p">[</span><span class="n">add_idx</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="c1"># (Optional) return counts for debugging</span>
+    <span class="n">achieved</span> <span class="o">=</span> <span class="n">iou</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span>
+    <span class="n">info</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;target_iou&quot;</span><span class="p">:</span> <span class="n">target_iou</span><span class="p">,</span>
+        <span class="s2">&quot;achieved_iou&quot;</span><span class="p">:</span> <span class="n">achieved</span><span class="p">,</span>
+        <span class="s2">&quot;g&quot;</span><span class="p">:</span> <span class="n">g</span><span class="p">,</span>
+        <span class="s2">&quot;fn_removed_r&quot;</span><span class="p">:</span> <span class="n">r</span><span class="p">,</span>
+        <span class="s2">&quot;fp_added_a&quot;</span><span class="p">:</span> <span class="n">a</span><span class="p">,</span>
+        <span class="s2">&quot;band&quot;</span><span class="p">:</span> <span class="n">band</span><span class="p">,</span>
+        <span class="s2">&quot;style&quot;</span><span class="p">:</span> <span class="n">style</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">P</span><span class="p">,</span> <span class="n">info</span></div>
+
 
 
 <div class="viewcode-block" id="format_coordinates">
@@ -517,118 +794,6 @@ document.write(`
     <span class="n">dataset</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">voxel_size</span>
     <span class="n">dataset</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;translation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">translation</span>
     <span class="n">dataset</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">shape</span></div>
-
-
-
-<span class="c1"># %%</span>
-
-
-<span class="c1"># Helper functions for simulating predictions</span>
-<div class="viewcode-block" id="simulate_predictions_iou_binary">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.utils.simulate_predictions_iou_binary">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">simulate_predictions_iou_binary</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">iou</span><span class="p">):</span>
-    <span class="c1"># TODO: Add false positives (only makes false negatives currently)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simulating predictions with IOU: </span><span class="si">{</span><span class="n">iou</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-    <span class="n">shape</span> <span class="o">=</span> <span class="n">labels</span><span class="o">.</span><span class="n">shape</span>
-    <span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span>
-    <span class="n">n_positive</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
-    <span class="n">labels</span><span class="p">[</span><span class="n">labels</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">n_positive</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="p">[</span><span class="n">iou</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">iou</span><span class="p">])</span>
-
-    <span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">labels</span></div>
-
-
-
-<div class="viewcode-block" id="simulate_predictions_iou">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.utils.simulate_predictions_iou">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">simulate_predictions_iou</span><span class="p">(</span><span class="n">true_labels</span><span class="p">,</span> <span class="n">iou</span><span class="p">):</span>
-    <span class="c1"># TODO: Add false positives (only makes false negatives currently)</span>
-
-    <span class="n">pred_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">true_labels</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">true_labels</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">continue</span>
-        <span class="n">pred_labels</span><span class="p">[</span><span class="n">true_labels</span> <span class="o">==</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span>
-            <span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">true_labels</span> <span class="o">==</span> <span class="n">i</span><span class="p">),</span> <span class="n">p</span><span class="o">=</span><span class="p">[</span><span class="n">iou</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">iou</span><span class="p">]</span>
-        <span class="p">)</span>
-
-    <span class="n">pred_labels</span> <span class="o">=</span> <span class="n">relabel</span><span class="p">(</span><span class="n">pred_labels</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">pred_labels</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">pred_labels</span></div>
-
-
-
-<div class="viewcode-block" id="simulate_predictions_accuracy">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.utils.simulate_predictions_accuracy">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">simulate_predictions_accuracy</span><span class="p">(</span><span class="n">true_labels</span><span class="p">,</span> <span class="n">accuracy</span><span class="p">):</span>
-    <span class="n">shape</span> <span class="o">=</span> <span class="n">true_labels</span><span class="o">.</span><span class="n">shape</span>
-    <span class="n">true_labels</span> <span class="o">=</span> <span class="n">true_labels</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-
-    <span class="c1"># Get the total number of labels</span>
-    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">true_labels</span><span class="p">)</span>
-
-    <span class="c1"># Create an array to store the simulated predictions (copy the true labels initially)</span>
-    <span class="n">simulated_predictions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">true_labels</span><span class="p">)</span>
-
-    <span class="c1"># Randomly select indices to be incorrect</span>
-    <span class="n">incorrect_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">n</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">accuracy</span> <span class="o">*</span> <span class="n">n</span><span class="p">),</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-
-    <span class="n">simulated_predictions</span><span class="p">[</span><span class="n">incorrect_indices</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="mi">1</span> <span class="o">-</span> <span class="n">simulated_predictions</span><span class="p">[</span><span class="n">incorrect_indices</span><span class="p">]</span>
-    <span class="p">)</span>
-
-    <span class="c1"># Reshape and relabel the predictions</span>
-    <span class="n">simulated_predictions</span> <span class="o">=</span> <span class="n">simulated_predictions</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
-    <span class="n">simulated_predictions</span> <span class="o">=</span> <span class="n">relabel</span><span class="p">(</span><span class="n">simulated_predictions</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">))</span>
-
-    <span class="k">return</span> <span class="n">simulated_predictions</span></div>
-
-
-
-<div class="viewcode-block" id="perturb_instance_mask">
-<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.utils.perturb_instance_mask">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">perturb_instance_mask</span><span class="p">(</span><span class="n">true_labels</span><span class="p">,</span> <span class="n">hd_target</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">accuracy</span><span class="o">=</span><span class="mf">0.8</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Simulate a predicted instance segmentation mask with an approximate Hausdorff distance.</span>
-
-<span class="sd">    Parameters:</span>
-<span class="sd">    - true_labels: np.ndarray</span>
-<span class="sd">        Ground-truth instance segmentation mask.</span>
-<span class="sd">    - hd_target: float | None</span>
-<span class="sd">        Desired approximate Hausdorff distance. If None, it will be calculated from the accuracy.</span>
-<span class="sd">    - accuracy: float</span>
-<span class="sd">        Desired accuracy of the perturbed mask.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">    - np.ndarray</span>
-<span class="sd">        Perturbed instance segmentation mask.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">hd_target</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">hd_target</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">accuracy</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.01</span><span class="p">))</span>
-    <span class="n">perturbed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">true_labels</span><span class="p">)</span>
-    <span class="n">unique_instances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">true_labels</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]</span>  <span class="c1"># Exclude background (0)</span>
-
-    <span class="k">for</span> <span class="n">instance</span> <span class="ow">in</span> <span class="n">unique_instances</span><span class="p">:</span>
-        <span class="c1"># print(&quot;Shifting...&quot;)</span>
-        <span class="c1"># Randomly shift the mask</span>
-        <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">perturbed</span> <span class="o">==</span> <span class="n">instance</span><span class="p">)</span>
-        <span class="n">perturbed</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Remove the original instance</span>
-        <span class="n">indices</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
-            <span class="n">shift</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="o">-</span><span class="n">hd_target</span><span class="p">,</span> <span class="n">hd_target</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-            <span class="n">shift</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span>
-                <span class="n">shift</span><span class="p">,</span>
-                <span class="o">-</span><span class="n">indices</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span>
-                <span class="n">true_labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">indices</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="p">)</span>
-
-            <span class="n">indices</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">shift</span>
-        <span class="n">indices</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
-        <span class="n">perturbed</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span> <span class="o">=</span> <span class="n">instance</span>
-
-    <span class="n">perturbed</span> <span class="o">=</span> <span class="n">simulate_predictions_accuracy</span><span class="p">(</span><span class="n">perturbed</span><span class="p">,</span> <span class="n">accuracy</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">perturbed</span></div>
 
 
 
