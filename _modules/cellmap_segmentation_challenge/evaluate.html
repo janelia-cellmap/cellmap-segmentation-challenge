@@ -295,7 +295,7 @@ document.write(`
 <span class="kn">import</span><span class="w"> </span><span class="nn">zarr</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial.distance</span><span class="w"> </span><span class="kn">import</span> <span class="n">dice</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.ndimage</span><span class="w"> </span><span class="kn">import</span> <span class="n">distance_transform_edt</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fastremap</span><span class="w"> </span><span class="kn">import</span> <span class="n">remap</span><span class="p">,</span> <span class="n">unique</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fastremap</span><span class="w"> </span><span class="kn">import</span> <span class="n">remap</span><span class="p">,</span> <span class="n">unique</span><span class="p">,</span> <span class="n">renumber</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">cc3d</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cc3d.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">StatisticsDict</span><span class="p">,</span> <span class="n">StatisticsSlicesDict</span>
 
@@ -324,8 +324,23 @@ document.write(`
 <span class="n">MAX_SEMANTIC_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_SEMANTIC_THREADS&quot;</span><span class="p">,</span> <span class="mi">25</span><span class="p">))</span>
 <span class="n">PER_INSTANCE_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;PER_INSTANCE_THREADS&quot;</span><span class="p">,</span> <span class="mi">25</span><span class="p">))</span>
 <span class="n">MAX_DISTANCE_CAP_EPS</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_DISTANCE_CAP_EPS&quot;</span><span class="p">,</span> <span class="s2">&quot;1e-4&quot;</span><span class="p">))</span>
-<span class="n">INSTANCE_RATIO_CUTOFF</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;INSTANCE_RATIO_CUTOFF&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+<span class="n">FINAL_INSTANCE_RATIO_CUTOFF</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;FINAL_INSTANCE_RATIO_CUTOFF&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+<span class="n">INITIAL_INSTANCE_RATIO_CUTOFF</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;INITIAL_INSTANCE_RATIO_CUTOFF&quot;</span><span class="p">,</span> <span class="mi">50</span><span class="p">))</span>
+<span class="n">INSTANCE_RATIO_FACTOR</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;INSTANCE_RATIO_FACTOR&quot;</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">))</span>
 <span class="n">MAX_OVERLAP_EDGES</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_OVERLAP_EDGES&quot;</span><span class="p">,</span> <span class="s2">&quot;5000000&quot;</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="ratio_cutoff">
+<a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.ratio_cutoff">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ratio_cutoff</span><span class="p">(</span>
+    <span class="n">nG</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">R_base</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">FINAL_INSTANCE_RATIO_CUTOFF</span><span class="p">,</span>
+    <span class="n">R_extra</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">INITIAL_INSTANCE_RATIO_CUTOFF</span><span class="p">,</span>
+    <span class="n">k</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">INSTANCE_RATIO_FACTOR</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="c1"># nG==0 handled upstream (ratio undefined); return max tolerance for completeness</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">R_base</span> <span class="o">+</span> <span class="n">R_extra</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">nG</span> <span class="o">/</span> <span class="n">k</span><span class="p">))</span></div>
+
 
 
 <div class="viewcode-block" id="normalize_distance">
@@ -379,7 +394,7 @@ document.write(`
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No GT or Pred instances; returning only background match.&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
 
-    <span class="k">if</span> <span class="p">(</span><span class="n">nP</span> <span class="o">/</span> <span class="n">nG</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">INSTANCE_RATIO_CUTOFF</span><span class="p">:</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">nP</span> <span class="o">/</span> <span class="n">nG</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">ratio_cutoff</span><span class="p">(</span><span class="n">nG</span><span class="p">):</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;WARNING: Skipping </span><span class="si">{</span><span class="n">nP</span><span class="si">}</span><span class="s2"> instances in submission, </span><span class="si">{</span><span class="n">nG</span><span class="si">}</span><span class="s2"> in ground truth, &quot;</span>
             <span class="sa">f</span><span class="s2">&quot;because there are too many instances in the submission.&quot;</span>
@@ -717,7 +732,7 @@ document.write(`
     <span class="k">if</span> <span class="n">a_n</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">b_n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="mf">0.0</span>
     <span class="k">elif</span> <span class="n">a_n</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">b_n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="k">return</span> <span class="n">max_distance</span>
 
     <span class="n">vs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">vs</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">ndim</span><span class="p">:</span>
@@ -754,7 +769,7 @@ document.write(`
     <span class="n">truth_label</span><span class="p">,</span>
     <span class="n">voxel_size</span><span class="p">,</span>
     <span class="n">hausdorff_distance_max</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Score a single instance label volume against the ground truth instance label volume.</span>
 
@@ -773,13 +788,15 @@ document.write(`
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Scoring instance segmentation...&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">hausdorff_distance_max</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">hausdorff_distance_max</span> <span class="o">=</span> <span class="n">compute_default_max_distance</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;Using default maximum Hausdorff distance of </span><span class="si">{</span><span class="n">hausdorff_distance_max</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> for voxel size </span><span class="si">{</span><span class="n">voxel_size</span><span class="si">}</span><span class="s2">.&quot;</span>
         <span class="p">)</span>
 
     <span class="c1"># Relabel the predicted instance labels to be consistent with the ground truth instance labels</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Relabeling predicted instance labels...&quot;</span><span class="p">)</span>
-    <span class="n">pred_label</span><span class="p">,</span> <span class="n">n_pred</span> <span class="o">=</span> <span class="n">cc3d</span><span class="o">.</span><span class="n">connected_components</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">return_N</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># pred_label, n_pred = cc3d.connected_components(pred_label, return_N=True)</span>
+    <span class="n">pred_label</span><span class="p">,</span> <span class="n">remapping</span> <span class="o">=</span> <span class="n">renumber</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">in_place</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">n_pred</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">remapping</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>  <span class="c1"># exclude background</span>
 
     <span class="c1"># Match instances between ground truth and prediction</span>
     <span class="n">mapping</span> <span class="o">=</span> <span class="n">match_instances</span><span class="p">(</span><span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">)</span>
@@ -788,9 +805,13 @@ document.write(`
         <span class="c1"># Too many instances in submission, skip scoring</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-            <span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
-            <span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;binary_accuracy&quot;</span><span class="p">:</span> <span class="p">((</span><span class="n">truth_label</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="n">pred_label</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span>
+            <span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">:</span> <span class="n">hausdorff_distance_max</span><span class="p">,</span>
+            <span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">:</span> <span class="n">normalize_distance</span><span class="p">(</span>
+                <span class="n">hausdorff_distance_max</span><span class="p">,</span> <span class="n">voxel_size</span>
+            <span class="p">),</span>
             <span class="s2">&quot;combined_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;skipped_too_many_instances&quot;</span><span class="p">,</span>
         <span class="p">}</span>
     <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">mapping</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="mi">0</span> <span class="ow">in</span> <span class="n">mapping</span><span class="p">:</span>
         <span class="c1"># Only background present in both ground truth and prediction</span>
@@ -812,23 +833,24 @@ document.write(`
             <span class="n">hausdorff_distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
                 <span class="p">[</span>
                     <span class="n">hausdorff_distances</span><span class="p">,</span>
-                    <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unmatched_pred</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span>
+                        <span class="nb">len</span><span class="p">(</span><span class="n">unmatched_pred</span><span class="p">),</span> <span class="n">hausdorff_distance_max</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+                    <span class="p">),</span>
                 <span class="p">]</span>
             <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># No predictions to match (no GT XOR no Pred instances)</span>
-        <span class="n">hausdorff_distances</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">hausdorff_distances</span> <span class="o">=</span> <span class="p">[</span><span class="n">hausdorff_distance_max</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hausdorff_distances</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">hausdorff_distances</span> <span class="o">=</span> <span class="p">[</span><span class="n">hausdorff_distance_max</span><span class="p">]</span>
 
     <span class="c1"># Compute the scores</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Computing accuracy score...&quot;</span><span class="p">)</span>
     <span class="n">accuracy</span> <span class="o">=</span> <span class="nb">float</span><span class="p">((</span><span class="n">truth_label</span> <span class="o">==</span> <span class="n">pred_label</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
-    <span class="n">hausdorff_dist</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">hausdorff_distances</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hausdorff_distances</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
-    <span class="p">)</span>
-    <span class="n">normalized_hausdorff_dist</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">normalize_distance</span><span class="p">(</span><span class="n">hd</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">)</span> <span class="k">for</span> <span class="n">hd</span> <span class="ow">in</span> <span class="n">hausdorff_distances</span><span class="p">])</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hausdorff_distances</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
-        <span class="k">else</span> <span class="mf">0.0</span>
+    <span class="n">hausdorff_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">hausdorff_distances</span><span class="p">)</span>
+    <span class="n">normalized_hausdorff_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">normalize_distance</span><span class="p">(</span><span class="n">hd</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">)</span> <span class="k">for</span> <span class="n">hd</span> <span class="ow">in</span> <span class="n">hausdorff_distances</span><span class="p">]</span>
     <span class="p">)</span>
     <span class="n">combined_score</span> <span class="o">=</span> <span class="p">(</span><span class="n">accuracy</span> <span class="o">*</span> <span class="n">normalized_hausdorff_dist</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span>  <span class="c1"># geometric mean</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Accuracy: </span><span class="si">{</span><span class="n">accuracy</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -840,6 +862,7 @@ document.write(`
         <span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">:</span> <span class="n">hausdorff_dist</span><span class="p">,</span>
         <span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">:</span> <span class="n">normalized_hausdorff_dist</span><span class="p">,</span>
         <span class="s2">&quot;combined_score&quot;</span><span class="p">:</span> <span class="n">combined_score</span><span class="p">,</span>
+        <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;scored&quot;</span><span class="p">,</span>
     <span class="p">}</span>  <span class="c1"># type: ignore</span></div>
 
 
@@ -877,6 +900,7 @@ document.write(`
     <span class="n">scores</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="n">iou_score</span><span class="p">,</span>
         <span class="s2">&quot;dice_score&quot;</span><span class="p">:</span> <span class="n">dice_score</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">dice_score</span><span class="p">)</span> <span class="k">else</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;scored&quot;</span><span class="p">,</span>
     <span class="p">}</span>
 
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;IoU: </span><span class="si">{</span><span class="n">scores</span><span class="p">[</span><span class="s1">&#39;iou&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -972,36 +996,29 @@ document.write(`
 <span class="k">def</span><span class="w"> </span><span class="nf">empty_label_score</span><span class="p">(</span>
     <span class="n">label</span><span class="p">,</span> <span class="n">crop_name</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">INSTANCE_CLASSES</span><span class="p">,</span> <span class="n">truth_path</span><span class="o">=</span><span class="n">TRUTH_PATH</span>
 <span class="p">):</span>
+    <span class="n">truth_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span>
+    <span class="n">ds</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">((</span><span class="n">truth_path</span> <span class="o">/</span> <span class="n">crop_name</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="n">voxel_size</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
         <span class="n">truth_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-            <span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">:</span> <span class="n">compute_default_max_distance</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">),</span>
             <span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
             <span class="s2">&quot;combined_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-            <span class="s2">&quot;num_voxels&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span>
-                <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span>
-                    <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">((</span><span class="n">truth_path</span> <span class="o">/</span> <span class="n">crop_name</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span>
-                <span class="p">)</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;voxel_size&quot;</span><span class="p">:</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
-                <span class="p">(</span><span class="n">truth_path</span> <span class="o">/</span> <span class="n">crop_name</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span>
-            <span class="p">)</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;num_voxels&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">shape</span><span class="p">)),</span>
+            <span class="s2">&quot;voxel_size&quot;</span><span class="p">:</span> <span class="n">voxel_size</span><span class="p">,</span>
             <span class="s2">&quot;is_missing&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;missing&quot;</span><span class="p">,</span>
         <span class="p">}</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
             <span class="s2">&quot;dice_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-            <span class="s2">&quot;num_voxels&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span>
-                <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span>
-                    <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">((</span><span class="n">truth_path</span> <span class="o">/</span> <span class="n">crop_name</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span>
-                <span class="p">)</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;voxel_size&quot;</span><span class="p">:</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
-                <span class="p">(</span><span class="n">truth_path</span> <span class="o">/</span> <span class="n">crop_name</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span>
-            <span class="p">)</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;num_voxels&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">shape</span><span class="p">)),</span>
+            <span class="s2">&quot;voxel_size&quot;</span><span class="p">:</span> <span class="n">voxel_size</span><span class="p">,</span>
             <span class="s2">&quot;is_missing&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;missing&quot;</span><span class="p">,</span>
         <span class="p">}</span></div>
 
 
@@ -1081,13 +1098,15 @@ document.write(`
 <div class="viewcode-block" id="missing_volume_score">
 <a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.evaluate.missing_volume_score">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">missing_volume_score</span><span class="p">(</span>
-    <span class="n">truth_volume_path</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">INSTANCE_CLASSES</span>
+    <span class="n">truth_path</span><span class="p">,</span> <span class="n">volume</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">INSTANCE_CLASSES</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Score a missing volume as 0&#39;s, congruent with the score_volume function.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        truth_volume_path (str): The path to the ground truth volume.</span>
+<span class="sd">        truth_path (str): The path to the ground truth volume.</span>
+<span class="sd">        volume (str): The name of the volume.</span>
+<span class="sd">        instance_classes (list): A list of instance classes.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        dict: A dictionary of scores for the volume.</span>
@@ -1095,41 +1114,16 @@ document.write(`
 <span class="sd">    Example usage:</span>
 <span class="sd">        scores = missing_volume_score(&#39;truth.zarr/test_volume&#39;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scoring missing volume </span><span class="si">{</span><span class="n">truth_volume_path</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
-    <span class="n">truth_volume_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">truth_volume_path</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scoring missing volume </span><span class="si">{</span><span class="n">volume</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+    <span class="n">truth_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span>
+    <span class="n">truth_volume_path</span> <span class="o">=</span> <span class="n">truth_path</span> <span class="o">/</span> <span class="n">volume</span>
 
     <span class="c1"># Find labels to score</span>
     <span class="n">truth_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">ensure_zgroup</span><span class="p">(</span><span class="n">truth_volume_path</span><span class="p">)</span><span class="o">.</span><span class="n">array_keys</span><span class="p">()]</span>
 
     <span class="c1"># Score each label</span>
     <span class="n">scores</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">label</span><span class="p">:</span> <span class="p">(</span>
-            <span class="p">{</span>
-                <span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                <span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                <span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                <span class="s2">&quot;combined_score&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                <span class="s2">&quot;num_voxels&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span>
-                    <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">((</span><span class="n">truth_volume_path</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-                <span class="p">),</span>
-                <span class="s2">&quot;voxel_size&quot;</span><span class="p">:</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
-                    <span class="p">(</span><span class="n">truth_volume_path</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span>
-                <span class="p">)</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">],</span>
-                <span class="s2">&quot;is_missing&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-            <span class="p">}</span>
-            <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">instance_classes</span>
-            <span class="k">else</span> <span class="p">{</span>
-                <span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                <span class="s2">&quot;dice_score&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                <span class="s2">&quot;num_voxels&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span>
-                    <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">((</span><span class="n">truth_volume_path</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-                <span class="p">),</span>
-                <span class="s2">&quot;voxel_size&quot;</span><span class="p">:</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
-                    <span class="p">(</span><span class="n">truth_volume_path</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span>
-                <span class="p">)</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">],</span>
-                <span class="s2">&quot;is_missing&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-            <span class="p">}</span>
-        <span class="p">)</span>
+        <span class="n">label</span><span class="p">:</span> <span class="n">empty_label_score</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">volume</span><span class="p">,</span> <span class="n">instance_classes</span><span class="p">,</span> <span class="n">truth_path</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">truth_labels</span>
     <span class="p">}</span>
 
@@ -1212,16 +1206,30 @@ document.write(`
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Computing overall scores...&quot;</span><span class="p">)</span>
     <span class="n">overall_instance_scores</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">overall_semantic_scores</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">instance_total_voxels</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+        <span class="n">total_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">label_scores</span> <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">instance_classes</span>
+    <span class="p">)</span>
+    <span class="n">semantic_total_voxels</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+        <span class="n">total_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">label_scores</span> <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">instance_classes</span>
+    <span class="p">)</span>
     <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">label_scores</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
-            <span class="n">overall_instance_scores</span> <span class="o">+=</span> <span class="p">[</span><span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;combined_score&quot;</span><span class="p">]]</span>
+            <span class="n">overall_instance_scores</span> <span class="o">+=</span> <span class="p">[</span>
+                <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;combined_score&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">total_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
+            <span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">overall_semantic_scores</span> <span class="o">+=</span> <span class="p">[</span><span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;iou&quot;</span><span class="p">]]</span>
+            <span class="n">overall_semantic_scores</span> <span class="o">+=</span> <span class="p">[</span>
+                <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;iou&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">total_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
+            <span class="p">]</span>
     <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;overall_instance_score&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">overall_instance_scores</span><span class="p">)</span> <span class="k">if</span> <span class="n">overall_instance_scores</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">overall_instance_scores</span><span class="p">)</span> <span class="o">/</span> <span class="n">instance_total_voxels</span>
+        <span class="k">if</span> <span class="n">overall_instance_scores</span>
+        <span class="k">else</span> <span class="mi">0</span>
     <span class="p">)</span>
     <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;overall_semantic_score&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">overall_semantic_scores</span><span class="p">)</span> <span class="k">if</span> <span class="n">overall_semantic_scores</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">overall_semantic_scores</span><span class="p">)</span> <span class="o">/</span> <span class="n">semantic_total_voxels</span>
+        <span class="k">if</span> <span class="n">overall_semantic_scores</span>
+        <span class="k">else</span> <span class="mi">0</span>
     <span class="p">)</span>
     <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;overall_score&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;overall_instance_score&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;overall_semantic_score&quot;</span><span class="p">]</span>
@@ -1393,7 +1401,7 @@ document.write(`
 
     <span class="n">scores</span> <span class="o">=</span> <span class="p">{</span>
         <span class="n">volume</span><span class="p">:</span> <span class="n">missing_volume_score</span><span class="p">(</span>
-            <span class="n">truth_path</span> <span class="o">/</span> <span class="n">volume</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span>
+            <span class="n">truth_path</span><span class="p">,</span> <span class="n">volume</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span>
         <span class="p">)</span>
         <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="n">missing_volumes</span>
     <span class="p">}</span>
@@ -1488,6 +1496,8 @@ document.write(`
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">label_scores</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
                     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">label_scores</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                         <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="k">continue</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                             <span class="k">continue</span>
                         <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                             <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
