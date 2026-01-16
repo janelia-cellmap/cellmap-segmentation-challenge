@@ -242,7 +242,7 @@ def test_roi_hausdorff_empty_sets_and_missing_instance():
     truth = np.zeros((6, 6), dtype=np.int32)
     pred = np.zeros_like(truth)
 
-    # present only in truth -> max_distance
+    # present only in truth -> infinity
     truth[0, 0] = tid
     truth_stats = cc3d.statistics(truth)
     pred_stats = cc3d.statistics(pred)
@@ -255,23 +255,7 @@ def test_roi_hausdorff_empty_sets_and_missing_instance():
         voxel_size=voxel_size,
         max_distance=max_distance,
     )
-    assert np.isclose(d1, max_distance)
-
-    # present only in pred -> max_distance
-    truth[0, 0] = 0
-    pred[0, 0] = tid
-    truth_stats = cc3d.statistics(truth)
-    pred_stats = cc3d.statistics(pred)
-    d2 = ev.compute_hausdorff_distance_roi(
-        truth,
-        truth_stats,
-        pred,
-        pred_stats,
-        tid,
-        voxel_size=voxel_size,
-        max_distance=max_distance,
-    )
-    assert np.isclose(d2, max_distance)
+    assert np.isclose(d1, np.inf)
 
 
 def test_roi_hausdorff_clips_to_max_distance_matches_reference():
@@ -352,10 +336,10 @@ def test_roi_hausdorff_anisotropic_voxel_size_matches_reference():
 
 
 @pytest.mark.usefixtures("monkeypatch")
-def test_roi_none_returns_max_distance(monkeypatch):
+def test_roi_none_returns_inf(monkeypatch):
     """
     Forces roi_slices_for_pair to return None to exercise that branch.
-    Should return max_distance when the instance exists in truth or pred
+    Should return infinity when the instance exists in truth or pred
     (i.e. not the "both absent" case).
     """
     from cellmap_segmentation_challenge import evaluate as ev
@@ -384,7 +368,7 @@ def test_roi_none_returns_max_distance(monkeypatch):
         voxel_size=(1.0, 1.0),
         max_distance=7.0,
     )
-    assert np.isclose(d, 7.0)
+    assert np.isclose(d, np.inf)
 
 
 def test_optimized_hausdorff_distances_per_instance():

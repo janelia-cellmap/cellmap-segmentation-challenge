@@ -353,8 +353,7 @@ def roi_slices_for_pair(
     pad = np.ceil(max_distance / vs).astype(int) + 2
 
     tb = bbox_for_label(truth_stats, ndim, tid)
-    if tb is None:
-        return None  # should not happen for tid from truth_ids
+    assert tb is not None, f"Truth ID {tid} not found in truth statistics."
 
     tmins, tmaxs = tb
     pb = bbox_for_label(pred_stats, ndim, tid)
@@ -401,8 +400,6 @@ def compute_hausdorff_distance_roi(
         truth_label.shape,
         max_distance,
     )
-    if roi is None:
-        return float(max_distance)
 
     t_roi = truth_label[roi]
     p_roi = pred_label[roi]
@@ -414,8 +411,8 @@ def compute_hausdorff_distance_roi(
     b_n = int(b.sum())
     if a_n == 0 and b_n == 0:
         return 0.0
-    if a_n == 0 or b_n == 0:
-        return float(max_distance)
+    elif a_n == 0 or b_n == 0:
+        return np.inf
 
     vs = np.asarray(voxel_size, dtype=np.float64)
     if vs.size != ndim:
@@ -474,7 +471,7 @@ def score_instance(
 
     # Relabel the predicted instance labels to be consistent with the ground truth instance labels
     logging.info("Relabeling predicted instance labels...")
-    pred_label = cc3d.connected_components(pred_label)
+    pred_label, n_pred = cc3d.connected_components(pred_label, return_N=True)
 
     # Match instances between ground truth and prediction
     mapping = match_instances(truth_label, pred_label)
@@ -500,6 +497,16 @@ def score_instance(
         hausdorff_distances = optimized_hausdorff_distances(
             truth_label, pred_label, voxel_size, hausdorff_distance_max
         )
+        matched_pred_ids = set(mapping.keys()) - {0}
+        pred_ids = set(np.arange(1, n_pred + 1)) - {0}
+        unmatched_pred = pred_ids - matched_pred_ids
+        if len(unmatched_pred) > 0:
+            hausdorff_distances = np.concatenate(
+                [
+                    hausdorff_distances,
+                    np.full(len(unmatched_pred), np.inf, dtype=np.float32),
+                ]
+            )
     else:
         # No predictions to match (no GT XOR no Pred instances)
         hausdorff_distances = []
@@ -507,13 +514,14 @@ def score_instance(
     # Compute the scores
     logging.info("Computing accuracy score...")
     accuracy = float((truth_label == pred_label).mean())
-    # When there are no Hausdorff distances, use np.inf so that
-    # normalize_distance(hausdorff_dist, voxel_size) returns 0.0. This encodes
-    # the absence of matched instances and ensures the combined_score is 0.0.
     hausdorff_dist = (
         np.mean(hausdorff_distances) if len(hausdorff_distances) > 0 else np.inf
     )
-    normalized_hausdorff_dist = normalize_distance(hausdorff_dist, voxel_size)
+    normalized_hausdorff_dist = (
+        np.mean([normalize_distance(hd, voxel_size) for hd in hausdorff_distances])
+        if len(hausdorff_distances) > 0
+        else 0.0
+    )
     combined_score = (accuracy * normalized_hausdorff_dist) ** 0.5  # geometric mean
     logging.info(f"Accuracy: {accuracy:.4f}")
     logging.info(f"Hausdorff Distance: {hausdorff_dist:.4f}")
