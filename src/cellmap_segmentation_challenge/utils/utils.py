@@ -7,9 +7,280 @@ from tqdm import tqdm
 from cellmap_segmentation_challenge.utils import get_tested_classes
 from cellmap_segmentation_challenge import TRUTH_PATH
 import zarr
-from skimage.measure import label as relabel
 
 from upath import UPath
+from scipy import ndimage as ndi
+
+
+def iou(a: np.ndarray, b: np.ndarray) -> float:
+    a = a.astype(bool)
+    b = b.astype(bool)
+    inter = np.logical_and(a, b).sum()
+    union = np.logical_or(a, b).sum()
+    return float(inter) / float(union) if union else 1.0
+
+
+def _disk(radius: int) -> np.ndarray:
+    """Binary disk structuring element."""
+    r = int(radius)
+    y, x = np.ogrid[-r : r + 1, -r : r + 1]
+    return (x * x + y * y) <= r * r
+
+
+def _boundary_bands(G: np.ndarray, band: int, connectivity: int = 1):
+    """
+    Returns:
+      inner_band: pixels in G near boundary (preferred FN removal candidates)
+      outer_band: pixels outside G near boundary (preferred FP addition candidates)
+    """
+    G = G.astype(bool)
+    if band <= 0:
+        inner = G.copy()
+        outer = (~G).copy()
+        return inner, outer
+
+    # Use disk SE for spatial realism
+    se = _disk(band)
+
+    # Inner band = G minus an eroded version of G
+    G_er = ndi.binary_erosion(G, structure=se, iterations=1, border_value=0)
+    inner_band = np.logical_and(G, ~G_er)
+
+    # Outer band = dilated G minus G
+    G_di = ndi.binary_dilation(G, structure=se, iterations=1)
+    outer_band = np.logical_and(G_di, ~G)
+
+    return inner_band, outer_band
+
+
+def _sample_indices(mask: np.ndarray, k: int, rng: np.random.Generator) -> np.ndarray:
+    """Uniformly sample k True locations (flat indices) without replacement."""
+    idx = np.flatnonzero(mask)
+    if k <= 0 or idx.size == 0:
+        return np.array([], dtype=np.int64)
+    k = min(k, idx.size)
+    return rng.choice(idx, size=k, replace=False)
+
+
+def _add_blob(
+    P: np.ndarray,
+    candidate: np.ndarray,
+    add_k: int,
+    rng: np.random.Generator,
+    blob_radius: int = 8,
+    n_seeds: int = 6,
+) -> int:
+    """
+    Adds 'blob-like' FP pixels by planting random seeds and dilating them.
+    Returns how many pixels were actually added.
+    """
+    if add_k <= 0:
+        return 0
+    cand_idx = np.flatnonzero(candidate)
+    if cand_idx.size == 0:
+        return 0
+
+    # Create seed map
+    seeds = np.zeros_like(P, dtype=bool)
+    seeds_n = min(n_seeds, cand_idx.size)
+    seed_idx = rng.choice(cand_idx, size=seeds_n, replace=False)
+    seeds.flat[seed_idx] = True
+
+    # Grow seeds into blobs
+    se = _disk(max(1, blob_radius))
+    blob = ndi.binary_dilation(seeds, structure=se, iterations=1)
+
+    # Restrict to candidate region + not already in P
+    blob = np.logical_and(blob, candidate)
+    blob = np.logical_and(blob, ~P)
+
+    # If blob too big, randomly subsample to exact add_k
+    blob_idx = np.flatnonzero(blob)
+    if blob_idx.size == 0:
+        return 0
+
+    choose = (
+        blob_idx
+        if blob_idx.size <= add_k
+        else rng.choice(blob_idx, size=add_k, replace=False)
+    )
+    before = P.sum()
+    P.flat[choose] = True
+    return int(P.sum() - before)
+
+
+def _remove_blob(
+    P: np.ndarray,
+    candidate: np.ndarray,
+    rem_k: int,
+    rng: np.random.Generator,
+    blob_radius: int = 8,
+    n_seeds: int = 6,
+) -> int:
+    """
+    Removes 'blob-like' FN pixels by planting seeds inside candidate and dilating them.
+    Returns how many pixels were actually removed.
+    """
+    if rem_k <= 0:
+        return 0
+    cand_idx = np.flatnonzero(candidate)
+    if cand_idx.size == 0:
+        return 0
+
+    seeds = np.zeros_like(P, dtype=bool)
+    seeds_n = min(n_seeds, cand_idx.size)
+    seed_idx = rng.choice(cand_idx, size=seeds_n, replace=False)
+    seeds.flat[seed_idx] = True
+
+    se = _disk(max(1, blob_radius))
+    blob = ndi.binary_dilation(seeds, structure=se, iterations=1)
+
+    # Restrict to candidate region + currently in P
+    blob = np.logical_and(blob, candidate)
+    blob = np.logical_and(blob, P)
+
+    blob_idx = np.flatnonzero(blob)
+    if blob_idx.size == 0:
+        return 0
+
+    choose = (
+        blob_idx
+        if blob_idx.size <= rem_k
+        else rng.choice(blob_idx, size=rem_k, replace=False)
+    )
+    before = P.sum()
+    P.flat[choose] = False
+    return int(before - P.sum())
+
+
+def perturb_mask_realistic(
+    G: np.ndarray,
+    target_iou: float,
+    p_fn: float = 0.5,
+    band: int = 3,
+    style: str = "ring",  # "ring" or "blob"
+    blob_radius: int = 8,
+    blob_seeds: int = 6,
+    rng: np.random.Generator | None = None,
+    max_tries: int = 4000,
+):
+    """
+    Make a perturbed mask P from ground-truth G with approx target IoU, using spatially realistic errors.
+
+    Construction:
+      Start P = G
+      Remove r pixels (FN) mostly from inner boundary band
+      Add a pixels (FP) mostly from outer boundary band
+
+    Exact-count IoU relationship (counts):
+      IoU = (g - r) / (g + a)
+    """
+
+    if rng is None:
+        rng = np.random.default_rng()
+
+    G = G.astype(bool)
+    g = int(G.sum())
+    if g == 0:
+        raise ValueError("Ground-truth mask is empty; cannot target IoU reliably.")
+    if not (0.0 < target_iou <= 1.0):
+        raise ValueError("target_iou must be in (0, 1].")
+    if target_iou == 1.0:
+        return G.copy()
+
+    bg = ~G
+    b = int(bg.sum())
+
+    # Choose r then compute a = (g - r)/t - g
+    def a_from_r(r: int) -> int:
+        return int(round((g - r) / target_iou - g))
+
+    # Prefer both FP and FN: try to find r such that a>0 and feasible
+    r0 = int(np.clip(round(p_fn * g * (1 - target_iou)), 1, g - 1))
+    best = None
+    jitter = max(5, g // 80)
+
+    for _ in range(max_tries):
+        r = int(np.clip(r0 + rng.integers(-jitter, jitter + 1), 0, g))
+        a = a_from_r(r)
+        if 0 <= a <= b:
+            if r > 0 and a > 0:
+                best = (r, a)
+                break
+            if best is None:
+                best = (r, a)
+
+    if best is None:
+        raise RuntimeError(
+            "Could not find feasible (FN removals r, FP adds a). Try different target_iou."
+        )
+
+    r, a = best
+
+    P = G.copy()
+
+    # Candidate bands near boundary
+    inner_band, outer_band = _boundary_bands(G, band=band)
+
+    # If band degenerates (tiny objects), fall back to whole regions
+    inner_cand = inner_band if inner_band.any() else G
+    outer_cand = outer_band if outer_band.any() else (~G)
+
+    # --- Apply FN removals ---
+    if style == "ring":
+        # remove from inner band first
+        rem_idx = _sample_indices(inner_cand & P, r, rng)
+        P.flat[rem_idx] = False
+
+        # If not enough (rare), remove remaining from anywhere inside
+        remaining = r - rem_idx.size
+        if remaining > 0:
+            rem2 = _sample_indices(G & P, remaining, rng)
+            P.flat[rem2] = False
+
+    elif style == "blob":
+        removed = _remove_blob(
+            P, inner_cand, r, rng, blob_radius=blob_radius, n_seeds=blob_seeds
+        )
+        remaining = r - removed
+        if remaining > 0:
+            # finish by ring-like sampling if blobs didn't hit exact count
+            rem_idx = _sample_indices((G & P), remaining, rng)
+            P.flat[rem_idx] = False
+    else:
+        raise ValueError("style must be 'ring' or 'blob'")
+
+    # --- Apply FP additions ---
+    if style == "ring":
+        add_idx = _sample_indices(outer_cand & (~P), a, rng)
+        P.flat[add_idx] = True
+
+        remaining = a - add_idx.size
+        if remaining > 0:
+            add2 = _sample_indices((~G) & (~P), remaining, rng)
+            P.flat[add2] = True
+
+    elif style == "blob":
+        added = _add_blob(
+            P, outer_cand, a, rng, blob_radius=blob_radius, n_seeds=blob_seeds
+        )
+        remaining = a - added
+        if remaining > 0:
+            add_idx = _sample_indices(((~G) & (~P)), remaining, rng)
+            P.flat[add_idx] = True
+
+    # (Optional) return counts for debugging
+    achieved = iou(G, P)
+    info = {
+        "target_iou": target_iou,
+        "achieved_iou": achieved,
+        "g": g,
+        "fn_removed_r": r,
+        "fp_added_a": a,
+        "band": band,
+        "style": style,
+    }
+    return P, info
 
 
 def format_coordinates(coordinates):
@@ -221,106 +492,6 @@ def copy_gt(line, search_path, path_root, write_path, ground_truth):
     dataset.attrs["voxel_size"] = voxel_size
     dataset.attrs["translation"] = translation
     dataset.attrs["shape"] = shape
-
-
-# %%
-
-
-# Helper functions for simulating predictions
-def simulate_predictions_iou_binary(labels, iou):
-    # TODO: Add false positives (only makes false negatives currently)
-    print(f"Simulating predictions with IOU: {iou}")
-
-    shape = labels.shape
-    labels = labels.flatten() > 0
-    n_positive = np.sum(labels)
-    labels[labels > 0] = np.random.choice([1, 0], n_positive, p=[iou, 1 - iou])
-
-    labels = labels.reshape(shape)
-    return labels
-
-
-def simulate_predictions_iou(true_labels, iou):
-    # TODO: Add false positives (only makes false negatives currently)
-
-    pred_labels = np.zeros_like(true_labels)
-    for i in np.unique(true_labels):
-        if i == 0:
-            continue
-        pred_labels[true_labels == i] = np.random.choice(
-            [i, 0], np.sum(true_labels == i), p=[iou, 1 - iou]
-        )
-
-    pred_labels = relabel(pred_labels, connectivity=len(pred_labels.shape))
-    return pred_labels
-
-
-def simulate_predictions_accuracy(true_labels, accuracy):
-    shape = true_labels.shape
-    true_labels = true_labels.flatten()
-
-    # Get the total number of labels
-    n = len(true_labels)
-
-    # Create an array to store the simulated predictions (copy the true labels initially)
-    simulated_predictions = np.copy(true_labels)
-
-    # Randomly select indices to be incorrect
-    incorrect_indices = np.random.choice(n, size=n - int(accuracy * n), replace=False)
-
-    simulated_predictions[incorrect_indices] = (
-        1 - simulated_predictions[incorrect_indices]
-    )
-
-    # Reshape and relabel the predictions
-    simulated_predictions = simulated_predictions.reshape(shape)
-    simulated_predictions = relabel(simulated_predictions, connectivity=len(shape))
-
-    return simulated_predictions
-
-
-def perturb_instance_mask(true_labels, hd_target=None, accuracy=0.8):
-    """
-    Simulate a predicted instance segmentation mask with an approximate Hausdorff distance.
-
-    Parameters:
-    - true_labels: np.ndarray
-        Ground-truth instance segmentation mask.
-    - hd_target: float | None
-        Desired approximate Hausdorff distance. If None, it will be calculated from the accuracy.
-    - accuracy: float
-        Desired accuracy of the perturbed mask.
-
-    Returns:
-    - np.ndarray
-        Perturbed instance segmentation mask.
-    """
-    if hd_target is None:
-        hd_target = -(np.log(accuracy) / np.log(1.01))
-    perturbed = np.copy(true_labels)
-    unique_instances = np.unique(true_labels)[1:]  # Exclude background (0)
-
-    for instance in unique_instances:
-        # print("Shifting...")
-        # Randomly shift the mask
-        indices = np.where(perturbed == instance)
-        perturbed[indices] = 0  # Remove the original instance
-        indices = list(indices)
-        for i in range(3):
-            shift = np.random.randint(-hd_target, hd_target + 1)
-            shift = np.clip(
-                shift,
-                -indices[i].min(),
-                true_labels.shape[i] - (indices[i].max() + 1),
-            )
-
-            indices[i] += shift
-        indices = tuple(indices)
-        perturbed[indices] = instance
-
-    perturbed = simulate_predictions_accuracy(perturbed, accuracy)
-
-    return perturbed
 
 
 def download_file(url, dest):
