@@ -655,8 +655,7 @@ document.write(`
     <span class="n">pad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">max_distance</span> <span class="o">/</span> <span class="n">vs</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span>
 
     <span class="n">tb</span> <span class="o">=</span> <span class="n">bbox_for_label</span><span class="p">(</span><span class="n">truth_stats</span><span class="p">,</span> <span class="n">ndim</span><span class="p">,</span> <span class="n">tid</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">tb</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># should not happen for tid from truth_ids</span>
+    <span class="k">assert</span> <span class="n">tb</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Truth ID </span><span class="si">{</span><span class="n">tid</span><span class="si">}</span><span class="s2"> not found in truth statistics.&quot;</span>
 
     <span class="n">tmins</span><span class="p">,</span> <span class="n">tmaxs</span> <span class="o">=</span> <span class="n">tb</span>
     <span class="n">pb</span> <span class="o">=</span> <span class="n">bbox_for_label</span><span class="p">(</span><span class="n">pred_stats</span><span class="p">,</span> <span class="n">ndim</span><span class="p">,</span> <span class="n">tid</span><span class="p">)</span>
@@ -706,8 +705,6 @@ document.write(`
         <span class="n">truth_label</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
         <span class="n">max_distance</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="k">if</span> <span class="n">roi</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">max_distance</span><span class="p">)</span>
 
     <span class="n">t_roi</span> <span class="o">=</span> <span class="n">truth_label</span><span class="p">[</span><span class="n">roi</span><span class="p">]</span>
     <span class="n">p_roi</span> <span class="o">=</span> <span class="n">pred_label</span><span class="p">[</span><span class="n">roi</span><span class="p">]</span>
@@ -719,8 +716,8 @@ document.write(`
     <span class="n">b_n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
     <span class="k">if</span> <span class="n">a_n</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">b_n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="mf">0.0</span>
-    <span class="k">if</span> <span class="n">a_n</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">b_n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">max_distance</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">a_n</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">b_n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
 
     <span class="n">vs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">vs</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">ndim</span><span class="p">:</span>
@@ -782,7 +779,7 @@ document.write(`
 
     <span class="c1"># Relabel the predicted instance labels to be consistent with the ground truth instance labels</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Relabeling predicted instance labels...&quot;</span><span class="p">)</span>
-    <span class="n">pred_label</span> <span class="o">=</span> <span class="n">cc3d</span><span class="o">.</span><span class="n">connected_components</span><span class="p">(</span><span class="n">pred_label</span><span class="p">)</span>
+    <span class="n">pred_label</span><span class="p">,</span> <span class="n">n_pred</span> <span class="o">=</span> <span class="n">cc3d</span><span class="o">.</span><span class="n">connected_components</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">return_N</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># Match instances between ground truth and prediction</span>
     <span class="n">mapping</span> <span class="o">=</span> <span class="n">match_instances</span><span class="p">(</span><span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">)</span>
@@ -808,6 +805,16 @@ document.write(`
         <span class="n">hausdorff_distances</span> <span class="o">=</span> <span class="n">optimized_hausdorff_distances</span><span class="p">(</span>
             <span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span> <span class="n">hausdorff_distance_max</span>
         <span class="p">)</span>
+        <span class="n">matched_pred_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">mapping</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">-</span> <span class="p">{</span><span class="mi">0</span><span class="p">}</span>
+        <span class="n">pred_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_pred</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="o">-</span> <span class="p">{</span><span class="mi">0</span><span class="p">}</span>
+        <span class="n">unmatched_pred</span> <span class="o">=</span> <span class="n">pred_ids</span> <span class="o">-</span> <span class="n">matched_pred_ids</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unmatched_pred</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">hausdorff_distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">hausdorff_distances</span><span class="p">,</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unmatched_pred</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># No predictions to match (no GT XOR no Pred instances)</span>
         <span class="n">hausdorff_distances</span> <span class="o">=</span> <span class="p">[]</span>
@@ -815,13 +822,14 @@ document.write(`
     <span class="c1"># Compute the scores</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Computing accuracy score...&quot;</span><span class="p">)</span>
     <span class="n">accuracy</span> <span class="o">=</span> <span class="nb">float</span><span class="p">((</span><span class="n">truth_label</span> <span class="o">==</span> <span class="n">pred_label</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
-    <span class="c1"># When there are no Hausdorff distances, use np.inf so that</span>
-    <span class="c1"># normalize_distance(hausdorff_dist, voxel_size) returns 0.0. This encodes</span>
-    <span class="c1"># the absence of matched instances and ensures the combined_score is 0.0.</span>
     <span class="n">hausdorff_dist</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">hausdorff_distances</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hausdorff_distances</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
     <span class="p">)</span>
-    <span class="n">normalized_hausdorff_dist</span> <span class="o">=</span> <span class="n">normalize_distance</span><span class="p">(</span><span class="n">hausdorff_dist</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">)</span>
+    <span class="n">normalized_hausdorff_dist</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">normalize_distance</span><span class="p">(</span><span class="n">hd</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">)</span> <span class="k">for</span> <span class="n">hd</span> <span class="ow">in</span> <span class="n">hausdorff_distances</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hausdorff_distances</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="k">else</span> <span class="mf">0.0</span>
+    <span class="p">)</span>
     <span class="n">combined_score</span> <span class="o">=</span> <span class="p">(</span><span class="n">accuracy</span> <span class="o">*</span> <span class="n">normalized_hausdorff_dist</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span>  <span class="c1"># geometric mean</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Accuracy: </span><span class="si">{</span><span class="n">accuracy</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hausdorff Distance: </span><span class="si">{</span><span class="n">hausdorff_dist</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
