@@ -794,9 +794,9 @@ document.write(`
 
     <span class="c1"># Relabel the predicted instance labels to be consistent with the ground truth instance labels</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Relabeling predicted instance labels...&quot;</span><span class="p">)</span>
-    <span class="c1"># pred_label, n_pred = cc3d.connected_components(pred_label, return_N=True)</span>
-    <span class="n">pred_label</span><span class="p">,</span> <span class="n">remapping</span> <span class="o">=</span> <span class="n">renumber</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">in_place</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">n_pred</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">remapping</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>  <span class="c1"># exclude background</span>
+    <span class="n">pred_label</span><span class="p">,</span> <span class="n">n_pred</span> <span class="o">=</span> <span class="n">cc3d</span><span class="o">.</span><span class="n">connected_components</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">return_N</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># pred_label, remapping = renumber(pred_label, in_place=True)</span>
+    <span class="c1"># n_pred = len(remapping) - 1  # exclude background</span>
 
     <span class="c1"># Match instances between ground truth and prediction</span>
     <span class="n">mapping</span> <span class="o">=</span> <span class="n">match_instances</span><span class="p">(</span><span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">)</span>
