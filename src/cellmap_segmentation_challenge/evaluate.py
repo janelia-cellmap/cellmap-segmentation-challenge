@@ -483,9 +483,9 @@ def score_instance(
 
     # Relabel the predicted instance labels to be consistent with the ground truth instance labels
     logging.info("Relabeling predicted instance labels...")
-    # pred_label, n_pred = cc3d.connected_components(pred_label, return_N=True)
-    pred_label, remapping = renumber(pred_label, in_place=True)
-    n_pred = len(remapping) - 1  # exclude background
+    pred_label, n_pred = cc3d.connected_components(pred_label, return_N=True)
+    # pred_label, remapping = renumber(pred_label, in_place=True)
+    # n_pred = len(remapping) - 1  # exclude background
 
     # Match instances between ground truth and prediction
     mapping = match_instances(truth_label, pred_label)
