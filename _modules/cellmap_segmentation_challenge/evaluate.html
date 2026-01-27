@@ -307,7 +307,7 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span><span class="p">,</span> <span class="n">ProcessPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">SUBMISSION_PATH</span><span class="p">,</span> <span class="n">TRUTH_PATH</span><span class="p">,</span> <span class="n">INSTANCE_CLASSES</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">TEST_CROPS_DICT</span><span class="p">,</span> <span class="n">MatchedCrop</span><span class="p">,</span> <span class="n">rand_voi</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">TEST_CROPS_DICT</span><span class="p">,</span> <span class="n">MatchedCrop</span><span class="p">,</span> <span class="n">rand_voi</span><span class="p">,</span> <span class="n">get_git_hash</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
@@ -878,7 +878,7 @@ document.write(`
         <span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="n">iou</span><span class="p">,</span>
         <span class="s2">&quot;dice_score&quot;</span><span class="p">:</span> <span class="n">dice_score</span><span class="p">,</span>
         <span class="s2">&quot;binary_accuracy&quot;</span><span class="p">:</span> <span class="n">binary_accuracy</span><span class="p">,</span>
-        <span class="c1"># &quot;voi&quot;: voi,</span>
+        <span class="o">**</span><span class="n">voi</span><span class="p">,</span>
     <span class="p">}</span>  <span class="c1"># type: ignore</span></div>
 
 
@@ -1560,6 +1560,7 @@ document.write(`
     <span class="p">)</span>
     <span class="n">all_scores</span><span class="p">[</span><span class="s2">&quot;total_evals&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">TEST_CROPS_DICT</span><span class="p">)</span>
     <span class="n">all_scores</span><span class="p">[</span><span class="s2">&quot;num_evals_done&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">num_evals_done</span><span class="p">(</span><span class="n">all_scores</span><span class="p">)</span>
+    <span class="n">all_scores</span><span class="p">[</span><span class="s2">&quot;git_version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_git_hash</span><span class="p">()</span>
 
     <span class="n">found_scores</span> <span class="o">=</span> <span class="n">combine_scores</span><span class="p">(</span>
         <span class="n">scores</span><span class="p">,</span> <span class="n">include_missing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span>
