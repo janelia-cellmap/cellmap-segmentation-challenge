@@ -53,6 +53,7 @@ dependencies = [
   "connected-components-3d",
   "ortools",
   "Cython",
+  "gitpython",
   ]
 
 [project.optional-dependencies]

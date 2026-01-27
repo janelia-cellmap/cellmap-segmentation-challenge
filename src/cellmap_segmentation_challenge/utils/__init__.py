@@ -29,6 +29,7 @@ __getattr__, __dir__, __all__ = lazy.attach(
             "perturb_instance_mask",
             "download_file",
             "format_string",
+            "get_git_hash",
         ],
         "submission": [
             "package_submission",

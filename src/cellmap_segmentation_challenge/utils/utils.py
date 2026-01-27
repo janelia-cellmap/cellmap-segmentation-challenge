@@ -7,6 +7,7 @@ from tqdm import tqdm
 from cellmap_segmentation_challenge.utils import get_tested_classes
 from cellmap_segmentation_challenge import TRUTH_PATH
 import zarr
+import git
 
 from upath import UPath
 from scipy import ndimage as ndi
@@ -532,6 +533,20 @@ def format_string(string: str, format_kwargs: dict) -> str:
             new_kwargs[key] = "{" + key + "}"
     string = string.format(**new_kwargs)
     return string
+
+
+def get_git_hash() -> str:
+    """
+    Get the current git hash of the repository.
+
+    Returns
+    -------
+    str
+        The current git hash.
+    """
+    repo = git.Repo(UPath(__file__).parent, search_parent_directories=True)
+    sha = repo.head.object.hexsha
+    return sha
 
 
 if __name__ == "__main__":

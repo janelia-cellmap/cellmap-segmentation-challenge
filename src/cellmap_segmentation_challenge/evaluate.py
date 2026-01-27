@@ -22,7 +22,7 @@ from upath import UPath
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 
 from .config import SUBMISSION_PATH, TRUTH_PATH, INSTANCE_CLASSES
-from .utils import TEST_CROPS_DICT, MatchedCrop, rand_voi
+from .utils import TEST_CROPS_DICT, MatchedCrop, rand_voi, get_git_hash
 
 import logging
 
@@ -567,7 +567,7 @@ def score_instance(
         "iou": iou,
         "dice_score": dice_score,
         "binary_accuracy": binary_accuracy,
-        # "voi": voi,
+        **voi,
     }  # type: ignore
 
 
@@ -1213,6 +1213,7 @@ def update_scores(scores, results, result_file, instance_classes=INSTANCE_CLASSE
     )
     all_scores["total_evals"] = len(TEST_CROPS_DICT)
     all_scores["num_evals_done"] = num_evals_done(all_scores)
+    all_scores["git_version"] = get_git_hash()
 
     found_scores = combine_scores(
         scores, include_missing=False, instance_classes=instance_classes
