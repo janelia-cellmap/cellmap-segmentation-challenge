@@ -384,6 +384,7 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.score_submission"><code class="docutils literal notranslate"><span class="pre">score_submission()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.train"><code class="docutils literal notranslate"><span class="pre">train()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.visualize"><code class="docutils literal notranslate"><span class="pre">visualize()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -655,6 +656,11 @@ document.write(`
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#module-cellmap_segmentation_challenge.utils.rand_voi">cellmap_segmentation_challenge.utils.rand_voi module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.rand_voi.rand_voi"><code class="docutils literal notranslate"><span class="pre">rand_voi()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.rand_voi.rand_voi_wrapper"><code class="docutils literal notranslate"><span class="pre">rand_voi_wrapper()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#module-cellmap_segmentation_challenge.utils.security">cellmap_segmentation_challenge.utils.security module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.security.analyze_script"><code class="docutils literal notranslate"><span class="pre">analyze_script()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.security.load_safe_config"><code class="docutils literal notranslate"><span class="pre">load_safe_config()</span></code></a></li>
@@ -749,6 +755,7 @@ document.write(`
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.make_s3_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_s3_datasplit_csv()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.monitor_jobs"><code class="docutils literal notranslate"><span class="pre">monitor_jobs()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.package_submission"><code class="docutils literal notranslate"><span class="pre">package_submission()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.rand_voi"><code class="docutils literal notranslate"><span class="pre">rand_voi()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.save_numpy_class_arrays_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_arrays_to_zarr()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.save_numpy_class_labels_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_labels_to_zarr()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.zip_submission"><code class="docutils literal notranslate"><span class="pre">zip_submission()</span></code></a></li>
@@ -1622,6 +1629,22 @@ The process function should take an array as input and return an array as output
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.visualize">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.</span></span><span class="sig-name descname"><span class="pre">visualize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datasets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'*'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crops</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['*']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'*'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kinds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['gt',</span> <span class="pre">'predictions',</span> <span class="pre">'processed']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/visualize.html#visualize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.visualize" title="Link to this definition">#</a></dt>
+<dd><p>Visualize datasets and crops in Neuroglancer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datasets</strong> (<em>str</em><em> | </em><em>Sequence</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The name of the dataset to visualize. Can be a string or a list of strings. Default is “*”. If “*”, all datasets will be visualized.</p></li>
+<li><p><strong>crops</strong> (<em>int</em><em> | </em><em>Sequence</em><em>[</em><em>int</em><em>]</em><em>, </em><em>optional</em>) – The crop number(s) to visualize. Can be an integer or a list of integers, or None. Default is None. If None, all crops will be visualized.</p></li>
+<li><p><strong>classes</strong> (<em>str</em><em> | </em><em>Sequence</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The class to visualize. Can be a string or a list of strings. Default is “*”. If “*”, all classes will be visualized.</p></li>
+<li><p><strong>kinds</strong> (<em>Sequence</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The type of layers to visualize. Can be “gt” for groundtruth, “predictions” for predictions, or “processed” for processed data. Default is [“gt”, “predictions”, “processed”, “submission”].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 
@@ -1709,6 +1732,7 @@ The process function should take an array as input and return an array as output
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.score_submission"><code class="docutils literal notranslate"><span class="pre">score_submission()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.train"><code class="docutils literal notranslate"><span class="pre">train()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.visualize"><code class="docutils literal notranslate"><span class="pre">visualize()</span></code></a></li>
 </ul>
 </li>
 </ul>

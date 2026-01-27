@@ -60,6 +60,14 @@ cellmap\_segmentation\_challenge.utils.matched\_crop module
    :show-inheritance:
    :undoc-members:
 
+cellmap\_segmentation\_challenge.utils.rand\_voi module
+-------------------------------------------------------
+
+.. automodule:: cellmap_segmentation_challenge.utils.rand_voi
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 cellmap\_segmentation\_challenge.utils.security module
 ------------------------------------------------------
 

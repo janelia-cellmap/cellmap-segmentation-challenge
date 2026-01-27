@@ -307,7 +307,7 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span><span class="p">,</span> <span class="n">ProcessPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">SUBMISSION_PATH</span><span class="p">,</span> <span class="n">TRUTH_PATH</span><span class="p">,</span> <span class="n">INSTANCE_CLASSES</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">TEST_CROPS_DICT</span><span class="p">,</span> <span class="n">MatchedCrop</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">TEST_CROPS_DICT</span><span class="p">,</span> <span class="n">MatchedCrop</span><span class="p">,</span> <span class="n">rand_voi</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
@@ -798,6 +798,15 @@ document.write(`
     <span class="c1"># pred_label, remapping = renumber(pred_label, in_place=True)</span>
     <span class="c1"># n_pred = len(remapping) - 1  # exclude background</span>
 
+    <span class="c1"># Get stats that don&#39;t require matched instances</span>
+    <span class="n">truth_binary</span> <span class="o">=</span> <span class="p">(</span><span class="n">truth_label</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">pred_binary</span> <span class="o">=</span> <span class="p">(</span><span class="n">pred_label</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">iou</span> <span class="o">=</span> <span class="n">jaccard_score</span><span class="p">(</span><span class="n">truth_binary</span><span class="p">,</span> <span class="n">pred_binary</span><span class="p">,</span> <span class="n">zero_division</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">dice_score</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">dice</span><span class="p">(</span><span class="n">truth_binary</span><span class="p">,</span> <span class="n">pred_binary</span><span class="p">)</span>
+    <span class="n">binary_accuracy</span> <span class="o">=</span> <span class="nb">float</span><span class="p">((</span><span class="n">truth_binary</span> <span class="o">==</span> <span class="n">pred_binary</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+    <span class="n">voi</span> <span class="o">=</span> <span class="n">rand_voi</span><span class="p">(</span><span class="n">truth_label</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">),</span> <span class="n">pred_label</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">))</span>
+    <span class="k">del</span> <span class="n">voi</span><span class="p">[</span><span class="s2">&quot;voi_split_i&quot;</span><span class="p">],</span> <span class="n">voi</span><span class="p">[</span><span class="s2">&quot;voi_merge_j&quot;</span><span class="p">]</span>
+
     <span class="c1"># Match instances between ground truth and prediction</span>
     <span class="n">mapping</span> <span class="o">=</span> <span class="n">match_instances</span><span class="p">(</span><span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">)</span>
 
@@ -805,13 +814,16 @@ document.write(`
         <span class="c1"># Too many instances in submission, skip scoring</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-            <span class="s2">&quot;binary_accuracy&quot;</span><span class="p">:</span> <span class="p">((</span><span class="n">truth_label</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="n">pred_label</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span>
+            <span class="s2">&quot;binary_accuracy&quot;</span><span class="p">:</span> <span class="n">binary_accuracy</span><span class="p">,</span>
             <span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">:</span> <span class="n">hausdorff_distance_max</span><span class="p">,</span>
             <span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">:</span> <span class="n">normalize_distance</span><span class="p">(</span>
                 <span class="n">hausdorff_distance_max</span><span class="p">,</span> <span class="n">voxel_size</span>
             <span class="p">),</span>
             <span class="s2">&quot;combined_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="n">iou</span><span class="p">,</span>
+            <span class="s2">&quot;dice_score&quot;</span><span class="p">:</span> <span class="n">dice_score</span><span class="p">,</span>
             <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;skipped_too_many_instances&quot;</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">voi</span><span class="p">,</span>
         <span class="p">}</span>
     <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">mapping</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="mi">0</span> <span class="ow">in</span> <span class="n">mapping</span><span class="p">:</span>
         <span class="c1"># Only background present in both ground truth and prediction</span>
@@ -863,6 +875,10 @@ document.write(`
         <span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">:</span> <span class="n">normalized_hausdorff_dist</span><span class="p">,</span>
         <span class="s2">&quot;combined_score&quot;</span><span class="p">:</span> <span class="n">combined_score</span><span class="p">,</span>
         <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;scored&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="n">iou</span><span class="p">,</span>
+        <span class="s2">&quot;dice_score&quot;</span><span class="p">:</span> <span class="n">dice_score</span><span class="p">,</span>
+        <span class="s2">&quot;binary_accuracy&quot;</span><span class="p">:</span> <span class="n">binary_accuracy</span><span class="p">,</span>
+        <span class="c1"># &quot;voi&quot;: voi,</span>
     <span class="p">}</span>  <span class="c1"># type: ignore</span></div>
 
 
@@ -900,6 +916,7 @@ document.write(`
     <span class="n">scores</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="n">iou_score</span><span class="p">,</span>
         <span class="s2">&quot;dice_score&quot;</span><span class="p">:</span> <span class="n">dice_score</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">dice_score</span><span class="p">)</span> <span class="k">else</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;binary_accuracy&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">((</span><span class="n">truth_label</span> <span class="o">==</span> <span class="n">pred_label</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()),</span>
         <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;scored&quot;</span><span class="p">,</span>
     <span class="p">}</span>
 

@@ -424,6 +424,11 @@ document.write(`
 </li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils.rand_voi">cellmap_segmentation_challenge.utils.rand_voi module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.rand_voi.rand_voi"><code class="docutils literal notranslate"><span class="pre">rand_voi()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.rand_voi.rand_voi_wrapper"><code class="docutils literal notranslate"><span class="pre">rand_voi_wrapper()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils.security">cellmap_segmentation_challenge.utils.security module</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.analyze_script"><code class="docutils literal notranslate"><span class="pre">analyze_script()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.load_safe_config"><code class="docutils literal notranslate"><span class="pre">load_safe_config()</span></code></a></li>
@@ -518,6 +523,7 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.make_s3_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_s3_datasplit_csv()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.monitor_jobs"><code class="docutils literal notranslate"><span class="pre">monitor_jobs()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.package_submission"><code class="docutils literal notranslate"><span class="pre">package_submission()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.rand_voi"><code class="docutils literal notranslate"><span class="pre">rand_voi()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.save_numpy_class_arrays_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_arrays_to_zarr()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.save_numpy_class_labels_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_labels_to_zarr()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.zip_submission"><code class="docutils literal notranslate"><span class="pre">zip_submission()</span></code></a></li>
@@ -1337,6 +1343,19 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 </dd></dl>
+
+</section>
+<section id="module-cellmap_segmentation_challenge.utils.rand_voi">
+<span id="cellmap-segmentation-challenge-utils-rand-voi-module"></span><h2>cellmap_segmentation_challenge.utils.rand_voi module<a class="headerlink" href="#module-cellmap_segmentation_challenge.utils.rand_voi" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.rand_voi.rand_voi">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.rand_voi.</span></span><span class="sig-name descname"><span class="pre">rand_voi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">truth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_cluster_scores</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.rand_voi.rand_voi" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.rand_voi.rand_voi_wrapper">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.rand_voi.</span></span><span class="sig-name descname"><span class="pre">rand_voi_wrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ndarray</span> <span class="pre">truth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ndarray</span> <span class="pre">test</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_cluster_scores</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.rand_voi.rand_voi_wrapper" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
 
 </section>
 <section id="module-cellmap_segmentation_challenge.utils.security">
@@ -2249,6 +2268,11 @@ If <cite>force_safe</cite> is True, raises an error if the script is deemed unsa
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.rand_voi">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">rand_voi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">truth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_cluster_scores</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.rand_voi" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.save_numpy_class_arrays_to_zarr">
 <span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">save_numpy_class_arrays_to_zarr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_volume_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'append'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attrs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/submission.html#save_numpy_class_arrays_to_zarr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.save_numpy_class_arrays_to_zarr" title="Link to this definition">#</a></dt>
 <dd><p>Save a list of 3D numpy arrays of binary or instance labels to a
@@ -2437,6 +2461,11 @@ save_numpy_labels_to_zarr(‘submission.zarr’, ‘test_volume’, [‘label1�
 </li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils.rand_voi">cellmap_segmentation_challenge.utils.rand_voi module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.rand_voi.rand_voi"><code class="docutils literal notranslate"><span class="pre">rand_voi()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.rand_voi.rand_voi_wrapper"><code class="docutils literal notranslate"><span class="pre">rand_voi_wrapper()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils.security">cellmap_segmentation_challenge.utils.security module</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.analyze_script"><code class="docutils literal notranslate"><span class="pre">analyze_script()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.security.load_safe_config"><code class="docutils literal notranslate"><span class="pre">load_safe_config()</span></code></a></li>
@@ -2531,6 +2560,7 @@ save_numpy_labels_to_zarr(‘submission.zarr’, ‘test_volume’, [‘label1�
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.make_s3_datasplit_csv"><code class="docutils literal notranslate"><span class="pre">make_s3_datasplit_csv()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.monitor_jobs"><code class="docutils literal notranslate"><span class="pre">monitor_jobs()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.package_submission"><code class="docutils literal notranslate"><span class="pre">package_submission()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.rand_voi"><code class="docutils literal notranslate"><span class="pre">rand_voi()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.save_numpy_class_arrays_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_arrays_to_zarr()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.save_numpy_class_labels_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_labels_to_zarr()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.zip_submission"><code class="docutils literal notranslate"><span class="pre">zip_submission()</span></code></a></li>
