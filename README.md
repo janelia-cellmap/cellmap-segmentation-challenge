@@ -50,7 +50,7 @@ Once you have micromamba installed, you can create a new environment with the re
 
 ```bash
 # Create a new environment
-micromamba create -n csc -c conda-forge -y python==3.11
+micromamba create -n csc -c conda-forge -y python==3.11 cxx-compiler
 
 # Activate the environment
 micromamba activate csc

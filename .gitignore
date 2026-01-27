@@ -154,6 +154,12 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
+# Cython generated files
+*.c
+*.cpp
+!src/cellmap_segmentation_challenge/utils/impl/*.cpp
+!src/cellmap_segmentation_challenge/utils/impl/*.hpp
+
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore

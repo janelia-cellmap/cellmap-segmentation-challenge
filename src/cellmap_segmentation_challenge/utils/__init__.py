@@ -42,5 +42,8 @@ __getattr__, __dir__, __all__ = lazy.attach(
             "monitor_jobs",
             "eval_batch",
         ],
+        "rand_voi": [
+            "rand_voi",
+        ],
     },
 )

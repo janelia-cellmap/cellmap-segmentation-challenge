@@ -22,7 +22,7 @@ from upath import UPath
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 
 from .config import SUBMISSION_PATH, TRUTH_PATH, INSTANCE_CLASSES
-from .utils import TEST_CROPS_DICT, MatchedCrop
+from .utils import TEST_CROPS_DICT, MatchedCrop, rand_voi
 
 import logging
 
@@ -487,6 +487,15 @@ def score_instance(
     # pred_label, remapping = renumber(pred_label, in_place=True)
     # n_pred = len(remapping) - 1  # exclude background
 
+    # Get stats that don't require matched instances
+    truth_binary = (truth_label > 0).ravel()
+    pred_binary = (pred_label > 0).ravel()
+    iou = jaccard_score(truth_binary, pred_binary, zero_division=1)
+    dice_score = 1 - dice(truth_binary, pred_binary)
+    binary_accuracy = float((truth_binary == pred_binary).mean())
+    voi = rand_voi(truth_label.astype(np.uint64), pred_label.astype(np.uint64))
+    del voi["voi_split_i"], voi["voi_merge_j"]
+
     # Match instances between ground truth and prediction
     mapping = match_instances(truth_label, pred_label)
 
@@ -494,13 +503,16 @@ def score_instance(
         # Too many instances in submission, skip scoring
         return {
             "accuracy": 0,
-            "binary_accuracy": ((truth_label > 0) == (pred_label > 0)).mean(),
+            "binary_accuracy": binary_accuracy,
             "hausdorff_distance": hausdorff_distance_max,
             "normalized_hausdorff_distance": normalize_distance(
                 hausdorff_distance_max, voxel_size
             ),
             "combined_score": 0,
+            "iou": iou,
+            "dice_score": dice_score,
             "status": "skipped_too_many_instances",
+            **voi,
         }
     elif len(mapping) == 1 and 0 in mapping:
         # Only background present in both ground truth and prediction
@@ -552,6 +564,10 @@ def score_instance(
         "normalized_hausdorff_distance": normalized_hausdorff_dist,
         "combined_score": combined_score,
         "status": "scored",
+        "iou": iou,
+        "dice_score": dice_score,
+        "binary_accuracy": binary_accuracy,
+        # "voi": voi,
     }  # type: ignore
 
 
@@ -586,6 +602,7 @@ def score_semantic(pred_label, truth_label) -> dict[str, float]:
     scores = {
         "iou": iou_score,
         "dice_score": dice_score if not np.isnan(dice_score) else 1,
+        "binary_accuracy": float((truth_label == pred_label).mean()),
         "status": "scored",
     }
 
