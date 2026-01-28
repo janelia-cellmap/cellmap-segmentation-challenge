@@ -1401,9 +1401,29 @@ document.write(`
     <span class="n">found_volumes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">pred_volumes</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">truth_volumes</span><span class="p">))</span>
     <span class="n">missing_volumes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">truth_volumes</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">pred_volumes</span><span class="p">))</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">found_volumes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;No volumes found to score. Make sure the submission is formatted correctly.&quot;</span>
-        <span class="p">)</span>
+        <span class="c1"># Check if &quot;crop&quot; prefixes are missing</span>
+        <span class="n">prefixed_pred_volumes</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">pred_volumes</span><span class="p">]</span>
+        <span class="n">found_volumes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">prefixed_pred_volumes</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">truth_volumes</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">found_volumes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;No volumes found to score. Make sure the submission is formatted correctly.&quot;</span>
+            <span class="p">)</span>
+        <span class="n">missing_volumes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">truth_volumes</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">prefixed_pred_volumes</span><span class="p">))</span>
+        <span class="c1"># Move predicted volumes to have &quot;crop&quot; prefix</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">pred_volumes</span><span class="p">:</span>
+            <span class="n">old_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">submission_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">v</span>
+            <span class="n">new_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">submission_path</span><span class="p">)</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">old_path</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">new_path</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Failed to rename predicted volume directory &#39;</span><span class="si">{</span><span class="n">old_path</span><span class="si">}</span><span class="s2">&#39; to &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">new_path</span><span class="si">}</span><span class="s2">&#39;. This may be due to missing files, insufficient &quot;</span>
+                    <span class="s2">&quot;permissions, or an existing destination directory. Cannot &quot;</span>
+                    <span class="s2">&quot;continue evaluation.&quot;</span>
+                <span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scoring volumes: </span><span class="si">{</span><span class="n">found_volumes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_volumes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing volumes: </span><span class="si">{</span><span class="n">missing_volumes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
