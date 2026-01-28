@@ -933,67 +933,60 @@ def ensure_valid_submission(submission_path: UPath):
     Raises:
         ValueError: If the submission is not a valid unzipped Zarr-2 file.
     """
-    try:
-        if not isinstance(zarr_group, zarr.Group):
+    # See if a Zarr was incorrectly zipped inside other folder(s)
+    # If so, move contents from .zarr folder to submission_path and warn user
+    zarr_folders = list(submission_path.glob("**/*.zarr"))
+    if len(zarr_folders) == 0:
+        # Try forcing Zarr-2 format by adding .zgroup if missing
+        try:
+            ensure_zgroup(submission_path)
+            logging.warning(
+                f"Submission at {submission_path} did not contain a .zgroup file. Added one to force Zarr-2 format."
+            )
+        except Exception as e:
             raise ValueError(
                 f"Submission at {submission_path} is not a valid unzipped Zarr-2 file."
-            )
-        assert isinstance(zarr_group, zarr.Group)
-    except Exception as e:
-        # See if a Zarr was incorrectly zipped inside other folder(s)
-        # If so, move contents from .zarr folder to submission_path and warn user
-        zarr_folders = list(submission_path.glob("**/*.zarr"))
-        if len(zarr_folders) == 0:
-            # Try forcing Zarr-2 format by adding .zgroup if missing
-            try:
-                ensure_zgroup(submission_path)
-                logging.warning(
-                    f"Submission at {submission_path} did not contain a .zgroup file. Added one to force Zarr-2 format."
-                )
-            except Exception as e2:
-                raise ValueError(
-                    f"Submission at {submission_path} is not a valid unzipped Zarr-2 file."
-                ) from e2
-        elif len(zarr_folders) == 1:
-            zarr_folder = zarr_folders[0]
-            logging.warning(
-                f"Submission at {submission_path} contains a Zarr folder inside subfolder(s) at {zarr_folder}. Moving contents to the root submission folder."
-            )
-            # Move contents of zarr_folder to submission_path
-            for item in zarr_folder.iterdir():
-                target = submission_path / item.name
-                if target.exists():
-                    if target.is_file():
-                        target.unlink()
-                    else:
-                        shutil.rmtree(target)
-                shutil.move(str(item), str(submission_path))
-            # Remove empty folders
-            for parent in zarr_folder.parents:
-                if parent == submission_path:
-                    break
-                try:
-                    parent.rmdir()
-                except OSError as exc:
-                    logging.warning(
-                        "Failed to remove directory %s while cleaning nested Zarr submission: %s",
-                        parent,
-                        exc,
-                    )
-            # Try opening again
-            try:
-                ensure_zgroup(submission_path)
-                logging.warning(
-                    f"Submission at {submission_path} did not contain a .zgroup file. Added one to force Zarr-2 format."
-                )
-            except Exception as e2:
-                raise ValueError(
-                    f"Submission at {submission_path} is not a valid unzipped Zarr-2 file."
-                ) from e2
-        elif len(zarr_folders) > 1:
-            raise ValueError(
-                f"Submission at {submission_path} contains multiple Zarr folders. Please ensure only one Zarr-2 file is submitted."
             ) from e
+    elif len(zarr_folders) == 1:
+        zarr_folder = zarr_folders[0]
+        logging.warning(
+            f"Submission at {submission_path} contains a Zarr folder inside subfolder(s) at {zarr_folder}. Moving contents to the root submission folder."
+        )
+        # Move contents of zarr_folder to submission_path
+        for item in zarr_folder.iterdir():
+            target = submission_path / item.name
+            if target.exists():
+                if target.is_file():
+                    target.unlink()
+                else:
+                    shutil.rmtree(target)
+            shutil.move(str(item), str(submission_path))
+        # Remove empty folders
+        for parent in zarr_folder.parents:
+            if parent == submission_path:
+                break
+            try:
+                parent.rmdir()
+            except OSError as e:
+                logging.warning(
+                    "Failed to remove directory %s while cleaning nested Zarr submission: %s",
+                    parent,
+                    e,
+                )
+        # Try opening again
+        try:
+            ensure_zgroup(submission_path)
+            logging.warning(
+                f"Submission at {submission_path} did not contain a .zgroup file. Added one to force Zarr-2 format."
+            )
+        except Exception as e:
+            raise ValueError(
+                f"Submission at {submission_path} is not a valid unzipped Zarr-2 file."
+            ) from e
+    elif len(zarr_folders) > 1:
+        raise ValueError(
+            f"Submission at {submission_path} contains multiple Zarr folders. Please ensure only one Zarr-2 file is submitted."
+        )
 
 
 def score_submission(
