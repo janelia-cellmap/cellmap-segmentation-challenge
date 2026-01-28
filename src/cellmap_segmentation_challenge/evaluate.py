@@ -25,6 +25,191 @@ from .config import SUBMISSION_PATH, TRUTH_PATH, INSTANCE_CLASSES
 from .utils import TEST_CROPS_DICT, MatchedCrop, rand_voi, get_git_hash
 
 import logging
+from typing import Optional, Protocol, Any, TypedDict, Literal
+from dataclasses import dataclass, field
+
+
+# ============================================================================
+# Protocols for Dependency Injection
+# ============================================================================
+
+
+class ExecutorProtocol(Protocol):
+    """Protocol for executor abstraction (ProcessPoolExecutor, ThreadPoolExecutor)."""
+
+    def submit(self, fn: Any, *args: Any, **kwargs: Any) -> Any:
+        """Submit a callable to be executed."""
+        ...
+
+    def shutdown(self, wait: bool = True) -> None:
+        """Shutdown the executor."""
+        ...
+
+    def __enter__(self) -> "ExecutorProtocol":
+        """Context manager entry."""
+        ...
+
+    def __exit__(self, *args: Any) -> None:
+        """Context manager exit."""
+        ...
+
+
+class ZarrStorageProtocol(Protocol):
+    """Protocol for Zarr storage operations."""
+
+    def open_group(self, path: str, mode: str = "r") -> zarr.Group:
+        """Open a Zarr group."""
+        ...
+
+    def open_array(self, path: str, mode: str = "r") -> zarr.Array:
+        """Open a Zarr array."""
+        ...
+
+
+class FileSystemProtocol(Protocol):
+    """Protocol for filesystem operations."""
+
+    def exists(self, path: UPath) -> bool:
+        """Check if path exists."""
+        ...
+
+    def is_dir(self, path: UPath) -> bool:
+        """Check if path is a directory."""
+        ...
+
+    def glob(self, path: UPath, pattern: str) -> list[UPath]:
+        """Glob for files matching pattern."""
+        ...
+
+
+# ============================================================================
+# Default Implementations
+# ============================================================================
+
+
+class FilesystemZarrStorage:
+    """Default filesystem-based Zarr storage implementation."""
+
+    def open_group(self, path: str, mode: str = "r") -> zarr.Group:
+        """Open a Zarr group from filesystem."""
+        return zarr.open(path, mode=mode)
+
+    def open_array(self, path: str, mode: str = "r") -> zarr.Array:
+        """Open a Zarr array from filesystem."""
+        return zarr.open(path, mode=mode)
+
+
+class StandardFileSystem:
+    """Default filesystem implementation using UPath."""
+
+    def exists(self, path: UPath) -> bool:
+        """Check if path exists."""
+        return path.exists()
+
+    def is_dir(self, path: UPath) -> bool:
+        """Check if path is a directory."""
+        return path.is_dir()
+
+    def glob(self, path: UPath, pattern: str) -> list[UPath]:
+        """Glob for files matching pattern."""
+        return list(path.glob(pattern))
+
+
+# ============================================================================
+# Type Definitions
+# ============================================================================
+
+
+class InstanceScoreDict(TypedDict, total=False):
+    """Type definition for instance segmentation scores."""
+
+    accuracy: float
+    binary_accuracy: float
+    hausdorff_distance: float
+    normalized_hausdorff_distance: float
+    combined_score: float
+    iou: float
+    dice_score: float
+    num_voxels: int
+    voxel_size: tuple[float, ...]
+    is_missing: bool
+    status: Literal["scored", "skipped_too_many_instances", "missing"]
+    voi_split: float
+    voi_merge: float
+
+
+class SemanticScoreDict(TypedDict, total=False):
+    """Type definition for semantic segmentation scores."""
+
+    iou: float
+    dice_score: float
+    binary_accuracy: float
+    num_voxels: int
+    voxel_size: tuple[float, ...]
+    is_missing: bool
+    status: Literal["scored", "missing"]
+
+
+# ============================================================================
+# Custom Exceptions
+# ============================================================================
+
+
+class EvaluationError(Exception):
+    """Base exception for evaluation errors."""
+
+    pass
+
+
+class TooManyInstancesError(EvaluationError):
+    """Raised when submission has too many instances relative to ground truth.
+
+    This is a pathological case where the ratio of predicted to ground truth
+    instances exceeds acceptable thresholds, likely indicating poor segmentation.
+    """
+
+    def __init__(self, n_pred: int, n_gt: int, ratio: float, cutoff: float):
+        self.n_pred = n_pred
+        self.n_gt = n_gt
+        self.ratio = ratio
+        self.cutoff = cutoff
+        super().__init__(
+            f"Too many instances: {n_pred} predicted vs {n_gt} ground truth "
+            f"(ratio: {ratio:.2f} exceeds cutoff: {cutoff:.2f})"
+        )
+
+
+class TooManyOverlapEdgesError(EvaluationError):
+    """Raised when instance matching produces too many overlap edges.
+
+    This indicates computational infeasibility for the matching algorithm.
+    """
+
+    def __init__(self, n_edges: int, max_edges: int):
+        self.n_edges = n_edges
+        self.max_edges = max_edges
+        super().__init__(
+            f"Too many overlap edges: {n_edges} exceeds maximum {max_edges}"
+        )
+
+
+class MatchingFailedError(EvaluationError):
+    """Raised when instance matching optimization fails."""
+
+    def __init__(self, status: int):
+        self.status = status
+        super().__init__(f"Min-cost flow matching failed with status: {status}")
+
+
+class ValidationError(EvaluationError):
+    """Raised when input validation fails."""
+
+    pass
+
+
+# ============================================================================
+# Logging Configuration
+# ============================================================================
 
 logging.basicConfig(
     level=logging.INFO,
@@ -33,8 +218,291 @@ logging.basicConfig(
     force=True,
 )
 
-CAST_TO_NONE = [np.nan, np.inf, -np.inf, float("inf"), float("-inf")]
+# Structured logging setup
+import structlog
+import psutil
+from functools import wraps
+from contextlib import contextmanager
 
+# Configure structlog for JSON output
+structlog.configure(
+    processors=[
+        structlog.stdlib.filter_by_level,
+        structlog.stdlib.add_logger_name,
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.processors.UnicodeDecoder(),
+        structlog.processors.JSONRenderer(),
+    ],
+    context_class=dict,
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    cache_logger_on_first_use=True,
+)
+
+# Get structured logger
+struct_logger = structlog.get_logger(__name__)
+
+
+# ============================================================================
+# Configuration
+# ============================================================================
+
+
+@dataclass
+class EvaluationConfig:
+    """Configuration for evaluation pipeline.
+
+    All parameters can be set via environment variables or passed directly.
+    Environment variables take precedence over defaults but not over
+    explicitly passed values.
+    """
+
+    # Threading configuration
+    max_instance_threads: int = 3
+    max_semantic_threads: int = 25
+    per_instance_threads: int = 25
+
+    # Distance calculation parameters
+    max_distance_cap_eps: float = 1e-4
+
+    # Instance matching parameters
+    final_instance_ratio_cutoff: float = 10.0
+    initial_instance_ratio_cutoff: float = 50.0
+    instance_ratio_factor: float = 5.0
+    max_overlap_edges: int = 5_000_000
+    mcmf_cost_scale: int = 1_000_000
+
+    # Paths
+    truth_path: UPath = field(default_factory=lambda: UPath(TRUTH_PATH))
+    instance_classes: list[str] = field(default_factory=lambda: list(INSTANCE_CLASSES))
+
+    # Values to cast to None in sanitization
+    cast_to_none: list[Any] = field(
+        default_factory=lambda: [np.nan, np.inf, -np.inf, float("inf"), float("-inf")]
+    )
+
+    @classmethod
+    def from_env(cls) -> "EvaluationConfig":
+        """Load configuration from environment variables with defaults.
+
+        Returns:
+            EvaluationConfig with values from environment or defaults.
+        """
+        return cls(
+            max_instance_threads=int(os.getenv("MAX_INSTANCE_THREADS", "3")),
+            max_semantic_threads=int(os.getenv("MAX_SEMANTIC_THREADS", "25")),
+            per_instance_threads=int(os.getenv("PER_INSTANCE_THREADS", "25")),
+            max_distance_cap_eps=float(os.getenv("MAX_DISTANCE_CAP_EPS", "1e-4")),
+            final_instance_ratio_cutoff=float(
+                os.getenv("FINAL_INSTANCE_RATIO_CUTOFF", "10")
+            ),
+            initial_instance_ratio_cutoff=float(
+                os.getenv("INITIAL_INSTANCE_RATIO_CUTOFF", "50")
+            ),
+            instance_ratio_factor=float(os.getenv("INSTANCE_RATIO_FACTOR", "5.0")),
+            max_overlap_edges=int(os.getenv("MAX_OVERLAP_EDGES", "5000000")),
+            mcmf_cost_scale=int(os.getenv("MCMF_COST_SCALE", "1000000")),
+        )
+
+    def validate(self) -> None:
+        """Validate configuration values.
+
+        Raises:
+            ValueError: If any configuration value is invalid.
+        """
+        if self.max_instance_threads < 1:
+            raise ValueError(
+                f"max_instance_threads must be >= 1, got {self.max_instance_threads}"
+            )
+        if self.max_semantic_threads < 1:
+            raise ValueError(
+                f"max_semantic_threads must be >= 1, got {self.max_semantic_threads}"
+            )
+        if self.per_instance_threads < 1:
+            raise ValueError(
+                f"per_instance_threads must be >= 1, got {self.per_instance_threads}"
+            )
+        if self.max_distance_cap_eps <= 0:
+            raise ValueError(
+                f"max_distance_cap_eps must be > 0, got {self.max_distance_cap_eps}"
+            )
+        if self.final_instance_ratio_cutoff <= 0:
+            raise ValueError(
+                f"final_instance_ratio_cutoff must be > 0, got {self.final_instance_ratio_cutoff}"
+            )
+        if self.initial_instance_ratio_cutoff <= 0:
+            raise ValueError(
+                f"initial_instance_ratio_cutoff must be > 0, got {self.initial_instance_ratio_cutoff}"
+            )
+        if self.instance_ratio_factor <= 0:
+            raise ValueError(
+                f"instance_ratio_factor must be > 0, got {self.instance_ratio_factor}"
+            )
+        if self.max_overlap_edges < 1:
+            raise ValueError(
+                f"max_overlap_edges must be >= 1, got {self.max_overlap_edges}"
+            )
+        if self.mcmf_cost_scale < 1:
+            raise ValueError(
+                f"mcmf_cost_scale must be >= 1, got {self.mcmf_cost_scale}"
+            )
+
+
+# ============================================================================
+# Performance Monitoring Utilities
+# ============================================================================
+
+
+def timed_operation(operation_name: str):
+    """Decorator to time and log function execution.
+
+    Args:
+        operation_name: Name of the operation for logging
+
+    Example:
+        >>> @timed_operation("instance_matching")
+        >>> def match_instances(...):
+        >>>     ...
+    """
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            start = time()
+            try:
+                result = func(*args, **kwargs)
+                duration = time() - start
+                struct_logger.info(
+                    "operation_complete",
+                    operation=operation_name,
+                    function=func.__name__,
+                    duration_seconds=duration,
+                    status="success",
+                )
+                return result
+            except Exception as e:
+                duration = time() - start
+                struct_logger.error(
+                    "operation_failed",
+                    operation=operation_name,
+                    function=func.__name__,
+                    duration_seconds=duration,
+                    error=str(e),
+                    error_type=type(e).__name__,
+                    status="failed",
+                )
+                raise
+
+        return wrapper
+
+    return decorator
+
+
+@contextmanager
+def evaluation_context(operation: str, **context):
+    """Context manager for tracking evaluation operations with resource monitoring.
+
+    Args:
+        operation: Name of the operation
+        **context: Additional context to log
+
+    Example:
+        >>> with evaluation_context("scoring_instance", crop="crop1", label="mito"):
+        >>>     scores = score_instance(...)
+    """
+    struct_logger.info(f"{operation}_started", **context)
+    start_time = time()
+
+    # Get initial resource usage
+    process = psutil.Process()
+    initial_memory_mb = process.memory_info().rss / 1024 / 1024
+    initial_cpu_percent = process.cpu_percent()
+
+    try:
+        yield
+        duration = time() - start_time
+
+        # Get final resource usage
+        final_memory_mb = process.memory_info().rss / 1024 / 1024
+        final_cpu_percent = process.cpu_percent()
+
+        struct_logger.info(
+            f"{operation}_completed",
+            duration_seconds=duration,
+            memory_mb=final_memory_mb,
+            memory_delta_mb=final_memory_mb - initial_memory_mb,
+            cpu_percent=final_cpu_percent,
+            **context,
+        )
+    except Exception as e:
+        duration = time() - start_time
+        final_memory_mb = process.memory_info().rss / 1024 / 1024
+
+        struct_logger.error(
+            f"{operation}_failed",
+            duration_seconds=duration,
+            memory_mb=final_memory_mb,
+            error=str(e),
+            error_type=type(e).__name__,
+            **context,
+        )
+        raise
+
+
+def log_resource_usage(operation: str, **context):
+    """Log current resource usage.
+
+    Args:
+        operation: Name of the operation
+        **context: Additional context to log
+    """
+    process = psutil.Process()
+    memory_mb = process.memory_info().rss / 1024 / 1024
+    cpu_percent = process.cpu_percent()
+
+    struct_logger.info(
+        "resource_usage",
+        operation=operation,
+        memory_mb=memory_mb,
+        cpu_percent=cpu_percent,
+        **context,
+    )
+
+
+@dataclass
+class EvaluationMetrics:
+    """Metrics for monitoring evaluation performance."""
+
+    total_evaluations: int = 0
+    successful_evaluations: int = 0
+    failed_evaluations: int = 0
+    total_duration_seconds: float = 0.0
+    avg_instance_score: float = 0.0
+    avg_semantic_score: float = 0.0
+
+    def to_dict(self) -> dict:
+        """Convert metrics to dictionary."""
+        return {
+            "total_evaluations": self.total_evaluations,
+            "successful_evaluations": self.successful_evaluations,
+            "failed_evaluations": self.failed_evaluations,
+            "success_rate": self.successful_evaluations
+            / max(self.total_evaluations, 1),
+            "avg_duration_seconds": self.total_duration_seconds
+            / max(self.total_evaluations, 1),
+            "avg_instance_score": self.avg_instance_score,
+            "avg_semantic_score": self.avg_semantic_score,
+        }
+
+
+# ============================================================================
+# Legacy Constants (for backward compatibility during migration)
+# ============================================================================
+
+CAST_TO_NONE = [np.nan, np.inf, -np.inf, float("inf"), float("-inf")]
 MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 3))
 MAX_SEMANTIC_THREADS = int(os.getenv("MAX_SEMANTIC_THREADS", 25))
 PER_INSTANCE_THREADS = int(os.getenv("PER_INSTANCE_THREADS", 25))
@@ -51,123 +519,207 @@ def ratio_cutoff(
     R_extra: float = INITIAL_INSTANCE_RATIO_CUTOFF,
     k: float = INSTANCE_RATIO_FACTOR,
 ) -> float:
+    """Calculate the acceptable ratio cutoff for instance matching.
+
+    The ratio cutoff decreases exponentially as the number of ground truth
+    instances increases, allowing for more tolerance with fewer instances.
+
+    Args:
+        nG: Number of ground truth instances
+        R_base: Base ratio cutoff (minimum)
+        R_extra: Extra ratio tolerance for small nG
+        k: Exponential decay factor
+
+    Returns:
+        Maximum acceptable ratio of predicted to ground truth instances
+    """
     # nG==0 handled upstream (ratio undefined); return max tolerance for completeness
     return float(R_base + R_extra * np.exp(-nG / k))
 
 
-def normalize_distance(distance: float, voxel_size) -> float:
+@dataclass
+class InstanceOverlapData:
+    """Data structure for instance overlap computation."""
+
+    nG: int  # Number of ground truth instances
+    nP: int  # Number of predicted instances
+    rows: np.ndarray  # GT indices for overlaps
+    cols: np.ndarray  # Pred indices for overlaps
+    iou_vals: np.ndarray  # IoU values for overlaps
+
+
+def _validate_instance_arrays(gt: np.ndarray, pred: np.ndarray) -> None:
+    """Validate that GT and prediction arrays are compatible.
+
+    Args:
+        gt: Ground truth instance labels
+        pred: Predicted instance labels
+
+    Raises:
+        ValidationError: If arrays have incompatible shapes
     """
-    Normalize a distance value to [0, 1] using the maximum distance represented by a voxel
-    """
-    if distance == np.inf:
-        return 0.0
-    return float((1.01 ** (-distance / np.linalg.norm(voxel_size))))
-
-
-def compute_default_max_distance(voxel_size, eps=MAX_DISTANCE_CAP_EPS) -> float:
-    v = np.linalg.norm(np.asarray(voxel_size, dtype=float))
-    return float(v * (np.log(1.0 / eps) / np.log(1.01)))
-
-
-def match_instances(gt: np.ndarray, pred: np.ndarray) -> dict | None:
-    """
-    Matches instances between GT and Pred based on IoU.
-    Assumes IDs range from 1 to max(ID) (0 is background). If IDs are non-sequential (e.g., 1, 2, 5), the output matrix will contain empty rows/columns for missing IDs.
-    Returns a dictionary mapping pred IDs to gt IDs.
-    """
-
     if gt.shape != pred.shape:
-        raise ValueError("gt and pred must have the same shape")
+        raise ValidationError(f"Shape mismatch: gt {gt.shape} != pred {pred.shape}")
 
-    # 1D views without copying if possible
-    g = np.ravel(gt)
-    p = np.ravel(pred)
 
-    # Number of instances (sequential ids -> max id)
-    nG = int(g.max()) if g.size else 0
-    nP = int(p.max()) if p.size else 0
+def _check_instance_counts(nG: int, nP: int) -> bool:
+    """Check if instance counts allow matching.
 
-    # Early exits
+    Args:
+        nG: Number of ground truth instances
+        nP: Number of predicted instances
+
+    Returns:
+        True if matching should proceed, False if special case handled
+    """
     if (nG == 0 and nP > 0) or (nP == 0 and nG > 0):
         if nG == 0 and nP > 0:
             logging.info("No GT instances; returning empty match.")
         if nP == 0 and nG > 0:
             logging.info("No Pred instances; returning empty match.")
-        return {}
+        return False
     elif nG == 0 and nP == 0:
         logging.info("No GT or Pred instances; returning only background match.")
-        return {0: 0}
+        return False
+    return True
 
-    if (nP / nG) > ratio_cutoff(nG):
+
+def _check_instance_ratio(nP: int, nG: int, config: EvaluationConfig) -> None:
+    """Check if predicted/GT ratio is within acceptable bounds.
+
+    Args:
+        nP: Number of predicted instances
+        nG: Number of ground truth instances
+        config: Evaluation configuration
+
+    Raises:
+        TooManyInstancesError: If ratio exceeds cutoff
+    """
+    assert nG > 0, "nG must be > 0 to check instance ratio"
+    cutoff = ratio_cutoff(
+        nG,
+        config.final_instance_ratio_cutoff,
+        config.initial_instance_ratio_cutoff,
+        config.instance_ratio_factor,
+    )
+    ratio = nP / nG
+
+    if ratio > cutoff:
         logging.warning(
-            f"WARNING: Skipping {nP} instances in submission, {nG} in ground truth, "
-            f"because there are too many instances in the submission."
+            f"Instance ratio {ratio:.2f} exceeds cutoff {cutoff:.2f} "
+            f"({nP} pred vs {nG} GT)"
         )
-        return None
+        raise TooManyInstancesError(nP, nG, ratio, cutoff)
 
-    # Foreground (non-background) mask for each side and for pairwise overlaps
+
+def _compute_instance_overlaps(
+    gt: np.ndarray, pred: np.ndarray, nG: int, nP: int, max_edges: int
+) -> InstanceOverlapData:
+    """Compute IoU overlaps between GT and predicted instances.
+
+    Args:
+        gt: Ground truth instance labels (1D or flattened view)
+        pred: Predicted instance labels (1D or flattened view)
+        nG: Number of ground truth instances
+        nP: Number of predicted instances
+        max_edges: Maximum number of overlap edges allowed
+
+    Returns:
+        InstanceOverlapData with overlap information
+
+    Raises:
+        TooManyOverlapEdgesError: If number of edges exceeds max_edges
+    """
+    # 1D views
+    g = np.ravel(gt)
+    p = np.ravel(pred)
+
+    # Foreground masks
     g_fg = g > 0
     p_fg = p > 0
     fg = g_fg & p_fg
 
-    # ---- Per-object areas (sizes) ----
-    # Use uint32 where possible to reduce memory; cast to int64 for safety if needed.
+    # Per-object sizes
     gt_sizes = np.bincount((g[g_fg].astype(np.int64) - 1), minlength=nG)[:, None]
     pr_sizes = np.bincount((p[p_fg].astype(np.int64) - 1), minlength=nP)[None, :]
 
-    # ---- Intersections for observed pairs only (sparse counting) ----
+    # Foreground overlaps
     gi = g[fg].astype(np.int64) - 1
     pj = p[fg].astype(np.int64) - 1
-    if gi.size == 0:
-        # No overlaps anywhere -> IoU is all zeros
-        return {}
 
-    # Encode pairs to a single 64-bit key and count only present pairs
-    # Use unsigned to avoid negative-overflow corner cases.
+    if gi.size == 0:
+        # No overlaps
+        return InstanceOverlapData(
+            nG=nG,
+            nP=nP,
+            rows=np.array([], dtype=np.int64),
+            cols=np.array([], dtype=np.int64),
+            iou_vals=np.array([], dtype=np.float32),
+        )
+
+    # Encode pairs and count
     gi_u = gi.astype(np.uint64)
     pj_u = pj.astype(np.uint64)
     key = gi_u * np.uint64(nP) + pj_u
 
     uniq_keys, counts = np.unique(key, return_counts=True)
-    if uniq_keys.size > MAX_OVERLAP_EDGES:
-        logging.warning(
-            f"WARNING: Too many overlap edges ({uniq_keys.size}) — skipping instance scoring."
-        )
-        return None
+
+    if uniq_keys.size > max_edges:
+        raise TooManyOverlapEdgesError(uniq_keys.size, max_edges)
+
     rows = (uniq_keys // np.uint64(nP)).astype(np.int64)
     cols = (uniq_keys % np.uint64(nP)).astype(np.int64)
 
-    # ---- IoU only for observed pairs, then scatter into dense matrix ----
+    # Compute IoU
     inter = counts.astype(np.int64)
     union = gt_sizes[rows, 0] + pr_sizes[0, cols] - inter
+
     with np.errstate(divide="ignore", invalid="ignore"):
         iou_vals = (inter / union).astype(np.float32)
 
-    # Keep only IoU > 0 edges (should already be true, but explicit)
+    # Keep only IoU > 0
     keep = iou_vals > 0.0
     rows = rows[keep]
     cols = cols[keep]
     iou_vals = iou_vals[keep]
 
-    if rows.size == 0:
-        return {}
+    return InstanceOverlapData(nG=nG, nP=nP, rows=rows, cols=cols, iou_vals=iou_vals)
 
-    # ---------------- OR-Tools Min-Cost Flow ----------------
+
+def _solve_matching_problem(
+    overlap_data: InstanceOverlapData, cost_scale: int
+) -> dict[int, int]:
+    """Solve min-cost flow matching problem.
+
+    Args:
+        overlap_data: Instance overlap data
+        cost_scale: Scale factor for cost values
+
+    Returns:
+        Dictionary mapping predicted ID to ground truth ID
+
+    Raises:
+        MatchingFailedError: If optimization fails
+    """
     from ortools.graph.python import min_cost_flow
+
+    nG = overlap_data.nG
+    nP = overlap_data.nP
+    rows = overlap_data.rows
+    cols = overlap_data.cols
+    iou_vals = overlap_data.iou_vals
 
     mcf = min_cost_flow.SimpleMinCostFlow()
 
-    # Node indexing:
-    # source(0), GT nodes [1..nG], Pred nodes [1+nG .. nG+nP], sink(last)
+    # Node indexing
     source = 0
     gt0 = 1
     pred0 = gt0 + nG
     sink = pred0 + nP
 
-    COST_SCALE = int(os.getenv("MCMF_COST_SCALE", "1000000"))
-    UNMATCH_COST = COST_SCALE + 1  # worse than any match in [0, COST_SCALE]
+    UNMATCH_COST = cost_scale + 1
 
-    # ---- Build arcs into numpy arrays (dtype matters) ----
+    # Build arcs
     tails = []
     heads = []
     caps = []
@@ -179,27 +731,26 @@ def match_instances(gt: np.ndarray, pred: np.ndarray) -> dict | None:
         caps.append(cap)
         costs.append(cost)
 
-    # Source -> GT (each GT emits 1 unit)
+    # Source -> GT
     for i in range(nG):
         add_arc(source, gt0 + i, 1, 0)
 
-    # GT -> Sink "unmatched" option
+    # GT -> Sink (unmatched option)
     for i in range(nG):
         add_arc(gt0 + i, sink, 1, UNMATCH_COST)
 
-    # GT -> Pred edges for IoU>0
-    # (rows, cols are 0-based instance indices; +1 happens later when making label ids)
+    # GT -> Pred edges
     for r, c, iou in zip(rows, cols, iou_vals):
         u = gt0 + int(r)
         v = pred0 + int(c)
-        cost = int((1.0 - float(iou)) * COST_SCALE)
+        cost = int((1.0 - float(iou)) * cost_scale)
         add_arc(u, v, 1, cost)
 
-    # Pred -> Sink capacity 1
+    # Pred -> Sink
     for j in range(nP):
         add_arc(pred0 + j, sink, 1, 0)
 
-    # Bulk add (use correct dtypes per API)
+    # Add arcs in bulk
     mcf.add_arcs_with_capacity_and_unit_cost(
         np.asarray(tails, dtype=np.int32),
         np.asarray(heads, dtype=np.int32),
@@ -207,16 +758,16 @@ def match_instances(gt: np.ndarray, pred: np.ndarray) -> dict | None:
         np.asarray(costs, dtype=np.int64),
     )
 
-    # Supplies: push nG units from source to sink
+    # Set supplies
     mcf.set_node_supply(source, int(nG))
     mcf.set_node_supply(sink, -int(nG))
 
+    # Solve
     status = mcf.solve()
     if status != mcf.OPTIMAL:
-        logging.warning(f"Min-cost flow did not solve optimally (status={status}).")
-        return {}
+        raise MatchingFailedError(status)
 
-    # Extract matches: arcs GT->Pred with flow==1
+    # Extract matches
     mapping: dict[int, int] = {}
     for a in range(mcf.num_arcs()):
         if mcf.flow(a) != 1:
@@ -224,9 +775,106 @@ def match_instances(gt: np.ndarray, pred: np.ndarray) -> dict | None:
         u = mcf.tail(a)
         v = mcf.head(a)
         if gt0 <= u < pred0 and pred0 <= v < sink:
-            gt_id = (u - gt0) + 1  # back to label IDs (1-based, 0 is background)
+            gt_id = (u - gt0) + 1
             pred_id = (v - pred0) + 1
             mapping[pred_id] = gt_id
+
+    return mapping
+
+
+def compute_default_max_distance(
+    voxel_size,
+    eps: float | None = None,
+    config: Optional["EvaluationConfig"] = None,
+) -> float:
+    """
+    Compute the default maximum distance used for distance-based metrics.
+
+    If ``eps`` is not provided, the value is taken from ``config.max_distance_cap_eps``.
+    If both ``eps`` and ``config`` are ``None``, a default ``EvaluationConfig`` is
+    created via ``EvaluationConfig.from_env()``.
+    """
+    if eps is None:
+        if config is None:
+            config = EvaluationConfig.from_env()
+        eps = config.max_distance_cap_eps
+
+    v = np.linalg.norm(np.asarray(voxel_size, dtype=float))
+    return float(v * (np.log(1.0 / eps) / np.log(1.01)))
+
+
+def normalize_distance(distance: float, voxel_size) -> float:
+    """
+    Normalize a distance value to [0, 1] using the maximum distance represented by a voxel
+    """
+    if distance == np.inf:
+        return 0.0
+    return float((1.01 ** (-distance / np.linalg.norm(voxel_size))))
+
+
+def match_instances(
+    gt: np.ndarray,
+    pred: np.ndarray,
+    config: EvaluationConfig | None = None,
+) -> dict[int, int]:
+    """Match instances between GT and prediction based on IoU.
+
+    Uses min-cost flow optimization to find optimal 1:1 matching between
+    predicted and ground truth instances based on IoU overlap.
+
+    Args:
+        gt: Ground truth instance labels (0 = background)
+        pred: Predicted instance labels (0 = background)
+        config: Evaluation configuration (uses defaults if None)
+
+    Returns:
+        Dictionary mapping predicted instance ID to ground truth instance ID.
+        Returns {0: 0} if only background present.
+        Returns {} if no matches found or one side has no instances.
+
+    Raises:
+        ValidationError: If array shapes don't match
+        TooManyInstancesError: If pred/GT ratio exceeds threshold
+        TooManyOverlapEdgesError: If overlap computation is too large
+        MatchingFailedError: If optimization fails
+
+    Example:
+        >>> mapping = match_instances(gt, pred)
+        >>> # Remap predictions to match GT IDs
+        >>> pred_aligned = remap(pred, mapping, preserve_missing_labels=True)
+    """
+    if config is None:
+        config = EvaluationConfig.from_env()
+
+    # Validate inputs
+    _validate_instance_arrays(gt, pred)
+
+    # Get instance counts
+    g = np.ravel(gt)
+    p = np.ravel(pred)
+    nG = int(g.max()) if g.size else 0
+    nP = int(p.max()) if p.size else 0
+
+    # Check for special cases
+    if not _check_instance_counts(nG, nP):
+        if nG == 0 and nP == 0:
+            return {0: 0}
+        return {}
+
+    # Check instance ratio
+    _check_instance_ratio(nP, nG, config)
+
+    # Compute overlaps
+    overlap_data = _compute_instance_overlaps(
+        gt, pred, nG, nP, config.max_overlap_edges
+    )
+
+    # Handle case of no overlaps
+    if overlap_data.rows.size == 0:
+        return {}
+
+    # Solve matching problem
+    mapping = _solve_matching_problem(overlap_data, config.mcmf_cost_scale)
 
     return mapping
 
@@ -453,83 +1101,102 @@ def compute_hausdorff_distance_roi(
     return float(min(d, max_distance))
 
 
-def score_instance(
-    pred_label,
-    truth_label,
-    voxel_size,
-    hausdorff_distance_max=None,
-) -> dict[str, float | str]:
-    """
-    Score a single instance label volume against the ground truth instance label volume.
+def _compute_binary_metrics(
+    truth_label: np.ndarray, pred_label: np.ndarray
+) -> dict[str, float]:
+    """Compute binary segmentation metrics.
 
     Args:
-        pred_label (np.ndarray): The predicted instance label volume.
-        truth_label (np.ndarray): The ground truth instance label volume.
-        voxel_size (tuple): The size of a voxel in each dimension.
-        hausdorff_distance_max (float): The maximum distance to consider for the Hausdorff distance.
+        truth_label: Ground truth labels
+        pred_label: Predicted labels
 
     Returns:
-        dict: A dictionary of scores for the instance label volume.
-
-    Example usage:
-        scores = score_instance(pred_label, truth_label)
+        Dictionary with iou, dice_score, and binary_accuracy
     """
-    logging.info("Scoring instance segmentation...")
-    if hausdorff_distance_max is None:
-        hausdorff_distance_max = compute_default_max_distance(voxel_size)
-        logging.debug(
-            f"Using default maximum Hausdorff distance of {hausdorff_distance_max:.2f} for voxel size {voxel_size}."
-        )
-
-    # Relabel the predicted instance labels to be consistent with the ground truth instance labels
-    logging.info("Relabeling predicted instance labels...")
-    pred_label, n_pred = cc3d.connected_components(pred_label, return_N=True)
-    # pred_label, remapping = renumber(pred_label, in_place=True)
-    # n_pred = len(remapping) - 1  # exclude background
-
-    # Get stats that don't require matched instances
     truth_binary = (truth_label > 0).ravel()
     pred_binary = (pred_label > 0).ravel()
+
     iou = jaccard_score(truth_binary, pred_binary, zero_division=1)
     dice_score = 1 - dice(truth_binary, pred_binary)
     binary_accuracy = float((truth_binary == pred_binary).mean())
-    voi = rand_voi(truth_label.astype(np.uint64), pred_label.astype(np.uint64))
-    del voi["voi_split_i"], voi["voi_merge_j"]
 
-    # Match instances between ground truth and prediction
-    mapping = match_instances(truth_label, pred_label)
+    return {
+        "iou": iou,
+        "dice_score": dice_score,
+        "binary_accuracy": binary_accuracy,
+    }
 
-    if mapping is None:
-        # Too many instances in submission, skip scoring
-        return {
-            "accuracy": 0,
-            "binary_accuracy": binary_accuracy,
-            "hausdorff_distance": hausdorff_distance_max,
-            "normalized_hausdorff_distance": normalize_distance(
-                hausdorff_distance_max, voxel_size
-            ),
-            "combined_score": 0,
-            "iou": iou,
-            "dice_score": dice_score,
-            "status": "skipped_too_many_instances",
-            **voi,
-        }
-    elif len(mapping) == 1 and 0 in mapping:
-        # Only background present in both ground truth and prediction
-        hausdorff_distances = [0.0]
-    elif len(mapping) > 0:
-        # Construct the volume for the matched instances
-        mapping[0] = 0  # background maps to background
-        pred_label = remap(
-            pred_label, mapping, in_place=True, preserve_missing_labels=True
-        )
 
+def _create_pathological_scores(
+    binary_metrics: dict[str, float],
+    voi_metrics: dict[str, float],
+    hausdorff_distance_max: float,
+    voxel_size: tuple[float, ...],
+    status: str,
+) -> InstanceScoreDict:
+    """Create scores for pathological cases (matching failed).
+
+    Args:
+        binary_metrics: Pre-computed binary metrics
+        voi_metrics: Pre-computed VoI metrics
+        hausdorff_distance_max: Maximum Hausdorff distance
+        voxel_size: Voxel size
+        status: Status string for the failure
+
+    Returns:
+        Dictionary with worst-case scores
+    """
+    return {
+        "accuracy": 0,
+        "binary_accuracy": binary_metrics["binary_accuracy"],
+        "hausdorff_distance": hausdorff_distance_max,
+        "normalized_hausdorff_distance": normalize_distance(
+            hausdorff_distance_max, voxel_size
+        ),
+        "combined_score": 0,
+        "iou": binary_metrics["iou"],
+        "dice_score": binary_metrics["dice_score"],
+        "status": status,
+        **voi_metrics,
+    }
+
+
+def _compute_hausdorff_scores(
+    mapping: dict[int, int],
+    truth_label: np.ndarray,
+    pred_label: np.ndarray,
+    n_pred: int,
+    voxel_size: tuple[float, ...],
+    hausdorff_distance_max: float,
+) -> list[float]:
+    """Compute Hausdorff distances for matched instances.
+
+    Args:
+        mapping: Instance ID mapping (pred -> truth)
+        truth_label: Ground truth labels
+        pred_label: Predicted labels (remapped to truth IDs)
+        n_pred: Number of predicted instances
+        voxel_size: Voxel size
+        hausdorff_distance_max: Maximum distance
+
+    Returns:
+        List of Hausdorff distances
+    """
+    if len(mapping) == 1 and 0 in mapping:
+        # Only background
+        return [0.0]
+
+    if len(mapping) > 0:
+        # Compute Hausdorff for matched instances
         hausdorff_distances = optimized_hausdorff_distances(
             truth_label, pred_label, voxel_size, hausdorff_distance_max
         )
+
+        # Add max distance for unmatched predictions
         matched_pred_ids = set(mapping.keys()) - {0}
         pred_ids = set(np.arange(1, n_pred + 1)) - {0}
         unmatched_pred = pred_ids - matched_pred_ids
+
         if len(unmatched_pred) > 0:
             hausdorff_distances = np.concatenate(
                 [
@@ -539,36 +1206,118 @@ def score_instance(
                     ),
                 ]
             )
+
+        return hausdorff_distances.tolist()
     else:
-        # No predictions to match (no GT XOR no Pred instances)
-        hausdorff_distances = [hausdorff_distance_max]
+        # No matches
+        return [hausdorff_distance_max]
+
+
+def score_instance(
+    pred_label,
+    truth_label,
+    voxel_size,
+    hausdorff_distance_max=None,
+    config: EvaluationConfig | None = None,
+) -> InstanceScoreDict:
+    """Score instance segmentation against ground truth.
+
+    Computes pixel-wise accuracy, Hausdorff distance, and combined metrics
+    after optimal instance matching.
+
+    Args:
+        pred_label: Predicted instance labels (0 = background)
+        truth_label: Ground truth instance labels (0 = background)
+        voxel_size: Physical voxel size in (Z, Y, X) order
+        hausdorff_distance_max: Maximum Hausdorff distance cap (None = auto)
+        config: Evaluation configuration (uses defaults if None)
+
+    Returns:
+        Dictionary containing all instance segmentation metrics
+
+    Example:
+        >>> scores = score_instance(pred, truth, voxel_size=(4.0, 4.0, 4.0))
+        >>> print(f"Combined score: {scores['combined_score']:.3f}")
+    """
+    if config is None:
+        config = EvaluationConfig.from_env()
+
+    logging.info("Scoring instance segmentation...")
+
+    # Determine Hausdorff distance cap
+    if hausdorff_distance_max is None:
+        hausdorff_distance_max = compute_default_max_distance(
+            voxel_size, config.max_distance_cap_eps
+        )
+        logging.debug(
+            f"Using default maximum Hausdorff distance of {hausdorff_distance_max:.2f}"
+        )
+
+    # Relabel predictions using connected components
+    logging.info("Relabeling predicted instance labels...")
+    pred_label, n_pred = cc3d.connected_components(pred_label, return_N=True)
+
+    # Compute metrics that don't require matching
+    binary_metrics = _compute_binary_metrics(truth_label, pred_label)
+    voi = rand_voi(truth_label.astype(np.uint64), pred_label.astype(np.uint64))
+    del voi["voi_split_i"], voi["voi_merge_j"]
+
+    # Match instances
+    try:
+        mapping = match_instances(truth_label, pred_label, config)
+    except (TooManyInstancesError, TooManyOverlapEdgesError) as e:
+        logging.warning(f"Instance matching failed: {e}")
+        return _create_pathological_scores(
+            binary_metrics,
+            voi,
+            hausdorff_distance_max,
+            voxel_size,
+            "skipped_too_many_instances",
+        )
+    except MatchingFailedError as e:
+        logging.error(f"Matching optimization failed: {e}")
+        return _create_pathological_scores(
+            binary_metrics, voi, hausdorff_distance_max, voxel_size, "matching_failed"
+        )
+
+    # Remap predictions to match GT IDs
+    if len(mapping) > 0 and not (len(mapping) == 1 and 0 in mapping):
+        mapping[0] = 0  # background maps to background
+        pred_label = remap(
+            pred_label, mapping, in_place=True, preserve_missing_labels=True
+        )
+
+    # Compute Hausdorff distances
+    hausdorff_distances = _compute_hausdorff_scores(
+        mapping, truth_label, pred_label, n_pred, voxel_size, hausdorff_distance_max
+    )
 
     if len(hausdorff_distances) == 0:
         hausdorff_distances = [hausdorff_distance_max]
 
-    # Compute the scores
-    logging.info("Computing accuracy score...")
+    # Aggregate scores
+    logging.info("Computing final scores...")
     accuracy = float((truth_label == pred_label).mean())
-    hausdorff_dist = np.mean(hausdorff_distances)
-    normalized_hausdorff_dist = np.mean(
-        [normalize_distance(hd, voxel_size) for hd in hausdorff_distances]
+    hausdorff_dist = float(np.mean(hausdorff_distances))
+    normalized_hausdorff_dist = float(
+        np.mean([normalize_distance(hd, voxel_size) for hd in hausdorff_distances])
     )
-    combined_score = (accuracy * normalized_hausdorff_dist) ** 0.5  # geometric mean
+    combined_score = (accuracy * normalized_hausdorff_dist) ** 0.5
+
     logging.info(f"Accuracy: {accuracy:.4f}")
     logging.info(f"Hausdorff Distance: {hausdorff_dist:.4f}")
     logging.info(f"Normalized Hausdorff Distance: {normalized_hausdorff_dist:.4f}")
     logging.info(f"Combined Score: {combined_score:.4f}")
+
     return {
         "accuracy": accuracy,
         "hausdorff_distance": hausdorff_dist,
         "normalized_hausdorff_distance": normalized_hausdorff_dist,
         "combined_score": combined_score,
         "status": "scored",
-        "iou": iou,
-        "dice_score": dice_score,
-        "binary_accuracy": binary_accuracy,
+        **binary_metrics,
         **voi,
-    }  # type: ignore
+    }
 
 
 def score_semantic(pred_label, truth_label) -> dict[str, float]:
@@ -989,94 +1738,59 @@ def ensure_valid_submission(submission_path: UPath):
         )
 
 
-def score_submission(
-    submission_path=UPath(SUBMISSION_PATH).with_suffix(".zip").path,
-    result_file=None,
-    truth_path=TRUTH_PATH,
-    instance_classes=INSTANCE_CLASSES,
-):
-    """
-    Score a submission against the ground truth data.
+def _prepare_submission(submission_path: UPath | str) -> UPath:
+    """Unzip and validate submission.
 
     Args:
-        submission_path (str): The path to the zipped submission Zarr-2 file.
-        result_file (str): The path to save the scores. Default is 'results.json'.
-        truth_path (str): The path to the ground truth Zarr-2 file.
-        instance_classes (list): A list of instance classes.
+        submission_path: Path to zipped submission
 
     Returns:
-        dict: A dictionary of scores for the submission.
-
-    Example usage:
-        scores = score_submission('submission.zip')
-
-    The results json is a dictionary with the following structure:
-    {
-        "volume" (the name of the ground truth volume): {
-            "label" (the name of the predicted class): {
-                (For semantic segmentation)
-                    "iou": (the intersection over union score),
-                    "dice_score": (the dice score),
-
-                OR
-
-                (For instance segmentation)
-                    "accuracy": (the accuracy score),
-                    "haussdorf_distance": (the haussdorf distance),
-                    "normalized_haussdorf_distance": (the normalized haussdorf distance),
-                    "combined_score": (the geometric mean of the accuracy and normalized haussdorf distance),
-            }
-            "num_voxels": (the number of voxels in the ground truth volume),
-        }
-        "label_scores": {
-            (the name of the predicted class): {
-                (For semantic segmentation)
-                    "iou": (the mean intersection over union score),
-                    "dice_score": (the mean dice score),
-
-                OR
-
-                (For instance segmentation)
-                    "accuracy": (the mean accuracy score),
-                    "haussdorf_distance": (the mean haussdorf distance),
-                    "combined_score": (the mean geometric mean of the accuracy and haussdorf distance),
-            }
-        "overall_score": (the mean of the combined scores across all classes),
-    }
+        Path to unzipped, validated submission
     """
+    unzipped_path = unzip_file(submission_path)
+    ensure_valid_submission(UPath(unzipped_path))
+    return UPath(unzipped_path)
 
-    logging.info(f"Scoring {submission_path}...")
-    start_time = time()
-    # Unzip the submission
-    submission_path = unzip_file(submission_path)
 
-    # Find volumes to score
-    logging.info(f"Scoring volumes in {submission_path}...")
-    ensure_valid_submission(UPath(submission_path))
-    pred_volumes = [d.name for d in UPath(submission_path).glob("*") if d.is_dir()]
-    truth_path = UPath(truth_path)
-    logging.info(f"Volumes: {pred_volumes}")
-    logging.info(f"Truth path: {truth_path}")
+def _discover_volumes(
+    submission_path: UPath, truth_path: UPath
+) -> tuple[list[str], list[str]]:
+    """Discover volumes to score and missing volumes.
+
+    Args:
+                shutil.move(old_path, new_path)
+        truth_path: Path to ground truth
+
+    Returns:
+        Tuple of (found_volumes, missing_volumes)
+
+    Raises:
+        ValueError: If no volumes found to score
+    """
+    pred_volumes = [d.name for d in submission_path.glob("*") if d.is_dir()]
     truth_volumes = [d.name for d in truth_path.glob("*") if d.is_dir()]
-    logging.info(f"Truth volumes: {truth_volumes}")
 
     found_volumes = list(set(pred_volumes) & set(truth_volumes))
     missing_volumes = list(set(truth_volumes) - set(pred_volumes))
+
     if len(found_volumes) == 0:
         # Check if "crop" prefixes are missing
         prefixed_pred_volumes = [f"crop{v}" for v in pred_volumes]
         found_volumes = list(set(prefixed_pred_volumes) & set(truth_volumes))
+
         if len(found_volumes) == 0:
             raise ValueError(
                 "No volumes found to score. Make sure the submission is formatted correctly."
             )
+
         missing_volumes = list(set(truth_volumes) - set(prefixed_pred_volumes))
-        # Move predicted volumes to have "crop" prefix
+
+        # Rename predicted volumes to have "crop" prefix
         for v in pred_volumes:
-            old_path = UPath(submission_path) / v
-            new_path = UPath(submission_path) / f"crop{v}"
+            old_path = submission_path / v
+            new_path = submission_path / f"crop{v}"
             try:
-                old_path.move(new_path)
+                old_path.rename(new_path)
             except Exception as exc:
                 msg = (
                     f"Failed to rename predicted volume directory '{old_path}' to "
@@ -1086,50 +1800,79 @@ def score_submission(
                 )
                 logging.error(msg)
                 raise RuntimeError(msg) from exc
-    logging.info(f"Scoring volumes: {found_volumes}")
-    if len(missing_volumes) > 0:
-        logging.info(f"Missing volumes: {missing_volumes}")
-        logging.info("Scoring missing volumes as 0's")
 
-    scores = {
-        volume: missing_volume_score(
-            truth_path, volume, instance_classes=instance_classes
-        )
-        for volume in missing_volumes
-    }
+    return found_volumes, missing_volumes
 
-    # Get all prediction paths to evaluate
-    evaluation_args = get_evaluation_args(
-        found_volumes,
-        submission_path=UPath(submission_path),
-        truth_path=truth_path,
-        instance_classes=instance_classes,
-    )
 
-    # Score each volume
+def _execute_parallel_scoring(
+    evaluation_args: list[tuple],
+    config: EvaluationConfig,
+) -> list[tuple]:
+    """Execute evaluations in parallel using process pools.
+
+    Args:
+        evaluation_args: List of arguments for score_label
+        config: Evaluation configuration
+
+    Returns:
+        List of (crop_name, label_name, result) tuples
+    """
+    instance_classes = config.instance_classes
+
     logging.info(
-        f"Scoring volumes in parallel, using {MAX_INSTANCE_THREADS} instance threads and {MAX_SEMANTIC_THREADS} semantic threads..."
+        f"Scoring volumes in parallel, using {config.max_instance_threads} "
+        f"instance threads and {config.max_semantic_threads} semantic threads..."
     )
-    instance_pool = ProcessPoolExecutor(MAX_INSTANCE_THREADS)
-    semantic_pool = ProcessPoolExecutor(MAX_SEMANTIC_THREADS)
-    futures = []
-    for args in evaluation_args:
-        if args[1] in instance_classes:
-            futures.append(instance_pool.submit(score_label, *args))
-        else:
-            futures.append(semantic_pool.submit(score_label, *args))
-    results = []
-    for future in tqdm(
-        as_completed(futures),
-        desc="Scoring volumes",
-        total=len(futures),
-        dynamic_ncols=True,
-        leave=True,
+
+    # Use context managers for proper resource cleanup
+    with (
+        ProcessPoolExecutor(config.max_instance_threads) as instance_pool,
+        ProcessPoolExecutor(config.max_semantic_threads) as semantic_pool,
     ):
-        results.append(future.result())
-        all_scores, found_scores = update_scores(
-            scores, results, result_file, instance_classes=instance_classes
-        )
+
+        futures = []
+        for args in evaluation_args:
+            if args[1] in instance_classes:
+                futures.append(instance_pool.submit(score_label, *args))
+            else:
+                futures.append(semantic_pool.submit(score_label, *args))
+
+        results = []
+        for future in tqdm(
+            as_completed(futures),
+            desc="Scoring volumes",
+            total=len(futures),
+            dynamic_ncols=True,
+            leave=True,
+        ):
+            results.append(future.result())
+
+    return results
+
+
+def _aggregate_and_save_results(
+    results: list[tuple],
+    missing_scores: dict,
+    result_file: str | None,
+    config: EvaluationConfig,
+) -> dict:
+    """Aggregate results and optionally save to file.
+
+    Args:
+        results: List of (crop_name, label_name, result) tuples
+        missing_scores: Scores for missing volumes
+        result_file: Path to save results (None to skip saving)
+        config: Evaluation configuration
+
+    Returns:
+        Dictionary of aggregated scores
+    """
+    scores = missing_scores.copy()
+
+    # Process all results and update incrementally
+    all_scores, found_scores = update_scores(
+        scores, results, result_file, instance_classes=config.instance_classes
+    )
 
     logging.info("Scores combined across all test volumes:")
     logging.info(
@@ -1148,14 +1891,117 @@ def score_submission(
         f"\tOverall Semantic Score: {found_scores['overall_semantic_score']:.4f}"
     )
     logging.info(f"\tOverall Score: {found_scores['overall_score']:.4f}")
+
+    return all_scores
+
+
+def score_submission(
+    submission_path=UPath(SUBMISSION_PATH).with_suffix(".zip").path,
+    result_file=None,
+    truth_path=TRUTH_PATH,
+    instance_classes=INSTANCE_CLASSES,
+    config: EvaluationConfig | None = None,
+):
+    """Score a submission against the ground truth data.
+
+    This is the main entry point for evaluating a submission. It unzips,
+    validates, scores, and aggregates results for all volumes.
+
+    Args:
+        submission_path: Path to the zipped submission Zarr-2 file
+        result_file: Path to save the scores (None to skip saving)
+        truth_path: Path to the ground truth Zarr-2 file
+        instance_classes: List of instance segmentation classes
+        config: Evaluation configuration (uses defaults if None)
+
+    Returns:
+        Dictionary of aggregated scores across all volumes
+
+    Raises:
+        ValueError: If submission format is invalid
+        RuntimeError: If volume renaming fails
+
+    Example:
+        >>> scores = score_submission('submission.zip', 'results.json')
+        >>> print(f"Overall score: {scores['overall_score']:.4f}")
+
+    Results structure:
+        {
+            "cropN": {  # Per-volume scores
+                "label_name": {
+                    # Instance segmentation
+                    "accuracy": float,
+                    "hausdorff_distance": float,
+                    "combined_score": float,
+                    # OR semantic segmentation
+                    "iou": float,
+                    "dice_score": float,
+                }
+            },
+            "label_scores": {  # Aggregated per-label
+                "label_name": {...}
+            },
+            "overall_instance_score": float,
+            "overall_semantic_score": float,
+            "overall_score": float,
+        }
+    """
+    if config is None:
+        config = EvaluationConfig.from_env()
+        config.validate()
+
+    # Override config with explicit parameters if provided
+    if truth_path != TRUTH_PATH:
+        config.truth_path = UPath(truth_path)
+    if instance_classes != INSTANCE_CLASSES:
+        config.instance_classes = list(instance_classes)
+
+    logging.info(f"Scoring {submission_path}...")
+    start_time = time()
+
+    # Step 1: Prepare submission
+    submission_path = _prepare_submission(submission_path)
+
+    # Step 2: Discover volumes
+    logging.info(f"Discovering volumes in {submission_path}...")
+    found_volumes, missing_volumes = _discover_volumes(
+        submission_path, config.truth_path
+    )
+
+    logging.info(f"Scoring volumes: {found_volumes}")
+    if len(missing_volumes) > 0:
+        logging.info(f"Missing volumes: {missing_volumes}")
+        logging.info("Scoring missing volumes as 0's")
+
+    # Step 3: Score missing volumes
+    scores = {
+        volume: missing_volume_score(
+            config.truth_path, volume, instance_classes=config.instance_classes
+        )
+        for volume in missing_volumes
+    }
+
+    # Step 4: Get evaluation arguments
+    evaluation_args = get_evaluation_args(
+        found_volumes,
+        submission_path=submission_path,
+        truth_path=config.truth_path,
+        instance_classes=config.instance_classes,
+    )
+
+    # Step 5: Execute parallel scoring
+    results = _execute_parallel_scoring(evaluation_args, config)
+
+    # Step 6: Aggregate and save results
+    all_scores = _aggregate_and_save_results(results, scores, result_file, config)
+
     logging.info(f"Submission scored in {time() - start_time:.2f} seconds")
 
     if result_file is None:
         logging.info("Final combined scores:")
         logging.info(all_scores)
-        return all_scores
-    else:
-        logging.info("Evaluation successful.")
+
+    return all_scores
 
 
 def num_evals_done(all_scores):

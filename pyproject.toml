@@ -34,6 +34,7 @@ dependencies = [
   "numcodecs < 0.16.0",
   "zarr < 3.0.0",
   "structlog",
+  "psutil>=5.9.0",
   "yarl",
   "toolz",
   "ml-collections",

@@ -82,13 +82,13 @@ def test_shape_mismatch_raises():
     ev = _reload_module()
     gt = np.zeros((3, 3), dtype=np.int32)
     pred = np.zeros((3, 4), dtype=np.int32)
-    with pytest.raises(ValueError, match="must have the same shape"):
+    with pytest.raises(ev.ValidationError, match="Shape mismatch"):
         ev.match_instances(gt, pred)
 
 
 def test_ratio_cutoff_returns_none(monkeypatch):
     """
-    If INSTANCE_RATIO_CUTOFF is exceeded, function returns None.
+    If INSTANCE_RATIO_CUTOFF is exceeded, function raises TooManyInstancesError.
     We reload the module after setting env to avoid import-time caching issues.
     """
     monkeypatch.setenv("INSTANCE_RATIO_CUTOFF", "1.0")
@@ -101,19 +101,19 @@ def test_ratio_cutoff_returns_none(monkeypatch):
     gt = np.zeros((4, 4), dtype=np.int32)
     pred = np.zeros((4, 4), dtype=np.int32)
 
-    # nG = 1, nP = 3 => ratio=3 > 1 => None
+    # nG = 1, nP = 3 => ratio=3 > 1 => TooManyInstancesError
     gt[0, 0] = 1
     pred[0, 0] = 1
     pred[0, 1] = 2
     pred[0, 2] = 3
 
-    out = ev.match_instances(gt, pred)
-    assert out is None
+    with pytest.raises(ev.TooManyInstancesError, match="Too many instances"):
+        ev.match_instances(gt, pred)
 
 
 def test_overlap_edges_cutoff_returns_none(monkeypatch):
     """
-    If MAX_OVERLAP_EDGES is exceeded, function returns None.
+    If MAX_OVERLAP_EDGES is exceeded, function raises TooManyOverlapEdgesError.
     """
     monkeypatch.setenv("INSTANCE_RATIO_CUTOFF", "1000")
     monkeypatch.setenv("MAX_OVERLAP_EDGES", "0")
@@ -124,8 +124,8 @@ def test_overlap_edges_cutoff_returns_none(monkeypatch):
     gt[0, 0] = 1
     pred[0, 0] = 1  # one overlap edge exists -> should exceed 0
 
-    out = ev.match_instances(gt, pred)
-    assert out is None
+    with pytest.raises(ev.TooManyOverlapEdgesError, match="Too many overlap edges"):
+        ev.match_instances(gt, pred)
 
 
 def test_no_overlap_returns_empty_iou_matrix(monkeypatch):
