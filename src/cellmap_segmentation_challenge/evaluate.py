@@ -1063,9 +1063,29 @@ def score_submission(
     found_volumes = list(set(pred_volumes) & set(truth_volumes))
     missing_volumes = list(set(truth_volumes) - set(pred_volumes))
     if len(found_volumes) == 0:
-        raise ValueError(
-            "No volumes found to score. Make sure the submission is formatted correctly."
-        )
+        # Check if "crop" prefixes are missing
+        prefixed_pred_volumes = [f"crop{v}" for v in pred_volumes]
+        found_volumes = list(set(prefixed_pred_volumes) & set(truth_volumes))
+        if len(found_volumes) == 0:
+            raise ValueError(
+                "No volumes found to score. Make sure the submission is formatted correctly."
+            )
+        missing_volumes = list(set(truth_volumes) - set(prefixed_pred_volumes))
+        # Move predicted volumes to have "crop" prefix
+        for v in pred_volumes:
+            old_path = UPath(submission_path) / v
+            new_path = UPath(submission_path) / f"crop{v}"
+            try:
+                old_path.move(new_path)
+            except Exception as exc:
+                msg = (
+                    f"Failed to rename predicted volume directory '{old_path}' to "
+                    f"'{new_path}'. This may be due to missing files, insufficient "
+                    "permissions, or an existing destination directory. Cannot "
+                    "continue evaluation."
+                )
+                logging.error(msg)
+                raise RuntimeError(msg) from exc
     logging.info(f"Scoring volumes: {found_volumes}")
     if len(missing_volumes) > 0:
         logging.info(f"Missing volumes: {missing_volumes}")
