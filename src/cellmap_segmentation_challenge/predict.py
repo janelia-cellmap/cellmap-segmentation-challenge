@@ -111,6 +111,36 @@ def _predict(
         The batch size to use for prediction
     """
 
+    model.eval()
+
+    # Test a single batch to get number of output channels
+    test_batch = {
+        k: torch.rand(info["shape"]).unsqueeze(0).to(dataset_writer_kwargs["device"])
+        for k, info in dataset_writer_kwargs["input_arrays"].items()
+    }
+    with torch.no_grad():
+        test_outputs = model(test_batch)  # Assumes tensor output
+        # TODO: Handle dict output
+    num_channels_per_class = None
+    if test_outputs.shape[1] > len(dataset_writer_kwargs["classes"]):
+        if test_outputs.shape[1] % len(dataset_writer_kwargs["classes"]) == 0:
+            num_channels_per_class = test_outputs.shape[1] // len(
+                dataset_writer_kwargs["classes"]
+            )
+            # See if array shape needs to be adjusted
+            for key in dataset_writer_kwargs["target_arrays"].keys():
+                dataset_writer_kwargs["target_arrays"][key]["shape"] = (
+                    num_channels_per_class,
+                    *dataset_writer_kwargs["target_arrays"][key]["shape"],
+                )
+        else:
+            raise ValueError(
+                f"Number of output channels ({test_outputs.shape[1]}) does not match number of "
+                f"classes ({len(dataset_writer_kwargs['classes'])}). Should be a multiple of the "
+                "number of classes."
+            )
+    del test_batch, test_outputs
+
     value_transforms = T.Compose(
         [
             T.ToDtype(torch.float, scale=True),
@@ -122,7 +152,7 @@ def _predict(
         **dataset_writer_kwargs, raw_value_transforms=value_transforms
     )
     dataloader = dataset_writer.loader(batch_size=batch_size)
-    model.eval()
+
     # Find singleton dimension if there is one
     # Only the first singleton dimension will be used for squeezing/unsqueezing.
     # If there are multiple singleton dimensions, only the first is handled.
@@ -140,7 +170,23 @@ def _predict(
             outputs = model(inputs)
             if singleton_dim is not None:
                 outputs = outputs.unsqueeze(dim=singleton_dim + 2)
-            outputs = {"output": outputs}
+
+            if num_channels_per_class is not None:
+                class_outputs = {}
+                for i, class_name in enumerate(dataset_writer_kwargs["classes"]):
+                    class_outputs[class_name] = outputs[
+                        :,
+                        i * num_channels_per_class : (i + 1) * num_channels_per_class,
+                    ]
+                outputs = {"output": class_outputs}
+            elif outputs.shape[1] == len(dataset_writer_kwargs["classes"]):
+                # Standard case: one output channel per class
+                outputs = {"output": outputs}
+                    f"Number of output channels ({outputs.shape[1]}) does not match number of classes "
+                    f"({len(dataset_writer_kwargs['classes'])}). Should be a multiple of the number of classes."
+                raise ValueError(
+                    "Number of output channels does not match number of classes. Should be a multiple of the number of classes."
+                )
 
             # Save the outputs
             dataset_writer[batch["idx"]] = outputs
