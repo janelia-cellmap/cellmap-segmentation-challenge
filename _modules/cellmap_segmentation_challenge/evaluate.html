@@ -1268,67 +1268,60 @@ document.write(`
 <span class="sd">    Raises:</span>
 <span class="sd">        ValueError: If the submission is not a valid unzipped Zarr-2 file.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">zarr_group</span><span class="p">,</span> <span class="n">zarr</span><span class="o">.</span><span class="n">Group</span><span class="p">):</span>
+    <span class="c1"># See if a Zarr was incorrectly zipped inside other folder(s)</span>
+    <span class="c1"># If so, move contents from .zarr folder to submission_path and warn user</span>
+    <span class="n">zarr_folders</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">submission_path</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;**/*.zarr&quot;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">zarr_folders</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># Try forcing Zarr-2 format by adding .zgroup if missing</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ensure_zgroup</span><span class="p">(</span><span class="n">submission_path</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Submission at </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2"> did not contain a .zgroup file. Added one to force Zarr-2 format.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Submission at </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2"> is not a valid unzipped Zarr-2 file.&quot;</span>
-            <span class="p">)</span>
-        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">zarr_group</span><span class="p">,</span> <span class="n">zarr</span><span class="o">.</span><span class="n">Group</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="c1"># See if a Zarr was incorrectly zipped inside other folder(s)</span>
-        <span class="c1"># If so, move contents from .zarr folder to submission_path and warn user</span>
-        <span class="n">zarr_folders</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">submission_path</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;**/*.zarr&quot;</span><span class="p">))</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">zarr_folders</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="c1"># Try forcing Zarr-2 format by adding .zgroup if missing</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">zarr_folders</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">zarr_folder</span> <span class="o">=</span> <span class="n">zarr_folders</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Submission at </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2"> contains a Zarr folder inside subfolder(s) at </span><span class="si">{</span><span class="n">zarr_folder</span><span class="si">}</span><span class="s2">. Moving contents to the root submission folder.&quot;</span>
+        <span class="p">)</span>
+        <span class="c1"># Move contents of zarr_folder to submission_path</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">zarr_folder</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="n">submission_path</span> <span class="o">/</span> <span class="n">item</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">if</span> <span class="n">target</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">target</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+                    <span class="n">target</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">submission_path</span><span class="p">))</span>
+        <span class="c1"># Remove empty folders</span>
+        <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">zarr_folder</span><span class="o">.</span><span class="n">parents</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">parent</span> <span class="o">==</span> <span class="n">submission_path</span><span class="p">:</span>
+                <span class="k">break</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">ensure_zgroup</span><span class="p">(</span><span class="n">submission_path</span><span class="p">)</span>
+                <span class="n">parent</span><span class="o">.</span><span class="n">rmdir</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;Submission at </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2"> did not contain a .zgroup file. Added one to force Zarr-2 format.&quot;</span>
+                    <span class="s2">&quot;Failed to remove directory </span><span class="si">%s</span><span class="s2"> while cleaning nested Zarr submission: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="n">parent</span><span class="p">,</span>
+                    <span class="n">e</span><span class="p">,</span>
                 <span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e2</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;Submission at </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2"> is not a valid unzipped Zarr-2 file.&quot;</span>
-                <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e2</span>
-        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">zarr_folders</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">zarr_folder</span> <span class="o">=</span> <span class="n">zarr_folders</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># Try opening again</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ensure_zgroup</span><span class="p">(</span><span class="n">submission_path</span><span class="p">)</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Submission at </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2"> contains a Zarr folder inside subfolder(s) at </span><span class="si">{</span><span class="n">zarr_folder</span><span class="si">}</span><span class="s2">. Moving contents to the root submission folder.&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Submission at </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2"> did not contain a .zgroup file. Added one to force Zarr-2 format.&quot;</span>
             <span class="p">)</span>
-            <span class="c1"># Move contents of zarr_folder to submission_path</span>
-            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">zarr_folder</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
-                <span class="n">target</span> <span class="o">=</span> <span class="n">submission_path</span> <span class="o">/</span> <span class="n">item</span><span class="o">.</span><span class="n">name</span>
-                <span class="k">if</span> <span class="n">target</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-                    <span class="k">if</span> <span class="n">target</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
-                        <span class="n">target</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
-                <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">submission_path</span><span class="p">))</span>
-            <span class="c1"># Remove empty folders</span>
-            <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">zarr_folder</span><span class="o">.</span><span class="n">parents</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">parent</span> <span class="o">==</span> <span class="n">submission_path</span><span class="p">:</span>
-                    <span class="k">break</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">parent</span><span class="o">.</span><span class="n">rmdir</span><span class="p">()</span>
-                <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="s2">&quot;Failed to remove directory </span><span class="si">%s</span><span class="s2"> while cleaning nested Zarr submission: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
-                        <span class="n">parent</span><span class="p">,</span>
-                        <span class="n">exc</span><span class="p">,</span>
-                    <span class="p">)</span>
-            <span class="c1"># Try opening again</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">ensure_zgroup</span><span class="p">(</span><span class="n">submission_path</span><span class="p">)</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;Submission at </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2"> did not contain a .zgroup file. Added one to force Zarr-2 format.&quot;</span>
-                <span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e2</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;Submission at </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2"> is not a valid unzipped Zarr-2 file.&quot;</span>
-                <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e2</span>
-        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">zarr_folders</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Submission at </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2"> contains multiple Zarr folders. Please ensure only one Zarr-2 file is submitted.&quot;</span>
-            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+                <span class="sa">f</span><span class="s2">&quot;Submission at </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2"> is not a valid unzipped Zarr-2 file.&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">zarr_folders</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Submission at </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2"> contains multiple Zarr folders. Please ensure only one Zarr-2 file is submitted.&quot;</span>
+        <span class="p">)</span></div>
 
 
 
