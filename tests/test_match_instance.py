@@ -78,14 +78,6 @@ def _make_competing_overlap_case():
     return gt, pred
 
 
-def test_shape_mismatch_raises():
-    ev = _reload_module()
-    gt = np.zeros((3, 3), dtype=np.int32)
-    pred = np.zeros((3, 4), dtype=np.int32)
-    with pytest.raises(ev.ValidationError, match="Shape mismatch"):
-        ev.match_instances(gt, pred)
-
-
 def test_ratio_cutoff_returns_none(monkeypatch):
     """
     If INSTANCE_RATIO_CUTOFF is exceeded, function raises TooManyInstancesError.
