@@ -548,20 +548,6 @@ class InstanceOverlapData:
     iou_vals: np.ndarray  # IoU values for overlaps
 
 
-def _validate_instance_arrays(gt: np.ndarray, pred: np.ndarray) -> None:
-    """Validate that GT and prediction arrays are compatible.
-
-    Args:
-        gt: Ground truth instance labels
-        pred: Predicted instance labels
-
-    Raises:
-        ValidationError: If arrays have incompatible shapes
-    """
-    if gt.shape != pred.shape:
-        raise ValidationError(f"Shape mismatch: gt {gt.shape} != pred {pred.shape}")
-
-
 def _check_instance_counts(nG: int, nP: int) -> bool:
     """Check if instance counts allow matching.
 
@@ -845,9 +831,6 @@ def match_instances(
     """
     if config is None:
         config = EvaluationConfig.from_env()
-
-    # Validate inputs
-    _validate_instance_arrays(gt, pred)
 
     # Get instance counts
     g = np.ravel(gt)
