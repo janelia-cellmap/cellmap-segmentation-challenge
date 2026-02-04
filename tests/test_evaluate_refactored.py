@@ -7,7 +7,6 @@ Tests cover:
 - Helper functions for match_instances
 - Helper functions for score_instance
 - Helper functions for score_submission
-- Performance utilities
 """
 
 import pytest
@@ -41,10 +40,6 @@ from cellmap_segmentation_challenge.evaluate import (
     _discover_volumes,
     _execute_parallel_scoring,
     _aggregate_and_save_results,
-    # Performance utilities
-    EvaluationMetrics,
-    timed_operation,
-    log_resource_usage,
     # Main functions
     match_instances,
     score_instance,
@@ -420,59 +415,6 @@ class TestScoreSubmissionHelpers:
 
             assert scores["overall_score"] == 0.85
             mock_update.assert_called_once()
-
-
-# ============================================================================
-# Performance Utility Tests
-# ============================================================================
-
-
-class TestPerformanceUtilities:
-    """Test performance monitoring utilities."""
-
-    def test_evaluation_metrics_to_dict(self):
-        """Test EvaluationMetrics to_dict conversion."""
-        metrics = EvaluationMetrics(
-            total_evaluations=10,
-            successful_evaluations=8,
-            failed_evaluations=2,
-            total_duration_seconds=100.0,
-            avg_instance_score=0.9,
-            avg_semantic_score=0.85,
-        )
-
-        result = metrics.to_dict()
-
-        assert result["total_evaluations"] == 10
-        assert result["successful_evaluations"] == 8
-        assert result["success_rate"] == 0.8
-        assert result["avg_duration_seconds"] == 10.0
-        assert result["avg_instance_score"] == 0.9
-
-    def test_timed_operation_decorator_success(self):
-        """Test timed_operation decorator on successful function."""
-
-        @timed_operation("test_op")
-        def test_func(x):
-            return x * 2
-
-        result = test_func(5)
-        assert result == 10
-
-    def test_timed_operation_decorator_failure(self):
-        """Test timed_operation decorator on failing function."""
-
-        @timed_operation("test_op")
-        def test_func():
-            raise ValueError("Test error")
-
-        with pytest.raises(ValueError, match="Test error"):
-            test_func()
-
-    def test_log_resource_usage(self):
-        """Test log_resource_usage function."""
-        # Should not raise
-        log_resource_usage("test_operation", crop="crop1", label="label1")
 
 
 # ============================================================================
