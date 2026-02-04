@@ -7,7 +7,7 @@ Tests cover:
 - Helper functions for match_instances
 - Helper functions for score_instance
 - Helper functions for score_submission
-- Protocol implementations
+- Performance utilities
 """
 
 import pytest
@@ -27,7 +27,6 @@ from cellmap_segmentation_challenge.evaluate import (
     MatchingFailedError,
     ValidationError,
     # Helper functions for match_instances
-    _validate_instance_arrays,
     _check_instance_counts,
     _check_instance_ratio,
     _compute_instance_overlaps,
@@ -42,9 +41,6 @@ from cellmap_segmentation_challenge.evaluate import (
     _discover_volumes,
     _execute_parallel_scoring,
     _aggregate_and_save_results,
-    # Protocol implementations
-    FilesystemZarrStorage,
-    StandardFileSystem,
     # Performance utilities
     EvaluationMetrics,
     timed_operation,
@@ -169,19 +165,6 @@ class TestCustomExceptions:
 
 class TestMatchInstancesHelpers:
     """Test helper functions for match_instances."""
-
-    def test_validate_instance_arrays_valid(self):
-        """Test validation passes for compatible arrays."""
-        gt = np.zeros((10, 10))
-        pred = np.zeros((10, 10))
-        _validate_instance_arrays(gt, pred)  # Should not raise
-
-    def test_validate_instance_arrays_shape_mismatch(self):
-        """Test validation fails for shape mismatch."""
-        gt = np.zeros((10, 10))
-        pred = np.zeros((10, 20))
-        with pytest.raises(ValidationError, match="Shape mismatch"):
-            _validate_instance_arrays(gt, pred)
 
     def test_check_instance_counts_both_zero(self):
         """Test check_instance_counts when both are zero."""
@@ -310,7 +293,7 @@ class TestScoreInstanceHelpers:
             status="test_failure",
         )
 
-        assert scores["accuracy"] == 0
+        assert scores["mean_accuracy"] == 0
         assert scores["combined_score"] == 0
         assert scores["hausdorff_distance"] == 100.0
         assert scores["iou"] == 0.5
@@ -440,63 +423,6 @@ class TestScoreSubmissionHelpers:
 
 
 # ============================================================================
-# Protocol Implementation Tests
-# ============================================================================
-
-
-class TestProtocolImplementations:
-    """Test protocol implementations."""
-
-    def test_filesystem_zarr_storage(self, tmp_path):
-        """Test FilesystemZarrStorage implementation."""
-        storage = FilesystemZarrStorage()
-
-        # Create a test zarr group
-        test_path = tmp_path / "test.zarr"
-        zarr.open_group(str(test_path), mode="w")
-
-        # Test open_group
-        group = storage.open_group(str(test_path), mode="r")
-        assert isinstance(group, zarr.Group)
-
-    def test_standard_filesystem_exists(self, tmp_path):
-        """Test StandardFileSystem exists method."""
-        fs = StandardFileSystem()
-
-        test_file = tmp_path / "test.txt"
-        test_file.write_text("test")
-
-        assert fs.exists(UPath(test_file))
-        assert not fs.exists(UPath(tmp_path / "nonexistent.txt"))
-
-    def test_standard_filesystem_is_dir(self, tmp_path):
-        """Test StandardFileSystem is_dir method."""
-        fs = StandardFileSystem()
-
-        test_dir = tmp_path / "testdir"
-        test_dir.mkdir()
-        test_file = tmp_path / "test.txt"
-        test_file.write_text("test")
-
-        assert fs.is_dir(UPath(test_dir))
-        assert not fs.is_dir(UPath(test_file))
-
-    def test_standard_filesystem_glob(self, tmp_path):
-        """Test StandardFileSystem glob method."""
-        fs = StandardFileSystem()
-
-        # Create test files
-        (tmp_path / "test1.txt").write_text("test")
-        (tmp_path / "test2.txt").write_text("test")
-        (tmp_path / "other.dat").write_text("test")
-
-        results = fs.glob(UPath(tmp_path), "*.txt")
-
-        assert len(results) == 2
-        assert all(isinstance(r, UPath) for r in results)
-
-
-# ============================================================================
 # Performance Utility Tests
 # ============================================================================
 
@@ -588,7 +514,7 @@ class TestRefactoredIntegration:
         config = EvaluationConfig()
         scores = score_instance(pred, truth, voxel_size, config=config)
 
-        assert "accuracy" in scores
+        assert "mean_accuracy" in scores
         assert "combined_score" in scores
         assert scores["status"] == "scored"
 
@@ -603,7 +529,7 @@ class TestRefactoredIntegration:
         scores = score_instance(pred, truth, voxel_size, config=config)
 
         assert scores["status"] == "skipped_too_many_instances"
-        assert scores["accuracy"] == 0
+        assert scores["mean_accuracy"] == 0
         assert scores["combined_score"] == 0
 
 
