@@ -401,7 +401,7 @@ def test_score_instance_perfect_match():
     label = np.array([[0, 1, 1], [0, 2, 2]], dtype=np.int32)
     scores = ev.score_instance(label, label, voxel_size=(1.0, 1.0))
 
-    assert np.isclose(scores["accuracy"], 1.0)
+    assert np.isclose(scores["mean_accuracy"], 1.0)
     assert np.isclose(scores["hausdorff_distance"], 0.0)
     assert np.isclose(scores["normalized_hausdorff_distance"], 1.0)
     assert np.isclose(scores["combined_score"], 1.0)
@@ -418,7 +418,7 @@ def test_score_instance_simple_shift():
     scores = ev.score_instance(pred, truth, voxel_size)
 
     # Accuracy should not be 1 but positive
-    assert 0.0 < scores["accuracy"] < 1.0
+    assert 0.0 < scores["mean_accuracy"] < 1.0
     # Hausdorff distance is 1 (each point moves 1 voxel)
     assert np.isclose(scores["hausdorff_distance"], 1.0)
 
@@ -602,7 +602,7 @@ def test_empty_label_score_instance(tmp_path):
     # num_voxels should match volume size
     assert scores["num_voxels"] == arr.size
     assert scores["is_missing"] is True
-    assert scores["accuracy"] == 0
+    assert scores["mean_accuracy"] == 0
 
 
 def test_missing_volume_score_mixed_labels(tmp_path):
@@ -624,7 +624,7 @@ def test_missing_volume_score_mixed_labels(tmp_path):
     assert set(scores.keys()) == {"instance", "sem"}
     assert scores["instance"]["is_missing"] is True
     assert scores["sem"]["is_missing"] is True
-    assert scores["instance"]["accuracy"] == 0.0
+    assert scores["instance"]["mean_accuracy"] == 0.0
     assert scores["sem"]["iou"] == 0.0
 
 
@@ -640,7 +640,7 @@ def test_combine_scores_instance_and_semantic():
     scores = {
         "crop1": {
             "instance": {
-                "accuracy": 1.0,
+                "mean_accuracy": 1.0,
                 "hausdorff_distance": 0.0,
                 "normalized_hausdorff_distance": 1.0,
                 "combined_score": 1.0,
@@ -724,7 +724,7 @@ def test_score_label_instance_integration(monkeypatch, tmp_path):
 
     assert crop_out == crop_name_str
     assert label_out == label_name
-    assert np.isclose(results["accuracy"], 1.0)
+    assert np.isclose(results["mean_accuracy"], 1.0)
     assert np.isclose(results["hausdorff_distance"], 0.0)
     assert results["is_missing"] is False
 
@@ -785,7 +785,7 @@ def test_score_submission(monkeypatch, tmp_path):
     # No semantic labels -> overall_semantic_score is nan, but that’s fine;
     # just ensure label_scores present and correct.
     assert "label_scores" in scores
-    assert np.isclose(scores["label_scores"][label_name]["accuracy"], 1.0)
+    assert np.isclose(scores["label_scores"][label_name]["mean_accuracy"], 1.0)
 
 
 @pytest.mark.usefixtures("monkeypatch")

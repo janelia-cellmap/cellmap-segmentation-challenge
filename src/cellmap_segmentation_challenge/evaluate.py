@@ -123,7 +123,7 @@ class StandardFileSystem:
 class InstanceScoreDict(TypedDict, total=False):
     """Type definition for instance segmentation scores."""
 
-    accuracy: float
+    mean_accuracy: float
     binary_accuracy: float
     hausdorff_distance: float
     normalized_hausdorff_distance: float
@@ -1130,7 +1130,7 @@ def _create_pathological_scores(
         Dictionary with worst-case scores
     """
     return {
-        "accuracy": 0,
+        "mean_accuracy": 0,
         "binary_accuracy": binary_metrics["binary_accuracy"],
         "hausdorff_distance": hausdorff_distance_max,
         "normalized_hausdorff_distance": normalize_distance(
@@ -1280,20 +1280,19 @@ def score_instance(
 
     # Aggregate scores
     logging.info("Computing final scores...")
-    accuracy = float((truth_label == pred_label).mean())
+    mean_accuracy = float((truth_label == pred_label).mean())
     hausdorff_dist = float(np.mean(hausdorff_distances))
     normalized_hausdorff_dist = float(
         np.mean([normalize_distance(hd, voxel_size) for hd in hausdorff_distances])
     )
-    combined_score = (accuracy * normalized_hausdorff_dist) ** 0.5
-
-    logging.info(f"Accuracy: {accuracy:.4f}")
+    combined_score = (mean_accuracy * normalized_hausdorff_dist) ** 0.5
+    logging.info(f"Mean Accuracy: {mean_accuracy:.4f}")
     logging.info(f"Hausdorff Distance: {hausdorff_dist:.4f}")
     logging.info(f"Normalized Hausdorff Distance: {normalized_hausdorff_dist:.4f}")
     logging.info(f"Combined Score: {combined_score:.4f}")
 
     return {
-        "accuracy": accuracy,
+        "mean_accuracy": mean_accuracy,
         "hausdorff_distance": hausdorff_dist,
         "normalized_hausdorff_distance": normalized_hausdorff_dist,
         "combined_score": combined_score,
@@ -1431,7 +1430,7 @@ def empty_label_score(
     if label in instance_classes:
         truth_path = UPath(truth_path)
         return {
-            "accuracy": 0,
+            "mean_accuracy": 0,
             "hausdorff_distance": compute_default_max_distance(voxel_size),
             "normalized_hausdorff_distance": 0,
             "combined_score": 0,
@@ -1444,6 +1443,7 @@ def empty_label_score(
         return {
             "iou": 0,
             "dice_score": 0,
+            "binary_accuracy": 0,
             "num_voxels": int(np.prod(ds.shape)),
             "voxel_size": voxel_size,
             "is_missing": True,
@@ -1585,7 +1585,7 @@ def combine_scores(
             if label in instance_classes:
                 if label not in label_scores:
                     label_scores[label] = {
-                        "accuracy": 0,
+                        "mean_accuracy": 0,
                         "hausdorff_distance": 0,
                         "normalized_hausdorff_distance": 0,
                         "combined_score": 0,
@@ -1606,7 +1606,7 @@ def combine_scores(
     # Normalize back to the total number of voxels
     for label in label_scores:
         if label in instance_classes:
-            label_scores[label]["accuracy"] /= total_voxels[label]
+            label_scores[label]["mean_accuracy"] /= total_voxels[label]
             label_scores[label]["hausdorff_distance"] /= total_voxels[label]
             label_scores[label]["normalized_hausdorff_distance"] /= total_voxels[label]
             label_scores[label]["combined_score"] /= total_voxels[label]
@@ -1913,7 +1913,7 @@ def score_submission(
             "cropN": {  # Per-volume scores
                 "label_name": {
                     # Instance segmentation
-                    "accuracy": float,
+                    "mean_accuracy": float,
                     "hausdorff_distance": float,
                     "combined_score": float,
                     # OR semantic segmentation
