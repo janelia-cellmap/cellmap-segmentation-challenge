@@ -25,26 +25,32 @@ from cellmap_segmentation_challenge.evaluate import (
     TooManyOverlapEdgesError,
     MatchingFailedError,
     ValidationError,
-    # Helper functions for match_instances
-    _check_instance_counts,
-    _check_instance_ratio,
-    _compute_instance_overlaps,
-    _solve_matching_problem,
     InstanceOverlapData,
-    # Helper functions for score_instance
-    _compute_binary_metrics,
-    _create_pathological_scores,
-    _compute_hausdorff_scores,
-    # Helper functions for score_submission
-    _prepare_submission,
-    _discover_volumes,
-    _execute_parallel_scoring,
-    _aggregate_and_save_results,
     # Main functions
     match_instances,
     score_instance,
 )
 
+from cellmap_segmentation_challenge.utils.eval_utils.instance_matching import (
+    # Helper functions for match_instances
+    _check_instance_counts,
+    _check_instance_ratio,
+    _compute_instance_overlaps,
+    _solve_matching_problem,
+)
+from cellmap_segmentation_challenge.utils.eval_utils.scoring import (
+    # Helper functions for score_instance
+    _compute_binary_metrics,
+    _create_pathological_scores,
+    _compute_hausdorff_scores,
+)
+from cellmap_segmentation_challenge.utils.eval_utils.submission import (
+    # Helper functions for score_submission
+    _prepare_submission,
+    _discover_volumes,
+    _execute_parallel_scoring,
+    _aggregate_and_save_results,
+)
 
 # ============================================================================
 # Configuration Tests
@@ -338,8 +344,8 @@ class TestScoreInstanceHelpers:
 class TestScoreSubmissionHelpers:
     """Test helper functions for score_submission."""
 
-    @patch("cellmap_segmentation_challenge.evaluate.unzip_file")
-    @patch("cellmap_segmentation_challenge.evaluate.ensure_valid_submission")
+    @patch("cellmap_segmentation_challenge.utils.eval_utils.submission.unzip_file")
+    @patch("cellmap_segmentation_challenge.utils.eval_utils.submission.ensure_valid_submission")
     def test_prepare_submission(self, mock_ensure_valid, mock_unzip):
         """Test submission preparation."""
         mock_unzip.return_value = UPath("/tmp/submission.zarr")
@@ -388,13 +394,17 @@ class TestScoreSubmissionHelpers:
         config = EvaluationConfig()
 
         results = [
-            ("crop1", "label1", {"accuracy": 0.9, "status": "scored"}),
-            ("crop1", "label2", {"iou": 0.8, "status": "scored"}),
+            (
+                "crop1",
+                "label1",
+                {"iou": 0.9, "status": "scored", "is_missing": False},
+            ),
+            ("crop1", "label2", {"iou": 0.8, "status": "scored", "is_missing": False}),
         ]
         missing_scores = {}
 
         with patch(
-            "cellmap_segmentation_challenge.evaluate.update_scores"
+            "cellmap_segmentation_challenge.utils.eval_utils.submission.update_scores"
         ) as mock_update:
             mock_update.return_value = (
                 {

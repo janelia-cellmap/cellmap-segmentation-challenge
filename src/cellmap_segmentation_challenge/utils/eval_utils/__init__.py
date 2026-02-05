@@ -1,27 +1,26 @@
-"""Evaluation module for cellmap segmentation challenge.
+"""Evaluation utilities for cellmap segmentation challenge.
 
-This module provides evaluation functionality for instance and semantic
-segmentation tasks. All implementation details are organized in
-utils/eval_utils/ for better maintainability.
-
-Example usage:
-    >>> from cellmap_segmentation_challenge.evaluate import score_submission
-    >>> scores = score_submission('submission.zip', 'results.json')
-    >>> print(f"Overall score: {scores['overall_score']:.4f}")
+This module provides all evaluation-related functionality including:
+- Scoring for instance and semantic segmentation
+- Instance matching using min-cost flow optimization
+- Hausdorff distance and other metrics
+- Submission processing and validation
 """
 
-# Re-export all public APIs for backward compatibility
-from .utils.eval_utils import (
-    # Types
-    InstanceScoreDict,
-    SemanticScoreDict,
-    # Exceptions
+# Types
+from .types import InstanceScoreDict, SemanticScoreDict
+
+# Exceptions
+from .exceptions import (
     EvaluationError,
     TooManyInstancesError,
     TooManyOverlapEdgesError,
     MatchingFailedError,
     ValidationError,
-    # Configuration
+)
+
+# Configuration
+from .config import (
     EvaluationConfig,
     CAST_TO_NONE,
     MAX_INSTANCE_THREADS,
@@ -33,36 +32,55 @@ from .utils.eval_utils import (
     INSTANCE_RATIO_FACTOR,
     MAX_OVERLAP_EDGES,
     ratio_cutoff,
-    # Instance matching
+)
+
+# Instance matching
+from .instance_matching import (
     InstanceOverlapData,
     match_instances,
-    # Distance metrics
+)
+
+# Distance metrics
+from .distance import (
     compute_default_max_distance,
     normalize_distance,
     optimized_hausdorff_distances,
     bbox_for_label,
     roi_slices_for_pair,
     compute_hausdorff_distance_roi,
-    # Scoring functions
+)
+
+# Scoring functions
+from .scoring import (
     score_instance,
     score_semantic,
     score_label,
     empty_label_score,
     match_crop_space,
-    # Score aggregation
+)
+
+# Score aggregation
+from .aggregation import (
     combine_scores,
     sanitize_scores,
     update_scores,
     num_evals_done,
-    # Submission processing
+)
+
+# Submission processing
+from .submission import (
     ensure_zgroup,
     ensure_valid_submission,
     get_evaluation_args,
     missing_volume_score,
     score_submission,
-    # Array utilities
-    resize_array,
-    # Zip utilities
+)
+
+# Array utilities
+from .array_utils import resize_array
+
+# Zip utilities
+from .zip_utils import (
     MAX_UNCOMPRESSED_SIZE,
     unzip_file,
 )
@@ -122,25 +140,3 @@ __all__ = [
     "MAX_UNCOMPRESSED_SIZE",
     "unzip_file",
 ]
-
-
-if __name__ == "__main__":
-    # CLI entry point
-    import argparse
-    from .config import TRUTH_PATH
-
-    argparser = argparse.ArgumentParser()
-    argparser.add_argument(
-        "submission_file", help="Path to submission zip file to score"
-    )
-    argparser.add_argument(
-        "result_file",
-        nargs="?",
-        help="If provided, store submission results in this file. Else print them to stdout",
-    )
-    argparser.add_argument(
-        "--truth-path", default=TRUTH_PATH, help="Path to zarr containing ground truth"
-    )
-    args = argparser.parse_args()
-
-    score_submission(args.submission_file, args.result_file, args.truth_path)

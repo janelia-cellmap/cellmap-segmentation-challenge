@@ -6,6 +6,7 @@ import numpy as np
 import zarr
 from fastremap import unique
 import pytest
+from upath import UPath
 from concurrent.futures import Future
 
 
@@ -705,20 +706,18 @@ def test_score_label_instance_integration(monkeypatch, tmp_path):
         voxel_size=(1.0, 1.0, 1.0), shape=arr.shape, translation=(0.0, 0.0, 0.0)
     )
     monkeypatch.setattr(
-        ev,
-        "TEST_CROPS_DICT",
+        "cellmap_segmentation_challenge.utils.eval_utils.scoring.TEST_CROPS_DICT",
         {(1, label_name): dummy_crop},
-        raising=False,
     )
 
     crop_name_str = crop_name  # "crop1"
-    pred_label_path = ev.UPath(pred_root.as_posix()) / crop_name_str / label_name
+    pred_label_path = UPath(pred_root.as_posix()) / crop_name_str / label_name
 
     crop_out, label_out, results = ev.score_label(
         pred_label_path=pred_label_path,
         label_name=label_name,
         crop_name=crop_name_str,
-        truth_path=ev.UPath(truth_root.as_posix()),
+        truth_path=UPath(truth_root.as_posix()),
         instance_classes=["instance"],
     )
 
@@ -752,21 +751,21 @@ def test_score_submission(monkeypatch, tmp_path):
     submission_root = tmp_path / "submission.zarr"
     _create_simple_volume(submission_root, crop_name, label_name, arr)
 
-    # Patch TEST_CROPS_DICT
+    # Patch TEST_CROPS_DICT in the scoring module where score_label reads it
     dummy_crop = DummyCrop(
         voxel_size=(1.0, 1.0, 1.0), shape=arr.shape, translation=(0.0, 0.0, 0.0)
     )
+    import cellmap_segmentation_challenge.utils.eval_utils.scoring as _scoring
     monkeypatch.setattr(
-        ev,
+        _scoring,
         "TEST_CROPS_DICT",
         {(1, label_name): dummy_crop},
-        raising=False,
     )
 
     assert (
         1,
         label_name,
-    ) in ev.TEST_CROPS_DICT, f"Key (1, {label_name}) is missing in TEST_CROPS_DICT"
+    ) in _scoring.TEST_CROPS_DICT, f"Key (1, {label_name}) is missing in TEST_CROPS_DICT"
 
     # Zip the submission_root contents so that unzip_file will create
     # a directory with crop1 directly inside.
@@ -808,21 +807,21 @@ def test_score_submission_json_output(monkeypatch, tmp_path):
     submission_root = tmp_path / "submission.zarr"
     _create_simple_volume(submission_root, crop_name, label_name, arr)
 
-    # Patch TEST_CROPS_DICT
+    # Patch TEST_CROPS_DICT in the scoring module where score_label reads it
     dummy_crop = DummyCrop(
         voxel_size=(1.0, 1.0, 1.0), shape=arr.shape, translation=(0.0, 0.0, 0.0)
     )
+    import cellmap_segmentation_challenge.utils.eval_utils.scoring as _scoring
     monkeypatch.setattr(
-        ev,
+        _scoring,
         "TEST_CROPS_DICT",
         {(1, label_name): dummy_crop},
-        raising=False,
     )
 
     assert (
         1,
         label_name,
-    ) in ev.TEST_CROPS_DICT, f"Key (1, {label_name}) is missing in TEST_CROPS_DICT"
+    ) in _scoring.TEST_CROPS_DICT, f"Key (1, {label_name}) is missing in TEST_CROPS_DICT"
 
     # Zip the submission_root contents
     zip_path = zip_submission(submission_root)
