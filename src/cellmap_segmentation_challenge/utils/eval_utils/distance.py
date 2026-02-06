@@ -1,7 +1,6 @@
 """Distance metrics including Hausdorff distance computation."""
 
 from concurrent.futures import ThreadPoolExecutor
-from typing import Optional
 
 import numpy as np
 from cc3d import statistics as cc3d_statistics
@@ -10,28 +9,16 @@ from fastremap import unique
 from scipy.ndimage import distance_transform_edt
 from tqdm import tqdm
 
-from .config import EvaluationConfig, PER_INSTANCE_THREADS
+from .config import PER_INSTANCE_THREADS
 
 
-def compute_default_max_distance(
-    voxel_size,
-    eps: float | None = None,
-    config: Optional["EvaluationConfig"] = None,
-) -> float:
+def compute_max_distance(voxel_size, shape) -> float:
     """
-    Compute the default maximum distance used for distance-based metrics.
-
-    If ``eps`` is not provided, the value is taken from ``config.max_distance_cap_eps``.
-    If both ``eps`` and ``config`` are ``None``, a default ``EvaluationConfig`` is
-    created via ``EvaluationConfig.from_env()``.
+    Compute the maximum distance used for distance-based metrics, based on the maximum distance to a volume boundary.
     """
-    if eps is None:
-        if config is None:
-            config = EvaluationConfig.from_env()
-        eps = config.max_distance_cap_eps
-
-    v = np.linalg.norm(np.asarray(voxel_size, dtype=float))
-    return float(v * (np.log(1.0 / eps) / np.log(1.01)))
+    voxel_size = np.asarray(voxel_size, dtype=np.float64)
+    shape = np.asarray(shape, dtype=np.int64)
+    return float(min([(v * s) / 2 for v, s in zip(voxel_size, shape)]))
 
 
 def normalize_distance(distance: float, voxel_size) -> float:
@@ -40,6 +27,7 @@ def normalize_distance(distance: float, voxel_size) -> float:
     """
     if distance == np.inf:
         return 0.0
+    # TODO: Normalize by max possible distance in the volume
     return float((1.01 ** (-distance / np.linalg.norm(voxel_size))))
 
 

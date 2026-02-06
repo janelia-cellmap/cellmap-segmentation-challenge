@@ -42,7 +42,7 @@ from .instance_matching import (
 
 # Distance metrics
 from .distance import (
-    compute_default_max_distance,
+    compute_max_distance,
     normalize_distance,
     optimized_hausdorff_distances,
     bbox_for_label,
@@ -111,7 +111,7 @@ __all__ = [
     "InstanceOverlapData",
     "match_instances",
     # Distance metrics
-    "compute_default_max_distance",
+    "compute_max_distance",
     "normalize_distance",
     "optimized_hausdorff_distances",
     "bbox_for_label",

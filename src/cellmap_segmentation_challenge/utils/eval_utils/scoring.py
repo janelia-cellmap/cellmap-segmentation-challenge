@@ -18,7 +18,7 @@ from ..matched_crop import MatchedCrop
 from ..rand_voi import rand_voi
 from .config import EvaluationConfig
 from .distance import (
-    compute_default_max_distance,
+    compute_max_distance,
     normalize_distance,
     optimized_hausdorff_distances,
 )
@@ -176,9 +176,7 @@ def score_instance(
 
     # Determine Hausdorff distance cap
     if hausdorff_distance_max is None:
-        hausdorff_distance_max = compute_default_max_distance(
-            voxel_size, config.max_distance_cap_eps
-        )
+        hausdorff_distance_max = compute_max_distance(voxel_size, truth_label.shape)
         logging.debug(
             f"Using default maximum Hausdorff distance of {hausdorff_distance_max:.2f}"
         )
@@ -378,7 +376,7 @@ def empty_label_score(
         truth_path = UPath(truth_path)
         return {
             "mean_accuracy": 0,
-            "hausdorff_distance": compute_default_max_distance(voxel_size),
+            "hausdorff_distance": compute_max_distance(voxel_size, ds.shape),
             "normalized_hausdorff_distance": 0,
             "combined_score": 0,
             "num_voxels": int(np.prod(ds.shape)),
