@@ -183,6 +183,7 @@ def score_instance(
 
     # Relabel predictions using connected components
     logging.info("Relabeling predicted instance labels...")
+    # TODO: Switch to just renumbering to contiguous IDs, and leave user labels intact
     pred_label, n_pred = cc3d.connected_components(pred_label, return_N=True)
 
     # Compute metrics that don't require matching
