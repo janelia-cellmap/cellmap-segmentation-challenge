@@ -35,7 +35,10 @@ class DummySerialExecutor:
 
 @pytest.fixture(autouse=True)
 def patch_executor(monkeypatch):
-    monkeypatch.setattr("concurrent.futures.ProcessPoolExecutor", DummySerialExecutor)
+    monkeypatch.setattr(
+        "cellmap_segmentation_challenge.utils.eval_utils.submission.ProcessPoolExecutor",
+        DummySerialExecutor,
+    )
 
 
 # ------------------------

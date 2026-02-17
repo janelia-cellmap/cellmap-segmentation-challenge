@@ -92,6 +92,9 @@ allow-direct-references=true
 [tool.setuptools]
 package-dir = {"" = "src"}
 
+[tool.setuptools.package-data]
+cellmap_segmentation_challenge = ["**/*.csv"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
