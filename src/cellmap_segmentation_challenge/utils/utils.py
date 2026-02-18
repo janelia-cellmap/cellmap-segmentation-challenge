@@ -542,11 +542,14 @@ def get_git_hash() -> str:
     Returns
     -------
     str
-        The current git hash.
+        The current git hash, or "unknown" if not running from a git repository.
     """
-    repo = git.Repo(UPath(__file__).parent, search_parent_directories=True)
-    sha = repo.head.object.hexsha
-    return sha
+    try:
+        repo = git.Repo(UPath(__file__).parent, search_parent_directories=True)
+        sha = repo.head.object.hexsha
+        return sha
+    except git.exc.InvalidGitRepositoryError:
+        return "unknown"
 
 
 if __name__ == "__main__":

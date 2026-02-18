@@ -177,7 +177,7 @@ def get_dataloader(
         class_relation_dict=class_relation_dict,
     )
 
-    if len(datasplit.validation_datasets) >= 0:
+    if len(datasplit.validation_datasets) > 0:
         _kwargs = {
             "classes": classes,
             "batch_size": batch_size,

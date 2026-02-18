@@ -34,6 +34,7 @@ dependencies = [
   "numcodecs < 0.16.0",
   "zarr < 3.0.0",
   "structlog",
+  "psutil>=5.9.0",
   "yarl",
   "toolz",
   "ml-collections",
@@ -90,6 +91,9 @@ allow-direct-references=true
 
 [tool.setuptools]
 package-dir = {"" = "src"}
+
+[tool.setuptools.package-data]
+cellmap_segmentation_challenge = ["**/*.csv"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
