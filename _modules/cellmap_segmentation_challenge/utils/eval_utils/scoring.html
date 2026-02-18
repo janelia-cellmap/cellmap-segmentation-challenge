@@ -1,0 +1,780 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cellmap_segmentation_challenge.utils.eval_utils.scoring &#8212; CellMap Segmentation Challenge</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=15603566" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/cellmap_segmentation_challenge/utils/eval_utils/scoring';</script>
+    <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/CellMapLogo.png" class="logo__image only-light" alt="CellMap Segmentation Challenge - Home"/>
+    <script>document.write(`<img src="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/CellMapLogo.png" class="logo__image only-dark" alt="CellMap Segmentation Challenge - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../../index.html">CellMap Segmentation Challenge</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Data:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../../cellmap-schemas.html">CellMap Schemas</a></li>
+
+
+<li class="toctree-l1"><a class="reference internal" href="../../../../available_data.html">Available Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../annotation_classes.html">Annotation Classes</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Train:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../../dataloader.html">Creating a CellMap Data PyTorch Dataloader</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../load_model_weights.html">Loading a Pretrained Model Checkpoint</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Evaluation:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../../evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../submission_data_format.html">Submission Data Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../evaluation_resampling.html">Evaluation Resampling</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Visualization:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../../visualization.html">Visualization</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for cellmap_segmentation_challenge.utils.eval_utils.scoring</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Core scoring functions for segmentation evaluation.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">gc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">time</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">cc3d</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">zarr</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fastremap</span><span class="w"> </span><span class="kn">import</span> <span class="n">remap</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial.distance</span><span class="w"> </span><span class="kn">import</span> <span class="n">dice</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">jaccard_score</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">upath</span><span class="w"> </span><span class="kn">import</span> <span class="n">UPath</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">...config</span><span class="w"> </span><span class="kn">import</span> <span class="n">TRUTH_PATH</span><span class="p">,</span> <span class="n">INSTANCE_CLASSES</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..crops</span><span class="w"> </span><span class="kn">import</span> <span class="n">TEST_CROPS_DICT</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..matched_crop</span><span class="w"> </span><span class="kn">import</span> <span class="n">MatchedCrop</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..rand_voi</span><span class="w"> </span><span class="kn">import</span> <span class="n">rand_voi</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">EvaluationConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.distance</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">compute_max_distance</span><span class="p">,</span>
+    <span class="n">normalize_distance</span><span class="p">,</span>
+    <span class="n">optimized_hausdorff_distances</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">TooManyInstancesError</span><span class="p">,</span>
+    <span class="n">TooManyOverlapEdgesError</span><span class="p">,</span>
+    <span class="n">MatchingFailedError</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.instance_matching</span><span class="w"> </span><span class="kn">import</span> <span class="n">match_instances</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">InstanceScoreDict</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_compute_binary_metrics</span><span class="p">(</span>
+    <span class="n">truth_label</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute binary segmentation metrics.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        truth_label: Ground truth labels</span>
+<span class="sd">        pred_label: Predicted labels</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dictionary with iou, dice_score, and binary_accuracy</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">truth_binary</span> <span class="o">=</span> <span class="p">(</span><span class="n">truth_label</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">pred_binary</span> <span class="o">=</span> <span class="p">(</span><span class="n">pred_label</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+
+    <span class="n">iou</span> <span class="o">=</span> <span class="n">jaccard_score</span><span class="p">(</span><span class="n">truth_binary</span><span class="p">,</span> <span class="n">pred_binary</span><span class="p">,</span> <span class="n">zero_division</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">dice_score</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">dice</span><span class="p">(</span><span class="n">truth_binary</span><span class="p">,</span> <span class="n">pred_binary</span><span class="p">)</span>
+    <span class="n">binary_accuracy</span> <span class="o">=</span> <span class="nb">float</span><span class="p">((</span><span class="n">truth_binary</span> <span class="o">==</span> <span class="n">pred_binary</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="n">iou</span><span class="p">,</span>
+        <span class="s2">&quot;dice_score&quot;</span><span class="p">:</span> <span class="n">dice_score</span><span class="p">,</span>
+        <span class="s2">&quot;binary_accuracy&quot;</span><span class="p">:</span> <span class="n">binary_accuracy</span><span class="p">,</span>
+    <span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_create_pathological_scores</span><span class="p">(</span>
+    <span class="n">binary_metrics</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+    <span class="n">voi_metrics</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+    <span class="n">hausdorff_distance_max</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">voxel_size</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+    <span class="n">status</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">InstanceScoreDict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create scores for pathological cases (matching failed).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        binary_metrics: Pre-computed binary metrics</span>
+<span class="sd">        voi_metrics: Pre-computed VoI metrics</span>
+<span class="sd">        hausdorff_distance_max: Maximum Hausdorff distance</span>
+<span class="sd">        voxel_size: Voxel size</span>
+<span class="sd">        status: Status string for the failure</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dictionary with worst-case scores</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;mean_accuracy&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;binary_accuracy&quot;</span><span class="p">:</span> <span class="n">binary_metrics</span><span class="p">[</span><span class="s2">&quot;binary_accuracy&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">:</span> <span class="n">hausdorff_distance_max</span><span class="p">,</span>
+        <span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">:</span> <span class="n">normalize_distance</span><span class="p">(</span>
+            <span class="n">hausdorff_distance_max</span><span class="p">,</span> <span class="n">voxel_size</span>
+        <span class="p">),</span>
+        <span class="s2">&quot;combined_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="n">binary_metrics</span><span class="p">[</span><span class="s2">&quot;iou&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;dice_score&quot;</span><span class="p">:</span> <span class="n">binary_metrics</span><span class="p">[</span><span class="s2">&quot;dice_score&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="n">status</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">voi_metrics</span><span class="p">,</span>
+    <span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_compute_hausdorff_scores</span><span class="p">(</span>
+    <span class="n">mapping</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="n">truth_label</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">pred_label</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">n_pred</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">voxel_size</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+    <span class="n">hausdorff_distance_max</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute Hausdorff distances for matched instances.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        mapping: Instance ID mapping (pred -&gt; truth)</span>
+<span class="sd">        truth_label: Ground truth labels</span>
+<span class="sd">        pred_label: Predicted labels (remapped to truth IDs)</span>
+<span class="sd">        n_pred: Number of predicted instances</span>
+<span class="sd">        voxel_size: Voxel size</span>
+<span class="sd">        hausdorff_distance_max: Maximum distance</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List of Hausdorff distances</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mapping</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="mi">0</span> <span class="ow">in</span> <span class="n">mapping</span><span class="p">:</span>
+        <span class="c1"># Only background</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mapping</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># Compute Hausdorff for matched instances</span>
+        <span class="n">hausdorff_distances</span> <span class="o">=</span> <span class="n">optimized_hausdorff_distances</span><span class="p">(</span>
+            <span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span> <span class="n">hausdorff_distance_max</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Add max distance for unmatched predictions</span>
+        <span class="n">matched_pred_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">mapping</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">-</span> <span class="p">{</span><span class="mi">0</span><span class="p">}</span>
+        <span class="n">pred_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_pred</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="o">-</span> <span class="p">{</span><span class="mi">0</span><span class="p">}</span>
+        <span class="n">unmatched_pred</span> <span class="o">=</span> <span class="n">pred_ids</span> <span class="o">-</span> <span class="n">matched_pred_ids</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unmatched_pred</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">hausdorff_distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">hausdorff_distances</span><span class="p">,</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span>
+                        <span class="nb">len</span><span class="p">(</span><span class="n">unmatched_pred</span><span class="p">),</span> <span class="n">hausdorff_distance_max</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+                    <span class="p">),</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">hausdorff_distances</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># No matches</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">hausdorff_distance_max</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="score_instance">
+<a class="viewcode-back" href="../../../../cellmap_segmentation_challenge.utils.eval_utils.html#cellmap_segmentation_challenge.evaluate.score_instance">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">score_instance</span><span class="p">(</span>
+    <span class="n">pred_label</span><span class="p">,</span>
+    <span class="n">truth_label</span><span class="p">,</span>
+    <span class="n">voxel_size</span><span class="p">,</span>
+    <span class="n">hausdorff_distance_max</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">config</span><span class="p">:</span> <span class="n">EvaluationConfig</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">InstanceScoreDict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Score instance segmentation against ground truth.</span>
+
+<span class="sd">    Computes pixel-wise accuracy, Hausdorff distance, and combined metrics</span>
+<span class="sd">    after optimal instance matching.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        pred_label: Predicted instance labels (0 = background)</span>
+<span class="sd">        truth_label: Ground truth instance labels (0 = background)</span>
+<span class="sd">        voxel_size: Physical voxel size in (Z, Y, X) order</span>
+<span class="sd">        hausdorff_distance_max: Maximum Hausdorff distance cap (None = auto)</span>
+<span class="sd">        config: Evaluation configuration (uses defaults if None)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dictionary containing all instance segmentation metrics</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; scores = score_instance(pred, truth, voxel_size=(4.0, 4.0, 4.0))</span>
+<span class="sd">        &gt;&gt;&gt; print(f&quot;Combined score: {scores[&#39;combined_score&#39;]:.3f}&quot;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">EvaluationConfig</span><span class="o">.</span><span class="n">from_env</span><span class="p">()</span>
+
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Scoring instance segmentation...&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Determine Hausdorff distance cap</span>
+    <span class="k">if</span> <span class="n">hausdorff_distance_max</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">hausdorff_distance_max</span> <span class="o">=</span> <span class="n">compute_max_distance</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">,</span> <span class="n">truth_label</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Using default maximum Hausdorff distance of </span><span class="si">{</span><span class="n">hausdorff_distance_max</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Relabel predictions using connected components</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Relabeling predicted instance labels...&quot;</span><span class="p">)</span>
+    <span class="c1"># TODO: Switch to just renumbering to contiguous IDs, and leave user labels intact</span>
+    <span class="n">pred_label</span><span class="p">,</span> <span class="n">n_pred</span> <span class="o">=</span> <span class="n">cc3d</span><span class="o">.</span><span class="n">connected_components</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">return_N</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Compute metrics that don&#39;t require matching</span>
+    <span class="n">binary_metrics</span> <span class="o">=</span> <span class="n">_compute_binary_metrics</span><span class="p">(</span><span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">)</span>
+    <span class="n">voi</span> <span class="o">=</span> <span class="n">rand_voi</span><span class="p">(</span><span class="n">truth_label</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">),</span> <span class="n">pred_label</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">))</span>
+    <span class="k">del</span> <span class="n">voi</span><span class="p">[</span><span class="s2">&quot;voi_split_i&quot;</span><span class="p">],</span> <span class="n">voi</span><span class="p">[</span><span class="s2">&quot;voi_merge_j&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Match instances</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">mapping</span> <span class="o">=</span> <span class="n">match_instances</span><span class="p">(</span><span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">TooManyInstancesError</span><span class="p">,</span> <span class="n">TooManyOverlapEdgesError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Instance matching failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_create_pathological_scores</span><span class="p">(</span>
+            <span class="n">binary_metrics</span><span class="p">,</span>
+            <span class="n">voi</span><span class="p">,</span>
+            <span class="n">hausdorff_distance_max</span><span class="p">,</span>
+            <span class="n">voxel_size</span><span class="p">,</span>
+            <span class="s2">&quot;skipped_too_many_instances&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="n">MatchingFailedError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Matching optimization failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_create_pathological_scores</span><span class="p">(</span>
+            <span class="n">binary_metrics</span><span class="p">,</span> <span class="n">voi</span><span class="p">,</span> <span class="n">hausdorff_distance_max</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span> <span class="s2">&quot;matching_failed&quot;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Remap predictions to match GT IDs</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mapping</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mapping</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="mi">0</span> <span class="ow">in</span> <span class="n">mapping</span><span class="p">):</span>
+        <span class="n">mapping</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># background maps to background</span>
+        <span class="n">pred_label</span> <span class="o">=</span> <span class="n">remap</span><span class="p">(</span>
+            <span class="n">pred_label</span><span class="p">,</span> <span class="n">mapping</span><span class="p">,</span> <span class="n">in_place</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">preserve_missing_labels</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Compute Hausdorff distances</span>
+    <span class="n">hausdorff_distances</span> <span class="o">=</span> <span class="n">_compute_hausdorff_scores</span><span class="p">(</span>
+        <span class="n">mapping</span><span class="p">,</span> <span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">,</span> <span class="n">n_pred</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span> <span class="n">hausdorff_distance_max</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hausdorff_distances</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">hausdorff_distances</span> <span class="o">=</span> <span class="p">[</span><span class="n">hausdorff_distance_max</span><span class="p">]</span>
+
+    <span class="c1"># Aggregate scores</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Computing final scores...&quot;</span><span class="p">)</span>
+    <span class="n">mean_accuracy</span> <span class="o">=</span> <span class="nb">float</span><span class="p">((</span><span class="n">truth_label</span> <span class="o">==</span> <span class="n">pred_label</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+    <span class="n">hausdorff_dist</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">hausdorff_distances</span><span class="p">))</span>
+    <span class="n">normalized_hausdorff_dist</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">normalize_distance</span><span class="p">(</span><span class="n">hd</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">)</span> <span class="k">for</span> <span class="n">hd</span> <span class="ow">in</span> <span class="n">hausdorff_distances</span><span class="p">])</span>
+    <span class="p">)</span>
+    <span class="n">combined_score</span> <span class="o">=</span> <span class="p">(</span><span class="n">mean_accuracy</span> <span class="o">*</span> <span class="n">normalized_hausdorff_dist</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mean Accuracy: </span><span class="si">{</span><span class="n">mean_accuracy</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hausdorff Distance: </span><span class="si">{</span><span class="n">hausdorff_dist</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Normalized Hausdorff Distance: </span><span class="si">{</span><span class="n">normalized_hausdorff_dist</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Combined Score: </span><span class="si">{</span><span class="n">combined_score</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;mean_accuracy&quot;</span><span class="p">:</span> <span class="n">mean_accuracy</span><span class="p">,</span>
+        <span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">:</span> <span class="n">hausdorff_dist</span><span class="p">,</span>
+        <span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">:</span> <span class="n">normalized_hausdorff_dist</span><span class="p">,</span>
+        <span class="s2">&quot;combined_score&quot;</span><span class="p">:</span> <span class="n">combined_score</span><span class="p">,</span>
+        <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;scored&quot;</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">binary_metrics</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">voi</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="score_semantic">
+<a class="viewcode-back" href="../../../../cellmap_segmentation_challenge.utils.eval_utils.html#cellmap_segmentation_challenge.evaluate.score_semantic">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">score_semantic</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">truth_label</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Score a single semantic label volume against the ground truth semantic label volume.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        pred_label (np.ndarray): The predicted semantic label volume.</span>
+<span class="sd">        truth_label (np.ndarray): The ground truth semantic label volume.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: A dictionary of scores for the semantic label volume.</span>
+
+<span class="sd">    Example usage:</span>
+<span class="sd">        scores = score_semantic(pred_label, truth_label)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Scoring semantic segmentation...&quot;</span><span class="p">)</span>
+    <span class="c1"># Flatten the label volumes and convert to binary</span>
+    <span class="n">pred_label</span> <span class="o">=</span> <span class="p">(</span><span class="n">pred_label</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">truth_label</span> <span class="o">=</span> <span class="p">(</span><span class="n">truth_label</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+
+    <span class="c1"># Compute the scores</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">truth_label</span> <span class="o">+</span> <span class="n">pred_label</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># If there are no true or false positives, set the scores to 1</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;No true or false positives found. Setting scores to 1.&quot;</span><span class="p">)</span>
+        <span class="n">dice_score</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">iou_score</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">dice_score</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">dice</span><span class="p">(</span><span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">)</span>
+        <span class="n">iou_score</span> <span class="o">=</span> <span class="n">jaccard_score</span><span class="p">(</span><span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">,</span> <span class="n">zero_division</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">scores</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="n">iou_score</span><span class="p">,</span>
+        <span class="s2">&quot;dice_score&quot;</span><span class="p">:</span> <span class="n">dice_score</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">dice_score</span><span class="p">)</span> <span class="k">else</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;binary_accuracy&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">((</span><span class="n">truth_label</span> <span class="o">==</span> <span class="n">pred_label</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()),</span>
+        <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;scored&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;IoU: </span><span class="si">{</span><span class="n">scores</span><span class="p">[</span><span class="s1">&#39;iou&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dice Score: </span><span class="si">{</span><span class="n">scores</span><span class="p">[</span><span class="s1">&#39;dice_score&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">scores</span></div>
+
+
+
+<div class="viewcode-block" id="score_label">
+<a class="viewcode-back" href="../../../../cellmap_segmentation_challenge.utils.eval_utils.html#cellmap_segmentation_challenge.evaluate.score_label">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">score_label</span><span class="p">(</span>
+    <span class="n">pred_label_path</span><span class="p">,</span>
+    <span class="n">label_name</span><span class="p">,</span>
+    <span class="n">crop_name</span><span class="p">,</span>
+    <span class="n">truth_path</span><span class="o">=</span><span class="n">TRUTH_PATH</span><span class="p">,</span>
+    <span class="n">instance_classes</span><span class="o">=</span><span class="n">INSTANCE_CLASSES</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Score a single label volume against the ground truth label volume.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        pred_label_path (str): The path to the predicted label volume.</span>
+<span class="sd">        truth_path (str): The path to the ground truth label volume.</span>
+<span class="sd">        instance_classes (list): A list of instance classes.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: A dictionary of scores for the label volume.</span>
+
+<span class="sd">    Example usage:</span>
+<span class="sd">        scores = score_label(&#39;pred.zarr/test_volume/label1&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">pred_label_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Label </span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2"> not found in submission volume </span><span class="si">{</span><span class="n">crop_name</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">crop_name</span><span class="p">,</span>
+            <span class="n">label_name</span><span class="p">,</span>
+            <span class="n">empty_label_score</span><span class="p">(</span>
+                <span class="n">label</span><span class="o">=</span><span class="n">label_name</span><span class="p">,</span>
+                <span class="n">crop_name</span><span class="o">=</span><span class="n">crop_name</span><span class="p">,</span>
+                <span class="n">instance_classes</span><span class="o">=</span><span class="n">instance_classes</span><span class="p">,</span>
+                <span class="n">truth_path</span><span class="o">=</span><span class="n">truth_path</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scoring </span><span class="si">{</span><span class="n">pred_label_path</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+    <span class="n">truth_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span>
+    <span class="c1"># Load the predicted and ground truth label volumes</span>
+    <span class="n">truth_label_path</span> <span class="o">=</span> <span class="p">(</span><span class="n">truth_path</span> <span class="o">/</span> <span class="n">crop_name</span> <span class="o">/</span> <span class="n">label_name</span><span class="p">)</span><span class="o">.</span><span class="n">path</span>
+    <span class="n">truth_label_ds</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">truth_label_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="n">truth_label</span> <span class="o">=</span> <span class="n">truth_label_ds</span><span class="p">[:]</span>
+    <span class="n">crop</span> <span class="o">=</span> <span class="n">TEST_CROPS_DICT</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">crop_name</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="s2">&quot;crop&quot;</span><span class="p">)),</span> <span class="n">label_name</span><span class="p">]</span>
+    <span class="n">pred_label</span> <span class="o">=</span> <span class="n">match_crop_space</span><span class="p">(</span>
+        <span class="n">pred_label_path</span><span class="p">,</span>
+        <span class="n">label_name</span><span class="p">,</span>
+        <span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">,</span>
+        <span class="n">crop</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+        <span class="n">crop</span><span class="o">.</span><span class="n">translation</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">mask_path</span> <span class="o">=</span> <span class="n">truth_path</span> <span class="o">/</span> <span class="n">crop_name</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2">_mask&quot;</span>
+    <span class="k">if</span> <span class="n">mask_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="c1"># Mask out uncertain regions resulting from low-res ground truth annotations</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Masking </span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2"> with </span><span class="si">{</span><span class="n">mask_path</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">mask_path</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)[:]</span>
+        <span class="n">pred_label</span> <span class="o">=</span> <span class="n">pred_label</span> <span class="o">*</span> <span class="n">mask</span>
+        <span class="n">truth_label</span> <span class="o">=</span> <span class="n">truth_label</span> <span class="o">*</span> <span class="n">mask</span>
+        <span class="k">del</span> <span class="n">mask</span>
+
+    <span class="c1"># Compute the scores</span>
+    <span class="k">if</span> <span class="n">label_name</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Starting an instance evaluation for </span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">crop_name</span><span class="si">}</span><span class="s2">...&quot;</span>
+        <span class="p">)</span>
+        <span class="n">timer</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">score_instance</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">truth_label</span><span class="p">,</span> <span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Finished instance evaluation for </span><span class="si">{</span><span class="n">label_name</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">crop_name</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">timer</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds...&quot;</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">score_semantic</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">truth_label</span><span class="p">)</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">truth_label</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span>
+    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;is_missing&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="c1"># drop big arrays before returning</span>
+    <span class="k">del</span> <span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">,</span> <span class="n">truth_label_ds</span>
+    <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">crop_name</span><span class="p">,</span> <span class="n">label_name</span><span class="p">,</span> <span class="n">results</span></div>
+
+
+
+<div class="viewcode-block" id="empty_label_score">
+<a class="viewcode-back" href="../../../../cellmap_segmentation_challenge.utils.eval_utils.html#cellmap_segmentation_challenge.evaluate.empty_label_score">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">empty_label_score</span><span class="p">(</span>
+    <span class="n">label</span><span class="p">,</span> <span class="n">crop_name</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">INSTANCE_CLASSES</span><span class="p">,</span> <span class="n">truth_path</span><span class="o">=</span><span class="n">TRUTH_PATH</span>
+<span class="p">):</span>
+    <span class="n">truth_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span>
+    <span class="n">ds</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">((</span><span class="n">truth_path</span> <span class="o">/</span> <span class="n">crop_name</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="n">voxel_size</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
+        <span class="n">truth_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;mean_accuracy&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">:</span> <span class="n">compute_max_distance</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span>
+            <span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;combined_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;num_voxels&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">shape</span><span class="p">)),</span>
+            <span class="s2">&quot;voxel_size&quot;</span><span class="p">:</span> <span class="n">voxel_size</span><span class="p">,</span>
+            <span class="s2">&quot;is_missing&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;missing&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;dice_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;binary_accuracy&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;num_voxels&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">shape</span><span class="p">)),</span>
+            <span class="s2">&quot;voxel_size&quot;</span><span class="p">:</span> <span class="n">voxel_size</span><span class="p">,</span>
+            <span class="s2">&quot;is_missing&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;missing&quot;</span><span class="p">,</span>
+        <span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="match_crop_space">
+<a class="viewcode-back" href="../../../../cellmap_segmentation_challenge.utils.eval_utils.html#cellmap_segmentation_challenge.evaluate.match_crop_space">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">match_crop_space</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">class_label</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">translation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="n">mc</span> <span class="o">=</span> <span class="n">MatchedCrop</span><span class="p">(</span>
+        <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span>
+        <span class="n">class_label</span><span class="o">=</span><span class="n">class_label</span><span class="p">,</span>
+        <span class="n">target_voxel_size</span><span class="o">=</span><span class="n">voxel_size</span><span class="p">,</span>
+        <span class="n">target_shape</span><span class="o">=</span><span class="n">shape</span><span class="p">,</span>
+        <span class="n">target_translation</span><span class="o">=</span><span class="n">translation</span><span class="p">,</span>
+        <span class="n">instance_classes</span><span class="o">=</span><span class="n">INSTANCE_CLASSES</span><span class="p">,</span>
+        <span class="n">semantic_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">pad_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">mc</span><span class="o">.</span><span class="n">load_aligned</span><span class="p">()</span></div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Jeff Rhoades, Emma Avetissian, Davis Vann Bennett, Marwan Zouinkhi
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2024, Jeff Rhoades, Emma Avetissian, Davis Vann Bennett, Marwan Zouinkhi.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

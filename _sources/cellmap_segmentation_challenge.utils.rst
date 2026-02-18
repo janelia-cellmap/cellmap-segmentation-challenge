@@ -1,6 +1,14 @@
 cellmap\_segmentation\_challenge.utils package
 ==============================================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   cellmap_segmentation_challenge.utils.eval_utils
+
 Submodules
 ----------
 

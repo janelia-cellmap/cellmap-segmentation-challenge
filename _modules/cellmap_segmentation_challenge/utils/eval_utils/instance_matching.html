@@ -1,0 +1,668 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cellmap_segmentation_challenge.utils.eval_utils.instance_matching &#8212; CellMap Segmentation Challenge</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=15603566" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/cellmap_segmentation_challenge/utils/eval_utils/instance_matching';</script>
+    <link rel="icon" href="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/CellMapLogo.png" class="logo__image only-light" alt="CellMap Segmentation Challenge - Home"/>
+    <script>document.write(`<img src="https://raw.githubusercontent.com/janelia-cellmap/cellmap-data/main/docs/source/_static/CellMapLogo.png" class="logo__image only-dark" alt="CellMap Segmentation Challenge - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../../index.html">CellMap Segmentation Challenge</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Data:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../../cellmap-schemas.html">CellMap Schemas</a></li>
+
+
+<li class="toctree-l1"><a class="reference internal" href="../../../../available_data.html">Available Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../annotation_classes.html">Annotation Classes</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Train:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../../dataloader.html">Creating a CellMap Data PyTorch Dataloader</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../load_model_weights.html">Loading a Pretrained Model Checkpoint</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Evaluation:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../../evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../submission_data_format.html">Submission Data Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../evaluation_resampling.html">Evaluation Resampling</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Visualization:</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../../visualization.html">Visualization</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for cellmap_segmentation_challenge.utils.eval_utils.instance_matching</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Instance matching using min-cost flow optimization.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">EvaluationConfig</span><span class="p">,</span> <span class="n">ratio_cutoff</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">TooManyInstancesError</span><span class="p">,</span>
+    <span class="n">TooManyOverlapEdgesError</span><span class="p">,</span>
+    <span class="n">MatchingFailedError</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="InstanceOverlapData">
+<a class="viewcode-back" href="../../../../cellmap_segmentation_challenge.utils.eval_utils.html#cellmap_segmentation_challenge.evaluate.InstanceOverlapData">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">InstanceOverlapData</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Data structure for instance overlap computation.&quot;&quot;&quot;</span>
+
+    <span class="n">nG</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># Number of ground truth instances</span>
+    <span class="n">nP</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># Number of predicted instances</span>
+    <span class="n">rows</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>  <span class="c1"># GT indices for overlaps</span>
+    <span class="n">cols</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>  <span class="c1"># Pred indices for overlaps</span>
+    <span class="n">iou_vals</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>  <span class="c1"># IoU values for overlaps</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_instance_counts</span><span class="p">(</span><span class="n">nG</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">nP</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if instance counts allow matching.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        nG: Number of ground truth instances</span>
+<span class="sd">        nP: Number of predicted instances</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        True if matching should proceed, False if special case handled</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">nG</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">nP</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">nP</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">nG</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">nG</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">nP</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No GT instances; returning empty match.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nP</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">nG</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No Pred instances; returning empty match.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">elif</span> <span class="n">nG</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">nP</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No GT or Pred instances; returning only background match.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="kc">True</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_instance_ratio</span><span class="p">(</span><span class="n">nP</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">nG</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">EvaluationConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if predicted/GT ratio is within acceptable bounds.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        nP: Number of predicted instances</span>
+<span class="sd">        nG: Number of ground truth instances</span>
+<span class="sd">        config: Evaluation configuration</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TooManyInstancesError: If ratio exceeds cutoff</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">nG</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;nG must be &gt; 0 to check instance ratio&quot;</span>
+    <span class="n">cutoff</span> <span class="o">=</span> <span class="n">ratio_cutoff</span><span class="p">(</span>
+        <span class="n">nG</span><span class="p">,</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">final_instance_ratio_cutoff</span><span class="p">,</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">initial_instance_ratio_cutoff</span><span class="p">,</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">instance_ratio_factor</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ratio</span> <span class="o">=</span> <span class="n">nP</span> <span class="o">/</span> <span class="n">nG</span>
+
+    <span class="k">if</span> <span class="n">ratio</span> <span class="o">&gt;</span> <span class="n">cutoff</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Instance ratio </span><span class="si">{</span><span class="n">ratio</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> exceeds cutoff </span><span class="si">{</span><span class="n">cutoff</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">nP</span><span class="si">}</span><span class="s2"> pred vs </span><span class="si">{</span><span class="n">nG</span><span class="si">}</span><span class="s2"> GT)&quot;</span>
+        <span class="p">)</span>
+        <span class="k">raise</span> <span class="n">TooManyInstancesError</span><span class="p">(</span><span class="n">nP</span><span class="p">,</span> <span class="n">nG</span><span class="p">,</span> <span class="n">ratio</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_compute_instance_overlaps</span><span class="p">(</span>
+    <span class="n">gt</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pred</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">nG</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">nP</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_edges</span><span class="p">:</span> <span class="nb">int</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">InstanceOverlapData</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute IoU overlaps between GT and predicted instances.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        gt: Ground truth instance labels (1D or flattened view)</span>
+<span class="sd">        pred: Predicted instance labels (1D or flattened view)</span>
+<span class="sd">        nG: Number of ground truth instances</span>
+<span class="sd">        nP: Number of predicted instances</span>
+<span class="sd">        max_edges: Maximum number of overlap edges allowed</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        InstanceOverlapData with overlap information</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TooManyOverlapEdgesError: If number of edges exceeds max_edges</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># 1D views</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">gt</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">pred</span><span class="p">)</span>
+
+    <span class="c1"># Foreground masks</span>
+    <span class="n">g_fg</span> <span class="o">=</span> <span class="n">g</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="n">p_fg</span> <span class="o">=</span> <span class="n">p</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="n">fg</span> <span class="o">=</span> <span class="n">g_fg</span> <span class="o">&amp;</span> <span class="n">p_fg</span>
+
+    <span class="c1"># Per-object sizes</span>
+    <span class="n">gt_sizes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">((</span><span class="n">g</span><span class="p">[</span><span class="n">g_fg</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="n">minlength</span><span class="o">=</span><span class="n">nG</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">pr_sizes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">((</span><span class="n">p</span><span class="p">[</span><span class="n">p_fg</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="n">minlength</span><span class="o">=</span><span class="n">nP</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+
+    <span class="c1"># Foreground overlaps</span>
+    <span class="n">gi</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="n">fg</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">pj</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">fg</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">gi</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># No overlaps</span>
+        <span class="k">return</span> <span class="n">InstanceOverlapData</span><span class="p">(</span>
+            <span class="n">nG</span><span class="o">=</span><span class="n">nG</span><span class="p">,</span>
+            <span class="n">nP</span><span class="o">=</span><span class="n">nP</span><span class="p">,</span>
+            <span class="n">rows</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span>
+            <span class="n">cols</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span>
+            <span class="n">iou_vals</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Encode pairs and count</span>
+    <span class="n">gi_u</span> <span class="o">=</span> <span class="n">gi</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">)</span>
+    <span class="n">pj_u</span> <span class="o">=</span> <span class="n">pj</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">)</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">gi_u</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">(</span><span class="n">nP</span><span class="p">)</span> <span class="o">+</span> <span class="n">pj_u</span>
+
+    <span class="n">uniq_keys</span><span class="p">,</span> <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">return_counts</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">uniq_keys</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="n">max_edges</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">TooManyOverlapEdgesError</span><span class="p">(</span><span class="n">uniq_keys</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">max_edges</span><span class="p">)</span>
+
+    <span class="n">rows</span> <span class="o">=</span> <span class="p">(</span><span class="n">uniq_keys</span> <span class="o">//</span> <span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">(</span><span class="n">nP</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="p">(</span><span class="n">uniq_keys</span> <span class="o">%</span> <span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">(</span><span class="n">nP</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+
+    <span class="c1"># Compute IoU</span>
+    <span class="n">inter</span> <span class="o">=</span> <span class="n">counts</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+    <span class="n">union</span> <span class="o">=</span> <span class="n">gt_sizes</span><span class="p">[</span><span class="n">rows</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">pr_sizes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">cols</span><span class="p">]</span> <span class="o">-</span> <span class="n">inter</span>
+
+    <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">invalid</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">):</span>
+        <span class="n">iou_vals</span> <span class="o">=</span> <span class="p">(</span><span class="n">inter</span> <span class="o">/</span> <span class="n">union</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="c1"># Keep only IoU &gt; 0</span>
+    <span class="n">keep</span> <span class="o">=</span> <span class="n">iou_vals</span> <span class="o">&gt;</span> <span class="mf">0.0</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">rows</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="n">cols</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
+    <span class="n">iou_vals</span> <span class="o">=</span> <span class="n">iou_vals</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">InstanceOverlapData</span><span class="p">(</span><span class="n">nG</span><span class="o">=</span><span class="n">nG</span><span class="p">,</span> <span class="n">nP</span><span class="o">=</span><span class="n">nP</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">iou_vals</span><span class="o">=</span><span class="n">iou_vals</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_solve_matching_problem</span><span class="p">(</span>
+    <span class="n">overlap_data</span><span class="p">:</span> <span class="n">InstanceOverlapData</span><span class="p">,</span> <span class="n">cost_scale</span><span class="p">:</span> <span class="nb">int</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Solve min-cost flow matching problem.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        overlap_data: Instance overlap data</span>
+<span class="sd">        cost_scale: Scale factor for cost values</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dictionary mapping predicted ID to ground truth ID</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        MatchingFailedError: If optimization fails</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">ortools.graph.python</span><span class="w"> </span><span class="kn">import</span> <span class="n">min_cost_flow</span>
+
+    <span class="n">nG</span> <span class="o">=</span> <span class="n">overlap_data</span><span class="o">.</span><span class="n">nG</span>
+    <span class="n">nP</span> <span class="o">=</span> <span class="n">overlap_data</span><span class="o">.</span><span class="n">nP</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">overlap_data</span><span class="o">.</span><span class="n">rows</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="n">overlap_data</span><span class="o">.</span><span class="n">cols</span>
+    <span class="n">iou_vals</span> <span class="o">=</span> <span class="n">overlap_data</span><span class="o">.</span><span class="n">iou_vals</span>
+
+    <span class="n">mcf</span> <span class="o">=</span> <span class="n">min_cost_flow</span><span class="o">.</span><span class="n">SimpleMinCostFlow</span><span class="p">()</span>
+
+    <span class="c1"># Node indexing</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">gt0</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">pred0</span> <span class="o">=</span> <span class="n">gt0</span> <span class="o">+</span> <span class="n">nG</span>
+    <span class="n">sink</span> <span class="o">=</span> <span class="n">pred0</span> <span class="o">+</span> <span class="n">nP</span>
+
+    <span class="n">UNMATCH_COST</span> <span class="o">=</span> <span class="n">cost_scale</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="c1"># Build arcs</span>
+    <span class="n">tails</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">heads</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">caps</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">costs</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_arc</span><span class="p">(</span><span class="n">u</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">cap</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">cost</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">tails</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+        <span class="n">heads</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="n">caps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cap</span><span class="p">)</span>
+        <span class="n">costs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cost</span><span class="p">)</span>
+
+    <span class="c1"># Source -&gt; GT</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nG</span><span class="p">):</span>
+        <span class="n">add_arc</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">gt0</span> <span class="o">+</span> <span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># GT -&gt; Sink (unmatched option)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nG</span><span class="p">):</span>
+        <span class="n">add_arc</span><span class="p">(</span><span class="n">gt0</span> <span class="o">+</span> <span class="n">i</span><span class="p">,</span> <span class="n">sink</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">UNMATCH_COST</span><span class="p">)</span>
+
+    <span class="c1"># GT -&gt; Pred edges</span>
+    <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">iou</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">iou_vals</span><span class="p">):</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">gt0</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">pred0</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+        <span class="n">cost</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="mf">1.0</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">iou</span><span class="p">))</span> <span class="o">*</span> <span class="n">cost_scale</span><span class="p">)</span>
+        <span class="n">add_arc</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">cost</span><span class="p">)</span>
+
+    <span class="c1"># Pred -&gt; Sink</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nP</span><span class="p">):</span>
+        <span class="n">add_arc</span><span class="p">(</span><span class="n">pred0</span> <span class="o">+</span> <span class="n">j</span><span class="p">,</span> <span class="n">sink</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># Add arcs in bulk</span>
+    <span class="n">mcf</span><span class="o">.</span><span class="n">add_arcs_with_capacity_and_unit_cost</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">tails</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">heads</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">caps</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">costs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Set supplies</span>
+    <span class="n">mcf</span><span class="o">.</span><span class="n">set_node_supply</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">nG</span><span class="p">))</span>
+    <span class="n">mcf</span><span class="o">.</span><span class="n">set_node_supply</span><span class="p">(</span><span class="n">sink</span><span class="p">,</span> <span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="n">nG</span><span class="p">))</span>
+
+    <span class="c1"># Solve</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="n">mcf</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">status</span> <span class="o">!=</span> <span class="n">mcf</span><span class="o">.</span><span class="n">OPTIMAL</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">MatchingFailedError</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+
+    <span class="c1"># Extract matches</span>
+    <span class="n">mapping</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">mcf</span><span class="o">.</span><span class="n">num_arcs</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="n">mcf</span><span class="o">.</span><span class="n">flow</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">mcf</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">mcf</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">gt0</span> <span class="o">&lt;=</span> <span class="n">u</span> <span class="o">&lt;</span> <span class="n">pred0</span> <span class="ow">and</span> <span class="n">pred0</span> <span class="o">&lt;=</span> <span class="n">v</span> <span class="o">&lt;</span> <span class="n">sink</span><span class="p">:</span>
+            <span class="n">gt_id</span> <span class="o">=</span> <span class="p">(</span><span class="n">u</span> <span class="o">-</span> <span class="n">gt0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">pred_id</span> <span class="o">=</span> <span class="p">(</span><span class="n">v</span> <span class="o">-</span> <span class="n">pred0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">mapping</span><span class="p">[</span><span class="n">pred_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">gt_id</span>
+
+    <span class="k">return</span> <span class="n">mapping</span>
+
+
+<div class="viewcode-block" id="match_instances">
+<a class="viewcode-back" href="../../../../cellmap_segmentation_challenge.utils.eval_utils.html#cellmap_segmentation_challenge.evaluate.match_instances">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">match_instances</span><span class="p">(</span>
+    <span class="n">gt</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">pred</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">config</span><span class="p">:</span> <span class="n">EvaluationConfig</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Match instances between GT and prediction based on IoU.</span>
+
+<span class="sd">    Uses min-cost flow optimization to find optimal 1:1 matching between</span>
+<span class="sd">    predicted and ground truth instances based on IoU overlap.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        gt: Ground truth instance labels (0 = background)</span>
+<span class="sd">        pred: Predicted instance labels (0 = background)</span>
+<span class="sd">        config: Evaluation configuration (uses defaults if None)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dictionary mapping predicted instance ID to ground truth instance ID.</span>
+<span class="sd">        Returns {0: 0} if only background present.</span>
+<span class="sd">        Returns {} if no matches found or one side has no instances.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValidationError: If array shapes don&#39;t match</span>
+<span class="sd">        TooManyInstancesError: If pred/GT ratio exceeds threshold</span>
+<span class="sd">        TooManyOverlapEdgesError: If overlap computation is too large</span>
+<span class="sd">        MatchingFailedError: If optimization fails</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; mapping = match_instances(gt, pred)</span>
+<span class="sd">        &gt;&gt;&gt; # Remap predictions to match GT IDs</span>
+<span class="sd">        &gt;&gt;&gt; pred_aligned = remap(pred, mapping, preserve_missing_labels=True)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">EvaluationConfig</span><span class="o">.</span><span class="n">from_env</span><span class="p">()</span>
+
+    <span class="c1"># Get instance counts</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">gt</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">pred</span><span class="p">)</span>
+    <span class="n">nG</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="k">if</span> <span class="n">g</span><span class="o">.</span><span class="n">size</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="n">nP</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">size</span> <span class="k">else</span> <span class="mi">0</span>
+
+    <span class="c1"># Check for special cases</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_check_instance_counts</span><span class="p">(</span><span class="n">nG</span><span class="p">,</span> <span class="n">nP</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">nG</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">nP</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">{}</span>
+
+    <span class="c1"># Check instance ratio</span>
+    <span class="n">_check_instance_ratio</span><span class="p">(</span><span class="n">nP</span><span class="p">,</span> <span class="n">nG</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+
+    <span class="c1"># Compute overlaps</span>
+    <span class="n">overlap_data</span> <span class="o">=</span> <span class="n">_compute_instance_overlaps</span><span class="p">(</span>
+        <span class="n">gt</span><span class="p">,</span> <span class="n">pred</span><span class="p">,</span> <span class="n">nG</span><span class="p">,</span> <span class="n">nP</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">max_overlap_edges</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Handle case of no overlaps</span>
+    <span class="k">if</span> <span class="n">overlap_data</span><span class="o">.</span><span class="n">rows</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{}</span>
+
+    <span class="c1"># Solve matching problem</span>
+    <span class="n">mapping</span> <span class="o">=</span> <span class="n">_solve_matching_problem</span><span class="p">(</span><span class="n">overlap_data</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">mcmf_cost_scale</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">mapping</span></div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Jeff Rhoades, Emma Avetissian, Davis Vann Bennett, Marwan Zouinkhi
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2024, Jeff Rhoades, Emma Avetissian, Davis Vann Bennett, Marwan Zouinkhi.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
