@@ -410,11 +410,24 @@ def train(config_path: str):
 
             # Save last batch for potential visualization if validation doesn't run
             # Only save on last iteration to minimize memory
+            # Use detach().clone() to create independent copies
             if epoch_iter == iterations_per_epoch - 1:
-                last_train_batch = batch
-                last_train_inputs = inputs
-                last_train_outputs = outputs
-                last_train_targets = targets
+                if isinstance(batch, dict):
+                    last_train_batch = {k: v.detach().clone() if torch.is_tensor(v) else v for k, v in batch.items()}
+                else:
+                    last_train_batch = batch.detach().clone() if torch.is_tensor(batch) else batch
+                if isinstance(inputs, dict):
+                    last_train_inputs = {k: v.detach().clone() for k, v in inputs.items()}
+                else:
+                    last_train_inputs = inputs.detach().clone()
+                if isinstance(outputs, dict):
+                    last_train_outputs = {k: v.detach().clone() for k, v in outputs.items()}
+                else:
+                    last_train_outputs = outputs.detach().clone()
+                if isinstance(targets, dict):
+                    last_train_targets = {k: v.detach().clone() for k, v in targets.items()}
+                else:
+                    last_train_targets = targets.detach().clone()
             
             # Clean up references to free memory
             del batch, inputs, targets, outputs, loss
