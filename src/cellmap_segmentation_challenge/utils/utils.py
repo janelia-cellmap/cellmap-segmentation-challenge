@@ -661,7 +661,7 @@ def get_data_from_batch(batch, keys, device):
     if len(keys) > 1:
         inputs = {key: batch[key].to(device) for key in keys}
     else:
-        # Assumes the model output is a single tensor
+        # Assumes the data is a single tensor
         inputs = batch[keys[0]].to(device)
     return inputs
 
