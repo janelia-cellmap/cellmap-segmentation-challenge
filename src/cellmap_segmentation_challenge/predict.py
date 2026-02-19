@@ -1,3 +1,4 @@
+import copy
 import os
 import tempfile
 from glob import glob
@@ -148,16 +149,26 @@ def _predict(
             num_channels_per_class = test_outputs.shape[1] // len(
                 dataset_writer_kwargs["classes"]
             )
-            # See if array shape needs to be adjusted
-            for key in dataset_writer_kwargs["target_arrays"].keys():
-                current_shape = dataset_writer_kwargs["target_arrays"][key]["shape"]
-                # Only prepend the channel dimension if it has not been added yet
-                # Use rank-based check: original spatial shape is 3D, with channel it's 4D
-                if len(current_shape) == 3:
-                    dataset_writer_kwargs["target_arrays"][key]["shape"] = (
+            # To avoid mutating the input dictionary (which may be shared across multiple
+            # prediction calls), create a deep copy of target_arrays and update the shape
+            # to include the channel dimension.
+            target_arrays_copy = copy.deepcopy(dataset_writer_kwargs["target_arrays"])
+            for key in target_arrays_copy.keys():
+                current_shape = target_arrays_copy[key]["shape"]
+                expected_spatial_rank = len(
+                    dataset_writer_kwargs["input_arrays"][
+                        list(dataset_writer_kwargs["input_arrays"].keys())[0]
+                    ]["shape"]
+                )
+                # Only prepend the channel dimension if the shape doesn't already include it
+                # We check if the current rank matches the expected spatial rank (no channel dim yet)
+                if len(current_shape) == expected_spatial_rank:
+                    target_arrays_copy[key]["shape"] = (
                         num_channels_per_class,
                         *current_shape,
                     )
+            # Replace target_arrays in the kwargs with the modified copy
+            dataset_writer_kwargs = {**dataset_writer_kwargs, "target_arrays": target_arrays_copy}
         else:
             raise ValueError(
                 f"Number of output channels ({test_outputs.shape[1]}) does not match number of "
