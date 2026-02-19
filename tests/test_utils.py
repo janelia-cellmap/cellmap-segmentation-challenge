@@ -222,13 +222,13 @@ class TestStructureModelOutput:
         with pytest.raises(ValueError, match="does not match"):
             structure_model_output(d, CLASSES)
 
-    def test_tensor_multi_channel_wrong_count_raises(self):
+    def test_tensor_with_num_channels_per_class_wrong_count_raises(self):
         """Test that tensor with wrong channel count for num_channels_per_class raises error"""
         out = torch.zeros(2, 5, 8, 8)  # 5 channels != 3 classes × 2 channels
         with pytest.raises(ValueError, match="does not match expected"):
             structure_model_output(out, CLASSES, num_channels_per_class=2)
 
-    def test_resolution_dict_multi_channel_wrong_count_raises(self):
+    def test_resolution_dict_with_num_channels_per_class_wrong_count_raises(self):
         """Test that dict values with wrong channel count for num_channels_per_class raises error"""
         d = {"8nm": torch.zeros(2, 5, 8, 8)}  # 5 channels != 3 classes × 2 channels
         with pytest.raises(ValueError, match="does not match expected"):
