@@ -182,10 +182,10 @@ def _predict(
             elif outputs.shape[1] == len(dataset_writer_kwargs["classes"]):
                 # Standard case: one output channel per class
                 outputs = {"output": outputs}
+            else:
+                raise ValueError(
                     f"Number of output channels ({outputs.shape[1]}) does not match number of classes "
                     f"({len(dataset_writer_kwargs['classes'])}). Should be a multiple of the number of classes."
-                raise ValueError(
-                    "Number of output channels does not match number of classes. Should be a multiple of the number of classes."
                 )
 
             # Save the outputs
