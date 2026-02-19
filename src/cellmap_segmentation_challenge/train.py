@@ -409,12 +409,7 @@ def train(config_path: str):
             writer.add_scalar("loss", loss.item(), n_iter)
 
             # Clean up references to free memory
-            del batch
-            if len(input_keys) > 1:
-                del inputs
-            if len(target_keys) > 1:
-                del targets
-            del outputs, loss
+            del batch, inputs, targets, outputs, loss
 
             # Periodically clear GPU cache to prevent memory accumulation
             if epoch_iter % 100 == 0:
