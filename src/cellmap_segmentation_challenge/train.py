@@ -20,6 +20,10 @@ from .utils import (
     make_datasplit_csv,
     make_s3_datasplit_csv,
     format_string,
+    get_data_from_batch,
+    get_singleton_dim,
+    squeeze_singleton_dim,
+    unsqueeze_singleton_dim,
 )
 
 
@@ -332,6 +336,13 @@ def train(config_path: str):
     input_keys = list(train_loader.dataset.input_arrays.keys())
     target_keys = list(train_loader.dataset.target_arrays.keys())
 
+    # Find singleton dimension for 2D-model squeeze/unsqueeze
+    if "shape" in input_array_info:
+        first_input_shape = input_array_info["shape"]
+    else:
+        first_input_shape = list(input_array_info.values())[0]["shape"]
+    singleton_dim = get_singleton_dim(first_input_shape)
+
     # %% Train the model
     post_fix_dict = {}
 
@@ -367,20 +378,16 @@ def train(config_path: str):
             # Increment the training iteration
             n_iter += 1
 
-            # Forward pass (compute the output of the model)
-            if len(input_keys) > 1:
-                inputs = {key: batch[key].to(device) for key in input_keys}
-            else:
-                inputs = batch[input_keys[0]].to(device)
-                # Assumes the model input is a single tensor
+            # Forward pass (compute the model outputs)
+            inputs = get_data_from_batch(batch, input_keys, device)
+            if singleton_dim is not None:
+                inputs = squeeze_singleton_dim(inputs, singleton_dim + 2)
             outputs = model(inputs)
+            if singleton_dim is not None:
+                outputs = unsqueeze_singleton_dim(outputs, singleton_dim + 2)
 
             # Compute the loss
-            if len(target_keys) > 1:
-                targets = {key: batch[key].to(device) for key in target_keys}
-            else:
-                targets = batch[target_keys[0]].to(device)
-                # Assumes the model output is a single tensor
+            targets = get_data_from_batch(batch, target_keys, device)
             loss = criterion(outputs, targets) / gradient_accumulation_steps
 
             # Backward pass (compute the gradients)
@@ -449,17 +456,15 @@ def train(config_path: str):
             with torch.no_grad():
                 i = 0
                 for batch in val_bar:
-                    if len(input_keys) > 1:
-                        inputs = {key: batch[key].to(device) for key in input_keys}
-                    else:
-                        inputs = batch[input_keys[0]].to(device)
+                    inputs = get_data_from_batch(batch, input_keys, device)
+                    if singleton_dim is not None:
+                        inputs = squeeze_singleton_dim(inputs, singleton_dim + 2)
                     outputs = model(inputs)
+                    if singleton_dim is not None:
+                        outputs = unsqueeze_singleton_dim(outputs, singleton_dim + 2)
 
                     # Compute the loss
-                    if len(target_keys) > 1:
-                        targets = {key: batch[key].to(device) for key in target_keys}
-                    else:
-                        targets = batch[target_keys[0]].to(device)
+                    targets = get_data_from_batch(batch, target_keys, device)
                     val_score += criterion(outputs, targets).item()
                     i += 1
 

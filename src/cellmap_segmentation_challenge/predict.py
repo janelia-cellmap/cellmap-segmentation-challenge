@@ -18,7 +18,15 @@ from upath import UPath
 
 from .config import CROP_NAME, PREDICTIONS_PATH, RAW_NAME, SEARCH_PATH
 from .models import get_model
-from .utils import load_safe_config, get_test_crops
+from .utils import (
+    load_safe_config,
+    get_test_crops,
+    get_data_from_batch,
+    get_singleton_dim,
+    squeeze_singleton_dim,
+    structure_model_output,
+    unsqueeze_singleton_dim,
+)
 from .utils.datasplit import get_formatted_fields, get_raw_path
 
 
@@ -112,17 +120,30 @@ def _predict(
     """
 
     model.eval()
+    device = dataset_writer_kwargs["device"]
+    input_keys = list(dataset_writer_kwargs["input_arrays"].keys())
 
     # Test a single batch to get number of output channels
     test_batch = {
-        k: torch.rand(info["shape"]).unsqueeze(0).to(dataset_writer_kwargs["device"])
+        k: torch.rand(info["shape"]).unsqueeze(0).to(device)
         for k, info in dataset_writer_kwargs["input_arrays"].items()
     }
+    test_inputs = get_data_from_batch(test_batch, input_keys, device)
     with torch.no_grad():
-        test_outputs = model(test_batch)  # Assumes tensor output
-        # TODO: Handle dict output
+        test_outputs = model(test_inputs)
+    model_returns_class_dict = False
     num_channels_per_class = None
-    if test_outputs.shape[1] > len(dataset_writer_kwargs["classes"]):
+    if isinstance(test_outputs, dict):
+        if set(test_outputs.keys()) == set(dataset_writer_kwargs["classes"]):
+            # Keys are the class names; values are already per-class tensors
+            model_returns_class_dict = True
+        else:
+            # Dict with non-class keys (e.g., resolution levels): use the first
+            # value tensor to detect the channel count
+            test_outputs = next(iter(test_outputs.values()))
+    if not model_returns_class_dict and test_outputs.shape[1] > len(
+        dataset_writer_kwargs["classes"]
+    ):
         if test_outputs.shape[1] % len(dataset_writer_kwargs["classes"]) == 0:
             num_channels_per_class = test_outputs.shape[1] // len(
                 dataset_writer_kwargs["classes"]
@@ -142,7 +163,7 @@ def _predict(
                 f"classes ({len(dataset_writer_kwargs['classes'])}). Should be a multiple of the "
                 "number of classes."
             )
-    del test_batch, test_outputs
+    del test_batch, test_inputs, test_outputs
 
     value_transforms = T.Compose(
         [
@@ -159,37 +180,24 @@ def _predict(
     # Find singleton dimension if there is one
     # Only the first singleton dimension will be used for squeezing/unsqueezing.
     # If there are multiple singleton dimensions, only the first is handled.
-    singleton_dim = np.where(
-        [s == 1 for s in dataset_writer_kwargs["input_arrays"]["input"]["shape"]]
-    )[0]
-    singleton_dim = singleton_dim[0] if singleton_dim.size > 0 else None
+    singleton_dim = get_singleton_dim(
+        dataset_writer_kwargs["input_arrays"][input_keys[0]]["shape"]
+    )
     with torch.no_grad():
         for batch in tqdm(dataloader, dynamic_ncols=True):
-            # Get the inputs and outputs
-            inputs = batch["input"].to(dataset_writer_kwargs["device"])
+            # Get the inputs, handling dict vs. tensor data
+            inputs = get_data_from_batch(batch, input_keys, device)
             if singleton_dim is not None:
-                # Remove singleton dimension
-                inputs = inputs.squeeze(dim=singleton_dim + 2)
+                inputs = squeeze_singleton_dim(inputs, singleton_dim + 2)
             outputs = model(inputs)
             if singleton_dim is not None:
-                outputs = outputs.unsqueeze(dim=singleton_dim + 2)
+                outputs = unsqueeze_singleton_dim(outputs, singleton_dim + 2)
 
-            if num_channels_per_class is not None:
-                class_outputs = {}
-                for i, class_name in enumerate(dataset_writer_kwargs["classes"]):
-                    class_outputs[class_name] = outputs[
-                        :,
-                        i * num_channels_per_class : (i + 1) * num_channels_per_class,
-                    ]
-                outputs = {"output": class_outputs}
-            elif outputs.shape[1] == len(dataset_writer_kwargs["classes"]):
-                # Standard case: one output channel per class
-                outputs = {"output": outputs}
-            else:
-                raise ValueError(
-                    f"Number of output channels ({outputs.shape[1]}) does not match number of classes "
-                    f"({len(dataset_writer_kwargs['classes'])}). Should be a multiple of the number of classes."
-                )
+            outputs = structure_model_output(
+                outputs,
+                dataset_writer_kwargs["classes"],
+                num_channels_per_class,
+            )
 
             # Save the outputs
             dataset_writer[batch["idx"]] = outputs

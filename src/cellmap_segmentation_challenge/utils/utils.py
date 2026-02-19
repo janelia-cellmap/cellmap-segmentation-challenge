@@ -552,6 +552,106 @@ def get_git_hash() -> str:
         return "unknown"
 
 
+def get_singleton_dim(shape: tuple) -> int | None:
+    """Return the index of the first size-1 spatial dimension, or None."""
+    arr = np.where([s == 1 for s in shape])[0]
+    return int(arr[0]) if arr.size > 0 else None
+
+
+def squeeze_singleton_dim(data, dim: int):
+    """Squeeze *dim* from a tensor, or from each tensor value in a dict."""
+    if isinstance(data, dict):
+        return {k: v.squeeze(dim=dim) for k, v in data.items()}
+    return data.squeeze(dim=dim)
+
+
+def unsqueeze_singleton_dim(data, dim: int):
+    """Insert *dim* into a tensor, or into each tensor value in a dict."""
+    if isinstance(data, dict):
+        return {k: v.unsqueeze(dim=dim) for k, v in data.items()}
+    return data.unsqueeze(dim=dim)
+
+
+def structure_model_output(
+    outputs,
+    classes: list,
+    num_channels_per_class: int | None = None,
+) -> dict:
+    """
+    Convert raw model output into the nested dict expected by CellMapDatasetWriter.
+
+    The returned structure maps array-name → class-name → tensor (or tensor when
+    there is one channel per class).
+
+    Parameters
+    ----------
+    outputs:
+        Either a plain tensor of shape ``(B, C, ...)`` or a dict produced by the
+        model.  Dict keys may be the class names themselves *or* arbitrary array
+        names (e.g. resolution levels); each dict value is a tensor of shape
+        ``(B, C, ...)``.
+    classes:
+        Ordered list of class names.
+    num_channels_per_class:
+        When ``> 1``, each class occupies this many consecutive channels in the
+        channel dimension.  ``None`` means one channel per class.
+
+    Returns
+    -------
+    dict
+        Nested structure suitable for writing via ``dataset_writer[idx] = ...``.
+    """
+    if isinstance(outputs, dict) and set(outputs.keys()) == set(classes):
+        # Dict keys are already the class names; values are per-class tensors
+        return {"output": outputs}
+    elif isinstance(outputs, dict):
+        # Dict with non-class keys (e.g. resolution levels): split each value
+        structured = {}
+        for k, v in outputs.items():
+            if num_channels_per_class is not None:
+                structured[k] = {
+                    class_name: v[
+                        :,
+                        i * num_channels_per_class : (i + 1) * num_channels_per_class,
+                    ]
+                    for i, class_name in enumerate(classes)
+                }
+            elif v.shape[1] == len(classes):
+                structured[k] = v
+            else:
+                raise ValueError(
+                    f"Number of output channels ({v.shape[1]}) does not match number of "
+                    f"classes ({len(classes)}). Should be a multiple of the number of classes."
+                )
+        return structured
+    elif num_channels_per_class is not None:
+        return {
+            "output": {
+                class_name: outputs[
+                    :,
+                    i * num_channels_per_class : (i + 1) * num_channels_per_class,
+                ]
+                for i, class_name in enumerate(classes)
+            }
+        }
+    elif outputs.shape[1] == len(classes):
+        return {"output": outputs}
+    else:
+        raise ValueError(
+            f"Number of output channels ({outputs.shape[1]}) does not match number of "
+            f"classes ({len(classes)}). Should be a multiple of the number of classes."
+        )
+
+
+def get_data_from_batch(batch, keys, device):
+    if len(keys) > 1:
+        inputs = {key: batch[key].to(device) for key in keys}
+    else:
+        # Assumes the model output is a single tensor
+        inputs = batch[keys[0]].to(device)
+    return inputs
+
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python utils.py <path_root>")
