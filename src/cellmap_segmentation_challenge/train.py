@@ -411,6 +411,10 @@ def train(config_path: str):
             # Clean up references to free memory
             del batch, inputs, targets, outputs, loss
 
+            # Periodically clear GPU cache to prevent memory accumulation
+            if torch.cuda.is_available() and epoch_iter > 0 and epoch_iter % 100 == 0:
+                torch.cuda.empty_cache()
+
         # Clean up iterator to free memory
         # Note: 'loader' is the iterator created from 'iter(train_loader.loader)' on line 359
         del loader
@@ -498,12 +502,38 @@ def train(config_path: str):
                 # Update the progress bar
                 post_fix_dict["Validation"] = f"{val_score:.4f}"
 
-            # Clean up validation data after loop completes, but keep last batch for visualization
-            # Clear GPU cache to free memory from validation
+            # Trigger garbage collection and clear GPU cache for any memory that is no longer referenced.
+            # Note: validation batch tensors remain referenced below for visualization and are cleaned up later.
             gc.collect()
             torch.cuda.empty_cache()
 
-        # Generate and save figures from the last batch of the validation to appear in tensorboard
+        # Generate and save figures from the last batch (validation if available, otherwise training) to appear in tensorboard
+        # Check if validation variables exist; if not, use the last training batch
+        try:
+            # Try to access validation batch variables
+            _ = batch
+            has_validation_batch = True
+        except NameError:
+            # Validation didn't run, so we'll use training data for visualization
+            # Get the last training batch by creating a temporary batch
+            has_validation_batch = False
+            # Re-run one batch from training data for visualization
+            train_loader.refresh()
+            temp_loader = iter(train_loader.loader)
+            batch = next(temp_loader)
+            if len(input_keys) > 1:
+                inputs = {key: batch[key].to(device) for key in input_keys}
+            else:
+                inputs = batch[input_keys[0]].to(device)
+            with torch.no_grad():
+                outputs = model(inputs)
+            if len(target_keys) > 1:
+                targets = {key: batch[key].to(device) for key in target_keys}
+            else:
+                targets = batch[target_keys[0]].to(device)
+            del temp_loader
+
+        # Generate figures from the batch data
         if isinstance(outputs, dict):
             outputs = list(outputs.values())
         if len(input_keys) == len(target_keys) != 1:
@@ -537,12 +567,24 @@ def train(config_path: str):
                 writer.add_figure(name, fig, n_iter)
                 plt.close(fig)
 
-        # Clean up validation batch references after visualization
-        # Use try/except since variables may not exist if validation loop didn't execute
+        # Clean up batch references after visualization
+        # Delete each variable individually to ensure all are cleaned up
         try:
-            del batch, inputs, outputs, targets
+            del batch
         except NameError:
-            pass  # Variables may not exist if validation loop didn't execute
+            pass
+        try:
+            del inputs
+        except NameError:
+            pass
+        try:
+            del outputs
+        except NameError:
+            pass
+        try:
+            del targets
+        except NameError:
+            pass
 
         # Clear the GPU memory and trigger garbage collection
         gc.collect()
