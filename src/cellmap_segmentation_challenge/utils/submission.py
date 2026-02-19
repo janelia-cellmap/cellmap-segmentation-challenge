@@ -245,7 +245,7 @@ def package_submission(
         else:
             tqdm.write(f"Packaged {crop_path}")
             successful_crops += 1
-    
+
     logging.info(f"Packaged {successful_crops}/{len(TEST_CROPS)} crops.")
     if skipped_crops:
         logging.info(f"Skipped {len(skipped_crops)} crops (files did not exist).")
@@ -253,7 +253,7 @@ def package_submission(
         logging.error(f"Failed to package {len(failed_crops)} crops:")
         for error in failed_crops:
             logging.error(f"  {error}")
-    
+
     logging.info(f"Saved submission to {output_path}")
 
     if successful_crops == 0:
