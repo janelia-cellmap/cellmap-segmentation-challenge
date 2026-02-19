@@ -411,10 +411,6 @@ def train(config_path: str):
             # Clean up references to free memory
             del batch, inputs, targets, outputs, loss
 
-            # Periodically clear GPU cache to prevent memory accumulation
-            if epoch_iter % 100 == 0:
-                torch.cuda.empty_cache()
-
         # Clean up iterator to free memory
         # Note: 'loader' is the iterator created from 'iter(train_loader.loader)' on line 359
         del loader
