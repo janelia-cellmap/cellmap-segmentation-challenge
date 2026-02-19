@@ -236,14 +236,17 @@ def package_submission(
         dynamic_ncols=True,
         desc="Packaging crops...",
     ):
-        if crop_path.lower().startswith("error:"):
-            tqdm.write(crop_path)
-            failed_crops.append(crop_path)
-        elif "skipping" in crop_path.lower():
-            tqdm.write(f"{crop_path} skipped.")
-            skipped_crops.append(crop_path)
+        # Ensure crop_path is a string for reliable string operations
+        crop_path_str = str(crop_path) if crop_path is not None else ""
+        
+        if crop_path_str.lower().startswith("error:"):
+            tqdm.write(crop_path_str)
+            failed_crops.append(crop_path_str)
+        elif "skipping" in crop_path_str.lower():
+            tqdm.write(f"{crop_path_str} skipped.")
+            skipped_crops.append(crop_path_str)
         else:
-            tqdm.write(f"Packaged {crop_path}")
+            tqdm.write(f"Packaged {crop_path_str}")
             successful_crops += 1
 
     logging.info(f"Packaged {successful_crops}/{len(TEST_CROPS)} crops.")
