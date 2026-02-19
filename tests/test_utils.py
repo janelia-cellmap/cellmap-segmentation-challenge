@@ -79,32 +79,6 @@ class TestFormatString:
         assert result == "Hello {name}"
 
 
-class TestDownloadFile:
-    """Tests for download_file function"""
-
-    def test_download_file_success(self):
-        """Test successful file download from a real URL"""
-        # Use a small, reliable test file from the repository itself
-        url = "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/LICENSE"
-
-        with tempfile.NamedTemporaryFile(mode="wb", delete=False) as f:
-            dest_path = f.name
-
-        try:
-            download_file(url, dest_path)
-
-            # Verify the file was downloaded and has content
-            assert os.path.exists(dest_path)
-            with open(dest_path, "r") as f:
-                content = f.read()
-                assert len(content) > 0
-                # LICENSE file should contain "MIT"
-                assert "MIT" in content or "License" in content
-        finally:
-            if os.path.exists(dest_path):
-                os.unlink(dest_path)
-
-
 class TestGetSingletonDim:
     def test_no_singleton(self):
         assert get_singleton_dim((4, 64, 64)) is None
@@ -150,7 +124,10 @@ class TestSqueezeUnsqueezeSingletonDim:
 
     def test_squeeze_unsqueeze_roundtrip_tensor(self):
         t = torch.zeros(2, 1, 8, 8)
-        assert unsqueeze_singleton_dim(squeeze_singleton_dim(t, dim=1), dim=1).shape == t.shape
+        assert (
+            unsqueeze_singleton_dim(squeeze_singleton_dim(t, dim=1), dim=1).shape
+            == t.shape
+        )
 
     def test_squeeze_unsqueeze_roundtrip_dict(self):
         d = {"x": torch.zeros(2, 1, 8, 8)}
@@ -197,9 +174,7 @@ class TestStructureModelOutput:
 
     def test_tensor_channel_slices_are_correct(self):
         # Fill each class's channels with the class index to verify slicing
-        out = torch.cat(
-            [torch.full((2, 2, 4, 4), float(i)) for i in range(3)], dim=1
-        )
+        out = torch.cat([torch.full((2, 2, 4, 4), float(i)) for i in range(3)], dim=1)
         result = structure_model_output(out, CLASSES, num_channels_per_class=2)
         for i, cls in enumerate(CLASSES):
             assert result["output"][cls].eq(float(i)).all()
@@ -218,7 +193,9 @@ class TestStructureModelOutput:
         assert set(result["output"].keys()) == set(CLASSES)
 
     def test_class_key_dict_values_unchanged(self):
-        tensors = {cls: torch.full((2, 2, 8, 8), float(i)) for i, cls in enumerate(CLASSES)}
+        tensors = {
+            cls: torch.full((2, 2, 8, 8), float(i)) for i, cls in enumerate(CLASSES)
+        }
         result = structure_model_output(tensors, CLASSES)
         for cls, t in tensors.items():
             assert result["output"][cls].data_ptr() == t.data_ptr()
@@ -260,6 +237,29 @@ class TestStructureModelOutput:
 
 class TestDownloadFile:
     """Tests for download_file function"""
+
+    def test_download_file_success(self):
+        """Test successful file download from a real URL"""
+        # Use a small, reliable test file from the repository itself
+        url = "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/LICENSE"
+
+        with tempfile.NamedTemporaryFile(mode="wb", delete=False) as f:
+            dest_path = f.name
+
+        try:
+            download_file(url, dest_path)
+
+            # Verify the file was downloaded and has content
+            assert os.path.exists(dest_path)
+            with open(dest_path, "r") as f:
+                content = f.read()
+                assert len(content) > 0
+                # LICENSE file should contain "MIT"
+                assert "MIT" in content or "License" in content
+        finally:
+            if os.path.exists(dest_path):
+                os.unlink(dest_path)
+
     def test_download_file_invalid_url(self):
         """Test file download with invalid URL"""
         import requests
