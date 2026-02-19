@@ -412,22 +412,19 @@ def train(config_path: str):
             # Only save on last iteration to minimize memory
             # Use detach().clone() to create independent copies
             if epoch_iter == iterations_per_epoch - 1:
-                if isinstance(batch, dict):
-                    last_train_batch = {k: v.detach().clone() if torch.is_tensor(v) else v for k, v in batch.items()}
-                else:
-                    last_train_batch = batch.detach().clone() if torch.is_tensor(batch) else batch
-                if isinstance(inputs, dict):
-                    last_train_inputs = {k: v.detach().clone() for k, v in inputs.items()}
-                else:
-                    last_train_inputs = inputs.detach().clone()
-                if isinstance(outputs, dict):
-                    last_train_outputs = {k: v.detach().clone() for k, v in outputs.items()}
-                else:
-                    last_train_outputs = outputs.detach().clone()
-                if isinstance(targets, dict):
-                    last_train_targets = {k: v.detach().clone() for k, v in targets.items()}
-                else:
-                    last_train_targets = targets.detach().clone()
+                # Helper to clone tensors within nested containers (dicts, lists, tuples)
+                def _clone_tensors(obj):
+                    if isinstance(obj, dict):
+                        return {k: _clone_tensors(v) for k, v in obj.items()}
+                    if isinstance(obj, (list, tuple)):
+                        cloned_list = [_clone_tensors(v) for v in obj]
+                        return type(obj)(cloned_list)
+                    return obj.detach().clone() if torch.is_tensor(obj) else obj
+
+                last_train_batch = _clone_tensors(batch)
+                last_train_inputs = _clone_tensors(inputs)
+                last_train_outputs = _clone_tensors(outputs)
+                last_train_targets = _clone_tensors(targets)
             
             # Clean up references to free memory
             del batch, inputs, targets, outputs, loss
