@@ -1,3 +1,4 @@
+import gc
 import os
 import random
 import time
@@ -407,6 +408,26 @@ def train(config_path: str):
             # Log the loss using tensorboard
             writer.add_scalar("loss", loss.item(), n_iter)
 
+            # Clean up references to free memory
+            del batch
+            if len(input_keys) > 1:
+                del inputs
+            if len(target_keys) > 1:
+                del targets
+            del outputs, loss
+
+            # Periodically clear GPU cache to prevent memory accumulation
+            if epoch_iter % 50 == 0:
+                torch.cuda.empty_cache()
+
+        # Clean up iterator to free memory
+        del loader
+
+        # Trigger garbage collection to reclaim memory
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
         if scheduler is not None:
             # Step the scheduler at the end of each epoch
             scheduler.step()
@@ -485,6 +506,11 @@ def train(config_path: str):
                 # Update the progress bar
                 post_fix_dict["Validation"] = f"{val_score:.4f}"
 
+            # Clean up validation data after loop completes, but keep last batch for visualization
+            # Clear GPU cache to free memory from validation
+            gc.collect()
+            torch.cuda.empty_cache()
+
         # Generate and save figures from the last batch of the validation to appear in tensorboard
         if isinstance(outputs, dict):
             outputs = list(outputs.values())
@@ -519,7 +545,12 @@ def train(config_path: str):
                 writer.add_figure(name, fig, n_iter)
                 plt.close(fig)
 
-        # Clear the GPU memory again
+        # Clean up validation batch references after visualization
+        if len(val_loader.loader) > 0:
+            del batch, inputs, outputs, targets
+
+        # Clear the GPU memory and trigger garbage collection
+        gc.collect()
         torch.cuda.empty_cache()
 
     # Close the summarywriter
