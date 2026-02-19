@@ -151,54 +151,92 @@ class MatchedCrop:
         Returns (image, input_voxel_size, input_translation)
         where image is a numpy array.
         """
-        ds = zarr.open(str(self.path), mode="r")
+        try:
+            ds = zarr.open(str(self.path), mode="r")
+        except Exception as e:
+            raise ValueError(
+                f"Failed to open zarr at {self.path}. "
+                f"Ensure the path points to a valid zarr array or group. "
+                f"Error: {e}"
+            )
+
+        logger.info(f"Loading from {self.path}, type: {type(ds).__name__}")
 
         # OME-NGFF multiscale
         if isinstance(ds, zarr.Group) and "multiscales" in ds.attrs:
-            img = CellMapImage(
-                path=str(self.path),
-                target_class=self.class_label,
-                target_scale=self.target_voxel_size,
-                target_voxel_shape=self.target_shape,
-                pad=True,
-                pad_value=self.pad_value,
-                interpolation="nearest" if self._is_instance() else "linear",
-            )
-            level = img.scale_level
-            level_path = UPath(self.path) / level
+            logger.info(f"Detected OME-NGFF multiscale format at {self.path}")
+            try:
+                img = CellMapImage(
+                    path=str(self.path),
+                    target_class=self.class_label,
+                    target_scale=self.target_voxel_size,
+                    target_voxel_shape=self.target_shape,
+                    pad=True,
+                    pad_value=self.pad_value,
+                    interpolation="nearest" if self._is_instance() else "linear",
+                )
+                level = img.scale_level
+                level_path = UPath(self.path) / level
 
-            # Extract input voxel size and translation from multiscales metadata
-            input_voxel_size = None
-            input_translation = None
-            for d in ds.attrs["multiscales"][0]["datasets"]:
-                if d["path"] == level:
-                    for t in d.get("coordinateTransformations", []):
-                        if t.get("type") == "scale":
-                            input_voxel_size = tuple(t["scale"])
-                        elif t.get("type") == "translation":
-                            input_translation = tuple(t["translation"])
-                    break
+                # Extract input voxel size and translation from multiscales metadata
+                input_voxel_size = None
+                input_translation = None
+                for d in ds.attrs["multiscales"][0]["datasets"]:
+                    if d["path"] == level:
+                        for t in d.get("coordinateTransformations", []):
+                            if t.get("type") == "scale":
+                                input_voxel_size = tuple(t["scale"])
+                            elif t.get("type") == "translation":
+                                input_translation = tuple(t["translation"])
+                        break
 
-            arr = zarr.open(level_path.path, mode="r")
-            self._check_size_ratio(arr.shape)
-            image = arr[:]
-            return image, input_voxel_size, input_translation
+                arr = zarr.open(str(level_path), mode="r")
+                self._check_size_ratio(arr.shape)
+                image = arr[:]
+                return image, input_voxel_size, input_translation
+            except Exception as e:
+                raise ValueError(
+                    f"Failed to load OME-NGFF multiscale data from {self.path}. "
+                    f"Error: {e}"
+                )
 
         # Non-OME group multiscale OR single-scale array with attrs
         if isinstance(ds, zarr.Group):
+            logger.info(f"Detected zarr Group (non-OME) at {self.path}")
             # If this group directly contains the label array (common): path points at an array node
             # zarr.open on an array path usually returns an Array, not Group. If we got Group, pick a level.
-            key, vs, tr = self._select_non_ome_level(ds)
-            arr = ds[key]
-            self._check_size_ratio(arr.shape)
-            image = arr[:]
-            return image, vs, tr
+            try:
+                key, vs, tr = self._select_non_ome_level(ds)
+                arr = ds[key]
+                self._check_size_ratio(arr.shape)
+                image = arr[:]
+                logger.info(f"Loaded array from {self.path}/{key} with shape {image.shape}")
+                return image, vs, tr
+            except Exception as e:
+                raise ValueError(
+                    f"Failed to load from non-OME zarr Group at {self.path}. "
+                    f"Expected to find resolution levels (e.g., 's0', 's1') with voxel_size metadata, "
+                    f"but encountered an error: {e}"
+                )
 
         # Single-scale zarr array
         if isinstance(ds, zarr.Array):
+            logger.info(f"Detected single-scale zarr Array at {self.path}")
             self._check_size_ratio(ds.shape)
             image = ds[:]
-            return image, _parse_voxel_size(ds.attrs), _parse_translation(ds.attrs)
+            vs = _parse_voxel_size(ds.attrs)
+            tr = _parse_translation(ds.attrs)
+            if vs is None:
+                logger.warning(
+                    f"No voxel_size metadata found at {self.path}. "
+                    f"Will attempt to match by shape only, which may produce incorrect alignment."
+                )
+            if tr is None:
+                logger.warning(
+                    f"No translation metadata found at {self.path}. "
+                    f"Assuming zero offset, which may produce incorrect alignment."
+                )
+            return image, vs, tr
 
         raise ValueError(f"Unsupported zarr node type at {self.path}: {type(ds)}")
 
