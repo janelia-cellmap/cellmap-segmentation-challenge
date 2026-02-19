@@ -244,6 +244,10 @@ class TestStructureModelOutput:
         d = {"8nm": torch.zeros(2, 5, 8, 8)}
         with pytest.raises(ValueError, match="does not match"):
             structure_model_output(d, CLASSES)
+
+
+class TestDownloadFile:
+    """Tests for download_file function"""
     def test_download_file_invalid_url(self):
         """Test file download with invalid URL"""
         import requests
