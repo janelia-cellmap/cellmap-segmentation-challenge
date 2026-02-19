@@ -237,7 +237,11 @@ def package_submission(
         desc="Packaging crops...",
     ):
         # Ensure crop_path is a string for reliable string operations
-        crop_path_str = str(crop_path) if crop_path is not None else ""
+        if crop_path is None:
+            logging.warning("Received None from package_crop, treating as empty string")
+            crop_path_str = ""
+        else:
+            crop_path_str = str(crop_path)
 
         if crop_path_str.lower().startswith("error:"):
             tqdm.write(crop_path_str)
