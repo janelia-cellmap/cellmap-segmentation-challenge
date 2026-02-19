@@ -417,7 +417,7 @@ def train(config_path: str):
             del outputs, loss
 
             # Periodically clear GPU cache to prevent memory accumulation
-            if epoch_iter % 50 == 0:
+            if epoch_iter % 100 == 0:
                 torch.cuda.empty_cache()
 
         # Clean up iterator to free memory
@@ -547,7 +547,11 @@ def train(config_path: str):
 
         # Clean up validation batch references after visualization
         if len(val_loader.loader) > 0:
-            del batch, inputs, outputs, targets
+            # Only delete if validation loop executed at least once
+            try:
+                del batch, inputs, outputs, targets
+            except NameError:
+                pass  # Variables may not exist if validation loop didn't execute
 
         # Clear the GPU memory and trigger garbage collection
         gc.collect()
