@@ -113,14 +113,26 @@ def _predict(
 
     model.eval()
 
+    # Find singleton dimension if there is one
+    # Only the first singleton dimension will be used for squeezing/unsqueezing.
+    # If there are multiple singleton dimensions, only the first is handled.
+    singleton_dim = np.where(
+        [s == 1 for s in dataset_writer_kwargs["input_arrays"]["input"]["shape"]]
+    )[0]
+    singleton_dim = singleton_dim[0] if singleton_dim.size > 0 else None
+
     # Test a single batch to get number of output channels
-    test_batch = {
-        k: torch.rand(info["shape"]).unsqueeze(0).to(dataset_writer_kwargs["device"])
-        for k, info in dataset_writer_kwargs["input_arrays"].items()
-    }
+    # Create test input matching the real prediction loop: single tensor with batch dim
+    test_input = torch.rand(
+        dataset_writer_kwargs["input_arrays"]["input"]["shape"]
+    ).unsqueeze(0).to(dataset_writer_kwargs["device"])
+    
+    # Apply same squeeze logic as real prediction loop
+    if singleton_dim is not None:
+        test_input = test_input.squeeze(dim=singleton_dim + 2)
+    
     with torch.no_grad():
-        test_outputs = model(test_batch)  # Assumes tensor output
-        # TODO: Handle dict output
+        test_outputs = model(test_input)  # Pass tensor, not dict
     num_channels_per_class = None
     if test_outputs.shape[1] > len(dataset_writer_kwargs["classes"]):
         if test_outputs.shape[1] % len(dataset_writer_kwargs["classes"]) == 0:
@@ -139,7 +151,7 @@ def _predict(
                 f"classes ({len(dataset_writer_kwargs['classes'])}). Should be a multiple of the "
                 "number of classes."
             )
-    del test_batch, test_outputs
+    del test_input, test_outputs
 
     value_transforms = T.Compose(
         [
@@ -153,13 +165,6 @@ def _predict(
     )
     dataloader = dataset_writer.loader(batch_size=batch_size)
 
-    # Find singleton dimension if there is one
-    # Only the first singleton dimension will be used for squeezing/unsqueezing.
-    # If there are multiple singleton dimensions, only the first is handled.
-    singleton_dim = np.where(
-        [s == 1 for s in dataset_writer_kwargs["input_arrays"]["input"]["shape"]]
-    )[0]
-    singleton_dim = singleton_dim[0] if singleton_dim.size > 0 else None
     with torch.no_grad():
         for batch in tqdm(dataloader, dynamic_ncols=True):
             # Get the inputs and outputs
