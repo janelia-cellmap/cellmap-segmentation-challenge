@@ -126,11 +126,11 @@ def _predict(
     test_input = torch.rand(
         dataset_writer_kwargs["input_arrays"]["input"]["shape"]
     ).unsqueeze(0).to(dataset_writer_kwargs["device"])
-    
+
     # Apply same squeeze logic as real prediction loop
     if singleton_dim is not None:
         test_input = test_input.squeeze(dim=singleton_dim + 2)
-    
+
     with torch.no_grad():
         test_outputs = model(test_input)  # Pass tensor, not dict
     num_channels_per_class = None
