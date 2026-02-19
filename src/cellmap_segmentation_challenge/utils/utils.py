@@ -609,6 +609,13 @@ def structure_model_output(
         structured = {}
         for k, v in outputs.items():
             if num_channels_per_class is not None:
+                expected_channels = len(classes) * num_channels_per_class
+                if v.shape[1] != expected_channels:
+                    raise ValueError(
+                        f"Number of output channels ({v.shape[1]}) in '{k}' does not match "
+                        f"expected ({expected_channels} = {len(classes)} classes × "
+                        f"{num_channels_per_class} channels per class)."
+                    )
                 structured[k] = {
                     class_name: v[
                         :,
@@ -625,6 +632,13 @@ def structure_model_output(
                 )
         return structured
     elif num_channels_per_class is not None:
+        expected_channels = len(classes) * num_channels_per_class
+        if outputs.shape[1] != expected_channels:
+            raise ValueError(
+                f"Number of output channels ({outputs.shape[1]}) does not match "
+                f"expected ({expected_channels} = {len(classes)} classes × "
+                f"{num_channels_per_class} channels per class)."
+            )
         return {
             "output": {
                 class_name: outputs[
