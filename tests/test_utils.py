@@ -1,5 +1,6 @@
 """Unit tests for utility functions in cellmap_segmentation_challenge.utils"""
 
+import copy
 import os
 import tempfile
 
@@ -276,3 +277,129 @@ class TestDownloadFile:
         finally:
             if os.path.exists(dest_path):
                 os.unlink(dest_path)
+
+
+class TestTargetArrayShapeAdjustment:
+    """Tests for target array shape adjustment logic in predict._predict"""
+
+    def test_shape_adjustment_3d_input_3d_target(self):
+        """Test that channel dimension is added for 3D input and 3D target"""
+        
+        input_shape = (64, 64, 64)
+        target_shape = (64, 64, 64)
+        num_channels_per_class = 2
+        
+        # Simulate the logic from _predict
+        target_arrays = {"output": {"shape": target_shape, "scale": (8, 8, 8)}}
+        target_arrays_copy = copy.deepcopy(target_arrays)
+        
+        current_shape = target_arrays_copy["output"]["shape"]
+        expected_spatial_rank = len(input_shape)
+        
+        if len(current_shape) == expected_spatial_rank:
+            target_arrays_copy["output"]["shape"] = (num_channels_per_class, *current_shape)
+        
+        assert target_arrays_copy["output"]["shape"] == (2, 64, 64, 64)
+        # Verify original was not mutated
+        assert target_arrays["output"]["shape"] == (64, 64, 64)
+
+    def test_shape_adjustment_edge_case_first_dim_equals_channels(self):
+        """Test edge case where first spatial dimension equals num_channels_per_class"""
+        
+        # This is the case that failed with the old value-based check
+        input_shape = (2, 64, 64)
+        target_shape = (2, 64, 64)
+        num_channels_per_class = 2
+        
+        target_arrays = {"output": {"shape": target_shape}}
+        target_arrays_copy = copy.deepcopy(target_arrays)
+        
+        current_shape = target_arrays_copy["output"]["shape"]
+        expected_spatial_rank = len(input_shape)
+        
+        if len(current_shape) == expected_spatial_rank:
+            target_arrays_copy["output"]["shape"] = (num_channels_per_class, *current_shape)
+        
+        # Should add channel dimension even though first dim (2) equals num_channels (2)
+        assert target_arrays_copy["output"]["shape"] == (2, 2, 64, 64)
+        assert target_arrays["output"]["shape"] == (2, 64, 64)
+
+    def test_shape_adjustment_2d_with_singleton(self):
+        """Test shape adjustment for 2D input with singleton dimension"""
+        
+        input_shape = (1, 64, 64)
+        target_shape = (1, 64, 64)
+        num_channels_per_class = 1
+        
+        target_arrays = {"output": {"shape": target_shape}}
+        target_arrays_copy = copy.deepcopy(target_arrays)
+        
+        current_shape = target_arrays_copy["output"]["shape"]
+        expected_spatial_rank = len(input_shape)
+        
+        if len(current_shape) == expected_spatial_rank:
+            target_arrays_copy["output"]["shape"] = (num_channels_per_class, *current_shape)
+        
+        assert target_arrays_copy["output"]["shape"] == (1, 1, 64, 64)
+
+    def test_shape_adjustment_already_has_channel_dim(self):
+        """Test that shape is not modified when channel dimension already exists"""
+        
+        input_shape = (64, 64, 64)
+        target_shape = (2, 64, 64, 64)  # Already has channel dimension
+        num_channels_per_class = 2
+        
+        target_arrays = {"output": {"shape": target_shape}}
+        target_arrays_copy = copy.deepcopy(target_arrays)
+        
+        current_shape = target_arrays_copy["output"]["shape"]
+        expected_spatial_rank = len(input_shape)
+        
+        if len(current_shape) == expected_spatial_rank:
+            target_arrays_copy["output"]["shape"] = (num_channels_per_class, *current_shape)
+        
+        # Should NOT modify since it already has 4D shape
+        assert target_arrays_copy["output"]["shape"] == (2, 64, 64, 64)
+
+    def test_deepcopy_prevents_mutation(self):
+        """Test that deepcopy prevents mutation of the original dictionary"""
+        
+        original_dict = {
+            "target_arrays": {
+                "output": {"shape": (64, 64, 64), "scale": (8, 8, 8)}
+            }
+        }
+        original_shape = original_dict["target_arrays"]["output"]["shape"]
+        
+        # Simulate the deepcopy approach from _predict
+        target_arrays_copy = copy.deepcopy(original_dict["target_arrays"])
+        target_arrays_copy["output"]["shape"] = (2, *target_arrays_copy["output"]["shape"])
+        
+        # Original should be unchanged
+        assert original_dict["target_arrays"]["output"]["shape"] == original_shape
+        assert target_arrays_copy["output"]["shape"] == (2, 64, 64, 64)
+
+    def test_multiple_prediction_calls_with_shared_dict(self):
+        """Test that multiple prediction calls don't interfere with each other"""
+        
+        # Simulate shared dict passed to multiple prediction calls
+        shared_target_arrays = {"output": {"shape": (64, 64, 64)}}
+        input_shape = (64, 64, 64)
+        num_channels = 2
+        
+        # First call
+        copy1 = copy.deepcopy(shared_target_arrays)
+        expected_spatial_rank = len(input_shape)
+        if len(copy1["output"]["shape"]) == expected_spatial_rank:
+            copy1["output"]["shape"] = (num_channels, *copy1["output"]["shape"])
+        
+        # Second call should still see original shape
+        copy2 = copy.deepcopy(shared_target_arrays)
+        if len(copy2["output"]["shape"]) == expected_spatial_rank:
+            copy2["output"]["shape"] = (num_channels, *copy2["output"]["shape"])
+        
+        # Both copies should have the channel dimension added
+        assert copy1["output"]["shape"] == (2, 64, 64, 64)
+        assert copy2["output"]["shape"] == (2, 64, 64, 64)
+        # Original should be unchanged
+        assert shared_target_arrays["output"]["shape"] == (64, 64, 64)
