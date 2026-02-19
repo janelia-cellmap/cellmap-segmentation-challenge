@@ -1,7 +1,6 @@
 import gc
 import os
 import random
-import sys
 import time
 
 import numpy as np
@@ -90,15 +89,6 @@ def train(config_path: str):
             cloned_list = [_clone_tensors(v) for v in obj]
             return type(obj)(cloned_list)
         return obj.detach().clone() if torch.is_tensor(obj) else obj
-
-    def _safe_delete_vars(*var_names):
-        """Safely delete variables from the local scope, ignoring NameErrors."""
-        frame = sys._getframe(1)
-        for var_name in var_names:
-            try:
-                del frame.f_locals[var_name]
-            except (KeyError, NameError):
-                pass
 
     def _clear_memory(force_gc=False):
         """Clear GPU cache and optionally trigger garbage collection."""
