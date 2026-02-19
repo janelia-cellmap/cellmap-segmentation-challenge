@@ -130,6 +130,10 @@ def _predict(
         for k, info in dataset_writer_kwargs["input_arrays"].items()
     }
     test_inputs = get_data_from_batch(test_batch, input_keys, device)
+    # Apply the same singleton-dimension squeezing as in the main prediction loop
+    singleton_dim = get_singleton_dim(test_inputs)
+    if singleton_dim is not None:
+        test_inputs = squeeze_singleton_dim(test_inputs, singleton_dim)
     with torch.no_grad():
         test_outputs = model(test_inputs)
     model_returns_class_dict = False
