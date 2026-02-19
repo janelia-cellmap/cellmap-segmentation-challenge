@@ -408,6 +408,14 @@ def train(config_path: str):
             # Log the loss using tensorboard
             writer.add_scalar("loss", loss.item(), n_iter)
 
+            # Save last batch for potential visualization if validation doesn't run
+            # Only save on last iteration to minimize memory
+            if epoch_iter == iterations_per_epoch - 1:
+                last_train_batch = batch
+                last_train_inputs = inputs
+                last_train_outputs = outputs
+                last_train_targets = targets
+            
             # Clean up references to free memory
             del batch, inputs, targets, outputs, loss
 
@@ -505,33 +513,20 @@ def train(config_path: str):
             # Trigger garbage collection and clear GPU cache for any memory that is no longer referenced.
             # Note: validation batch tensors remain referenced below for visualization and are cleaned up later.
             gc.collect()
-            torch.cuda.empty_cache()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
 
         # Generate and save figures from the last batch (validation if available, otherwise training) to appear in tensorboard
         # Check if validation variables exist; if not, use the last training batch
         try:
             # Try to access validation batch variables
             _ = batch
-            has_validation_batch = True
         except NameError:
-            # Validation didn't run, so we'll use training data for visualization
-            # Get the last training batch by creating a temporary batch
-            has_validation_batch = False
-            # Re-run one batch from training data for visualization
-            train_loader.refresh()
-            temp_loader = iter(train_loader.loader)
-            batch = next(temp_loader)
-            if len(input_keys) > 1:
-                inputs = {key: batch[key].to(device) for key in input_keys}
-            else:
-                inputs = batch[input_keys[0]].to(device)
-            with torch.no_grad():
-                outputs = model(inputs)
-            if len(target_keys) > 1:
-                targets = {key: batch[key].to(device) for key in target_keys}
-            else:
-                targets = batch[target_keys[0]].to(device)
-            del temp_loader
+            # Validation didn't run, so use the saved training data for visualization
+            batch = last_train_batch
+            inputs = last_train_inputs
+            outputs = last_train_outputs
+            targets = last_train_targets
 
         # Generate figures from the batch data
         if isinstance(outputs, dict):
@@ -573,10 +568,17 @@ def train(config_path: str):
             del batch, inputs, outputs, targets
         except NameError:
             pass  # Variables may not exist in edge cases
+        
+        # Clean up saved training batch variables if they exist
+        try:
+            del last_train_batch, last_train_inputs, last_train_outputs, last_train_targets
+        except NameError:
+            pass  # Variables may not exist if validation ran
 
         # Clear the GPU memory and trigger garbage collection
         gc.collect()
-        torch.cuda.empty_cache()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
     # Close the summarywriter
     writer.close()
