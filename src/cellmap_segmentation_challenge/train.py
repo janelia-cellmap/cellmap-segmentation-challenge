@@ -546,12 +546,11 @@ def train(config_path: str):
                 plt.close(fig)
 
         # Clean up validation batch references after visualization
-        if len(val_loader.loader) > 0:
-            # Only delete if validation loop executed at least once
-            try:
-                del batch, inputs, outputs, targets
-            except NameError:
-                pass  # Variables may not exist if validation loop didn't execute
+        # Use try/except since variables may not exist if validation loop didn't execute
+        try:
+            del batch, inputs, outputs, targets
+        except NameError:
+            pass  # Variables may not exist if validation loop didn't execute
 
         # Clear the GPU memory and trigger garbage collection
         gc.collect()
