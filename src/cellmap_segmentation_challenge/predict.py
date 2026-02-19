@@ -197,9 +197,6 @@ def _predict(
     # Find singleton dimension if there is one
     # Only the first singleton dimension will be used for squeezing/unsqueezing.
     # If there are multiple singleton dimensions, only the first is handled.
-    singleton_dim = get_singleton_dim(
-        dataset_writer_kwargs["input_arrays"][input_keys[0]]["shape"]
-    )
     with torch.no_grad():
         for batch in tqdm(dataloader, dynamic_ncols=True):
             # Get the inputs, handling dict vs. tensor data
