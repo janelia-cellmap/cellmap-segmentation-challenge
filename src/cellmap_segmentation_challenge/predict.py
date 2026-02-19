@@ -131,7 +131,7 @@ def _predict(
             for key in dataset_writer_kwargs["target_arrays"].keys():
                 current_shape = dataset_writer_kwargs["target_arrays"][key]["shape"]
                 # Only prepend the channel dimension if it has not been added yet
-                if len(current_shape) == 0 or current_shape[0] != num_channels_per_class:
+                if current_shape[0] != num_channels_per_class:
                     dataset_writer_kwargs["target_arrays"][key]["shape"] = (
                         num_channels_per_class,
                         *current_shape,
