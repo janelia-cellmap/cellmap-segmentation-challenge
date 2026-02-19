@@ -152,7 +152,8 @@ def _predict(
             for key in dataset_writer_kwargs["target_arrays"].keys():
                 current_shape = dataset_writer_kwargs["target_arrays"][key]["shape"]
                 # Only prepend the channel dimension if it has not been added yet
-                if current_shape[0] != num_channels_per_class:
+                # Use rank-based check: original spatial shape is 3D, with channel it's 4D
+                if len(current_shape) == 3:
                     dataset_writer_kwargs["target_arrays"][key]["shape"] = (
                         num_channels_per_class,
                         *current_shape,
