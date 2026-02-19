@@ -1,5 +1,6 @@
 """Unit tests for utility functions in cellmap_segmentation_challenge.utils"""
 
+import copy
 import os
 import tempfile
 
@@ -271,7 +272,6 @@ class TestTargetArrayShapeAdjustment:
 
     def test_shape_adjustment_3d_input_3d_target(self):
         """Test that channel dimension is added for 3D input and 3D target"""
-        import copy
         
         input_shape = (64, 64, 64)
         target_shape = (64, 64, 64)
@@ -293,7 +293,6 @@ class TestTargetArrayShapeAdjustment:
 
     def test_shape_adjustment_edge_case_first_dim_equals_channels(self):
         """Test edge case where first spatial dimension equals num_channels_per_class"""
-        import copy
         
         # This is the case that failed with the old value-based check
         input_shape = (2, 64, 64)
@@ -315,7 +314,6 @@ class TestTargetArrayShapeAdjustment:
 
     def test_shape_adjustment_2d_with_singleton(self):
         """Test shape adjustment for 2D input with singleton dimension"""
-        import copy
         
         input_shape = (1, 64, 64)
         target_shape = (1, 64, 64)
@@ -334,7 +332,6 @@ class TestTargetArrayShapeAdjustment:
 
     def test_shape_adjustment_already_has_channel_dim(self):
         """Test that shape is not modified when channel dimension already exists"""
-        import copy
         
         input_shape = (64, 64, 64)
         target_shape = (2, 64, 64, 64)  # Already has channel dimension
@@ -354,7 +351,6 @@ class TestTargetArrayShapeAdjustment:
 
     def test_deepcopy_prevents_mutation(self):
         """Test that deepcopy prevents mutation of the original dictionary"""
-        import copy
         
         original_dict = {
             "target_arrays": {
@@ -373,7 +369,6 @@ class TestTargetArrayShapeAdjustment:
 
     def test_multiple_prediction_calls_with_shared_dict(self):
         """Test that multiple prediction calls don't interfere with each other"""
-        import copy
         
         # Simulate shared dict passed to multiple prediction calls
         shared_target_arrays = {"output": {"shape": (64, 64, 64)}}

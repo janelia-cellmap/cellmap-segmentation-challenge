@@ -155,10 +155,11 @@ def _predict(
             target_arrays_copy = copy.deepcopy(dataset_writer_kwargs["target_arrays"])
             for key in target_arrays_copy.keys():
                 current_shape = target_arrays_copy[key]["shape"]
+                # Use the first input array's shape to determine expected spatial rank
+                # (all input arrays should have the same spatial dimensions)
+                first_input_key = next(iter(dataset_writer_kwargs["input_arrays"]))
                 expected_spatial_rank = len(
-                    dataset_writer_kwargs["input_arrays"][
-                        list(dataset_writer_kwargs["input_arrays"].keys())[0]
-                    ]["shape"]
+                    dataset_writer_kwargs["input_arrays"][first_input_key]["shape"]
                 )
                 # Only prepend the channel dimension if the shape doesn't already include it
                 # We check if the current rank matches the expected spatial rank (no channel dim yet)
