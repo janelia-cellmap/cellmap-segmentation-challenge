@@ -209,6 +209,11 @@ class TestStructureModelOutput:
         with pytest.raises(ValueError, match="does not match"):
             structure_model_output(out, CLASSES)
 
+    def test_tensor_wrong_channel_count_with_num_channels_per_class_raises(self):
+        out = torch.zeros(2, 5, 8, 8)  # 5 channels, but need 3*2=6 for 2 channels per class
+        with pytest.raises(ValueError, match="does not match expected"):
+            structure_model_output(out, CLASSES, num_channels_per_class=2)
+
     # --- dict inputs: keys == classes ---
 
     def test_class_key_dict_wrapped(self):
@@ -244,6 +249,11 @@ class TestStructureModelOutput:
         d = {"8nm": torch.zeros(2, 5, 8, 8)}
         with pytest.raises(ValueError, match="does not match"):
             structure_model_output(d, CLASSES)
+
+    def test_resolution_dict_wrong_channels_with_num_channels_per_class_raises(self):
+        d = {"8nm": torch.zeros(2, 5, 8, 8)}  # 5 channels, but need 3*2=6 for 2 channels per class
+        with pytest.raises(ValueError, match="does not match expected"):
+            structure_model_output(d, CLASSES, num_channels_per_class=2)
 
 
 class TestDownloadFile:
