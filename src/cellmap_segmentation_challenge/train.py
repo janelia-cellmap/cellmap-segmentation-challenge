@@ -421,6 +421,7 @@ def train(config_path: str):
                 torch.cuda.empty_cache()
 
         # Clean up iterator to free memory
+        # Note: 'loader' is the iterator created from 'iter(train_loader.loader)' on line 359
         del loader
 
         # Trigger garbage collection to reclaim memory
