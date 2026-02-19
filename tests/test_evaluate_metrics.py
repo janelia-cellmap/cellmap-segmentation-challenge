@@ -6,6 +6,7 @@ import numpy as np
 import zarr
 from fastremap import unique
 import pytest
+from upath import UPath
 from concurrent.futures import Future
 
 
@@ -34,7 +35,10 @@ class DummySerialExecutor:
 
 @pytest.fixture(autouse=True)
 def patch_executor(monkeypatch):
-    monkeypatch.setattr("concurrent.futures.ProcessPoolExecutor", DummySerialExecutor)
+    monkeypatch.setattr(
+        "cellmap_segmentation_challenge.utils.eval_utils.submission.ProcessPoolExecutor",
+        DummySerialExecutor,
+    )
 
 
 # ------------------------
@@ -401,7 +405,7 @@ def test_score_instance_perfect_match():
     label = np.array([[0, 1, 1], [0, 2, 2]], dtype=np.int32)
     scores = ev.score_instance(label, label, voxel_size=(1.0, 1.0))
 
-    assert np.isclose(scores["accuracy"], 1.0)
+    assert np.isclose(scores["mean_accuracy"], 1.0)
     assert np.isclose(scores["hausdorff_distance"], 0.0)
     assert np.isclose(scores["normalized_hausdorff_distance"], 1.0)
     assert np.isclose(scores["combined_score"], 1.0)
@@ -418,7 +422,7 @@ def test_score_instance_simple_shift():
     scores = ev.score_instance(pred, truth, voxel_size)
 
     # Accuracy should not be 1 but positive
-    assert 0.0 < scores["accuracy"] < 1.0
+    assert 0.0 < scores["mean_accuracy"] < 1.0
     # Hausdorff distance is 1 (each point moves 1 voxel)
     assert np.isclose(scores["hausdorff_distance"], 1.0)
 
@@ -602,7 +606,7 @@ def test_empty_label_score_instance(tmp_path):
     # num_voxels should match volume size
     assert scores["num_voxels"] == arr.size
     assert scores["is_missing"] is True
-    assert scores["accuracy"] == 0
+    assert scores["mean_accuracy"] == 0
 
 
 def test_missing_volume_score_mixed_labels(tmp_path):
@@ -624,7 +628,7 @@ def test_missing_volume_score_mixed_labels(tmp_path):
     assert set(scores.keys()) == {"instance", "sem"}
     assert scores["instance"]["is_missing"] is True
     assert scores["sem"]["is_missing"] is True
-    assert scores["instance"]["accuracy"] == 0.0
+    assert scores["instance"]["mean_accuracy"] == 0.0
     assert scores["sem"]["iou"] == 0.0
 
 
@@ -640,7 +644,7 @@ def test_combine_scores_instance_and_semantic():
     scores = {
         "crop1": {
             "instance": {
-                "accuracy": 1.0,
+                "mean_accuracy": 1.0,
                 "hausdorff_distance": 0.0,
                 "normalized_hausdorff_distance": 1.0,
                 "combined_score": 1.0,
@@ -705,26 +709,24 @@ def test_score_label_instance_integration(monkeypatch, tmp_path):
         voxel_size=(1.0, 1.0, 1.0), shape=arr.shape, translation=(0.0, 0.0, 0.0)
     )
     monkeypatch.setattr(
-        ev,
-        "TEST_CROPS_DICT",
+        "cellmap_segmentation_challenge.utils.eval_utils.scoring.TEST_CROPS_DICT",
         {(1, label_name): dummy_crop},
-        raising=False,
     )
 
     crop_name_str = crop_name  # "crop1"
-    pred_label_path = ev.UPath(pred_root.as_posix()) / crop_name_str / label_name
+    pred_label_path = UPath(pred_root.as_posix()) / crop_name_str / label_name
 
     crop_out, label_out, results = ev.score_label(
         pred_label_path=pred_label_path,
         label_name=label_name,
         crop_name=crop_name_str,
-        truth_path=ev.UPath(truth_root.as_posix()),
+        truth_path=UPath(truth_root.as_posix()),
         instance_classes=["instance"],
     )
 
     assert crop_out == crop_name_str
     assert label_out == label_name
-    assert np.isclose(results["accuracy"], 1.0)
+    assert np.isclose(results["mean_accuracy"], 1.0)
     assert np.isclose(results["hausdorff_distance"], 0.0)
     assert results["is_missing"] is False
 
@@ -752,21 +754,21 @@ def test_score_submission(monkeypatch, tmp_path):
     submission_root = tmp_path / "submission.zarr"
     _create_simple_volume(submission_root, crop_name, label_name, arr)
 
-    # Patch TEST_CROPS_DICT
+    # Patch TEST_CROPS_DICT in the scoring module where score_label reads it
     dummy_crop = DummyCrop(
         voxel_size=(1.0, 1.0, 1.0), shape=arr.shape, translation=(0.0, 0.0, 0.0)
     )
+    import cellmap_segmentation_challenge.utils.eval_utils.scoring as _scoring
     monkeypatch.setattr(
-        ev,
+        _scoring,
         "TEST_CROPS_DICT",
         {(1, label_name): dummy_crop},
-        raising=False,
     )
 
     assert (
         1,
         label_name,
-    ) in ev.TEST_CROPS_DICT, f"Key (1, {label_name}) is missing in TEST_CROPS_DICT"
+    ) in _scoring.TEST_CROPS_DICT, f"Key (1, {label_name}) is missing in TEST_CROPS_DICT"
 
     # Zip the submission_root contents so that unzip_file will create
     # a directory with crop1 directly inside.
@@ -785,7 +787,7 @@ def test_score_submission(monkeypatch, tmp_path):
     # No semantic labels -> overall_semantic_score is nan, but that’s fine;
     # just ensure label_scores present and correct.
     assert "label_scores" in scores
-    assert np.isclose(scores["label_scores"][label_name]["accuracy"], 1.0)
+    assert np.isclose(scores["label_scores"][label_name]["mean_accuracy"], 1.0)
 
 
 @pytest.mark.usefixtures("monkeypatch")
@@ -808,21 +810,21 @@ def test_score_submission_json_output(monkeypatch, tmp_path):
     submission_root = tmp_path / "submission.zarr"
     _create_simple_volume(submission_root, crop_name, label_name, arr)
 
-    # Patch TEST_CROPS_DICT
+    # Patch TEST_CROPS_DICT in the scoring module where score_label reads it
     dummy_crop = DummyCrop(
         voxel_size=(1.0, 1.0, 1.0), shape=arr.shape, translation=(0.0, 0.0, 0.0)
     )
+    import cellmap_segmentation_challenge.utils.eval_utils.scoring as _scoring
     monkeypatch.setattr(
-        ev,
+        _scoring,
         "TEST_CROPS_DICT",
         {(1, label_name): dummy_crop},
-        raising=False,
     )
 
     assert (
         1,
         label_name,
-    ) in ev.TEST_CROPS_DICT, f"Key (1, {label_name}) is missing in TEST_CROPS_DICT"
+    ) in _scoring.TEST_CROPS_DICT, f"Key (1, {label_name}) is missing in TEST_CROPS_DICT"
 
     # Zip the submission_root contents
     zip_path = zip_submission(submission_root)
