@@ -129,6 +129,7 @@ def _predict(
 
     # Apply same squeeze logic as real prediction loop
     if singleton_dim is not None:
+        # +2 offset: singleton_dim is in input shape coords, but tensor has batch (dim 0) and channel (dim 1) first
         test_input = test_input.squeeze(dim=singleton_dim + 2)
 
     with torch.no_grad():
@@ -171,9 +172,11 @@ def _predict(
             inputs = batch["input"].to(dataset_writer_kwargs["device"])
             if singleton_dim is not None:
                 # Remove singleton dimension
+                # +2 offset: singleton_dim is in input shape coords, but tensor has batch (dim 0) and channel (dim 1) first
                 inputs = inputs.squeeze(dim=singleton_dim + 2)
             outputs = model(inputs)
             if singleton_dim is not None:
+                # Restore singleton dimension for output
                 outputs = outputs.unsqueeze(dim=singleton_dim + 2)
 
             if num_channels_per_class is not None:
