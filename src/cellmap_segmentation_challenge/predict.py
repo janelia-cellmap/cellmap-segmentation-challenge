@@ -129,10 +129,13 @@ def _predict(
             )
             # See if array shape needs to be adjusted
             for key in dataset_writer_kwargs["target_arrays"].keys():
-                dataset_writer_kwargs["target_arrays"][key]["shape"] = (
-                    num_channels_per_class,
-                    *dataset_writer_kwargs["target_arrays"][key]["shape"],
-                )
+                current_shape = dataset_writer_kwargs["target_arrays"][key]["shape"]
+                # Only prepend the channel dimension if it has not been added yet
+                if len(current_shape) == 0 or current_shape[0] != num_channels_per_class:
+                    dataset_writer_kwargs["target_arrays"][key]["shape"] = (
+                        num_channels_per_class,
+                        *current_shape,
+                    )
         else:
             raise ValueError(
                 f"Number of output channels ({test_outputs.shape[1]}) does not match number of "
