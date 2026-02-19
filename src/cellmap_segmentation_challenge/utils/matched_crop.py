@@ -210,7 +210,6 @@ class MatchedCrop:
                 arr = ds[key]
                 self._check_size_ratio(arr.shape)
                 image = arr[:]
-                logger.info(f"Loaded array from {self.path}/{key} with shape {image.shape}")
                 return image, vs, tr
             except Exception as e:
                 raise ValueError(

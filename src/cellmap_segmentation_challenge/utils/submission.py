@@ -238,7 +238,7 @@ def package_submission(
     ):
         # Ensure crop_path is a string for reliable string operations
         crop_path_str = str(crop_path) if crop_path is not None else ""
-        
+
         if crop_path_str.lower().startswith("error:"):
             tqdm.write(crop_path_str)
             failed_crops.append(crop_path_str)
