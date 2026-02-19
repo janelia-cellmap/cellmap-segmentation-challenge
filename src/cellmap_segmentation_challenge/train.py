@@ -568,23 +568,11 @@ def train(config_path: str):
                 plt.close(fig)
 
         # Clean up batch references after visualization
-        # Delete each variable individually to ensure all are cleaned up
+        # All variables are defined together (from validation or training fallback)
         try:
-            del batch
+            del batch, inputs, outputs, targets
         except NameError:
-            pass
-        try:
-            del inputs
-        except NameError:
-            pass
-        try:
-            del outputs
-        except NameError:
-            pass
-        try:
-            del targets
-        except NameError:
-            pass
+            pass  # Variables may not exist in edge cases
 
         # Clear the GPU memory and trigger garbage collection
         gc.collect()
