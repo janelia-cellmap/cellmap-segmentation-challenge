@@ -29,7 +29,7 @@ dependencies = [
   "tensorboard",
   "tensorboardX",
   "click>=8, <9",
-  "cellmap-data",
+  "cellmap-data>=2026.2.19.2140",
   "tqdm",
   "numcodecs < 0.16.0",
   "zarr < 3.0.0",
