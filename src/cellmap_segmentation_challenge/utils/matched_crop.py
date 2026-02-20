@@ -13,6 +13,9 @@ from cellmap_data import CellMapImage
 
 logger = logging.getLogger(__name__)
 
+# Memory estimation constants
+BYTES_PER_FLOAT32 = 4  # 4 bytes per float32 voxel
+
 # Maximum allowed size ratio between source and target arrays
 # Can be set via environment variable for flexibility
 # Default is 4x in each dimension (64x total volume size ratio)
@@ -142,8 +145,8 @@ class MatchedCrop:
         src_size = np.prod(source_shape)
         ratio = src_size / tgt_size
 
-        # Estimate memory usage (assuming float32, 4 bytes per voxel)
-        estimated_memory_mb = (src_size * 4) / (1024 * 1024)
+        # Estimate memory usage (assuming float32)
+        estimated_memory_mb = (src_size * BYTES_PER_FLOAT32) / (1024 * 1024)
 
         if ratio > MAX_VOLUME_SIZE_RATIO:
             raise ValueError(
