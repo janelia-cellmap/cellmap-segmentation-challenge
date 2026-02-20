@@ -260,6 +260,7 @@ def predict(
         The path to the model configuration file. This can be the same as the config file used for training.
     crops: str, optional
         A comma-separated list of crop numbers to predict on, or "test" to predict on the entire test set. Default is "test".
+        When crops="test", only the labels specified in the test_crop_manifest for each crop will be saved.
     output_path: str, optional
         The path to save the output predictions to, formatted as a string with a placeholders for the dataset, crop number, and label. Default is PREDICTIONS_PATH set in `cellmap-segmentation/config.py`.
     do_orthoplanes: bool, optional
@@ -272,6 +273,12 @@ def predict(
         The name of the raw dataset. Default is RAW_NAME set in `cellmap-segmentation/config.py`.
     crop_name: str, optional
         The name of the crop dataset with placeholders for crop and label. Default is CROP_NAME set in `cellmap-segmentation/config.py`.
+        
+    Notes
+    -----
+    When crops="test", the function will only save predictions for labels that are specified 
+    in the test_crop_manifest for each specific crop. This ensures that only the labels that 
+    will be scored are saved, reducing storage requirements and processing time.
     """
     config = load_safe_config(config_path)
     classes = config.classes

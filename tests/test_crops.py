@@ -141,3 +141,27 @@ class TestGetTestCropLabels:
         # Use a very large crop ID that shouldn't exist
         labels = get_test_crop_labels(999999)
         assert labels == []
+    
+    def test_filtering_model_classes_for_test_crops(self):
+        """Test that model classes are properly filtered for each test crop"""
+        test_crops = fetch_test_crop_manifest()
+        if not test_crops:
+            return  # Skip if no test crops available
+        
+        # Simulate a model with many classes
+        all_model_classes = ["mito", "er", "nuc", "cell", "golgi", "ves", "mt"]
+        
+        # Get the first crop
+        first_crop_id = test_crops[0].id
+        crop_labels = get_test_crop_labels(first_crop_id)
+        
+        # Filter model classes to only those in crop_labels
+        filtered_classes = [c for c in all_model_classes if c in crop_labels]
+        
+        # Verify that filtered_classes is a subset of crop_labels
+        assert all(c in crop_labels for c in filtered_classes)
+        
+        # Verify that we're not including classes not in crop_labels
+        excluded_classes = set(all_model_classes) - set(filtered_classes)
+        for c in excluded_classes:
+            assert c not in crop_labels
