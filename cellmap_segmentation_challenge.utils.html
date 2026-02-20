@@ -467,6 +467,11 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.download_file"><code class="docutils literal notranslate"><span class="pre">download_file()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.format_string"><code class="docutils literal notranslate"><span class="pre">format_string()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.get_git_hash"><code class="docutils literal notranslate"><span class="pre">get_git_hash()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.get_singleton_dim"><code class="docutils literal notranslate"><span class="pre">get_singleton_dim()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.squeeze_singleton_dim"><code class="docutils literal notranslate"><span class="pre">squeeze_singleton_dim()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.unsqueeze_singleton_dim"><code class="docutils literal notranslate"><span class="pre">unsqueeze_singleton_dim()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.structure_model_output"><code class="docutils literal notranslate"><span class="pre">structure_model_output()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.get_data_from_batch"><code class="docutils literal notranslate"><span class="pre">get_data_from_batch()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils">Module contents</a><ul class="nav section-nav flex-column">
@@ -515,10 +520,12 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.fetch_test_crop_manifest"><code class="docutils literal notranslate"><span class="pre">fetch_test_crop_manifest()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.format_string"><code class="docutils literal notranslate"><span class="pre">format_string()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_class_relations"><code class="docutils literal notranslate"><span class="pre">get_class_relations()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_data_from_batch"><code class="docutils literal notranslate"><span class="pre">get_data_from_batch()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_dataloader"><code class="docutils literal notranslate"><span class="pre">get_dataloader()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_formatted_fields"><code class="docutils literal notranslate"><span class="pre">get_formatted_fields()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_git_hash"><code class="docutils literal notranslate"><span class="pre">get_git_hash()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_result_file"><code class="docutils literal notranslate"><span class="pre">get_result_file()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_singleton_dim"><code class="docutils literal notranslate"><span class="pre">get_singleton_dim()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_test_crops"><code class="docutils literal notranslate"><span class="pre">get_test_crops()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_tested_classes"><code class="docutils literal notranslate"><span class="pre">get_tested_classes()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.load_safe_config"><code class="docutils literal notranslate"><span class="pre">load_safe_config()</span></code></a></li>
@@ -528,6 +535,9 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.package_submission"><code class="docutils literal notranslate"><span class="pre">package_submission()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.save_numpy_class_arrays_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_arrays_to_zarr()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.save_numpy_class_labels_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_labels_to_zarr()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.squeeze_singleton_dim"><code class="docutils literal notranslate"><span class="pre">squeeze_singleton_dim()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.structure_model_output"><code class="docutils literal notranslate"><span class="pre">structure_model_output()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.unsqueeze_singleton_dim"><code class="docutils literal notranslate"><span class="pre">unsqueeze_singleton_dim()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.zip_submission"><code class="docutils literal notranslate"><span class="pre">zip_submission()</span></code></a></li>
 </ul>
 </li>
@@ -1944,6 +1954,74 @@ format_string(“this/{thing}”, {“thing”:”that”, “but”:”not this
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.utils.get_singleton_dim">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.utils.</span></span><span class="sig-name descname"><span class="pre">get_singleton_dim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/utils.html#get_singleton_dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.utils.get_singleton_dim" title="Link to this definition">#</a></dt>
+<dd><p>Return the index of the first size-1 spatial dimension, or None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>shape</strong> (<em>tuple</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.utils.squeeze_singleton_dim">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.utils.</span></span><span class="sig-name descname"><span class="pre">squeeze_singleton_dim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/utils.html#squeeze_singleton_dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.utils.squeeze_singleton_dim" title="Link to this definition">#</a></dt>
+<dd><p>Squeeze <em>dim</em> from a tensor, or from each tensor value in a dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dim</strong> (<em>int</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.utils.unsqueeze_singleton_dim">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.utils.</span></span><span class="sig-name descname"><span class="pre">unsqueeze_singleton_dim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/utils.html#unsqueeze_singleton_dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.utils.unsqueeze_singleton_dim" title="Link to this definition">#</a></dt>
+<dd><p>Insert <em>dim</em> into a tensor, or into each tensor value in a dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dim</strong> (<em>int</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.utils.structure_model_output">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.utils.</span></span><span class="sig-name descname"><span class="pre">structure_model_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_channels_per_class</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/utils.html#structure_model_output"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.utils.structure_model_output" title="Link to this definition">#</a></dt>
+<dd><p>Convert raw model output into the nested dict expected by CellMapDatasetWriter.</p>
+<p>The returned structure maps array-name → class-name → tensor (or tensor when
+there is one channel per class).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>outputs</strong> – Either a plain tensor of shape <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C,</span> <span class="pre">...)</span></code> or a dict produced by the
+model.  Dict keys may be the class names themselves <em>or</em> arbitrary array
+names (e.g. resolution levels); each dict value is a tensor of shape
+<code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C,</span> <span class="pre">...)</span></code>.</p></li>
+<li><p><strong>classes</strong> (<em>list</em>) – Ordered list of class names.</p></li>
+<li><p><strong>num_channels_per_class</strong> (<em>int</em><em> | </em><em>None</em>) – When <code class="docutils literal notranslate"><span class="pre">&gt;</span> <span class="pre">1</span></code>, each class occupies this many consecutive channels in the
+channel dimension.  <code class="docutils literal notranslate"><span class="pre">None</span></code> or <code class="docutils literal notranslate"><span class="pre">1</span></code> means one channel per class.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Nested structure suitable for writing via <code class="docutils literal notranslate"><span class="pre">dataset_writer[idx]</span> <span class="pre">=</span> <span class="pre">...</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.utils.get_data_from_batch">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.utils.</span></span><span class="sig-name descname"><span class="pre">get_data_from_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/utils.html#get_data_from_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.utils.get_data_from_batch" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
 </section>
 <section id="module-cellmap_segmentation_challenge.utils">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-cellmap_segmentation_challenge.utils" title="Link to this heading">#</a></h2>
@@ -2308,6 +2386,11 @@ format_string(“this/{thing}”, {“thing”:”that”, “but”:”not this
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.get_data_from_batch">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">get_data_from_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/utils.html#get_data_from_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.get_data_from_batch" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.get_dataloader">
 <span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">get_dataloader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datasplit_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'./datasplit.csv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_array_info</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~typing.Sequence[int</span> <span class="pre">|</span> <span class="pre">float]]</span> <span class="pre">|</span> <span class="pre">None</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_array_info</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~typing.Sequence[int</span> <span class="pre">|</span> <span class="pre">float]]</span> <span class="pre">|</span> <span class="pre">None</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spatial_transforms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~typing.Any]</span> <span class="pre">|</span> <span class="pre">None</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_value_transforms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Transform</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Compose(</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">ToDtype(scale=False)</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">Binarize(threshold=0.0)</span> <span class="pre">)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_raw_value_transforms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Transform</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Compose(</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">ToDtype(scale=True)</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">NaNtoNum(params={'nan':</span> <span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'posinf'</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'neginf'</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None})</span> <span class="pre">)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_raw_value_transforms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Transform</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Compose(</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">ToDtype(scale=True)</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">NaNtoNum(params={'nan':</span> <span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'posinf'</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'neginf'</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None})</span> <span class="pre">)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iterations_per_epoch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_validation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">device</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_mutual_exclusion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weighted_sampler</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">CellMapDataLoader</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">CellMapDataLoader</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/dataloader.html#get_dataloader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.get_dataloader" title="Link to this definition">#</a></dt>
 <dd><p>Get the train and validation dataloaders.</p>
@@ -2401,6 +2484,20 @@ spatial_transforms = {</p>
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.get_result_file">
 <span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">get_result_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">submission_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_ID</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/batch_eval.html#get_result_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.get_result_file" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.get_singleton_dim">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">get_singleton_dim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/utils.html#get_singleton_dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.get_singleton_dim" title="Link to this definition">#</a></dt>
+<dd><p>Return the index of the first size-1 spatial dimension, or None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>shape</strong> (<em>tuple</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int | None</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.get_test_crops">
@@ -2548,6 +2645,55 @@ Zarr-2 file with the required structure.</p>
 <dt>Example usage:</dt><dd><p># Generate random class labels, with 0 as background
 labels = np.random.randint(0, 4, (128, 128, 128))
 save_numpy_labels_to_zarr(‘submission.zarr’, ‘test_volume’, [‘label1’, ‘label2’, ‘label3’], labels)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.squeeze_singleton_dim">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">squeeze_singleton_dim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/utils.html#squeeze_singleton_dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.squeeze_singleton_dim" title="Link to this definition">#</a></dt>
+<dd><p>Squeeze <em>dim</em> from a tensor, or from each tensor value in a dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dim</strong> (<em>int</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.structure_model_output">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">structure_model_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_channels_per_class</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/utils.html#structure_model_output"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.structure_model_output" title="Link to this definition">#</a></dt>
+<dd><p>Convert raw model output into the nested dict expected by CellMapDatasetWriter.</p>
+<p>The returned structure maps array-name → class-name → tensor (or tensor when
+there is one channel per class).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>outputs</strong> – Either a plain tensor of shape <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C,</span> <span class="pre">...)</span></code> or a dict produced by the
+model.  Dict keys may be the class names themselves <em>or</em> arbitrary array
+names (e.g. resolution levels); each dict value is a tensor of shape
+<code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">C,</span> <span class="pre">...)</span></code>.</p></li>
+<li><p><strong>classes</strong> (<em>list</em>) – Ordered list of class names.</p></li>
+<li><p><strong>num_channels_per_class</strong> (<em>int</em><em> | </em><em>None</em>) – When <code class="docutils literal notranslate"><span class="pre">&gt;</span> <span class="pre">1</span></code>, each class occupies this many consecutive channels in the
+channel dimension.  <code class="docutils literal notranslate"><span class="pre">None</span></code> or <code class="docutils literal notranslate"><span class="pre">1</span></code> means one channel per class.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Nested structure suitable for writing via <code class="docutils literal notranslate"><span class="pre">dataset_writer[idx]</span> <span class="pre">=</span> <span class="pre">...</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.unsqueeze_singleton_dim">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">unsqueeze_singleton_dim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/utils.html#unsqueeze_singleton_dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.unsqueeze_singleton_dim" title="Link to this definition">#</a></dt>
+<dd><p>Insert <em>dim</em> into a tensor, or into each tensor value in a dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dim</strong> (<em>int</em>)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -2733,6 +2879,11 @@ save_numpy_labels_to_zarr(‘submission.zarr’, ‘test_volume’, [‘label1�
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.download_file"><code class="docutils literal notranslate"><span class="pre">download_file()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.format_string"><code class="docutils literal notranslate"><span class="pre">format_string()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.get_git_hash"><code class="docutils literal notranslate"><span class="pre">get_git_hash()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.get_singleton_dim"><code class="docutils literal notranslate"><span class="pre">get_singleton_dim()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.squeeze_singleton_dim"><code class="docutils literal notranslate"><span class="pre">squeeze_singleton_dim()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.unsqueeze_singleton_dim"><code class="docutils literal notranslate"><span class="pre">unsqueeze_singleton_dim()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.structure_model_output"><code class="docutils literal notranslate"><span class="pre">structure_model_output()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.get_data_from_batch"><code class="docutils literal notranslate"><span class="pre">get_data_from_batch()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils">Module contents</a><ul class="nav section-nav flex-column">
@@ -2781,10 +2932,12 @@ save_numpy_labels_to_zarr(‘submission.zarr’, ‘test_volume’, [‘label1�
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.fetch_test_crop_manifest"><code class="docutils literal notranslate"><span class="pre">fetch_test_crop_manifest()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.format_string"><code class="docutils literal notranslate"><span class="pre">format_string()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_class_relations"><code class="docutils literal notranslate"><span class="pre">get_class_relations()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_data_from_batch"><code class="docutils literal notranslate"><span class="pre">get_data_from_batch()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_dataloader"><code class="docutils literal notranslate"><span class="pre">get_dataloader()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_formatted_fields"><code class="docutils literal notranslate"><span class="pre">get_formatted_fields()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_git_hash"><code class="docutils literal notranslate"><span class="pre">get_git_hash()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_result_file"><code class="docutils literal notranslate"><span class="pre">get_result_file()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_singleton_dim"><code class="docutils literal notranslate"><span class="pre">get_singleton_dim()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_test_crops"><code class="docutils literal notranslate"><span class="pre">get_test_crops()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.get_tested_classes"><code class="docutils literal notranslate"><span class="pre">get_tested_classes()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.load_safe_config"><code class="docutils literal notranslate"><span class="pre">load_safe_config()</span></code></a></li>
@@ -2794,6 +2947,9 @@ save_numpy_labels_to_zarr(‘submission.zarr’, ‘test_volume’, [‘label1�
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.package_submission"><code class="docutils literal notranslate"><span class="pre">package_submission()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.save_numpy_class_arrays_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_arrays_to_zarr()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.save_numpy_class_labels_to_zarr"><code class="docutils literal notranslate"><span class="pre">save_numpy_class_labels_to_zarr()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.squeeze_singleton_dim"><code class="docutils literal notranslate"><span class="pre">squeeze_singleton_dim()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.structure_model_output"><code class="docutils literal notranslate"><span class="pre">structure_model_output()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.unsqueeze_singleton_dim"><code class="docutils literal notranslate"><span class="pre">unsqueeze_singleton_dim()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.zip_submission"><code class="docutils literal notranslate"><span class="pre">zip_submission()</span></code></a></li>
 </ul>
 </li>

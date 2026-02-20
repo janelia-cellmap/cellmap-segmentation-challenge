@@ -306,6 +306,10 @@ document.write(`
     <span class="n">make_datasplit_csv</span><span class="p">,</span>
     <span class="n">make_s3_datasplit_csv</span><span class="p">,</span>
     <span class="n">format_string</span><span class="p">,</span>
+    <span class="n">get_data_from_batch</span><span class="p">,</span>
+    <span class="n">get_singleton_dim</span><span class="p">,</span>
+    <span class="n">squeeze_singleton_dim</span><span class="p">,</span>
+    <span class="n">unsqueeze_singleton_dim</span><span class="p">,</span>
 <span class="p">)</span>
 
 
@@ -646,6 +650,13 @@ document.write(`
     <span class="n">input_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">train_loader</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">input_arrays</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
     <span class="n">target_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">train_loader</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">target_arrays</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 
+    <span class="c1"># Find singleton dimension for 2D-model squeeze/unsqueeze</span>
+    <span class="k">if</span> <span class="s2">&quot;shape&quot;</span> <span class="ow">in</span> <span class="n">input_array_info</span><span class="p">:</span>
+        <span class="n">first_input_shape</span> <span class="o">=</span> <span class="n">input_array_info</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">first_input_shape</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">input_array_info</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;shape&quot;</span><span class="p">]</span>
+    <span class="n">singleton_dim</span> <span class="o">=</span> <span class="n">get_singleton_dim</span><span class="p">(</span><span class="n">first_input_shape</span><span class="p">)</span>
+
     <span class="c1"># %% Train the model</span>
     <span class="n">post_fix_dict</span> <span class="o">=</span> <span class="p">{}</span>
 
@@ -681,20 +692,16 @@ document.write(`
             <span class="c1"># Increment the training iteration</span>
             <span class="n">n_iter</span> <span class="o">+=</span> <span class="mi">1</span>
 
-            <span class="c1"># Forward pass (compute the output of the model)</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_keys</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">batch</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">input_keys</span><span class="p">}</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">inputs</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="n">input_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
-                <span class="c1"># Assumes the model input is a single tensor</span>
+            <span class="c1"># Forward pass (compute the model outputs)</span>
+            <span class="n">inputs</span> <span class="o">=</span> <span class="n">get_data_from_batch</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">input_keys</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">singleton_dim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">inputs</span> <span class="o">=</span> <span class="n">squeeze_singleton_dim</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">singleton_dim</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
             <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">singleton_dim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">outputs</span> <span class="o">=</span> <span class="n">unsqueeze_singleton_dim</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">singleton_dim</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
 
             <span class="c1"># Compute the loss</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_keys</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">targets</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">batch</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">target_keys</span><span class="p">}</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">targets</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="n">target_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
-                <span class="c1"># Assumes the model output is a single tensor</span>
+            <span class="n">targets</span> <span class="o">=</span> <span class="n">get_data_from_batch</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">target_keys</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
             <span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span> <span class="o">/</span> <span class="n">gradient_accumulation_steps</span>
 
             <span class="c1"># Backward pass (compute the gradients)</span>
@@ -787,17 +794,15 @@ document.write(`
             <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
                 <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
                 <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">val_bar</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_keys</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                        <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">batch</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">input_keys</span><span class="p">}</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">inputs</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="n">input_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+                    <span class="n">inputs</span> <span class="o">=</span> <span class="n">get_data_from_batch</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">input_keys</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">singleton_dim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">inputs</span> <span class="o">=</span> <span class="n">squeeze_singleton_dim</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">singleton_dim</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
                     <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">singleton_dim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">outputs</span> <span class="o">=</span> <span class="n">unsqueeze_singleton_dim</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">singleton_dim</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
 
                     <span class="c1"># Compute the loss</span>
-                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_keys</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                        <span class="n">targets</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">batch</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">target_keys</span><span class="p">}</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">targets</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="n">target_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+                    <span class="n">targets</span> <span class="o">=</span> <span class="n">get_data_from_batch</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">target_keys</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
                     <span class="n">val_score</span> <span class="o">+=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
                     <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
 
