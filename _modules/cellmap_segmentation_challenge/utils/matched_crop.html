@@ -298,10 +298,14 @@ document.write(`
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
+<span class="c1"># Memory estimation constants</span>
+<span class="n">BYTES_PER_FLOAT32</span> <span class="o">=</span> <span class="mi">4</span>  <span class="c1"># 4 bytes per float32 voxel</span>
+
 <span class="c1"># Maximum allowed size ratio between source and target arrays</span>
 <span class="c1"># Can be set via environment variable for flexibility</span>
-<span class="c1"># Default is 8x in each dimension (512x total volume size ratio)</span>
-<span class="n">MAX_VOLUME_SIZE_RATIO</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;MAX_VOLUME_SIZE_RATIO&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="o">**</span><span class="mi">3</span><span class="p">))</span>
+<span class="c1"># Default is 16x in each dimension (4096x total volume size ratio)</span>
+<span class="c1"># With chunked loading, we can handle larger arrays without loading all into memory at once</span>
+<span class="n">MAX_VOLUME_SIZE_RATIO</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;MAX_VOLUME_SIZE_RATIO&quot;</span><span class="p">,</span> <span class="mi">16</span><span class="o">**</span><span class="mi">3</span><span class="p">))</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_attr_any</span><span class="p">(</span><span class="n">attrs</span><span class="p">,</span> <span class="n">keys</span><span class="p">):</span>
@@ -427,65 +431,268 @@ document.write(`
             <span class="p">)</span>
         <span class="n">src_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">source_shape</span><span class="p">)</span>
         <span class="n">ratio</span> <span class="o">=</span> <span class="n">src_size</span> <span class="o">/</span> <span class="n">tgt_size</span>
+
+        <span class="c1"># Estimate memory usage (assuming float32)</span>
+        <span class="n">estimated_memory_mb</span> <span class="o">=</span> <span class="p">(</span><span class="n">src_size</span> <span class="o">*</span> <span class="n">BYTES_PER_FLOAT32</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span>
+
+        <span class="c1"># Return whether we should use chunked loading</span>
+        <span class="k">return</span> <span class="n">ratio</span><span class="p">,</span> <span class="n">estimated_memory_mb</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_should_use_chunked_loading</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ratio</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">estimated_memory_mb</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Determine if we should use chunked loading based on size ratio.</span>
+<span class="sd">        Chunked loading is used when the array is large but within acceptable limits.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Use chunked loading if ratio is high but not exceeding the limit</span>
+        <span class="c1"># This allows processing of larger arrays without exceeding memory</span>
         <span class="k">if</span> <span class="n">ratio</span> <span class="o">&gt;</span> <span class="n">MAX_VOLUME_SIZE_RATIO</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Source array at </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2"> is too large compared to target shape: &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;source size </span><span class="si">{</span><span class="n">src_size</span><span class="si">}</span><span class="s2">, target size </span><span class="si">{</span><span class="n">tgt_size</span><span class="si">}</span><span class="s2">, ratio </span><span class="si">{</span><span class="n">ratio</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> &gt; </span><span class="si">{</span><span class="n">MAX_VOLUME_SIZE_RATIO</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;ratio </span><span class="si">{</span><span class="n">ratio</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">x &gt; </span><span class="si">{</span><span class="n">MAX_VOLUME_SIZE_RATIO</span><span class="si">}</span><span class="s2">x limit. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Estimated memory: </span><span class="si">{</span><span class="n">estimated_memory_mb</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Please downsample your predictions to a resolution closer to the target.&quot;</span>
             <span class="p">)</span>
+
+        <span class="c1"># Use chunked loading for arrays that would use significant memory</span>
+        <span class="k">return</span> <span class="n">estimated_memory_mb</span> <span class="o">&gt;</span> <span class="mi">500</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load_array_chunked</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arr</span><span class="p">:</span> <span class="n">zarr</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">scale_factors</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load and downsample a zarr array in chunks to reduce memory usage.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            arr: The zarr array to load</span>
+<span class="sd">            scale_factors: Scale factors for rescaling (in_vs / tgt_vs).</span>
+<span class="sd">                When input has finer resolution than target (in_vs &lt; tgt_vs),</span>
+<span class="sd">                scale_factors &lt; 1.0, causing rescale() to downsample.</span>
+<span class="sd">                Example: in_vs=2nm, tgt_vs=8nm → scale_factors=0.25 → output is 0.25x input size</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            The downsampled array as a numpy array</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading and downsampling array in chunks with scale factors: </span><span class="si">{</span><span class="n">scale_factors</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Calculate output shape after downsampling</span>
+        <span class="c1"># scale_factors &lt; 1.0 means downsampling, so output is smaller</span>
+        <span class="n">output_shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">s</span> <span class="o">*</span> <span class="n">sf</span><span class="p">))</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">sf</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">scale_factors</span><span class="p">))</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">output_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">arr</span><span class="o">.</span><span class="n">dtype</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_instance</span><span class="p">()</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        
+        <span class="c1"># Determine chunk size based on memory constraints</span>
+        <span class="c1"># Target ~100MB per chunk in memory</span>
+        <span class="n">target_chunk_memory_mb</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="n">chunk_voxels</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">target_chunk_memory_mb</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span> <span class="o">/</span> <span class="n">BYTES_PER_FLOAT32</span><span class="p">)</span>
+        <span class="n">chunk_size_per_dim</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">chunk_voxels</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">)))</span>  <span class="c1"># At least 32 voxels per dimension</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing with chunk size: </span><span class="si">{</span><span class="n">chunk_size_per_dim</span><span class="si">}</span><span class="s2"> voxels per dimension&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Process array in chunks</span>
+        <span class="k">for</span> <span class="n">z_start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">chunk_size_per_dim</span><span class="p">):</span>
+            <span class="n">z_end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">z_start</span> <span class="o">+</span> <span class="n">chunk_size_per_dim</span><span class="p">,</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">y_start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">chunk_size_per_dim</span><span class="p">):</span>
+                <span class="n">y_end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">y_start</span> <span class="o">+</span> <span class="n">chunk_size_per_dim</span><span class="p">,</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">for</span> <span class="n">x_start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">chunk_size_per_dim</span><span class="p">):</span>
+                    <span class="n">x_end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">x_start</span> <span class="o">+</span> <span class="n">chunk_size_per_dim</span><span class="p">,</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+                    
+                    <span class="c1"># Load chunk</span>
+                    <span class="n">chunk</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="n">z_start</span><span class="p">:</span><span class="n">z_end</span><span class="p">,</span> <span class="n">y_start</span><span class="p">:</span><span class="n">y_end</span><span class="p">,</span> <span class="n">x_start</span><span class="p">:</span><span class="n">x_end</span><span class="p">]</span>
+                    
+                    <span class="c1"># Downsample chunk</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_instance</span><span class="p">():</span>
+                        <span class="n">chunk_downsampled</span> <span class="o">=</span> <span class="n">rescale</span><span class="p">(</span>
+                            <span class="n">chunk</span><span class="p">,</span>
+                            <span class="n">scale_factors</span><span class="p">,</span>
+                            <span class="n">order</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                            <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span>
+                            <span class="n">preserve_range</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">chunk</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">chunk</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">bool</span><span class="p">:</span>
+                            <span class="n">chunk</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+                        <span class="n">chunk_downsampled</span> <span class="o">=</span> <span class="n">rescale</span><span class="p">(</span>
+                            <span class="n">chunk</span><span class="p">,</span>
+                            <span class="n">scale_factors</span><span class="p">,</span>
+                            <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                            <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span>
+                            <span class="n">preserve_range</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="p">)</span>
+                        <span class="c1"># Don&#39;t threshold here, will be done at the end</span>
+                    
+                    <span class="c1"># Calculate output position</span>
+                    <span class="c1"># scale_factors represents the ratio of dimensions (output_size / input_size)</span>
+                    <span class="c1"># When downsampling (in_vs &lt; tgt_vs), scale_factors &lt; 1.0</span>
+                    <span class="n">out_z_start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">z_start</span> <span class="o">*</span> <span class="n">scale_factors</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="n">out_z_end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">z_end</span> <span class="o">*</span> <span class="n">scale_factors</span><span class="p">[</span><span class="mi">0</span><span class="p">])),</span> <span class="n">output_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="n">out_y_start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">y_start</span> <span class="o">*</span> <span class="n">scale_factors</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">out_y_end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">y_end</span> <span class="o">*</span> <span class="n">scale_factors</span><span class="p">[</span><span class="mi">1</span><span class="p">])),</span> <span class="n">output_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">out_x_start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">x_start</span> <span class="o">*</span> <span class="n">scale_factors</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+                    <span class="n">out_x_end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">x_end</span> <span class="o">*</span> <span class="n">scale_factors</span><span class="p">[</span><span class="mi">2</span><span class="p">])),</span> <span class="n">output_shape</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+                    
+                    <span class="c1"># Get actual downsampled chunk shape</span>
+                    <span class="n">chunk_out_shape</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">out_z_end</span> <span class="o">-</span> <span class="n">out_z_start</span><span class="p">,</span>
+                        <span class="n">out_y_end</span> <span class="o">-</span> <span class="n">out_y_start</span><span class="p">,</span>
+                        <span class="n">out_x_end</span> <span class="o">-</span> <span class="n">out_x_start</span>
+                    <span class="p">)</span>
+                    
+                    <span class="c1"># Ensure chunk_downsampled matches expected output region</span>
+                    <span class="k">if</span> <span class="n">chunk_downsampled</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">chunk_out_shape</span><span class="p">:</span>
+                        <span class="c1"># Crop or pad to match</span>
+                        <span class="n">chunk_downsampled</span> <span class="o">=</span> <span class="n">chunk_downsampled</span><span class="p">[:</span><span class="n">chunk_out_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">:</span><span class="n">chunk_out_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">:</span><span class="n">chunk_out_shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+                    
+                    <span class="c1"># Place downsampled chunk in output</span>
+                    <span class="n">output</span><span class="p">[</span><span class="n">out_z_start</span><span class="p">:</span><span class="n">out_z_end</span><span class="p">,</span> <span class="n">out_y_start</span><span class="p">:</span><span class="n">out_y_end</span><span class="p">,</span> <span class="n">out_x_start</span><span class="p">:</span><span class="n">out_x_end</span><span class="p">]</span> <span class="o">=</span> <span class="n">chunk_downsampled</span>
+        
+        <span class="c1"># Convert back to bool if semantic (threshold once at the end)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_instance</span><span class="p">():</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">output</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">semantic_threshold</span>
+        
+        <span class="k">return</span> <span class="n">output</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_load_source_array</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns (image, input_voxel_size, input_translation)</span>
-<span class="sd">        where image is a numpy array.</span>
+<span class="sd">        Returns (image, input_voxel_size, input_translation, already_downsampled)</span>
+<span class="sd">        where image is a numpy array and already_downsampled indicates if chunked downsampling was applied.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ds</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ds</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Failed to open zarr at </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Ensure the path points to a valid zarr array or group. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading from </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">, type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="c1"># OME-NGFF multiscale</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">zarr</span><span class="o">.</span><span class="n">Group</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;multiscales&quot;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
-            <span class="n">img</span> <span class="o">=</span> <span class="n">CellMapImage</span><span class="p">(</span>
-                <span class="n">path</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">),</span>
-                <span class="n">target_class</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">class_label</span><span class="p">,</span>
-                <span class="n">target_scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">target_voxel_size</span><span class="p">,</span>
-                <span class="n">target_voxel_shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">target_shape</span><span class="p">,</span>
-                <span class="n">pad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                <span class="n">pad_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_value</span><span class="p">,</span>
-                <span class="n">interpolation</span><span class="o">=</span><span class="s2">&quot;nearest&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_instance</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;linear&quot;</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="n">level</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">scale_level</span>
-            <span class="n">level_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span> <span class="o">/</span> <span class="n">level</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Detected OME-NGFF multiscale format at </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">img</span> <span class="o">=</span> <span class="n">CellMapImage</span><span class="p">(</span>
+                    <span class="n">path</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">),</span>
+                    <span class="n">target_class</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">class_label</span><span class="p">,</span>
+                    <span class="n">target_scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">target_voxel_size</span><span class="p">,</span>
+                    <span class="n">target_voxel_shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">target_shape</span><span class="p">,</span>
+                    <span class="n">pad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">pad_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_value</span><span class="p">,</span>
+                    <span class="n">interpolation</span><span class="o">=</span><span class="s2">&quot;nearest&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_instance</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;linear&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">level</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">scale_level</span>
+                <span class="n">level_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span> <span class="o">/</span> <span class="n">level</span>
 
-            <span class="c1"># Extract input voxel size and translation from multiscales metadata</span>
-            <span class="n">input_voxel_size</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">input_translation</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;multiscales&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;datasets&quot;</span><span class="p">]:</span>
-                <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">level</span><span class="p">:</span>
-                    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;coordinateTransformations&quot;</span><span class="p">,</span> <span class="p">[]):</span>
-                        <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;scale&quot;</span><span class="p">:</span>
-                            <span class="n">input_voxel_size</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">])</span>
-                        <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;translation&quot;</span><span class="p">:</span>
-                            <span class="n">input_translation</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="s2">&quot;translation&quot;</span><span class="p">])</span>
-                    <span class="k">break</span>
+                <span class="c1"># Extract input voxel size and translation from multiscales metadata</span>
+                <span class="n">input_voxel_size</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">input_translation</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;multiscales&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;datasets&quot;</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">level</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;coordinateTransformations&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+                            <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;scale&quot;</span><span class="p">:</span>
+                                <span class="n">input_voxel_size</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">])</span>
+                            <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;translation&quot;</span><span class="p">:</span>
+                                <span class="n">input_translation</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="s2">&quot;translation&quot;</span><span class="p">])</span>
+                        <span class="k">break</span>
 
-            <span class="n">arr</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">level_path</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_check_size_ratio</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-            <span class="n">image</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[:]</span>
-            <span class="k">return</span> <span class="n">image</span><span class="p">,</span> <span class="n">input_voxel_size</span><span class="p">,</span> <span class="n">input_translation</span>
+                <span class="n">arr</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">level_path</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+                <span class="n">ratio</span><span class="p">,</span> <span class="n">estimated_memory_mb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_size_ratio</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                <span class="n">use_chunked</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_should_use_chunked_loading</span><span class="p">(</span><span class="n">ratio</span><span class="p">,</span> <span class="n">estimated_memory_mb</span><span class="p">)</span>
+                
+                <span class="k">if</span> <span class="n">use_chunked</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Large OME-NGFF array detected (</span><span class="si">{</span><span class="n">estimated_memory_mb</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB). &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;Loading entire array - CellMapImage should have already selected appropriate resolution level. &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;If memory issues occur, ensure predictions are saved at appropriate resolution.&quot;</span>
+                    <span class="p">)</span>
+                
+                <span class="n">image</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[:]</span>
+                <span class="k">return</span> <span class="n">image</span><span class="p">,</span> <span class="n">input_voxel_size</span><span class="p">,</span> <span class="n">input_translation</span><span class="p">,</span> <span class="kc">False</span>  <span class="c1"># Not downsampled in chunks</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Failed to load OME-NGFF multiscale data from </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">. &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
 
         <span class="c1"># Non-OME group multiscale OR single-scale array with attrs</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">zarr</span><span class="o">.</span><span class="n">Group</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Detected zarr Group (non-OME) at </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="c1"># If this group directly contains the label array (common): path points at an array node</span>
             <span class="c1"># zarr.open on an array path usually returns an Array, not Group. If we got Group, pick a level.</span>
-            <span class="n">key</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">tr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_non_ome_level</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
-            <span class="n">arr</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_check_size_ratio</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-            <span class="n">image</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[:]</span>
-            <span class="k">return</span> <span class="n">image</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">tr</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">key</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">tr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_non_ome_level</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
+                <span class="n">arr</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                <span class="n">ratio</span><span class="p">,</span> <span class="n">estimated_memory_mb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_size_ratio</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                <span class="n">use_chunked</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_should_use_chunked_loading</span><span class="p">(</span><span class="n">ratio</span><span class="p">,</span> <span class="n">estimated_memory_mb</span><span class="p">)</span>
+                
+                <span class="k">if</span> <span class="n">use_chunked</span> <span class="ow">and</span> <span class="n">vs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using chunked loading for large non-OME array (</span><span class="si">{</span><span class="n">estimated_memory_mb</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB)&quot;</span><span class="p">)</span>
+                    <span class="c1"># Calculate scale factors for downsampling</span>
+                    <span class="n">in_vs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                    <span class="n">tgt_vs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_voxel_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">in_vs</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">tgt_vs</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+                        <span class="n">in_vs</span> <span class="o">=</span> <span class="n">in_vs</span><span class="p">[</span><span class="o">-</span><span class="n">tgt_vs</span><span class="o">.</span><span class="n">size</span><span class="p">:]</span>
+                    
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">in_vs</span><span class="p">,</span> <span class="n">tgt_vs</span><span class="p">):</span>
+                        <span class="c1"># Downsampling needed - use chunked approach</span>
+                        <span class="c1"># scale_factors = in_vs / tgt_vs</span>
+                        <span class="c1"># When in_vs &lt; tgt_vs (fine→coarse), scale_factors &lt; 1.0, causing rescale to downsample</span>
+                        <span class="n">scale_factors</span> <span class="o">=</span> <span class="n">in_vs</span> <span class="o">/</span> <span class="n">tgt_vs</span>
+                        <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_array_chunked</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">scale_factors</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="n">image</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_voxel_size</span><span class="p">,</span> <span class="n">tr</span><span class="p">,</span> <span class="kc">True</span>  <span class="c1"># Already downsampled</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># No downsampling needed, load normally</span>
+                        <span class="n">image</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[:]</span>
+                        <span class="k">return</span> <span class="n">image</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">tr</span><span class="p">,</span> <span class="kc">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">image</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[:]</span>
+                    <span class="k">return</span> <span class="n">image</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">tr</span><span class="p">,</span> <span class="kc">False</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Failed to load from non-OME zarr Group at </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">. &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Expected to find resolution levels (e.g., &#39;s0&#39;, &#39;s1&#39;) with voxel_size metadata, &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;but encountered an error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
 
         <span class="c1"># Single-scale zarr array</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">zarr</span><span class="o">.</span><span class="n">Array</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_check_size_ratio</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-            <span class="n">image</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[:]</span>
-            <span class="k">return</span> <span class="n">image</span><span class="p">,</span> <span class="n">_parse_voxel_size</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">),</span> <span class="n">_parse_translation</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Detected single-scale zarr Array at </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">ratio</span><span class="p">,</span> <span class="n">estimated_memory_mb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_size_ratio</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="n">vs</span> <span class="o">=</span> <span class="n">_parse_voxel_size</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span>
+            <span class="n">tr</span> <span class="o">=</span> <span class="n">_parse_translation</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">vs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;No voxel_size metadata found at </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">. &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Will attempt to match by shape only, which may produce incorrect alignment.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">tr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;No translation metadata found at </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">. &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Assuming zero offset, which may produce incorrect alignment.&quot;</span>
+                <span class="p">)</span>
+            
+            <span class="n">use_chunked</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_should_use_chunked_loading</span><span class="p">(</span><span class="n">ratio</span><span class="p">,</span> <span class="n">estimated_memory_mb</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">use_chunked</span> <span class="ow">and</span> <span class="n">vs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using chunked loading for large single-scale array (</span><span class="si">{</span><span class="n">estimated_memory_mb</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB)&quot;</span><span class="p">)</span>
+                <span class="c1"># Calculate scale factors for downsampling</span>
+                <span class="n">in_vs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                <span class="n">tgt_vs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_voxel_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">in_vs</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">tgt_vs</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+                    <span class="n">in_vs</span> <span class="o">=</span> <span class="n">in_vs</span><span class="p">[</span><span class="o">-</span><span class="n">tgt_vs</span><span class="o">.</span><span class="n">size</span><span class="p">:]</span>
+                
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">in_vs</span><span class="p">,</span> <span class="n">tgt_vs</span><span class="p">):</span>
+                    <span class="c1"># Downsampling needed - use chunked approach</span>
+                    <span class="c1"># scale_factors = in_vs / tgt_vs</span>
+                    <span class="c1"># When in_vs &lt; tgt_vs (fine→coarse), scale_factors &lt; 1.0, causing rescale to downsample</span>
+                    <span class="n">scale_factors</span> <span class="o">=</span> <span class="n">in_vs</span> <span class="o">/</span> <span class="n">tgt_vs</span>
+                    <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_array_chunked</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">scale_factors</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">image</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_voxel_size</span><span class="p">,</span> <span class="n">tr</span><span class="p">,</span> <span class="kc">True</span>  <span class="c1"># Already downsampled</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># No downsampling needed, load normally</span>
+                    <span class="n">image</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[:]</span>
+                    <span class="k">return</span> <span class="n">image</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">tr</span><span class="p">,</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">image</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[:]</span>
+                <span class="k">return</span> <span class="n">image</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">tr</span><span class="p">,</span> <span class="kc">False</span>
 
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported zarr node type at </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
@@ -499,10 +706,10 @@ document.write(`
         <span class="n">tgt_shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_shape</span><span class="p">)</span>
         <span class="n">tgt_tr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_translation</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
 
-        <span class="n">image</span><span class="p">,</span> <span class="n">input_voxel_size</span><span class="p">,</span> <span class="n">input_translation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_source_array</span><span class="p">()</span>
+        <span class="n">image</span><span class="p">,</span> <span class="n">input_voxel_size</span><span class="p">,</span> <span class="n">input_translation</span><span class="p">,</span> <span class="n">already_downsampled</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_source_array</span><span class="p">()</span>
 
-        <span class="c1"># Resample if needed</span>
-        <span class="k">if</span> <span class="n">input_voxel_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Resample if needed (skip if already downsampled in chunks)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">already_downsampled</span> <span class="ow">and</span> <span class="n">input_voxel_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">in_vs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">input_voxel_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">in_vs</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">tgt_vs</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
                 <span class="n">in_vs</span> <span class="o">=</span> <span class="n">in_vs</span><span class="p">[</span><span class="o">-</span><span class="n">tgt_vs</span><span class="o">.</span><span class="n">size</span> <span class="p">:]</span>
@@ -529,7 +736,7 @@ document.write(`
                     <span class="p">)</span>
                     <span class="n">image</span> <span class="o">=</span> <span class="n">imgf</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">semantic_threshold</span>
 
-        <span class="k">elif</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">tgt_shape</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">already_downsampled</span> <span class="ow">and</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">tgt_shape</span><span class="p">:</span>
             <span class="c1"># If no voxel size info, fall back to center crop/pad</span>
             <span class="n">image</span> <span class="o">=</span> <span class="n">_resize_pad_crop</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">tgt_shape</span><span class="p">,</span> <span class="n">pad_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_value</span><span class="p">)</span>
 

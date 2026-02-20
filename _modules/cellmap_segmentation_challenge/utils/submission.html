@@ -451,30 +451,38 @@ document.write(`
     <span class="k">else</span><span class="p">:</span>
         <span class="n">crop_group</span> <span class="o">=</span> <span class="n">zarr_group</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;crop</span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
 
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scaling </span><span class="si">{</span><span class="n">crop_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span><span class="si">}</span><span class="s2"> nm&quot;</span><span class="p">)</span>
-    <span class="c1"># Match the resolution, spatial position, and shape of the processed volume to the test volume</span>
-    <span class="n">image</span> <span class="o">=</span> <span class="n">match_crop_space</span><span class="p">(</span>
-        <span class="n">path</span><span class="o">=</span><span class="n">crop_path</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
-        <span class="n">class_label</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">class_label</span><span class="p">,</span>
-        <span class="n">voxel_size</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">,</span>
-        <span class="n">shape</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
-        <span class="n">translation</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">translation</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
-    <span class="c1"># Save the processed labels to the submission zarr</span>
-    <span class="n">label_array</span> <span class="o">=</span> <span class="n">crop_group</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
-        <span class="n">crop</span><span class="o">.</span><span class="n">class_label</span><span class="p">,</span>
-        <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span>
-        <span class="n">shape</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
-        <span class="n">dtype</span><span class="o">=</span><span class="n">image</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">label_array</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">image</span>
-    <span class="c1"># Add the metadata</span>
-    <span class="n">label_array</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span>
-    <span class="n">label_array</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;translation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span><span class="o">.</span><span class="n">translation</span>
-    <span class="n">label_array</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span><span class="o">.</span><span class="n">shape</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scaling </span><span class="si">{</span><span class="n">crop_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span><span class="si">}</span><span class="s2"> nm&quot;</span><span class="p">)</span>
+        <span class="c1"># Match the resolution, spatial position, and shape of the processed volume to the test volume</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">match_crop_space</span><span class="p">(</span>
+            <span class="n">path</span><span class="o">=</span><span class="n">crop_path</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+            <span class="n">class_label</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">class_label</span><span class="p">,</span>
+            <span class="n">voxel_size</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+            <span class="n">translation</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">translation</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+        <span class="c1"># Save the processed labels to the submission zarr</span>
+        <span class="n">label_array</span> <span class="o">=</span> <span class="n">crop_group</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
+            <span class="n">crop</span><span class="o">.</span><span class="n">class_label</span><span class="p">,</span>
+            <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="n">crop</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">image</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">label_array</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">image</span>
+        <span class="c1"># Add the metadata</span>
+        <span class="n">label_array</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span><span class="o">.</span><span class="n">voxel_size</span>
+        <span class="n">label_array</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;translation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span><span class="o">.</span><span class="n">translation</span>
+        <span class="n">label_array</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">crop</span><span class="o">.</span><span class="n">shape</span>
 
-    <span class="k">return</span> <span class="n">crop_path</span><span class="o">.</span><span class="n">path</span></div>
+        <span class="k">return</span> <span class="n">crop_path</span><span class="o">.</span><span class="n">path</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">error_msg</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Failed to package crop </span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">crop</span><span class="o">.</span><span class="n">class_label</span><span class="si">}</span><span class="s2">) from </span><span class="si">{</span><span class="n">crop_path</span><span class="si">}</span><span class="s2">. &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="n">error_msg</span><span class="si">}</span><span class="s2">&quot;</span></div>
 
 
 
@@ -519,22 +527,46 @@ document.write(`
         <span class="n">input_search_path</span><span class="o">=</span><span class="n">input_search_path</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">successful_crops</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">failed_crops</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">skipped_crops</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">crop_path</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
         <span class="n">pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">partial_package_crop</span><span class="p">,</span> <span class="n">TEST_CROPS</span><span class="p">),</span>
         <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">TEST_CROPS</span><span class="p">),</span>
         <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Packaging crops...&quot;</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="k">if</span> <span class="s2">&quot;skipping&quot;</span> <span class="ow">in</span> <span class="n">crop_path</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
-            <span class="n">tqdm</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">crop_path</span><span class="si">}</span><span class="s2"> skipped.&quot;</span><span class="p">)</span>
+        <span class="c1"># Ensure crop_path is a string for reliable string operations</span>
+        <span class="k">if</span> <span class="n">crop_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Received None from package_crop, treating as empty string&quot;</span><span class="p">)</span>
+            <span class="n">crop_path_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">tqdm</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Packaged </span><span class="si">{</span><span class="n">crop_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">crop_path_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">crop_path</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">crop_path_str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;error:&quot;</span><span class="p">):</span>
+            <span class="n">tqdm</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">crop_path_str</span><span class="p">)</span>
+            <span class="n">failed_crops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">crop_path_str</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="s2">&quot;skipping&quot;</span> <span class="ow">in</span> <span class="n">crop_path_str</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+            <span class="n">tqdm</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">crop_path_str</span><span class="si">}</span><span class="s2"> skipped.&quot;</span><span class="p">)</span>
+            <span class="n">skipped_crops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">crop_path_str</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tqdm</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Packaged </span><span class="si">{</span><span class="n">crop_path_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">successful_crops</span> <span class="o">+=</span> <span class="mi">1</span>
+
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Packaged </span><span class="si">{</span><span class="n">successful_crops</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">TEST_CROPS</span><span class="p">)</span><span class="si">}</span><span class="s2"> crops.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">skipped_crops</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Skipped </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">skipped_crops</span><span class="p">)</span><span class="si">}</span><span class="s2"> crops (files did not exist).&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">failed_crops</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to package </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">failed_crops</span><span class="p">)</span><span class="si">}</span><span class="s2"> crops:&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">error</span> <span class="ow">in</span> <span class="n">failed_crops</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved submission to </span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">successful_crops</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No crops were packaged; submission zarr is empty.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;No crops were packaged; submission zarr is empty. &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Skipped </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">skipped_crops</span><span class="p">)</span><span class="si">}</span><span class="s2">, failed </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">failed_crops</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+        <span class="p">)</span>
 
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Zipping submission...&quot;</span><span class="p">)</span>
     <span class="n">zip_submission</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
