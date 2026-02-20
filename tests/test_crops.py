@@ -3,6 +3,8 @@
 from cellmap_segmentation_challenge.utils.crops import (
     TestCropRow,
     CropRow,
+    get_test_crop_labels,
+    fetch_test_crop_manifest,
 )
 
 
@@ -80,3 +82,62 @@ class TestCropRowDataclass:
 
         assert crop.dataset == "jrc_jurkat-1"
         assert crop.id == 342
+
+
+class TestGetTestCropLabels:
+    """Tests for get_test_crop_labels function"""
+
+    def test_get_test_crop_labels_returns_list(self):
+        """Test that get_test_crop_labels returns a list"""
+        # Get the first crop ID from the manifest
+        test_crops = fetch_test_crop_manifest()
+        if not test_crops:
+            return  # Skip if no test crops available
+        first_crop_id = test_crops[0].id
+        labels = get_test_crop_labels(first_crop_id)
+        assert isinstance(labels, list)
+
+    def test_get_test_crop_labels_returns_correct_labels(self):
+        """Test that get_test_crop_labels returns the correct labels for a crop"""
+        test_crops = fetch_test_crop_manifest()
+        if not test_crops:
+            return  # Skip if no test crops available
+        
+        # Get the first crop ID
+        first_crop_id = test_crops[0].id
+        
+        # Get expected labels by filtering the manifest
+        expected_labels = [crop.class_label for crop in test_crops if crop.id == first_crop_id]
+        
+        # Get actual labels from the function
+        actual_labels = get_test_crop_labels(first_crop_id)
+        
+        # Check that they match
+        assert sorted(expected_labels) == sorted(actual_labels)
+
+    def test_get_test_crop_labels_different_crops_different_labels(self):
+        """Test that different crops can have different numbers of labels"""
+        test_crops = fetch_test_crop_manifest()
+        if len(test_crops) < 2:
+            return  # Skip if not enough test crops
+        
+        # Get two different crop IDs
+        crop_ids = list(set(crop.id for crop in test_crops))
+        if len(crop_ids) < 2:
+            return
+        
+        crop_id_1 = crop_ids[0]
+        crop_id_2 = crop_ids[1]
+        
+        labels_1 = get_test_crop_labels(crop_id_1)
+        labels_2 = get_test_crop_labels(crop_id_2)
+        
+        # Just check they are both lists (they may or may not have same length)
+        assert isinstance(labels_1, list)
+        assert isinstance(labels_2, list)
+        
+    def test_get_test_crop_labels_nonexistent_crop(self):
+        """Test that get_test_crop_labels returns empty list for nonexistent crop"""
+        # Use a very large crop ID that shouldn't exist
+        labels = get_test_crop_labels(999999)
+        assert labels == []
