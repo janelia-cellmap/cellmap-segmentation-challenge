@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 # Maximum allowed size ratio between source and target arrays
 # Can be set via environment variable for flexibility
 # Default is 4x in each dimension (64x total volume size ratio)
-# This limits memory usage to reasonable levels (e.g., 256MB for typical crops)
+# This limits memory to ~512MB for float32 arrays (e.g., 128³ target → 512³ source max)
 MAX_VOLUME_SIZE_RATIO = float(os.environ.get("MAX_VOLUME_SIZE_RATIO", 4**3))
 
 
@@ -141,10 +141,10 @@ class MatchedCrop:
             )
         src_size = np.prod(source_shape)
         ratio = src_size / tgt_size
-        
+
         # Estimate memory usage (assuming float32, 4 bytes per voxel)
         estimated_memory_mb = (src_size * 4) / (1024 * 1024)
-        
+
         if ratio > MAX_VOLUME_SIZE_RATIO:
             raise ValueError(
                 f"Source array at {self.path} is too large compared to target shape: "
@@ -154,7 +154,7 @@ class MatchedCrop:
                 f"This will cause memory allocation issues. "
                 f"Please downsample your predictions to a resolution closer to the target."
             )
-        
+
         # Warn if loading will use significant memory
         if estimated_memory_mb > 500:
             logger.warning(
