@@ -128,6 +128,9 @@ def _predict(
     # vs the classes to actually save (filtered by test_crop_manifest)
     model_classes = dataset_writer_kwargs.get("model_classes", dataset_writer_kwargs["classes"])
     classes_to_save = dataset_writer_kwargs["classes"]
+    
+    # Create a mapping from class names to indices for efficient lookup during filtering
+    model_class_to_index = {c: i for i, c in enumerate(model_classes)} if model_classes != classes_to_save else None
 
     # Test a single batch to get number of output channels
     test_batch = {
@@ -219,7 +222,7 @@ def _predict(
             )
             
             # Filter outputs to only include the classes that should be saved
-            if model_classes != classes_to_save:
+            if model_class_to_index is not None:
                 filtered_outputs = {}
                 for array_name, class_outputs in outputs.items():
                     if isinstance(class_outputs, dict):
@@ -234,7 +237,8 @@ def _predict(
                         # This assumes the tensor has shape (B, C, ...) where C corresponds to model_classes
                         # We need to select only the channels for classes_to_save
                         # classes_to_save should be a subset of model_classes by design
-                        class_indices = [model_classes.index(c) for c in classes_to_save]
+                        # Use pre-computed mapping for O(1) lookup instead of O(n) index()
+                        class_indices = [model_class_to_index[c] for c in classes_to_save]
                         filtered_outputs[array_name] = class_outputs[:, class_indices, ...]
                 outputs = filtered_outputs
 
@@ -262,6 +266,8 @@ def predict(
     crops: str, optional
         A comma-separated list of crop numbers to predict on, or "test" to predict on the entire test set. Default is "test".
         When crops="test", only the labels specified in the test_crop_manifest for each crop will be saved.
+        If a crop's test_crop_manifest specifies labels that the model wasn't trained on, those labels will be 
+        automatically filtered out (i.e., only the intersection of model classes and crop labels will be saved).
     output_path: str, optional
         The path to save the output predictions to, formatted as a string with a placeholders for the dataset, crop number, and label. Default is PREDICTIONS_PATH set in `cellmap-segmentation/config.py`.
     do_orthoplanes: bool, optional
@@ -278,8 +284,9 @@ def predict(
     Notes
     -----
     When crops="test", the function will only save predictions for labels that are specified 
-    in the test_crop_manifest for each specific crop. This ensures that only the labels that 
-    will be scored are saved, reducing storage requirements and processing time.
+    in the test_crop_manifest for each specific crop AND that the model was trained on (the 
+    intersection of both sets). This ensures that only the labels that will be scored are saved, 
+    reducing storage requirements and processing time.
     """
     config = load_safe_config(config_path)
     classes = config.classes
