@@ -594,7 +594,7 @@ def structure_model_output(
         Ordered list of class names.
     num_channels_per_class:
         When ``> 1``, each class occupies this many consecutive channels in the
-        channel dimension.  ``None`` means one channel per class.
+        channel dimension.  ``None`` or ``1`` means one channel per class.
 
     Returns
     -------
@@ -608,7 +608,7 @@ def structure_model_output(
         # Dict with non-class keys (e.g. resolution levels): split each value
         structured = {}
         for k, v in outputs.items():
-            if num_channels_per_class is not None:
+            if num_channels_per_class is not None and num_channels_per_class > 1:
                 expected_channels = len(classes) * num_channels_per_class
                 if v.shape[1] != expected_channels:
                     raise ValueError(
@@ -631,7 +631,7 @@ def structure_model_output(
                     f"classes ({len(classes)}). Should be a multiple of the number of classes."
                 )
         return structured
-    elif num_channels_per_class is not None:
+    elif num_channels_per_class is not None and num_channels_per_class > 1:
         expected_channels = len(classes) * num_channels_per_class
         if outputs.shape[1] != expected_channels:
             raise ValueError(
