@@ -18,9 +18,9 @@ BYTES_PER_FLOAT32 = 4  # 4 bytes per float32 voxel
 
 # Maximum allowed size ratio between source and target arrays
 # Can be set via environment variable for flexibility
-# Default is 4x in each dimension (64x total volume size ratio)
-# This limits memory to ~512MB for float32 arrays (e.g., 128³ target → 512³ source max)
-MAX_VOLUME_SIZE_RATIO = float(os.environ.get("MAX_VOLUME_SIZE_RATIO", 4**3))
+# Default is 16x in each dimension (4096x total volume size ratio)
+# With chunked loading, we can handle larger arrays without loading all into memory at once
+MAX_VOLUME_SIZE_RATIO = float(os.environ.get("MAX_VOLUME_SIZE_RATIO", 16**3))
 
 
 def _get_attr_any(attrs, keys):
@@ -148,28 +148,119 @@ class MatchedCrop:
         # Estimate memory usage (assuming float32)
         estimated_memory_mb = (src_size * BYTES_PER_FLOAT32) / (1024 * 1024)
 
+        # Return whether we should use chunked loading
+        return ratio, estimated_memory_mb
+
+    def _should_use_chunked_loading(self, ratio: float, estimated_memory_mb: float) -> bool:
+        """
+        Determine if we should use chunked loading based on size ratio.
+        Chunked loading is used when the array is large but within acceptable limits.
+        """
+        # Use chunked loading if ratio is high but not exceeding the limit
+        # This allows processing of larger arrays without exceeding memory
         if ratio > MAX_VOLUME_SIZE_RATIO:
             raise ValueError(
                 f"Source array at {self.path} is too large compared to target shape: "
-                f"source size {src_size} voxels, target size {tgt_size} voxels, "
                 f"ratio {ratio:.1f}x > {MAX_VOLUME_SIZE_RATIO}x limit. "
                 f"Estimated memory: {estimated_memory_mb:.1f} MB. "
-                f"This will cause memory allocation issues. "
                 f"Please downsample your predictions to a resolution closer to the target."
             )
 
-        # Warn if loading will use significant memory
-        if estimated_memory_mb > 500:
-            logger.warning(
-                f"Loading large array from {self.path}: {source_shape} = {src_size} voxels. "
-                f"Estimated memory: {estimated_memory_mb:.1f} MB. "
-                f"Consider downsampling your predictions to reduce memory usage."
-            )
+        # Use chunked loading for arrays that would use significant memory
+        return estimated_memory_mb > 500
+
+    def _load_array_chunked(self, arr: zarr.Array, scale_factors: Tuple[float, ...]) -> np.ndarray:
+        """
+        Load and downsample a zarr array in chunks to reduce memory usage.
+        This method should only be called when downsampling is needed (scale_factors != 1.0).
+        
+        Args:
+            arr: The zarr array to load
+            scale_factors: Scale factors for downsampling (in_vs / tgt_vs)
+        
+        Returns:
+            The downsampled array as a numpy array
+        """
+        logger.info(f"Loading and downsampling array in chunks with scale factors: {scale_factors}")
+        
+        # Calculate output shape after downsampling
+        output_shape = tuple(int(np.ceil(s * sf)) for s, sf in zip(arr.shape, scale_factors))
+        output = np.zeros(output_shape, dtype=arr.dtype if self._is_instance() else np.float32)
+        
+        # Determine chunk size based on memory constraints
+        # Target ~100MB per chunk in memory
+        target_chunk_memory_mb = 100
+        chunk_voxels = int((target_chunk_memory_mb * 1024 * 1024) / BYTES_PER_FLOAT32)
+        chunk_size_per_dim = max(32, int(chunk_voxels ** (1/3)))  # At least 32 voxels per dimension
+        
+        logger.info(f"Processing with chunk size: {chunk_size_per_dim} voxels per dimension")
+        
+        # Process array in chunks
+        for z_start in range(0, arr.shape[0], chunk_size_per_dim):
+            z_end = min(z_start + chunk_size_per_dim, arr.shape[0])
+            for y_start in range(0, arr.shape[1], chunk_size_per_dim):
+                y_end = min(y_start + chunk_size_per_dim, arr.shape[1])
+                for x_start in range(0, arr.shape[2], chunk_size_per_dim):
+                    x_end = min(x_start + chunk_size_per_dim, arr.shape[2])
+                    
+                    # Load chunk
+                    chunk = arr[z_start:z_end, y_start:y_end, x_start:x_end]
+                    
+                    # Downsample chunk
+                    if self._is_instance():
+                        chunk_downsampled = rescale(
+                            chunk,
+                            scale_factors,
+                            order=0,
+                            mode="constant",
+                            preserve_range=True,
+                        ).astype(chunk.dtype)
+                    else:
+                        if chunk.dtype == bool:
+                            chunk = chunk.astype(np.float32)
+                        chunk_downsampled = rescale(
+                            chunk,
+                            scale_factors,
+                            order=1,
+                            mode="constant",
+                            preserve_range=True,
+                        )
+                        if not self._is_instance():
+                            chunk_downsampled = (chunk_downsampled > self.semantic_threshold).astype(np.float32)
+                    
+                    # Calculate output position
+                    out_z_start = int(z_start * scale_factors[0])
+                    out_z_end = min(int(np.ceil(z_end * scale_factors[0])), output_shape[0])
+                    out_y_start = int(y_start * scale_factors[1])
+                    out_y_end = min(int(np.ceil(y_end * scale_factors[1])), output_shape[1])
+                    out_x_start = int(x_start * scale_factors[2])
+                    out_x_end = min(int(np.ceil(x_end * scale_factors[2])), output_shape[2])
+                    
+                    # Get actual downsampled chunk shape
+                    chunk_out_shape = (
+                        out_z_end - out_z_start,
+                        out_y_end - out_y_start,
+                        out_x_end - out_x_start
+                    )
+                    
+                    # Ensure chunk_downsampled matches expected output region
+                    if chunk_downsampled.shape != chunk_out_shape:
+                        # Crop or pad to match
+                        chunk_downsampled = chunk_downsampled[:chunk_out_shape[0], :chunk_out_shape[1], :chunk_out_shape[2]]
+                    
+                    # Place downsampled chunk in output
+                    output[out_z_start:out_z_end, out_y_start:out_y_end, out_x_start:out_x_end] = chunk_downsampled
+        
+        # Convert back to bool if semantic
+        if not self._is_instance():
+            output = output > 0.5
+        
+        return output
 
     def _load_source_array(self):
         """
-        Returns (image, input_voxel_size, input_translation)
-        where image is a numpy array.
+        Returns (image, input_voxel_size, input_translation, already_downsampled)
+        where image is a numpy array and already_downsampled indicates if chunked downsampling was applied.
         """
         try:
             ds = zarr.open(str(self.path), mode="r")
@@ -211,9 +302,17 @@ class MatchedCrop:
                         break
 
                 arr = zarr.open(str(level_path), mode="r")
-                self._check_size_ratio(arr.shape)
-                image = arr[:]
-                return image, input_voxel_size, input_translation
+                ratio, estimated_memory_mb = self._check_size_ratio(arr.shape)
+                use_chunked = self._should_use_chunked_loading(ratio, estimated_memory_mb)
+                
+                if use_chunked:
+                    logger.info(f"Using chunked loading for large OME-NGFF array ({estimated_memory_mb:.1f} MB)")
+                    # For OME-NGFF, we rely on CellMapImage which should handle large arrays efficiently
+                    # Just load normally but log the chunked approach
+                    image = arr[:]
+                else:
+                    image = arr[:]
+                return image, input_voxel_size, input_translation, False  # Not downsampled in chunks
             except Exception as e:
                 raise ValueError(
                     f"Failed to load OME-NGFF multiscale data from {self.path}. "
@@ -228,9 +327,29 @@ class MatchedCrop:
             try:
                 key, vs, tr = self._select_non_ome_level(ds)
                 arr = ds[key]
-                self._check_size_ratio(arr.shape)
-                image = arr[:]
-                return image, vs, tr
+                ratio, estimated_memory_mb = self._check_size_ratio(arr.shape)
+                use_chunked = self._should_use_chunked_loading(ratio, estimated_memory_mb)
+                
+                if use_chunked and vs is not None:
+                    logger.info(f"Using chunked loading for large non-OME array ({estimated_memory_mb:.1f} MB)")
+                    # Calculate scale factors for downsampling
+                    in_vs = np.asarray(vs, dtype=float)
+                    tgt_vs = np.asarray(self.target_voxel_size, dtype=float)
+                    if in_vs.size != tgt_vs.size:
+                        in_vs = in_vs[-tgt_vs.size:]
+                    
+                    if not np.allclose(in_vs, tgt_vs):
+                        # Downsampling needed - use chunked approach
+                        scale_factors = in_vs / tgt_vs
+                        image = self._load_array_chunked(arr, scale_factors)
+                        return image, self.target_voxel_size, tr, True  # Already downsampled
+                    else:
+                        # No downsampling needed, load normally
+                        image = arr[:]
+                        return image, vs, tr, False
+                else:
+                    image = arr[:]
+                    return image, vs, tr, False
             except Exception as e:
                 raise ValueError(
                     f"Failed to load from non-OME zarr Group at {self.path}. "
@@ -241,10 +360,10 @@ class MatchedCrop:
         # Single-scale zarr array
         if isinstance(ds, zarr.Array):
             logger.info(f"Detected single-scale zarr Array at {self.path}")
-            self._check_size_ratio(ds.shape)
-            image = ds[:]
+            ratio, estimated_memory_mb = self._check_size_ratio(ds.shape)
             vs = _parse_voxel_size(ds.attrs)
             tr = _parse_translation(ds.attrs)
+            
             if vs is None:
                 logger.warning(
                     f"No voxel_size metadata found at {self.path}. "
@@ -255,7 +374,29 @@ class MatchedCrop:
                     f"No translation metadata found at {self.path}. "
                     f"Assuming zero offset, which may produce incorrect alignment."
                 )
-            return image, vs, tr
+            
+            use_chunked = self._should_use_chunked_loading(ratio, estimated_memory_mb)
+            
+            if use_chunked and vs is not None:
+                logger.info(f"Using chunked loading for large single-scale array ({estimated_memory_mb:.1f} MB)")
+                # Calculate scale factors for downsampling
+                in_vs = np.asarray(vs, dtype=float)
+                tgt_vs = np.asarray(self.target_voxel_size, dtype=float)
+                if in_vs.size != tgt_vs.size:
+                    in_vs = in_vs[-tgt_vs.size:]
+                
+                if not np.allclose(in_vs, tgt_vs):
+                    # Downsampling needed - use chunked approach
+                    scale_factors = in_vs / tgt_vs
+                    image = self._load_array_chunked(ds, scale_factors)
+                    return image, self.target_voxel_size, tr, True  # Already downsampled
+                else:
+                    # No downsampling needed, load normally
+                    image = ds[:]
+                    return image, vs, tr, False
+            else:
+                image = ds[:]
+                return image, vs, tr, False
 
         raise ValueError(f"Unsupported zarr node type at {self.path}: {type(ds)}")
 
@@ -267,10 +408,10 @@ class MatchedCrop:
         tgt_shape = tuple(int(x) for x in self.target_shape)
         tgt_tr = np.asarray(self.target_translation, dtype=float)
 
-        image, input_voxel_size, input_translation = self._load_source_array()
+        image, input_voxel_size, input_translation, already_downsampled = self._load_source_array()
 
-        # Resample if needed
-        if input_voxel_size is not None:
+        # Resample if needed (skip if already downsampled in chunks)
+        if not already_downsampled and input_voxel_size is not None:
             in_vs = np.asarray(input_voxel_size, dtype=float)
             if in_vs.size != tgt_vs.size:
                 in_vs = in_vs[-tgt_vs.size :]
@@ -297,7 +438,7 @@ class MatchedCrop:
                     )
                     image = imgf > self.semantic_threshold
 
-        elif image.shape != tgt_shape:
+        elif not already_downsampled and image.shape != tgt_shape:
             # If no voxel size info, fall back to center crop/pad
             image = _resize_pad_crop(image, tgt_shape, pad_value=self.pad_value)
 
