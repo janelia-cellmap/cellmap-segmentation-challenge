@@ -1,9 +1,9 @@
+import copy
 import os
 import tempfile
 from glob import glob
 from typing import Any
 
-import numpy as np
 import torch
 import torchvision.transforms.v2 as T
 from cellmap_data import CellMapDatasetWriter, CellMapImage
@@ -18,7 +18,15 @@ from upath import UPath
 
 from .config import CROP_NAME, PREDICTIONS_PATH, RAW_NAME, SEARCH_PATH
 from .models import get_model
-from .utils import load_safe_config, get_test_crops
+from .utils import (
+    load_safe_config,
+    get_test_crops,
+    get_data_from_batch,
+    get_singleton_dim,
+    squeeze_singleton_dim,
+    structure_model_output,
+    unsqueeze_singleton_dim,
+)
 from .utils.datasplit import get_formatted_fields, get_raw_path
 
 
@@ -111,36 +119,102 @@ def _predict(
         The batch size to use for prediction
     """
 
-    value_transforms = T.Compose(
-        [
-            T.ToDtype(torch.float, scale=True),
-            NaNtoNum({"nan": 0, "posinf": None, "neginf": None}),
-        ],
-    )
-
-    dataset_writer = CellMapDatasetWriter(
-        **dataset_writer_kwargs, raw_value_transforms=value_transforms
-    )
-    dataloader = dataset_writer.loader(batch_size=batch_size)
     model.eval()
+    device = dataset_writer_kwargs["device"]
+    input_keys = list(dataset_writer_kwargs["input_arrays"].keys())
+
+    # Test a single batch to get number of output channels
+    test_batch = {
+        k: torch.rand((1, *info["shape"])).unsqueeze(0).to(device)
+        for k, info in dataset_writer_kwargs["input_arrays"].items()
+    }
+    test_inputs = get_data_from_batch(test_batch, input_keys, device)
+    # Apply the same singleton-dimension squeezing as in the main prediction loop
+    singleton_dim = get_singleton_dim(
+        list(dataset_writer_kwargs["input_arrays"].values())[0]["shape"]
+    )
+    if singleton_dim is not None:
+        test_inputs = squeeze_singleton_dim(test_inputs, singleton_dim + 1)
+    with torch.no_grad():
+        test_outputs = model(test_inputs)
+    model_returns_class_dict = False
+    num_channels_per_class = None
+    if isinstance(test_outputs, dict):
+        if set(test_outputs.keys()) == set(dataset_writer_kwargs["classes"]):
+            # Keys are the class names; values are already per-class tensors
+            model_returns_class_dict = True
+        else:
+            # Dict with non-class keys (e.g., resolution levels): use the first
+            # value tensor to detect the channel count
+            test_outputs = next(iter(test_outputs.values()))
+    if not model_returns_class_dict and test_outputs.shape[1] > len(
+        dataset_writer_kwargs["classes"]
+    ):
+        if test_outputs.shape[1] % len(dataset_writer_kwargs["classes"]) == 0:
+            num_channels_per_class = test_outputs.shape[1] // len(
+                dataset_writer_kwargs["classes"]
+            )
+            # To avoid mutating the input dictionary (which may be shared across multiple
+            # prediction calls), create a deep copy of target_arrays and update the shape
+            # to include the channel dimension.
+            target_arrays_copy = copy.deepcopy(dataset_writer_kwargs["target_arrays"])
+            for key in target_arrays_copy.keys():
+                current_shape = target_arrays_copy[key]["shape"]
+                # Use the first input array's shape to determine expected spatial rank
+                # (all input arrays should have the same spatial dimensions)
+                first_input_key = next(iter(dataset_writer_kwargs["input_arrays"]))
+                expected_spatial_rank = len(
+                    dataset_writer_kwargs["input_arrays"][first_input_key]["shape"]
+                )
+                # Only prepend the channel dimension if the shape doesn't already include it
+                # We check if the current rank matches the expected spatial rank (no channel dim yet)
+                if len(current_shape) == expected_spatial_rank:
+                    target_arrays_copy[key]["shape"] = (
+                        num_channels_per_class,
+                        *current_shape,
+                    )
+            # Replace target_arrays in the kwargs with the modified copy
+            dataset_writer_kwargs = {
+                **dataset_writer_kwargs,
+                "target_arrays": target_arrays_copy,
+            }
+        else:
+            raise ValueError(
+                f"Number of output channels ({test_outputs.shape[1]}) does not match number of "
+                f"classes ({len(dataset_writer_kwargs['classes'])}). Should be a multiple of the "
+                "number of classes."
+            )
+    del test_batch, test_inputs, test_outputs
+
+    if "raw_value_transforms" not in dataset_writer_kwargs:
+        dataset_writer_kwargs["raw_value_transforms"] = T.Compose(
+            [
+                T.ToDtype(torch.float, scale=True),
+                NaNtoNum({"nan": 0, "posinf": None, "neginf": None}),
+            ],
+        )
+
+    dataset_writer = CellMapDatasetWriter(**dataset_writer_kwargs)
+    dataloader = dataset_writer.loader(batch_size=batch_size)
+
     # Find singleton dimension if there is one
     # Only the first singleton dimension will be used for squeezing/unsqueezing.
     # If there are multiple singleton dimensions, only the first is handled.
-    singleton_dim = np.where(
-        [s == 1 for s in dataset_writer_kwargs["input_arrays"]["input"]["shape"]]
-    )[0]
-    singleton_dim = singleton_dim[0] if singleton_dim.size > 0 else None
     with torch.no_grad():
         for batch in tqdm(dataloader, dynamic_ncols=True):
-            # Get the inputs and outputs
-            inputs = batch["input"].to(dataset_writer_kwargs["device"])
+            # Get the inputs, handling dict vs. tensor data
+            inputs = get_data_from_batch(batch, input_keys, device)
             if singleton_dim is not None:
-                # Remove singleton dimension
-                inputs = inputs.squeeze(dim=singleton_dim + 2)
+                inputs = squeeze_singleton_dim(inputs, singleton_dim + 2)
             outputs = model(inputs)
             if singleton_dim is not None:
-                outputs = outputs.unsqueeze(dim=singleton_dim + 2)
-            outputs = {"output": outputs}
+                outputs = unsqueeze_singleton_dim(outputs, singleton_dim + 2)
+
+            outputs = structure_model_output(
+                outputs,
+                dataset_writer_kwargs["classes"],
+                num_channels_per_class,
+            )
 
             # Save the outputs
             dataset_writer[batch["idx"]] = outputs
@@ -185,6 +259,16 @@ def predict(
         config, "input_array_info", {"shape": (1, 128, 128), "scale": (8, 8, 8)}
     )
     target_array_info = getattr(config, "target_array_info", input_array_info)
+    value_transforms = getattr(
+        config,
+        "value_transforms",
+        T.Compose(
+            [
+                T.ToDtype(torch.float, scale=True),
+                NaNtoNum({"nan": 0, "posinf": None, "neginf": None}),
+            ],
+        ),
+    )
     model = config.model
 
     # %% Check that the GPU is available
@@ -266,6 +350,7 @@ def predict(
                     "target_bounds": target_bounds,
                     "overwrite": overwrite,
                     "device": device,
+                    "raw_value_transforms": value_transforms,
                 }
             )
     else:
@@ -322,6 +407,7 @@ def predict(
                     "target_bounds": target_bounds,
                     "overwrite": overwrite,
                     "device": device,
+                    "raw_value_transforms": value_transforms,
                 }
             )
 

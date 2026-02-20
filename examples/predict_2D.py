@@ -1,4 +1,5 @@
 # This file is used to predict the segmentation logits of the 3D test datasets using the model trained in the train_2D.py script.
+# It does so by using the 'train_2D.py' configuration file, and the 'predict' function from the cellmap_segmentation_challenge package, which loads the trained model and runs inference on the test data.
 # %%
 # Imports
 from cellmap_segmentation_challenge import predict

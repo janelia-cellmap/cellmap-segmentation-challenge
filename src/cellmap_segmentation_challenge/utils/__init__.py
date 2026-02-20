@@ -30,6 +30,11 @@ __getattr__, __dir__, __all__ = lazy.attach(
             "download_file",
             "format_string",
             "get_git_hash",
+            "get_data_from_batch",
+            "structure_model_output",
+            "get_singleton_dim",
+            "squeeze_singleton_dim",
+            "unsqueeze_singleton_dim",
         ],
         "submission": [
             "package_submission",
