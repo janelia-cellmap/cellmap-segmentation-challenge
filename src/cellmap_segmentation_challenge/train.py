@@ -1,3 +1,4 @@
+import gc
 import os
 import random
 import time
@@ -78,6 +79,32 @@ def train(config_path: str):
     """
     # Pick the fastest deterministic algorithm for the hardware
     torch.backends.cudnn.deterministic = True
+
+    # Helper functions for memory management
+    def _clone_tensors(obj):
+        """Recursively clone tensors in nested structures (dicts, lists, tuples)."""
+        if isinstance(obj, dict):
+            return {k: _clone_tensors(v) for k, v in obj.items()}
+        if isinstance(obj, (list, tuple)):
+            cloned_list = [_clone_tensors(v) for v in obj]
+            return type(obj)(cloned_list)
+        return obj.detach().clone() if torch.is_tensor(obj) else obj
+
+    def _clear_memory(force_gc=False):
+        """Clear GPU cache and optionally trigger garbage collection."""
+        if force_gc:
+            gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+    def _save_training_batch_for_viz(batch, inputs, outputs, targets):
+        """Save a clone of the last training batch for visualization fallback."""
+        return (
+            _clone_tensors(batch),
+            _clone_tensors(inputs),
+            _clone_tensors(outputs),
+            _clone_tensors(targets),
+        )
 
     # %% Load the configuration file
     config = load_safe_config(config_path)
@@ -407,6 +434,30 @@ def train(config_path: str):
             # Log the loss using tensorboard
             writer.add_scalar("loss", loss.item(), n_iter)
 
+            # Save last batch for visualization if validation won't run
+            # Only save when needed to minimize memory overhead
+            if (
+                epoch_iter == iterations_per_epoch - 1
+                and (val_loader is None or len(val_loader.loader) == 0)
+            ):
+                last_train_batch, last_train_inputs, last_train_outputs, last_train_targets = (
+                    _save_training_batch_for_viz(batch, inputs, outputs, targets)
+                )
+            
+            # Clean up references to free memory
+            del batch, inputs, targets, outputs, loss
+
+            # Periodically clear GPU cache to prevent memory accumulation
+            if epoch_iter > 0 and epoch_iter % 100 == 0:
+                _clear_memory()
+
+        # Clean up iterator to free memory
+        # Note: 'loader' is the iterator created from 'iter(train_loader.loader)' on line 359
+        del loader
+
+        # Trigger garbage collection to reclaim memory
+        _clear_memory(force_gc=True)
+
         if scheduler is not None:
             # Step the scheduler at the end of each epoch
             scheduler.step()
@@ -441,7 +492,7 @@ def train(config_path: str):
                 )
 
             # Free up GPU memory, disable backprop etc.
-            torch.cuda.empty_cache()
+            _clear_memory()
             optimizer.zero_grad()
             model.eval()
 
@@ -485,42 +536,78 @@ def train(config_path: str):
                 # Update the progress bar
                 post_fix_dict["Validation"] = f"{val_score:.4f}"
 
-        # Generate and save figures from the last batch of the validation to appear in tensorboard
-        if isinstance(outputs, dict):
-            outputs = list(outputs.values())
-        if len(input_keys) == len(target_keys) != 1:
-            # If the number of input and target keys is the same, assume they are paired
-            for i, (in_key, target_key) in enumerate(zip(input_keys, target_keys)):
-                figs = get_fig_dict(
-                    input_data=batch[in_key],
-                    target_data=batch[target_key],
-                    outputs=outputs[i],
-                    classes=classes,
-                )
-                array_name = longest_common_substring(in_key, target_key)
+            # Trigger garbage collection and clear GPU cache for memory no longer referenced
+            # Note: validation batch tensors remain referenced for visualization below
+            _clear_memory(force_gc=True)
+
+        # Generate and save figures from the last batch (validation if available, otherwise training)
+        # Check if validation batch variables exist; if not, try to use saved training batch
+        has_batch_for_viz = False
+        try:
+            # Try to access validation batch variables
+            _ = batch
+            has_batch_for_viz = True
+        except NameError:
+            # Validation didn't run, try to use saved training batch if it exists
+            try:
+                batch = last_train_batch
+                inputs = last_train_inputs
+                outputs = last_train_outputs
+                targets = last_train_targets
+                has_batch_for_viz = True
+            except NameError:
+                # No batch available for visualization (training didn't reach last iteration)
+                pass
+
+        # Generate figures from the batch data if available
+        if has_batch_for_viz:
+            if isinstance(outputs, dict):
+                outputs = list(outputs.values())
+            if len(input_keys) == len(target_keys) != 1:
+                # If the number of input and target keys is the same, assume they are paired
+                for i, (in_key, target_key) in enumerate(zip(input_keys, target_keys)):
+                    figs = get_fig_dict(
+                        input_data=batch[in_key],
+                        target_data=batch[target_key],
+                        outputs=outputs[i],
+                        classes=classes,
+                    )
+                    array_name = longest_common_substring(in_key, target_key)
+                    for name, fig in figs.items():
+                        writer.add_figure(f"{name}: {array_name}", fig, n_iter)
+                        plt.close(fig)
+
+            else:
+                # If the number of input and target keys is not the same, assume that only the first input and target keys match
+                if isinstance(outputs, list):
+                    outputs = outputs[0]
+                if isinstance(inputs, dict):
+                    inputs = list(inputs.values())[0]
+                elif isinstance(inputs, list):
+                    inputs = inputs[0]
+                if isinstance(targets, dict):
+                    targets = list(targets.values())[0]
+                elif isinstance(targets, list):
+                    targets = targets[0]
+                figs = get_fig_dict(inputs, targets, outputs, classes)
                 for name, fig in figs.items():
-                    writer.add_figure(f"{name}: {array_name}", fig, n_iter)
+                    writer.add_figure(name, fig, n_iter)
                     plt.close(fig)
 
-        else:
-            # If the number of input and target keys is not the same, assume that only the first input and target keys match
-            if isinstance(outputs, list):
-                outputs = outputs[0]
-            if isinstance(inputs, dict):
-                inputs = list(inputs.values())[0]
-            elif isinstance(inputs, list):
-                inputs = inputs[0]
-            if isinstance(targets, dict):
-                targets = list(targets.values())[0]
-            elif isinstance(targets, list):
-                targets = targets[0]
-            figs = get_fig_dict(inputs, targets, outputs, classes)
-            for name, fig in figs.items():
-                writer.add_figure(name, fig, n_iter)
-                plt.close(fig)
+            # Clean up batch references after visualization
+            try:
+                del batch, inputs, outputs, targets
+            except NameError:
+                pass  # Variables may not exist in edge cases
+        
+        # Clean up saved training batch variables if they exist
+        try:
+            del last_train_batch, last_train_inputs, last_train_outputs, last_train_targets
+        except NameError:
+            pass  # Variables don't exist if validation ran or training didn't reach the saving step
 
-        # Clear the GPU memory again
-        torch.cuda.empty_cache()
+        # Clear the GPU memory and trigger garbage collection
+        _clear_memory(force_gc=True)
 
     # Close the summarywriter
     writer.close()
