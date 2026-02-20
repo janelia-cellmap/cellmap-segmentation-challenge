@@ -155,30 +155,38 @@ def package_crop(crop, zarr_group, overwrite, input_search_path=PROCESSED_PATH):
     else:
         crop_group = zarr_group[f"crop{crop.id}"]
 
-    logging.info(f"Scaling {crop_path} to {crop.voxel_size} nm")
-    # Match the resolution, spatial position, and shape of the processed volume to the test volume
-    image = match_crop_space(
-        path=crop_path.path,
-        class_label=crop.class_label,
-        voxel_size=crop.voxel_size,
-        shape=crop.shape,
-        translation=crop.translation,
-    )
-    image = image.astype(np.uint8)
-    # Save the processed labels to the submission zarr
-    label_array = crop_group.create_dataset(
-        crop.class_label,
-        overwrite=overwrite,
-        shape=crop.shape,
-        dtype=image.dtype,
-    )
-    label_array[:] = image
-    # Add the metadata
-    label_array.attrs["voxel_size"] = crop.voxel_size
-    label_array.attrs["translation"] = crop.translation
-    label_array.attrs["shape"] = crop.shape
+    try:
+        logging.info(f"Scaling {crop_path} to {crop.voxel_size} nm")
+        # Match the resolution, spatial position, and shape of the processed volume to the test volume
+        image = match_crop_space(
+            path=crop_path.path,
+            class_label=crop.class_label,
+            voxel_size=crop.voxel_size,
+            shape=crop.shape,
+            translation=crop.translation,
+        )
+        image = image.astype(np.uint8)
+        # Save the processed labels to the submission zarr
+        label_array = crop_group.create_dataset(
+            crop.class_label,
+            overwrite=overwrite,
+            shape=crop.shape,
+            dtype=image.dtype,
+        )
+        label_array[:] = image
+        # Add the metadata
+        label_array.attrs["voxel_size"] = crop.voxel_size
+        label_array.attrs["translation"] = crop.translation
+        label_array.attrs["shape"] = crop.shape
 
-    return crop_path.path
+        return crop_path.path
+    except Exception as e:
+        error_msg = (
+            f"Failed to package crop {crop.id} ({crop.class_label}) from {crop_path}. "
+            f"Error: {type(e).__name__}: {e}"
+        )
+        logging.error(error_msg)
+        return f"Error: {error_msg}"
 
 
 def package_submission(
@@ -220,22 +228,46 @@ def package_submission(
         input_search_path=input_search_path,
     )
     successful_crops = 0
+    failed_crops = []
+    skipped_crops = []
     for crop_path in tqdm(
         pool.map(partial_package_crop, TEST_CROPS),
         total=len(TEST_CROPS),
         dynamic_ncols=True,
         desc="Packaging crops...",
     ):
-        if "skipping" in crop_path.lower():
-            tqdm.write(f"{crop_path} skipped.")
+        # Ensure crop_path is a string for reliable string operations
+        if crop_path is None:
+            logging.warning("Received None from package_crop, treating as empty string")
+            crop_path_str = ""
         else:
-            tqdm.write(f"Packaged {crop_path}")
+            crop_path_str = str(crop_path)
+
+        if crop_path_str.lower().startswith("error:"):
+            tqdm.write(crop_path_str)
+            failed_crops.append(crop_path_str)
+        elif "skipping" in crop_path_str.lower():
+            tqdm.write(f"{crop_path_str} skipped.")
+            skipped_crops.append(crop_path_str)
+        else:
+            tqdm.write(f"Packaged {crop_path_str}")
             successful_crops += 1
+
     logging.info(f"Packaged {successful_crops}/{len(TEST_CROPS)} crops.")
+    if skipped_crops:
+        logging.info(f"Skipped {len(skipped_crops)} crops (files did not exist).")
+    if failed_crops:
+        logging.error(f"Failed to package {len(failed_crops)} crops:")
+        for error in failed_crops:
+            logging.error(f"  {error}")
+
     logging.info(f"Saved submission to {output_path}")
 
     if successful_crops == 0:
-        raise RuntimeError("No crops were packaged; submission zarr is empty.")
+        raise RuntimeError(
+            f"No crops were packaged; submission zarr is empty. "
+            f"Skipped {len(skipped_crops)}, failed {len(failed_crops)}."
+        )
 
     logging.info("Zipping submission...")
     zip_submission(output_path)
