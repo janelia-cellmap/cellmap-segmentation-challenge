@@ -21,6 +21,7 @@ from .models import get_model
 from .utils import (
     load_safe_config,
     get_test_crops,
+    get_test_crop_labels,
     get_data_from_batch,
     get_singleton_dim,
     squeeze_singleton_dim,
@@ -336,6 +337,11 @@ def predict(
                 },
             }
 
+            # Get the labels that should be scored for this specific crop from the test_crop_manifest
+            crop_labels = get_test_crop_labels(crop.id)
+            # Filter to only include labels that are in the model's classes
+            filtered_classes = [c for c in classes if c in crop_labels]
+
             # Create the writer
             dataset_writers.append(
                 {
@@ -344,7 +350,7 @@ def predict(
                         crop=f"crop{crop.id}",
                         dataset=crop.dataset,
                     ),
-                    "classes": classes,
+                    "classes": filtered_classes,
                     "input_arrays": input_arrays,
                     "target_arrays": target_arrays,
                     "target_bounds": target_bounds,
