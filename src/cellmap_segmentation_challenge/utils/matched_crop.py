@@ -15,8 +15,9 @@ logger = logging.getLogger(__name__)
 
 # Maximum allowed size ratio between source and target arrays
 # Can be set via environment variable for flexibility
-# Default is 8x in each dimension (512x total volume size ratio)
-MAX_VOLUME_SIZE_RATIO = float(os.environ.get("MAX_VOLUME_SIZE_RATIO", 8**3))
+# Default is 4x in each dimension (64x total volume size ratio)
+# This limits memory usage to reasonable levels (e.g., 256MB for typical crops)
+MAX_VOLUME_SIZE_RATIO = float(os.environ.get("MAX_VOLUME_SIZE_RATIO", 4**3))
 
 
 def _get_attr_any(attrs, keys):
@@ -140,10 +141,26 @@ class MatchedCrop:
             )
         src_size = np.prod(source_shape)
         ratio = src_size / tgt_size
+        
+        # Estimate memory usage (assuming float32, 4 bytes per voxel)
+        estimated_memory_mb = (src_size * 4) / (1024 * 1024)
+        
         if ratio > MAX_VOLUME_SIZE_RATIO:
             raise ValueError(
                 f"Source array at {self.path} is too large compared to target shape: "
-                f"source size {src_size}, target size {tgt_size}, ratio {ratio:.1f} > {MAX_VOLUME_SIZE_RATIO}"
+                f"source size {src_size} voxels, target size {tgt_size} voxels, "
+                f"ratio {ratio:.1f}x > {MAX_VOLUME_SIZE_RATIO}x limit. "
+                f"Estimated memory: {estimated_memory_mb:.1f} MB. "
+                f"This will cause memory allocation issues. "
+                f"Please downsample your predictions to a resolution closer to the target."
+            )
+        
+        # Warn if loading will use significant memory
+        if estimated_memory_mb > 500:
+            logger.warning(
+                f"Loading large array from {self.path}: {source_shape} = {src_size} voxels. "
+                f"Estimated memory: {estimated_memory_mb:.1f} MB. "
+                f"Consider downsampling your predictions to reduce memory usage."
             )
 
     def _load_source_array(self):
