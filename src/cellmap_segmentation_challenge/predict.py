@@ -125,7 +125,7 @@ def _predict(
 
     # Test a single batch to get number of output channels
     test_batch = {
-        k: torch.rand([1] + info["shape"]).unsqueeze(0).to(device)
+        k: torch.rand((1, *info["shape"])).unsqueeze(0).to(device)
         for k, info in dataset_writer_kwargs["input_arrays"].items()
     }
     test_inputs = get_data_from_batch(test_batch, input_keys, device)
