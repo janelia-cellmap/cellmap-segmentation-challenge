@@ -4,7 +4,6 @@ import tempfile
 from glob import glob
 from typing import Any
 
-import numpy as np
 import torch
 import torchvision.transforms.v2 as T
 from cellmap_data import CellMapDatasetWriter, CellMapImage
@@ -126,12 +125,14 @@ def _predict(
 
     # Test a single batch to get number of output channels
     test_batch = {
-        k: torch.rand(info["shape"]).unsqueeze(0).to(device)
+        k: torch.rand([1] + info["shape"]).unsqueeze(0).to(device)
         for k, info in dataset_writer_kwargs["input_arrays"].items()
     }
     test_inputs = get_data_from_batch(test_batch, input_keys, device)
     # Apply the same singleton-dimension squeezing as in the main prediction loop
-    singleton_dim = get_singleton_dim(test_inputs)
+    singleton_dim = get_singleton_dim(
+        list(dataset_writer_kwargs["input_arrays"].values())[0]["shape"]
+    )
     if singleton_dim is not None:
         test_inputs = squeeze_singleton_dim(test_inputs, singleton_dim)
     with torch.no_grad():
@@ -173,7 +174,10 @@ def _predict(
                         *current_shape,
                     )
             # Replace target_arrays in the kwargs with the modified copy
-            dataset_writer_kwargs = {**dataset_writer_kwargs, "target_arrays": target_arrays_copy}
+            dataset_writer_kwargs = {
+                **dataset_writer_kwargs,
+                "target_arrays": target_arrays_copy,
+            }
         else:
             raise ValueError(
                 f"Number of output channels ({test_outputs.shape[1]}) does not match number of "
@@ -182,16 +186,15 @@ def _predict(
             )
     del test_batch, test_inputs, test_outputs
 
-    value_transforms = T.Compose(
-        [
-            T.ToDtype(torch.float, scale=True),
-            NaNtoNum({"nan": 0, "posinf": None, "neginf": None}),
-        ],
-    )
+    if "raw_value_transforms" not in dataset_writer_kwargs:
+        dataset_writer_kwargs["raw_value_transforms"] = T.Compose(
+            [
+                T.ToDtype(torch.float, scale=True),
+                NaNtoNum({"nan": 0, "posinf": None, "neginf": None}),
+            ],
+        )
 
-    dataset_writer = CellMapDatasetWriter(
-        **dataset_writer_kwargs, raw_value_transforms=value_transforms
-    )
+    dataset_writer = CellMapDatasetWriter(**dataset_writer_kwargs)
     dataloader = dataset_writer.loader(batch_size=batch_size)
 
     # Find singleton dimension if there is one
@@ -256,6 +259,16 @@ def predict(
         config, "input_array_info", {"shape": (1, 128, 128), "scale": (8, 8, 8)}
     )
     target_array_info = getattr(config, "target_array_info", input_array_info)
+    value_transforms = getattr(
+        config,
+        "value_transforms",
+        T.Compose(
+            [
+                T.ToDtype(torch.float, scale=True),
+                NaNtoNum({"nan": 0, "posinf": None, "neginf": None}),
+            ],
+        ),
+    )
     model = config.model
 
     # %% Check that the GPU is available
@@ -337,6 +350,7 @@ def predict(
                     "target_bounds": target_bounds,
                     "overwrite": overwrite,
                     "device": device,
+                    "raw_value_transforms": value_transforms,
                 }
             )
     else:
@@ -393,6 +407,7 @@ def predict(
                     "target_bounds": target_bounds,
                     "overwrite": overwrite,
                     "device": device,
+                    "raw_value_transforms": value_transforms,
                 }
             )
 
