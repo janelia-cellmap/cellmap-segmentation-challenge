@@ -88,7 +88,7 @@ class TestGetTestCropLabels:
     """Tests for get_test_crop_labels function"""
 
     def test_get_test_crop_labels_returns_list(self):
-        """Test that get_test_crop_labels returns a list"""
+        """Test that get_test_crop_labels returns a non-empty list for valid crop"""
         # Get the first crop ID from the manifest
         test_crops = fetch_test_crop_manifest()
         if not test_crops:
@@ -96,6 +96,7 @@ class TestGetTestCropLabels:
         first_crop_id = test_crops[0].id
         labels = get_test_crop_labels(first_crop_id)
         assert isinstance(labels, list)
+        assert len(labels) > 0, "Expected non-empty list for valid crop ID"
 
     def test_get_test_crop_labels_returns_correct_labels(self):
         """Test that get_test_crop_labels returns the correct labels for a crop"""
@@ -142,8 +143,8 @@ class TestGetTestCropLabels:
         labels = get_test_crop_labels(999999)
         assert labels == []
     
-    def test_filtering_model_classes_for_test_crops(self):
-        """Test that model classes are properly filtered for each test crop"""
+    def test_filter_logic_with_simulated_classes(self):
+        """Test the filtering logic using simulated model and crop classes"""
         test_crops = fetch_test_crop_manifest()
         if not test_crops:
             return  # Skip if no test crops available

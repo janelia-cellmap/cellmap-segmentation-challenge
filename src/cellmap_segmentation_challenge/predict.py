@@ -233,7 +233,8 @@ def _predict(
                         # If it's not a dict (just a tensor), we need to index the tensor
                         # This assumes the tensor has shape (B, C, ...) where C corresponds to model_classes
                         # We need to select only the channels for classes_to_save
-                        class_indices = [model_classes.index(c) for c in classes_to_save if c in model_classes]
+                        # classes_to_save should be a subset of model_classes by design
+                        class_indices = [model_classes.index(c) for c in classes_to_save]
                         filtered_outputs[array_name] = class_outputs[:, class_indices, ...]
                 outputs = filtered_outputs
 
