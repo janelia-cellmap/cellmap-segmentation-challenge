@@ -235,6 +235,26 @@ class TestStructureModelOutput:
         with pytest.raises(ValueError, match="does not match expected"):
             structure_model_output(d, CLASSES, num_channels_per_class=2)
 
+    def test_tensor_num_channels_per_class_equals_one(self):
+        """Test that num_channels_per_class=1 is treated the same as None (returns tensor, not dict)"""
+        out = torch.zeros(2, 3, 8, 8)  # 3 classes, 1 ch each
+        result = structure_model_output(out, CLASSES, num_channels_per_class=1)
+        assert set(result.keys()) == {"output"}
+        # Should return a plain tensor, not a dict of class names
+        assert isinstance(result["output"], torch.Tensor)
+        assert result["output"].shape == (2, 3, 8, 8)
+
+    def test_resolution_dict_num_channels_per_class_equals_one(self):
+        """Test that num_channels_per_class=1 with resolution dict returns tensors, not nested dicts"""
+        d = {"8nm": torch.zeros(2, 3, 8, 8), "32nm": torch.zeros(2, 3, 4, 4)}
+        result = structure_model_output(d, CLASSES, num_channels_per_class=1)
+        assert set(result.keys()) == {"8nm", "32nm"}
+        # Should return plain tensors, not dicts
+        assert isinstance(result["8nm"], torch.Tensor)
+        assert isinstance(result["32nm"], torch.Tensor)
+        assert result["8nm"].shape == (2, 3, 8, 8)
+        assert result["32nm"].shape == (2, 3, 4, 4)
+
 
 class TestDownloadFile:
     """Tests for download_file function"""
