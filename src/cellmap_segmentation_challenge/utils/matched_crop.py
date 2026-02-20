@@ -172,11 +172,13 @@ class MatchedCrop:
     def _load_array_chunked(self, arr: zarr.Array, scale_factors: Tuple[float, ...]) -> np.ndarray:
         """
         Load and downsample a zarr array in chunks to reduce memory usage.
-        This method should only be called when downsampling is needed (scale_factors < 1.0).
         
         Args:
             arr: The zarr array to load
-            scale_factors: Scale factors for downsampling (in_vs / tgt_vs), values < 1.0 indicate downsampling
+            scale_factors: Scale factors for rescaling (in_vs / tgt_vs).
+                When input has finer resolution than target (in_vs < tgt_vs),
+                scale_factors < 1.0, causing rescale() to downsample.
+                Example: in_vs=2nm, tgt_vs=8nm → scale_factors=0.25 → output is 0.25x input size
         
         Returns:
             The downsampled array as a numpy array
@@ -228,7 +230,9 @@ class MatchedCrop:
                         )
                         # Don't threshold here, will be done at the end
                     
-                    # Calculate output position (multiply by scale_factors since they represent output/input ratio)
+                    # Calculate output position
+                    # scale_factors represents the ratio of dimensions (output_size / input_size)
+                    # When downsampling (in_vs < tgt_vs), scale_factors < 1.0
                     out_z_start = int(z_start * scale_factors[0])
                     out_z_end = min(int(np.ceil(z_end * scale_factors[0])), output_shape[0])
                     out_y_start = int(y_start * scale_factors[1])
@@ -341,7 +345,8 @@ class MatchedCrop:
                     
                     if not np.allclose(in_vs, tgt_vs):
                         # Downsampling needed - use chunked approach
-                        # scale_factors = in_vs / tgt_vs (< 1.0 for downsampling)
+                        # scale_factors = in_vs / tgt_vs
+                        # When in_vs < tgt_vs (fine→coarse), scale_factors < 1.0, causing rescale to downsample
                         scale_factors = in_vs / tgt_vs
                         image = self._load_array_chunked(arr, scale_factors)
                         return image, self.target_voxel_size, tr, True  # Already downsampled
@@ -389,7 +394,8 @@ class MatchedCrop:
                 
                 if not np.allclose(in_vs, tgt_vs):
                     # Downsampling needed - use chunked approach
-                    # scale_factors = in_vs / tgt_vs (< 1.0 for downsampling)
+                    # scale_factors = in_vs / tgt_vs
+                    # When in_vs < tgt_vs (fine→coarse), scale_factors < 1.0, causing rescale to downsample
                     scale_factors = in_vs / tgt_vs
                     image = self._load_array_chunked(ds, scale_factors)
                     return image, self.target_voxel_size, tr, True  # Already downsampled
