@@ -283,7 +283,8 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for cellmap_segmentation_challenge.train</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 
@@ -365,6 +366,32 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Pick the fastest deterministic algorithm for the hardware</span>
     <span class="n">torch</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">cudnn</span><span class="o">.</span><span class="n">deterministic</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="c1"># Helper functions for memory management</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_clone_tensors</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Recursively clone tensors in nested structures (dicts, lists, tuples).&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">_clone_tensors</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="n">cloned_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_clone_tensors</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">]</span>
+            <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)(</span><span class="n">cloned_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">is_tensor</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="k">else</span> <span class="n">obj</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_clear_memory</span><span class="p">(</span><span class="n">force_gc</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clear GPU cache and optionally trigger garbage collection.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">force_gc</span><span class="p">:</span>
+            <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">empty_cache</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_save_training_batch_for_viz</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save a clone of the last training batch for visualization fallback.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">_clone_tensors</span><span class="p">(</span><span class="n">batch</span><span class="p">),</span>
+            <span class="n">_clone_tensors</span><span class="p">(</span><span class="n">inputs</span><span class="p">),</span>
+            <span class="n">_clone_tensors</span><span class="p">(</span><span class="n">outputs</span><span class="p">),</span>
+            <span class="n">_clone_tensors</span><span class="p">(</span><span class="n">targets</span><span class="p">),</span>
+        <span class="p">)</span>
 
     <span class="c1"># %% Load the configuration file</span>
     <span class="n">config</span> <span class="o">=</span> <span class="n">load_safe_config</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span>
@@ -694,6 +721,30 @@ document.write(`
             <span class="c1"># Log the loss using tensorboard</span>
             <span class="n">writer</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="s2">&quot;loss&quot;</span><span class="p">,</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="n">n_iter</span><span class="p">)</span>
 
+            <span class="c1"># Save last batch for visualization if validation won&#39;t run</span>
+            <span class="c1"># Only save when needed to minimize memory overhead</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">epoch_iter</span> <span class="o">==</span> <span class="n">iterations_per_epoch</span> <span class="o">-</span> <span class="mi">1</span>
+                <span class="ow">and</span> <span class="p">(</span><span class="n">val_loader</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">val_loader</span><span class="o">.</span><span class="n">loader</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="p">):</span>
+                <span class="n">last_train_batch</span><span class="p">,</span> <span class="n">last_train_inputs</span><span class="p">,</span> <span class="n">last_train_outputs</span><span class="p">,</span> <span class="n">last_train_targets</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">_save_training_batch_for_viz</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span>
+                <span class="p">)</span>
+            
+            <span class="c1"># Clean up references to free memory</span>
+            <span class="k">del</span> <span class="n">batch</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">loss</span>
+
+            <span class="c1"># Periodically clear GPU cache to prevent memory accumulation</span>
+            <span class="k">if</span> <span class="n">epoch_iter</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">epoch_iter</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">_clear_memory</span><span class="p">()</span>
+
+        <span class="c1"># Clean up iterator to free memory</span>
+        <span class="c1"># Note: &#39;loader&#39; is the iterator created from &#39;iter(train_loader.loader)&#39; on line 359</span>
+        <span class="k">del</span> <span class="n">loader</span>
+
+        <span class="c1"># Trigger garbage collection to reclaim memory</span>
+        <span class="n">_clear_memory</span><span class="p">(</span><span class="n">force_gc</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">scheduler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Step the scheduler at the end of each epoch</span>
             <span class="n">scheduler</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
@@ -728,7 +779,7 @@ document.write(`
                 <span class="p">)</span>
 
             <span class="c1"># Free up GPU memory, disable backprop etc.</span>
-            <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">empty_cache</span><span class="p">()</span>
+            <span class="n">_clear_memory</span><span class="p">()</span>
             <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
             <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
 
@@ -772,42 +823,78 @@ document.write(`
                 <span class="c1"># Update the progress bar</span>
                 <span class="n">post_fix_dict</span><span class="p">[</span><span class="s2">&quot;Validation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">val_score</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span>
 
-        <span class="c1"># Generate and save figures from the last batch of the validation to appear in tensorboard</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-            <span class="n">outputs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">outputs</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_keys</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_keys</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="c1"># If the number of input and target keys is the same, assume they are paired</span>
-            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">in_key</span><span class="p">,</span> <span class="n">target_key</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">input_keys</span><span class="p">,</span> <span class="n">target_keys</span><span class="p">)):</span>
-                <span class="n">figs</span> <span class="o">=</span> <span class="n">get_fig_dict</span><span class="p">(</span>
-                    <span class="n">input_data</span><span class="o">=</span><span class="n">batch</span><span class="p">[</span><span class="n">in_key</span><span class="p">],</span>
-                    <span class="n">target_data</span><span class="o">=</span><span class="n">batch</span><span class="p">[</span><span class="n">target_key</span><span class="p">],</span>
-                    <span class="n">outputs</span><span class="o">=</span><span class="n">outputs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
-                    <span class="n">classes</span><span class="o">=</span><span class="n">classes</span><span class="p">,</span>
-                <span class="p">)</span>
-                <span class="n">array_name</span> <span class="o">=</span> <span class="n">longest_common_substring</span><span class="p">(</span><span class="n">in_key</span><span class="p">,</span> <span class="n">target_key</span><span class="p">)</span>
+            <span class="c1"># Trigger garbage collection and clear GPU cache for memory no longer referenced</span>
+            <span class="c1"># Note: validation batch tensors remain referenced for visualization below</span>
+            <span class="n">_clear_memory</span><span class="p">(</span><span class="n">force_gc</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Generate and save figures from the last batch (validation if available, otherwise training)</span>
+        <span class="c1"># Check if validation batch variables exist; if not, try to use saved training batch</span>
+        <span class="n">has_batch_for_viz</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Try to access validation batch variables</span>
+            <span class="n">_</span> <span class="o">=</span> <span class="n">batch</span>
+            <span class="n">has_batch_for_viz</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+            <span class="c1"># Validation didn&#39;t run, try to use saved training batch if it exists</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">batch</span> <span class="o">=</span> <span class="n">last_train_batch</span>
+                <span class="n">inputs</span> <span class="o">=</span> <span class="n">last_train_inputs</span>
+                <span class="n">outputs</span> <span class="o">=</span> <span class="n">last_train_outputs</span>
+                <span class="n">targets</span> <span class="o">=</span> <span class="n">last_train_targets</span>
+                <span class="n">has_batch_for_viz</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+                <span class="c1"># No batch available for visualization (training didn&#39;t reach last iteration)</span>
+                <span class="k">pass</span>
+
+        <span class="c1"># Generate figures from the batch data if available</span>
+        <span class="k">if</span> <span class="n">has_batch_for_viz</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="n">outputs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">outputs</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_keys</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_keys</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="c1"># If the number of input and target keys is the same, assume they are paired</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">in_key</span><span class="p">,</span> <span class="n">target_key</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">input_keys</span><span class="p">,</span> <span class="n">target_keys</span><span class="p">)):</span>
+                    <span class="n">figs</span> <span class="o">=</span> <span class="n">get_fig_dict</span><span class="p">(</span>
+                        <span class="n">input_data</span><span class="o">=</span><span class="n">batch</span><span class="p">[</span><span class="n">in_key</span><span class="p">],</span>
+                        <span class="n">target_data</span><span class="o">=</span><span class="n">batch</span><span class="p">[</span><span class="n">target_key</span><span class="p">],</span>
+                        <span class="n">outputs</span><span class="o">=</span><span class="n">outputs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">classes</span><span class="o">=</span><span class="n">classes</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">array_name</span> <span class="o">=</span> <span class="n">longest_common_substring</span><span class="p">(</span><span class="n">in_key</span><span class="p">,</span> <span class="n">target_key</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">fig</span> <span class="ow">in</span> <span class="n">figs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="n">writer</span><span class="o">.</span><span class="n">add_figure</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">array_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">n_iter</span><span class="p">)</span>
+                        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># If the number of input and target keys is not the same, assume that only the first input and target keys match</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="n">outputs</span> <span class="o">=</span> <span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                    <span class="n">inputs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="n">inputs</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                    <span class="n">targets</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">targets</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="n">targets</span> <span class="o">=</span> <span class="n">targets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">figs</span> <span class="o">=</span> <span class="n">get_fig_dict</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">classes</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">fig</span> <span class="ow">in</span> <span class="n">figs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                    <span class="n">writer</span><span class="o">.</span><span class="n">add_figure</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">array_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">n_iter</span><span class="p">)</span>
+                    <span class="n">writer</span><span class="o">.</span><span class="n">add_figure</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">n_iter</span><span class="p">)</span>
                     <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
 
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># If the number of input and target keys is not the same, assume that only the first input and target keys match</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-                <span class="n">outputs</span> <span class="o">=</span> <span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                <span class="n">inputs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-                <span class="n">inputs</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                <span class="n">targets</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">targets</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-                <span class="n">targets</span> <span class="o">=</span> <span class="n">targets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">figs</span> <span class="o">=</span> <span class="n">get_fig_dict</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">classes</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">fig</span> <span class="ow">in</span> <span class="n">figs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="n">writer</span><span class="o">.</span><span class="n">add_figure</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">n_iter</span><span class="p">)</span>
-                <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+            <span class="c1"># Clean up batch references after visualization</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">del</span> <span class="n">batch</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">targets</span>
+            <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+                <span class="k">pass</span>  <span class="c1"># Variables may not exist in edge cases</span>
+        
+        <span class="c1"># Clean up saved training batch variables if they exist</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">last_train_batch</span><span class="p">,</span> <span class="n">last_train_inputs</span><span class="p">,</span> <span class="n">last_train_outputs</span><span class="p">,</span> <span class="n">last_train_targets</span>
+        <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+            <span class="k">pass</span>  <span class="c1"># Variables don&#39;t exist if validation ran or training didn&#39;t reach the saving step</span>
 
-        <span class="c1"># Clear the GPU memory again</span>
-        <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">empty_cache</span><span class="p">()</span>
+        <span class="c1"># Clear the GPU memory and trigger garbage collection</span>
+        <span class="n">_clear_memory</span><span class="p">(</span><span class="n">force_gc</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># Close the summarywriter</span>
     <span class="n">writer</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
