@@ -123,6 +123,11 @@ def _predict(
     model.eval()
     device = dataset_writer_kwargs["device"]
     input_keys = list(dataset_writer_kwargs["input_arrays"].keys())
+    
+    # Get the classes to use for model output (all classes the model was trained on)
+    # vs the classes to actually save (filtered by test_crop_manifest)
+    model_classes = dataset_writer_kwargs.get("model_classes", dataset_writer_kwargs["classes"])
+    classes_to_save = dataset_writer_kwargs["classes"]
 
     # Test a single batch to get number of output channels
     test_batch = {
@@ -141,20 +146,16 @@ def _predict(
     model_returns_class_dict = False
     num_channels_per_class = None
     if isinstance(test_outputs, dict):
-        if set(test_outputs.keys()) == set(dataset_writer_kwargs["classes"]):
+        if set(test_outputs.keys()) == set(model_classes):
             # Keys are the class names; values are already per-class tensors
             model_returns_class_dict = True
         else:
             # Dict with non-class keys (e.g., resolution levels): use the first
             # value tensor to detect the channel count
             test_outputs = next(iter(test_outputs.values()))
-    if not model_returns_class_dict and test_outputs.shape[1] > len(
-        dataset_writer_kwargs["classes"]
-    ):
-        if test_outputs.shape[1] % len(dataset_writer_kwargs["classes"]) == 0:
-            num_channels_per_class = test_outputs.shape[1] // len(
-                dataset_writer_kwargs["classes"]
-            )
+    if not model_returns_class_dict and test_outputs.shape[1] > len(model_classes):
+        if test_outputs.shape[1] % len(model_classes) == 0:
+            num_channels_per_class = test_outputs.shape[1] // len(model_classes)
             # To avoid mutating the input dictionary (which may be shared across multiple
             # prediction calls), create a deep copy of target_arrays and update the shape
             # to include the channel dimension.
@@ -182,7 +183,7 @@ def _predict(
         else:
             raise ValueError(
                 f"Number of output channels ({test_outputs.shape[1]}) does not match number of "
-                f"classes ({len(dataset_writer_kwargs['classes'])}). Should be a multiple of the "
+                f"classes ({len(model_classes)}). Should be a multiple of the "
                 "number of classes."
             )
     del test_batch, test_inputs, test_outputs
@@ -213,9 +214,28 @@ def _predict(
 
             outputs = structure_model_output(
                 outputs,
-                dataset_writer_kwargs["classes"],
+                model_classes,
                 num_channels_per_class,
             )
+            
+            # Filter outputs to only include the classes that should be saved
+            if model_classes != classes_to_save:
+                filtered_outputs = {}
+                for array_name, class_outputs in outputs.items():
+                    if isinstance(class_outputs, dict):
+                        # Filter to only include classes_to_save
+                        filtered_outputs[array_name] = {
+                            class_name: class_tensor
+                            for class_name, class_tensor in class_outputs.items()
+                            if class_name in classes_to_save
+                        }
+                    else:
+                        # If it's not a dict (just a tensor), we need to index the tensor
+                        # This assumes the tensor has shape (B, C, ...) where C corresponds to model_classes
+                        # We need to select only the channels for classes_to_save
+                        class_indices = [model_classes.index(c) for c in classes_to_save if c in model_classes]
+                        filtered_outputs[array_name] = class_outputs[:, class_indices, ...]
+                outputs = filtered_outputs
 
             # Save the outputs
             dataset_writer[batch["idx"]] = outputs
@@ -343,6 +363,8 @@ def predict(
             filtered_classes = [c for c in classes if c in crop_labels]
 
             # Create the writer
+            # Note: We pass all classes to the model for prediction, but only the filtered
+            # classes will be saved by the CellMapDatasetWriter
             dataset_writers.append(
                 {
                     "raw_path": raw_path,
@@ -351,6 +373,7 @@ def predict(
                         dataset=crop.dataset,
                     ),
                     "classes": filtered_classes,
+                    "model_classes": classes,  # All classes the model was trained on
                     "input_arrays": input_arrays,
                     "target_arrays": target_arrays,
                     "target_bounds": target_bounds,
