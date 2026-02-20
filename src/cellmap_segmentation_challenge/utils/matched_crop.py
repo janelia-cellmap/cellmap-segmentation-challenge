@@ -172,11 +172,11 @@ class MatchedCrop:
     def _load_array_chunked(self, arr: zarr.Array, scale_factors: Tuple[float, ...]) -> np.ndarray:
         """
         Load and downsample a zarr array in chunks to reduce memory usage.
-        This method should only be called when downsampling is needed (scale_factors != 1.0).
+        This method should only be called when downsampling is needed (scale_factors < 1.0).
         
         Args:
             arr: The zarr array to load
-            scale_factors: Scale factors for downsampling (in_vs / tgt_vs)
+            scale_factors: Scale factors for downsampling (in_vs / tgt_vs), values < 1.0 indicate downsampling
         
         Returns:
             The downsampled array as a numpy array
@@ -184,6 +184,7 @@ class MatchedCrop:
         logger.info(f"Loading and downsampling array in chunks with scale factors: {scale_factors}")
         
         # Calculate output shape after downsampling
+        # scale_factors < 1.0 means downsampling, so output is smaller
         output_shape = tuple(int(np.ceil(s * sf)) for s, sf in zip(arr.shape, scale_factors))
         output = np.zeros(output_shape, dtype=arr.dtype if self._is_instance() else np.float32)
         
@@ -225,10 +226,9 @@ class MatchedCrop:
                             mode="constant",
                             preserve_range=True,
                         )
-                        if not self._is_instance():
-                            chunk_downsampled = (chunk_downsampled > self.semantic_threshold).astype(np.float32)
+                        # Don't threshold here, will be done at the end
                     
-                    # Calculate output position
+                    # Calculate output position (multiply by scale_factors since they represent output/input ratio)
                     out_z_start = int(z_start * scale_factors[0])
                     out_z_end = min(int(np.ceil(z_end * scale_factors[0])), output_shape[0])
                     out_y_start = int(y_start * scale_factors[1])
@@ -251,9 +251,9 @@ class MatchedCrop:
                     # Place downsampled chunk in output
                     output[out_z_start:out_z_end, out_y_start:out_y_end, out_x_start:out_x_end] = chunk_downsampled
         
-        # Convert back to bool if semantic
+        # Convert back to bool if semantic (threshold once at the end)
         if not self._is_instance():
-            output = output > 0.5
+            output = output > self.semantic_threshold
         
         return output
 
@@ -306,12 +306,13 @@ class MatchedCrop:
                 use_chunked = self._should_use_chunked_loading(ratio, estimated_memory_mb)
                 
                 if use_chunked:
-                    logger.info(f"Using chunked loading for large OME-NGFF array ({estimated_memory_mb:.1f} MB)")
-                    # For OME-NGFF, we rely on CellMapImage which should handle large arrays efficiently
-                    # Just load normally but log the chunked approach
-                    image = arr[:]
-                else:
-                    image = arr[:]
+                    logger.warning(
+                        f"Large OME-NGFF array detected ({estimated_memory_mb:.1f} MB). "
+                        f"Loading entire array - CellMapImage should have already selected appropriate resolution level. "
+                        f"If memory issues occur, ensure predictions are saved at appropriate resolution."
+                    )
+                
+                image = arr[:]
                 return image, input_voxel_size, input_translation, False  # Not downsampled in chunks
             except Exception as e:
                 raise ValueError(
@@ -340,6 +341,7 @@ class MatchedCrop:
                     
                     if not np.allclose(in_vs, tgt_vs):
                         # Downsampling needed - use chunked approach
+                        # scale_factors = in_vs / tgt_vs (< 1.0 for downsampling)
                         scale_factors = in_vs / tgt_vs
                         image = self._load_array_chunked(arr, scale_factors)
                         return image, self.target_voxel_size, tr, True  # Already downsampled
@@ -387,6 +389,7 @@ class MatchedCrop:
                 
                 if not np.allclose(in_vs, tgt_vs):
                     # Downsampling needed - use chunked approach
+                    # scale_factors = in_vs / tgt_vs (< 1.0 for downsampling)
                     scale_factors = in_vs / tgt_vs
                     image = self._load_array_chunked(ds, scale_factors)
                     return image, self.target_voxel_size, tr, True  # Already downsampled
