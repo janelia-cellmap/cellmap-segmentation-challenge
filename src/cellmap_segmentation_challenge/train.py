@@ -436,7 +436,10 @@ def train(config_path: str):
 
             # Save last batch for visualization if validation won't run
             # Only save when needed to minimize memory overhead
-            if epoch_iter == iterations_per_epoch - 1 and len(val_loader.loader) == 0:
+            if (
+                epoch_iter == iterations_per_epoch - 1
+                and (val_loader is None or len(val_loader.loader) == 0)
+            ):
                 last_train_batch, last_train_inputs, last_train_outputs, last_train_targets = (
                     _save_training_batch_for_viz(batch, inputs, outputs, targets)
                 )
