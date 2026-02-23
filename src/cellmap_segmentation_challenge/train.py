@@ -443,14 +443,16 @@ def train(config_path: str):
 
             # Save last batch for visualization if validation won't run
             # Only save when needed to minimize memory overhead
-            if (
-                epoch_iter == iterations_per_epoch - 1
-                and (val_loader is None or len(val_loader.loader) == 0)
+            if epoch_iter == iterations_per_epoch - 1 and (
+                val_loader is None or len(val_loader.loader) == 0
             ):
-                last_train_batch, last_train_inputs, last_train_outputs, last_train_targets = (
-                    _save_training_batch_for_viz(batch, inputs, outputs, targets)
-                )
-            
+                (
+                    last_train_batch,
+                    last_train_inputs,
+                    last_train_outputs,
+                    last_train_targets,
+                ) = _save_training_batch_for_viz(batch, inputs, outputs, targets)
+
             # Clean up references to free memory
             del batch, inputs, targets, outputs, loss
 
@@ -580,6 +582,7 @@ def train(config_path: str):
                     array_name = longest_common_substring(in_key, target_key)
                     for name, fig in figs.items():
                         writer.add_figure(f"{name}: {array_name}", fig, n_iter)
+                        writer.flush()  # Ensure figures are written to disk
                         plt.close(fig)
 
             else:
@@ -597,6 +600,7 @@ def train(config_path: str):
                 figs = get_fig_dict(inputs, targets, outputs, classes)
                 for name, fig in figs.items():
                     writer.add_figure(name, fig, n_iter)
+                    writer.flush()  # Ensure figures are written to disk
                     plt.close(fig)
 
             # Clean up batch references after visualization
@@ -604,10 +608,15 @@ def train(config_path: str):
                 del batch, inputs, outputs, targets
             except NameError:
                 pass  # Variables may not exist in edge cases
-        
+
         # Clean up saved training batch variables if they exist
         try:
-            del last_train_batch, last_train_inputs, last_train_outputs, last_train_targets
+            del (
+                last_train_batch,
+                last_train_inputs,
+                last_train_outputs,
+                last_train_targets,
+            )
         except NameError:
             pass  # Variables don't exist if validation ran or training didn't reach the saving step
 

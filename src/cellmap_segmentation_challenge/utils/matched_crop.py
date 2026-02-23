@@ -186,8 +186,9 @@ class MatchedCrop:
         logger.info(f"Loading and downsampling array in chunks with scale factors: {scale_factors}")
         
         # Calculate output shape after downsampling
-        # scale_factors < 1.0 means downsampling, so output is smaller
-        output_shape = tuple(int(np.ceil(s * sf)) for s, sf in zip(arr.shape, scale_factors))
+        # Use round() to match skimage.transform.rescale's internal output-shape calculation,
+        # which avoids off-by-one errors when input_size * scale_factor is a half-integer.
+        output_shape = tuple(max(1, int(np.round(s * sf))) for s, sf in zip(arr.shape, scale_factors))
         output = np.zeros(output_shape, dtype=arr.dtype if self._is_instance() else np.float32)
         
         # Determine chunk size based on memory constraints
@@ -240,20 +241,19 @@ class MatchedCrop:
                     out_x_start = int(x_start * scale_factors[2])
                     out_x_end = min(int(np.ceil(x_end * scale_factors[2])), output_shape[2])
                     
-                    # Get actual downsampled chunk shape
-                    chunk_out_shape = (
-                        out_z_end - out_z_start,
-                        out_y_end - out_y_start,
-                        out_x_end - out_x_start
+                    # Place downsampled chunk in output, clamping to actual chunk shape
+                    # to handle rounding differences between ceil (position math) and
+                    # round (skimage rescale internal) for half-integer scaled sizes.
+                    ds_z, ds_y, ds_x = chunk_downsampled.shape
+                    out_z_end_actual = min(out_z_start + ds_z, output_shape[0])
+                    out_y_end_actual = min(out_y_start + ds_y, output_shape[1])
+                    out_x_end_actual = min(out_x_start + ds_x, output_shape[2])
+                    sl_z = out_z_end_actual - out_z_start
+                    sl_y = out_y_end_actual - out_y_start
+                    sl_x = out_x_end_actual - out_x_start
+                    output[out_z_start:out_z_end_actual, out_y_start:out_y_end_actual, out_x_start:out_x_end_actual] = (
+                        chunk_downsampled[:sl_z, :sl_y, :sl_x]
                     )
-                    
-                    # Ensure chunk_downsampled matches expected output region
-                    if chunk_downsampled.shape != chunk_out_shape:
-                        # Crop or pad to match
-                        chunk_downsampled = chunk_downsampled[:chunk_out_shape[0], :chunk_out_shape[1], :chunk_out_shape[2]]
-                    
-                    # Place downsampled chunk in output
-                    output[out_z_start:out_z_end, out_y_start:out_y_end, out_x_start:out_x_end] = chunk_downsampled
         
         # Convert back to bool if semantic (threshold once at the end)
         if not self._is_instance():
