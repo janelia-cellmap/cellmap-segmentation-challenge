@@ -1,5 +1,6 @@
 """Unit tests for crops functions in cellmap_segmentation_challenge.utils.crops"""
 
+import pytest
 from cellmap_segmentation_challenge.utils.crops import (
     TestCropRow,
     CropRow,
@@ -92,7 +93,7 @@ class TestGetTestCropLabels:
         # Get the first crop ID from the manifest
         test_crops = fetch_test_crop_manifest()
         if not test_crops:
-            return  # Skip if no test crops available
+            pytest.skip("No test crops available")
         first_crop_id = test_crops[0].id
         labels = get_test_crop_labels(first_crop_id)
         assert isinstance(labels, list)
@@ -102,7 +103,7 @@ class TestGetTestCropLabels:
         """Test that get_test_crop_labels returns the correct labels for a crop"""
         test_crops = fetch_test_crop_manifest()
         if not test_crops:
-            return  # Skip if no test crops available
+            pytest.skip("No test crops available")
         
         # Get the first crop ID
         first_crop_id = test_crops[0].id
@@ -120,12 +121,12 @@ class TestGetTestCropLabels:
         """Test that different crops can have different numbers of labels"""
         test_crops = fetch_test_crop_manifest()
         if len(test_crops) < 2:
-            return  # Skip if not enough test crops
+            pytest.skip("Not enough test crops")
         
         # Get two different crop IDs
         crop_ids = list(set(crop.id for crop in test_crops))
         if len(crop_ids) < 2:
-            return
+            pytest.skip("Not enough distinct crop IDs")
         
         crop_id_1 = crop_ids[0]
         crop_id_2 = crop_ids[1]
@@ -147,7 +148,7 @@ class TestGetTestCropLabels:
         """Test the filtering logic using simulated model and crop classes"""
         test_crops = fetch_test_crop_manifest()
         if not test_crops:
-            return  # Skip if no test crops available
+            pytest.skip("No test crops available")
         
         # Simulate a model with many classes
         all_model_classes = ["mito", "er", "nuc", "cell", "golgi", "ves", "mt"]

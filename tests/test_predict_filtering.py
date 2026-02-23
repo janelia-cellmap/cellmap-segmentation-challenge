@@ -182,7 +182,8 @@ class TestPredictEndToEnd:
                     "cell": torch.randn(batch_size, 64, 64, 64),
                 }
             
-            mock_model.__call__ = mock_forward
+            # Use side_effect to properly mock the model's forward call
+            mock_model.side_effect = mock_forward
             
             # Create a mock config
             mock_config = Mock()
@@ -207,42 +208,36 @@ class TestPredictEndToEnd:
                  patch('cellmap_segmentation_challenge.predict.get_test_crop_labels') as mock_get_labels, \
                  patch('cellmap_segmentation_challenge.predict.load_safe_config') as mock_load_config, \
                  patch('cellmap_segmentation_challenge.predict.get_model') as mock_get_model, \
-                 patch('cellmap_segmentation_challenge.predict.CellMapDatasetWriter') as mock_writer_class:
+                 patch('cellmap_segmentation_challenge.predict.CellMapDatasetWriter') as mock_writer_class, \
+                 patch('cellmap_segmentation_challenge.predict._predict') as mock_predict_func:
                 
                 mock_get_crops.return_value = [mock_crop]
                 mock_get_labels.return_value = ["mito", "er"]  # Only these 2 labels for this crop
                 mock_load_config.return_value = mock_config
                 mock_get_model.return_value = None  # No checkpoint to load
                 
-                # Track what classes are passed to CellMapDatasetWriter
+                # Track what classes are passed to dataset_writers
                 captured_classes = []
                 
-                def capture_writer_init(**kwargs):
-                    captured_classes.append(kwargs.get("classes", []))
-                    mock_writer_instance = Mock()
-                    mock_writer_instance.loader = Mock(return_value=[])  # Empty loader to skip prediction loop
-                    return mock_writer_instance
+                # Mock _predict to capture the dataset_writer_kwargs
+                def capture_predict_call(model, dataset_writer_kwargs, batch_size):
+                    captured_classes.append(dataset_writer_kwargs.get("classes", []))
                 
-                mock_writer_class.side_effect = capture_writer_init
+                mock_predict_func.side_effect = capture_predict_call
                 
                 # Call predict with crops="test"
                 output_path = os.path.join(tmpdir, "{dataset}.zarr/{crop}")
                 
-                try:
-                    predict(
-                        config_path="fake_config.py",
-                        crops="test",
-                        output_path=output_path,
-                        do_orthoplanes=False,
-                        overwrite=True,
-                    )
-                except Exception as e:
-                    # The test might fail during actual prediction due to mocking,
-                    # but we can still verify that the classes were filtered correctly
-                    pass
+                predict(
+                    config_path="fake_config.py",
+                    crops="test",
+                    output_path=output_path,
+                    do_orthoplanes=False,
+                    overwrite=True,
+                )
                 
-                # Verify that CellMapDatasetWriter was called with only the filtered classes
-                assert len(captured_classes) > 0, "CellMapDatasetWriter should have been called"
+                # Verify that _predict was called with only the filtered classes
+                assert len(captured_classes) > 0, "_predict should have been called"
                 for classes_list in captured_classes:
                     # Should only have mito and er, not nuc and cell
                     assert set(classes_list) == {"mito", "er"}, \
