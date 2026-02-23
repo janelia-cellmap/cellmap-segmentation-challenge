@@ -506,6 +506,27 @@ document.write(`
 <span class="n">TEST_CROPS_DICT</span> <span class="o">=</span> <span class="p">{(</span><span class="n">crop</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">crop</span><span class="o">.</span><span class="n">class_label</span><span class="p">):</span> <span class="n">crop</span> <span class="k">for</span> <span class="n">crop</span> <span class="ow">in</span> <span class="n">TEST_CROPS</span><span class="p">}</span>
 
 
+<div class="viewcode-block" id="get_test_crop_labels">
+<a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.get_test_crop_labels">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_test_crop_labels</span><span class="p">(</span><span class="n">crop_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the list of class labels that should be scored for a specific test crop.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    crop_id : int</span>
+<span class="sd">        The ID of the test crop.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list[str]</span>
+<span class="sd">        A list of class labels that should be scored for the test crop.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">crop</span><span class="o">.</span><span class="n">class_label</span> <span class="k">for</span> <span class="n">crop</span> <span class="ow">in</span> <span class="n">TEST_CROPS</span> <span class="k">if</span> <span class="n">crop</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">crop_id</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">labels</span></div>
+
+
+
 <div class="viewcode-block" id="get_test_crops">
 <a class="viewcode-back" href="../../../cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.get_test_crops">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_test_crops</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">CropRow</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>

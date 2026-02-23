@@ -672,6 +672,7 @@ document.write(`
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.fetch_crop_manifest"><code class="docutils literal notranslate"><span class="pre">fetch_crop_manifest()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.get_test_crop_labels"><code class="docutils literal notranslate"><span class="pre">get_test_crop_labels()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.crops.get_test_crops"><code class="docutils literal notranslate"><span class="pre">get_test_crops()</span></code></a></li>
 </ul>
 </li>
@@ -831,6 +832,7 @@ document.write(`
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.get_git_hash"><code class="docutils literal notranslate"><span class="pre">get_git_hash()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.get_result_file"><code class="docutils literal notranslate"><span class="pre">get_result_file()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.get_singleton_dim"><code class="docutils literal notranslate"><span class="pre">get_singleton_dim()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.get_test_crop_labels"><code class="docutils literal notranslate"><span class="pre">get_test_crop_labels()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.get_test_crops"><code class="docutils literal notranslate"><span class="pre">get_test_crops()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.get_tested_classes"><code class="docutils literal notranslate"><span class="pre">get_tested_classes()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="cellmap_segmentation_challenge.utils.html#cellmap_segmentation_challenge.utils.load_safe_config"><code class="docutils literal notranslate"><span class="pre">load_safe_config()</span></code></a></li>
@@ -1731,7 +1733,10 @@ decompression bombs before extracting.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>config_path</strong> (<em>str</em>) – The path to the model configuration file. This can be the same as the config file used for training.</p></li>
-<li><p><strong>crops</strong> (<em>str</em><em>, </em><em>optional</em>) – A comma-separated list of crop numbers to predict on, or “test” to predict on the entire test set. Default is “test”.</p></li>
+<li><p><strong>crops</strong> (<em>str</em><em>, </em><em>optional</em>) – A comma-separated list of crop numbers to predict on, or “test” to predict on the entire test set. Default is “test”.
+When crops=”test”, only the labels specified in the test_crop_manifest for each crop will be saved.
+If a crop’s test_crop_manifest specifies labels that the model wasn’t trained on, those labels will be
+automatically filtered out (i.e., only the intersection of model classes and crop labels will be saved).</p></li>
 <li><p><strong>output_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The path to save the output predictions to, formatted as a string with a placeholders for the dataset, crop number, and label. Default is PREDICTIONS_PATH set in <cite>cellmap-segmentation/config.py</cite>.</p></li>
 <li><p><strong>do_orthoplanes</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to compute the average of predictions from x, y, and z orthogonal planes for the full 3D volume. This is sometimes called 2.5D predictions. It expects a model that yields 2D outputs. Similarly, it expects the input shape to the model to be 2D. Default is True for 2D models.</p></li>
 <li><p><strong>overwrite</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to overwrite the output dataset if it already exists. Default is False.</p></li>
@@ -1741,6 +1746,11 @@ decompression bombs before extracting.</p>
 </ul>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>When crops=”test”, the function will only save predictions for labels that are specified
+in the test_crop_manifest for each specific crop AND that the model was trained on (the
+intersection of both sets). This ensures that only the labels that will be scored are saved,
+reducing storage requirements and processing time.</p>
 </dd></dl>
 
 </section>
@@ -1928,7 +1938,10 @@ The process function should take an array as input and return an array as output
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>config_path</strong> (<em>str</em>) – The path to the model configuration file. This can be the same as the config file used for training.</p></li>
-<li><p><strong>crops</strong> (<em>str</em><em>, </em><em>optional</em>) – A comma-separated list of crop numbers to predict on, or “test” to predict on the entire test set. Default is “test”.</p></li>
+<li><p><strong>crops</strong> (<em>str</em><em>, </em><em>optional</em>) – A comma-separated list of crop numbers to predict on, or “test” to predict on the entire test set. Default is “test”.
+When crops=”test”, only the labels specified in the test_crop_manifest for each crop will be saved.
+If a crop’s test_crop_manifest specifies labels that the model wasn’t trained on, those labels will be
+automatically filtered out (i.e., only the intersection of model classes and crop labels will be saved).</p></li>
 <li><p><strong>output_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The path to save the output predictions to, formatted as a string with a placeholders for the dataset, crop number, and label. Default is PREDICTIONS_PATH set in <cite>cellmap-segmentation/config.py</cite>.</p></li>
 <li><p><strong>do_orthoplanes</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to compute the average of predictions from x, y, and z orthogonal planes for the full 3D volume. This is sometimes called 2.5D predictions. It expects a model that yields 2D outputs. Similarly, it expects the input shape to the model to be 2D. Default is True for 2D models.</p></li>
 <li><p><strong>overwrite</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to overwrite the output dataset if it already exists. Default is False.</p></li>
@@ -1938,6 +1951,11 @@ The process function should take an array as input and return an array as output
 </ul>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>When crops=”test”, the function will only save predictions for labels that are specified
+in the test_crop_manifest for each specific crop AND that the model was trained on (the
+intersection of both sets). This ensures that only the labels that will be scored are saved,
+reducing storage requirements and processing time.</p>
 </dd></dl>
 
 <dl class="py function">
