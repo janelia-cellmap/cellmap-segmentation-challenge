@@ -205,8 +205,7 @@ def get_test_crop_labels(crop_id: int) -> list[str]:
     list[str]
         A list of class labels that should be scored for the test crop.
     """
-    _test_crops = fetch_test_crop_manifest()
-    labels = [crop.class_label for crop in _test_crops if crop.id == crop_id]
+    labels = [crop.class_label for crop in TEST_CROPS if crop.id == crop_id]
     return labels
 
 

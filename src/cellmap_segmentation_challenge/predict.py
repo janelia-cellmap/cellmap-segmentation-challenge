@@ -129,6 +129,12 @@ def _predict(
     model_classes = dataset_writer_kwargs.get("model_classes", dataset_writer_kwargs["classes"])
     classes_to_save = dataset_writer_kwargs["classes"]
     
+    # Validate that classes_to_save is not empty
+    if not classes_to_save:
+        raise ValueError(
+            "classes_to_save is empty. This should have been filtered out before calling _predict."
+        )
+    
     # Create a mapping from class names to indices for efficient lookup during filtering
     model_class_to_index = {c: i for i, c in enumerate(model_classes)} if model_classes != classes_to_save else None
 
@@ -376,6 +382,14 @@ def predict(
             crop_labels = get_test_crop_labels(crop.id)
             # Filter to only include labels that are in the model's classes
             filtered_classes = [c for c in classes if c in crop_labels]
+            
+            # If there are no matching labels between the model and this crop, skip it
+            if not filtered_classes:
+                tqdm.write(
+                    f"Skipping crop {crop.id} (dataset={crop.dataset}) because there are "
+                    f"no labels in common between model classes {classes} and crop labels {crop_labels}."
+                )
+                continue
 
             # Create the writer
             # Note: We pass all classes to the model for prediction, but only the filtered
