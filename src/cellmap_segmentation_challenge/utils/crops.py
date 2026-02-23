@@ -191,6 +191,24 @@ TEST_CROPS = fetch_test_crop_manifest()
 TEST_CROPS_DICT = {(crop.id, crop.class_label): crop for crop in TEST_CROPS}
 
 
+def get_test_crop_labels(crop_id: int) -> list[str]:
+    """
+    Get the list of class labels that should be scored for a specific test crop.
+
+    Parameters
+    ----------
+    crop_id : int
+        The ID of the test crop.
+
+    Returns
+    -------
+    list[str]
+        A list of class labels that should be scored for the test crop.
+    """
+    labels = [crop.class_label for crop in TEST_CROPS if crop.id == crop_id]
+    return labels
+
+
 def get_test_crops() -> tuple[CropRow, ...]:
     _test_crops = fetch_test_crop_manifest()
     dataset_em_meta = {

@@ -12,6 +12,7 @@ __getattr__, __dir__, __all__ = lazy.attach(
             "TEST_CROPS",
             "TEST_CROPS_DICT",
             "get_test_crops",
+            "get_test_crop_labels",
         ],
         "dataloader": ["get_dataloader"],
         "datasplit": [

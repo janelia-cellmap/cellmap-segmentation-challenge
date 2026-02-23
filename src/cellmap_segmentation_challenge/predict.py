@@ -21,6 +21,7 @@ from .models import get_model
 from .utils import (
     load_safe_config,
     get_test_crops,
+    get_test_crop_labels,
     get_data_from_batch,
     get_singleton_dim,
     squeeze_singleton_dim,
@@ -122,6 +123,20 @@ def _predict(
     model.eval()
     device = dataset_writer_kwargs["device"]
     input_keys = list(dataset_writer_kwargs["input_arrays"].keys())
+    
+    # Get the classes to use for model output (all classes the model was trained on)
+    # vs the classes to actually save (filtered by test_crop_manifest)
+    model_classes = dataset_writer_kwargs.get("model_classes", dataset_writer_kwargs["classes"])
+    classes_to_save = dataset_writer_kwargs["classes"]
+    
+    # Validate that classes_to_save is not empty
+    if not classes_to_save:
+        raise ValueError(
+            "classes_to_save is empty. This should have been filtered out before calling _predict."
+        )
+    
+    # Create a mapping from class names to indices for efficient lookup during filtering
+    model_class_to_index = {c: i for i, c in enumerate(model_classes)} if model_classes != classes_to_save else None
 
     # Test a single batch to get number of output channels
     test_batch = {
@@ -140,20 +155,16 @@ def _predict(
     model_returns_class_dict = False
     num_channels_per_class = None
     if isinstance(test_outputs, dict):
-        if set(test_outputs.keys()) == set(dataset_writer_kwargs["classes"]):
+        if set(test_outputs.keys()) == set(model_classes):
             # Keys are the class names; values are already per-class tensors
             model_returns_class_dict = True
         else:
             # Dict with non-class keys (e.g., resolution levels): use the first
             # value tensor to detect the channel count
             test_outputs = next(iter(test_outputs.values()))
-    if not model_returns_class_dict and test_outputs.shape[1] > len(
-        dataset_writer_kwargs["classes"]
-    ):
-        if test_outputs.shape[1] % len(dataset_writer_kwargs["classes"]) == 0:
-            num_channels_per_class = test_outputs.shape[1] // len(
-                dataset_writer_kwargs["classes"]
-            )
+    if not model_returns_class_dict and test_outputs.shape[1] > len(model_classes):
+        if test_outputs.shape[1] % len(model_classes) == 0:
+            num_channels_per_class = test_outputs.shape[1] // len(model_classes)
             # To avoid mutating the input dictionary (which may be shared across multiple
             # prediction calls), create a deep copy of target_arrays and update the shape
             # to include the channel dimension.
@@ -181,7 +192,7 @@ def _predict(
         else:
             raise ValueError(
                 f"Number of output channels ({test_outputs.shape[1]}) does not match number of "
-                f"classes ({len(dataset_writer_kwargs['classes'])}). Should be a multiple of the "
+                f"classes ({len(model_classes)}). Should be a multiple of the "
                 "number of classes."
             )
     del test_batch, test_inputs, test_outputs
@@ -212,9 +223,30 @@ def _predict(
 
             outputs = structure_model_output(
                 outputs,
-                dataset_writer_kwargs["classes"],
+                model_classes,
                 num_channels_per_class,
             )
+            
+            # Filter outputs to only include the classes that should be saved
+            if model_class_to_index is not None:
+                filtered_outputs = {}
+                for array_name, class_outputs in outputs.items():
+                    if isinstance(class_outputs, dict):
+                        # Filter to only include classes_to_save
+                        filtered_outputs[array_name] = {
+                            class_name: class_tensor
+                            for class_name, class_tensor in class_outputs.items()
+                            if class_name in classes_to_save
+                        }
+                    else:
+                        # If it's not a dict (just a tensor), we need to index the tensor
+                        # This assumes the tensor has shape (B, C, ...) where C corresponds to model_classes
+                        # We need to select only the channels for classes_to_save
+                        # classes_to_save should be a subset of model_classes by design
+                        # Use pre-computed mapping for O(1) lookup instead of O(n) index()
+                        class_indices = [model_class_to_index[c] for c in classes_to_save]
+                        filtered_outputs[array_name] = class_outputs[:, class_indices, ...]
+                outputs = filtered_outputs
 
             # Save the outputs
             dataset_writer[batch["idx"]] = outputs
@@ -239,6 +271,9 @@ def predict(
         The path to the model configuration file. This can be the same as the config file used for training.
     crops: str, optional
         A comma-separated list of crop numbers to predict on, or "test" to predict on the entire test set. Default is "test".
+        When crops="test", only the labels specified in the test_crop_manifest for each crop will be saved.
+        If a crop's test_crop_manifest specifies labels that the model wasn't trained on, those labels will be 
+        automatically filtered out (i.e., only the intersection of model classes and crop labels will be saved).
     output_path: str, optional
         The path to save the output predictions to, formatted as a string with a placeholders for the dataset, crop number, and label. Default is PREDICTIONS_PATH set in `cellmap-segmentation/config.py`.
     do_orthoplanes: bool, optional
@@ -251,6 +286,13 @@ def predict(
         The name of the raw dataset. Default is RAW_NAME set in `cellmap-segmentation/config.py`.
     crop_name: str, optional
         The name of the crop dataset with placeholders for crop and label. Default is CROP_NAME set in `cellmap-segmentation/config.py`.
+        
+    Notes
+    -----
+    When crops="test", the function will only save predictions for labels that are specified 
+    in the test_crop_manifest for each specific crop AND that the model was trained on (the 
+    intersection of both sets). This ensures that only the labels that will be scored are saved, 
+    reducing storage requirements and processing time.
     """
     config = load_safe_config(config_path)
     classes = config.classes
@@ -336,7 +378,22 @@ def predict(
                 },
             }
 
+            # Get the labels that should be scored for this specific crop from the test_crop_manifest
+            crop_labels = get_test_crop_labels(crop.id)
+            # Filter to only include labels that are in the model's classes
+            filtered_classes = [c for c in classes if c in crop_labels]
+            
+            # If there are no matching labels between the model and this crop, skip it
+            if not filtered_classes:
+                tqdm.write(
+                    f"Skipping crop {crop.id} (dataset={crop.dataset}) because there are "
+                    f"no labels in common between model classes {classes} and crop labels {crop_labels}."
+                )
+                continue
+
             # Create the writer
+            # Note: We pass all classes to the model for prediction, but only the filtered
+            # classes will be saved by the CellMapDatasetWriter
             dataset_writers.append(
                 {
                     "raw_path": raw_path,
@@ -344,7 +401,8 @@ def predict(
                         crop=f"crop{crop.id}",
                         dataset=crop.dataset,
                     ),
-                    "classes": classes,
+                    "classes": filtered_classes,
+                    "model_classes": classes,  # All classes the model was trained on
                     "input_arrays": input_arrays,
                     "target_arrays": target_arrays,
                     "target_bounds": target_bounds,
