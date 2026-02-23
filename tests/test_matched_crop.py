@@ -595,3 +595,115 @@ def test_load_aligned_chunked_preserves_data_integrity(tmp_path, instance_classe
     assert out_chunked[7, 7, 7] == 2
     # Middle boundary should have one of the values
     assert out_chunked[4, 8//2, 8//2] in [1, 2]
+
+
+# ---------------------------------------------------------------
+# Regression tests for chunked resampling with odd-size arrays.
+#
+# When input_size * scale_factor is a half-integer whose floor is
+# even (e.g. 5 * 0.5 = 2.5, 65 * 0.5 = 32.5, 594 * 0.25 = 148.5),
+# skimage.transform.rescale uses np.round (banker's rounding) and
+# rounds *down* to the nearest even integer, while the old code used
+# np.ceil and rounded *up*.  This caused:
+#
+#   ValueError: could not broadcast input array from
+#               shape (148,148,148) into shape (149,149,149)
+#
+# The fix: use np.round for output_shape (matching rescale), and
+# derive output-slice bounds from the actual downsampled chunk shape.
+# ---------------------------------------------------------------
+
+
+def test_load_array_chunked_half_integer_instance(tmp_path, instance_classes):
+    """
+    Regression (instance class): 5 * 0.5 = 2.5 → np.ceil=3, np.round=2.
+    Old code raised a broadcast ValueError; output shape must be (2,2,2).
+    """
+    root, grp = _make_group(tmp_path)
+    src = np.ones((5, 5, 5), dtype=np.uint8)
+    arr = grp.create_dataset("data", data=src)
+
+    m = mc.MatchedCrop(
+        path=str(root),
+        class_label=INSTANCE_CLASSES[0],
+        target_voxel_size=(2, 2, 2),
+        target_shape=(2, 2, 2),
+        target_translation=(0, 0, 0),
+        instance_classes=instance_classes,
+    )
+
+    out = m._load_array_chunked(arr, (0.5, 0.5, 0.5))
+    assert out.shape == (2, 2, 2)
+    assert out.dtype == np.uint8
+    assert np.all(out == 1)
+
+
+def test_load_array_chunked_half_integer_semantic(tmp_path, instance_classes):
+    """
+    Regression (semantic class): same rounding scenario; output must be bool (2,2,2).
+    """
+    root, grp = _make_group(tmp_path)
+    src = np.ones((5, 5, 5), dtype=np.float32)
+    arr = grp.create_dataset("data", data=src)
+
+    sem_classes = set(get_tested_classes()) - set(instance_classes)
+    m = mc.MatchedCrop(
+        path=str(root),
+        class_label=sem_classes.pop(),
+        target_voxel_size=(2, 2, 2),
+        target_shape=(2, 2, 2),
+        target_translation=(0, 0, 0),
+        instance_classes=instance_classes,
+        semantic_threshold=0.5,
+    )
+
+    out = m._load_array_chunked(arr, (0.5, 0.5, 0.5))
+    assert out.shape == (2, 2, 2)
+    assert out.dtype == np.bool_
+    assert np.all(out)
+
+
+def test_load_array_chunked_multi_chunk_half_integer(
+    tmp_path, instance_classes, monkeypatch
+):
+    """
+    Regression across chunk boundaries: monkeypatches BYTES_PER_FLOAT32 to a huge
+    value so chunk_size_per_dim collapses to its minimum of 32, then uses a 65-voxel
+    input at scale 0.5.  65 * 0.5 = 32.5 → round=32, ceil=33; must not broadcast-error.
+
+    Uses a spatially-varying input (two halves with distinct values) so that
+    incorrect chunk placement would produce wrong output values:
+      - input  z=[0:32]  = 1  → expected output z=[0:16]  = 1
+      - input  z=[32:65] = 2  → expected output z=[16:32] = 2
+    All output voxels are non-zero, confirming no coverage gaps from rounding.
+    """
+    root, grp = _make_group(tmp_path)
+    src = np.zeros((65, 65, 65), dtype=np.uint8)
+    src[0:32, :, :] = 1   # first full chunk's input region
+    src[32:65, :, :] = 2  # second full chunk + one-voxel remainder
+    arr = grp.create_dataset("data", data=src)
+
+    m = mc.MatchedCrop(
+        path=str(root),
+        class_label=INSTANCE_CLASSES[0],
+        target_voxel_size=(2, 2, 2),
+        target_shape=(32, 32, 32),
+        target_translation=(0, 0, 0),
+        instance_classes=instance_classes,
+    )
+
+    # Force chunk_size_per_dim = 32:
+    #   chunk_voxels = int(100MB / 1e15) = 0  →  max(32, int(0 ** (1/3))) = 32
+    monkeypatch.setattr(mc, "BYTES_PER_FLOAT32", 1e15)
+
+    out = m._load_array_chunked(arr, (0.5, 0.5, 0.5))
+    # 65 * 0.5 = 32.5 → np.round (banker's) = 32
+    assert out.shape == (32, 32, 32)
+    assert out.dtype == np.uint8
+
+    # Coverage: every output voxel must be filled (no zero gaps left by rounding)
+    assert np.all(out > 0), "gap detected: some output voxels were left unfilled"
+
+    # Alignment: each chunk's data must land at the correct output coordinates
+    assert np.all(out[0:16, :, :] == 1), "chunk 1 data placed at wrong output position"
+    assert np.all(out[16:32, :, :] == 2), "chunk 2 data placed at wrong output position"
