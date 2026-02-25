@@ -411,20 +411,31 @@ document.write(`
     <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
     <span class="n">device</span> <span class="o">=</span> <span class="n">dataset_writer_kwargs</span><span class="p">[</span><span class="s2">&quot;device&quot;</span><span class="p">]</span>
     <span class="n">input_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">dataset_writer_kwargs</span><span class="p">[</span><span class="s2">&quot;input_arrays&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-    
+
+    <span class="k">if</span> <span class="s2">&quot;classes&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dataset_writer_kwargs</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">dataset_writer_kwargs</span><span class="p">[</span><span class="s2">&quot;classes&quot;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No classes specified in dataset_writer_kwargs&quot;</span><span class="p">)</span>
     <span class="c1"># Get the classes to use for model output (all classes the model was trained on)</span>
     <span class="c1"># vs the classes to actually save (filtered by test_crop_manifest)</span>
-    <span class="n">model_classes</span> <span class="o">=</span> <span class="n">dataset_writer_kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;model_classes&quot;</span><span class="p">,</span> <span class="n">dataset_writer_kwargs</span><span class="p">[</span><span class="s2">&quot;classes&quot;</span><span class="p">])</span>
-    <span class="n">classes_to_save</span> <span class="o">=</span> <span class="n">dataset_writer_kwargs</span><span class="p">[</span><span class="s2">&quot;classes&quot;</span><span class="p">]</span>
-    
+    <span class="n">model_classes</span> <span class="o">=</span> <span class="n">dataset_writer_kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s2">&quot;model_classes&quot;</span><span class="p">,</span> <span class="n">dataset_writer_kwargs</span><span class="p">[</span><span class="s2">&quot;classes&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="c1"># Restrict classes_to_save to only those the model knows about</span>
+    <span class="n">classes_to_save</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">dataset_writer_kwargs</span><span class="p">[</span><span class="s2">&quot;classes&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">model_classes</span>
+    <span class="p">]</span>
+    <span class="n">dataset_writer_kwargs</span><span class="p">[</span><span class="s2">&quot;classes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">classes_to_save</span>
+
     <span class="c1"># Validate that classes_to_save is not empty</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">classes_to_save</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;classes_to_save is empty. This should have been filtered out before calling _predict.&quot;</span>
-        <span class="p">)</span>
-    
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;classes_to_save is empty. Nothing to predict. Skipping.&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+
     <span class="c1"># Create a mapping from class names to indices for efficient lookup during filtering</span>
-    <span class="n">model_class_to_index</span> <span class="o">=</span> <span class="p">{</span><span class="n">c</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model_classes</span><span class="p">)}</span> <span class="k">if</span> <span class="n">model_classes</span> <span class="o">!=</span> <span class="n">classes_to_save</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">model_class_to_index</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">{</span><span class="n">c</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model_classes</span><span class="p">)}</span>
+        <span class="k">if</span> <span class="n">model_classes</span> <span class="o">!=</span> <span class="n">classes_to_save</span>
+        <span class="k">else</span> <span class="kc">None</span>
+    <span class="p">)</span>
 
     <span class="c1"># Test a single batch to get number of output channels</span>
     <span class="n">test_batch</span> <span class="o">=</span> <span class="p">{</span>
@@ -493,6 +504,9 @@ document.write(`
             <span class="p">],</span>
         <span class="p">)</span>
 
+    <span class="n">dataset_writer_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">dataset_writer_kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s2">&quot;model_classes&quot;</span>
+    <span class="p">}</span>
     <span class="n">dataset_writer</span> <span class="o">=</span> <span class="n">CellMapDatasetWriter</span><span class="p">(</span><span class="o">**</span><span class="n">dataset_writer_kwargs</span><span class="p">)</span>
     <span class="n">dataloader</span> <span class="o">=</span> <span class="n">dataset_writer</span><span class="o">.</span><span class="n">loader</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">)</span>
 
@@ -514,7 +528,7 @@ document.write(`
                 <span class="n">model_classes</span><span class="p">,</span>
                 <span class="n">num_channels_per_class</span><span class="p">,</span>
             <span class="p">)</span>
-            
+
             <span class="c1"># Filter outputs to only include the classes that should be saved</span>
             <span class="k">if</span> <span class="n">model_class_to_index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">filtered_outputs</span> <span class="o">=</span> <span class="p">{}</span>
@@ -532,8 +546,12 @@ document.write(`
                         <span class="c1"># We need to select only the channels for classes_to_save</span>
                         <span class="c1"># classes_to_save should be a subset of model_classes by design</span>
                         <span class="c1"># Use pre-computed mapping for O(1) lookup instead of O(n) index()</span>
-                        <span class="n">class_indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">model_class_to_index</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">classes_to_save</span><span class="p">]</span>
-                        <span class="n">filtered_outputs</span><span class="p">[</span><span class="n">array_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">class_outputs</span><span class="p">[:,</span> <span class="n">class_indices</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+                        <span class="n">class_indices</span> <span class="o">=</span> <span class="p">[</span>
+                            <span class="n">model_class_to_index</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">classes_to_save</span>
+                        <span class="p">]</span>
+                        <span class="n">filtered_outputs</span><span class="p">[</span><span class="n">array_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">class_outputs</span><span class="p">[</span>
+                            <span class="p">:,</span> <span class="n">class_indices</span><span class="p">,</span> <span class="o">...</span>
+                        <span class="p">]</span>
                 <span class="n">outputs</span> <span class="o">=</span> <span class="n">filtered_outputs</span>
 
             <span class="c1"># Save the outputs</span>
@@ -562,7 +580,7 @@ document.write(`
 <span class="sd">    crops: str, optional</span>
 <span class="sd">        A comma-separated list of crop numbers to predict on, or &quot;test&quot; to predict on the entire test set. Default is &quot;test&quot;.</span>
 <span class="sd">        When crops=&quot;test&quot;, only the labels specified in the test_crop_manifest for each crop will be saved.</span>
-<span class="sd">        If a crop&#39;s test_crop_manifest specifies labels that the model wasn&#39;t trained on, those labels will be </span>
+<span class="sd">        If a crop&#39;s test_crop_manifest specifies labels that the model wasn&#39;t trained on, those labels will be</span>
 <span class="sd">        automatically filtered out (i.e., only the intersection of model classes and crop labels will be saved).</span>
 <span class="sd">    output_path: str, optional</span>
 <span class="sd">        The path to save the output predictions to, formatted as a string with a placeholders for the dataset, crop number, and label. Default is PREDICTIONS_PATH set in `cellmap-segmentation/config.py`.</span>
@@ -576,12 +594,12 @@ document.write(`
 <span class="sd">        The name of the raw dataset. Default is RAW_NAME set in `cellmap-segmentation/config.py`.</span>
 <span class="sd">    crop_name: str, optional</span>
 <span class="sd">        The name of the crop dataset with placeholders for crop and label. Default is CROP_NAME set in `cellmap-segmentation/config.py`.</span>
-<span class="sd">        </span>
+
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
-<span class="sd">    When crops=&quot;test&quot;, the function will only save predictions for labels that are specified </span>
-<span class="sd">    in the test_crop_manifest for each specific crop AND that the model was trained on (the </span>
-<span class="sd">    intersection of both sets). This ensures that only the labels that will be scored are saved, </span>
+<span class="sd">    When crops=&quot;test&quot;, the function will only save predictions for labels that are specified</span>
+<span class="sd">    in the test_crop_manifest for each specific crop AND that the model was trained on (the</span>
+<span class="sd">    intersection of both sets). This ensures that only the labels that will be scored are saved,</span>
 <span class="sd">    reducing storage requirements and processing time.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">config</span> <span class="o">=</span> <span class="n">load_safe_config</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span>
@@ -672,7 +690,7 @@ document.write(`
             <span class="n">crop_labels</span> <span class="o">=</span> <span class="n">get_test_crop_labels</span><span class="p">(</span><span class="n">crop</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
             <span class="c1"># Filter to only include labels that are in the model&#39;s classes</span>
             <span class="n">filtered_classes</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">classes</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">crop_labels</span><span class="p">]</span>
-            
+
             <span class="c1"># If there are no matching labels between the model and this crop, skip it</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">filtered_classes</span><span class="p">:</span>
                 <span class="n">tqdm</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
