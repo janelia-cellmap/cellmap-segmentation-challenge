@@ -123,20 +123,31 @@ def _predict(
     model.eval()
     device = dataset_writer_kwargs["device"]
     input_keys = list(dataset_writer_kwargs["input_arrays"].keys())
-    
+
+    if "classes" not in dataset_writer_kwargs or not dataset_writer_kwargs["classes"]:
+        raise ValueError("No classes specified in dataset_writer_kwargs")
     # Get the classes to use for model output (all classes the model was trained on)
     # vs the classes to actually save (filtered by test_crop_manifest)
-    model_classes = dataset_writer_kwargs.get("model_classes", dataset_writer_kwargs["classes"])
-    classes_to_save = dataset_writer_kwargs["classes"]
-    
+    model_classes = dataset_writer_kwargs.get(
+        "model_classes", dataset_writer_kwargs["classes"]
+    )
+    # Restrict classes_to_save to only those the model knows about
+    classes_to_save = [
+        c for c in dataset_writer_kwargs["classes"] if c in model_classes
+    ]
+    dataset_writer_kwargs["classes"] = classes_to_save
+
     # Validate that classes_to_save is not empty
     if not classes_to_save:
-        raise ValueError(
-            "classes_to_save is empty. This should have been filtered out before calling _predict."
-        )
-    
+        print("classes_to_save is empty. Nothing to predict. Skipping.")
+        return
+
     # Create a mapping from class names to indices for efficient lookup during filtering
-    model_class_to_index = {c: i for i, c in enumerate(model_classes)} if model_classes != classes_to_save else None
+    model_class_to_index = (
+        {c: i for i, c in enumerate(model_classes)}
+        if model_classes != classes_to_save
+        else None
+    )
 
     # Test a single batch to get number of output channels
     test_batch = {
@@ -205,6 +216,9 @@ def _predict(
             ],
         )
 
+    dataset_writer_kwargs = {
+        k: v for k, v in dataset_writer_kwargs.items() if k != "model_classes"
+    }
     dataset_writer = CellMapDatasetWriter(**dataset_writer_kwargs)
     dataloader = dataset_writer.loader(batch_size=batch_size)
 
@@ -226,7 +240,7 @@ def _predict(
                 model_classes,
                 num_channels_per_class,
             )
-            
+
             # Filter outputs to only include the classes that should be saved
             if model_class_to_index is not None:
                 filtered_outputs = {}
@@ -244,8 +258,12 @@ def _predict(
                         # We need to select only the channels for classes_to_save
                         # classes_to_save should be a subset of model_classes by design
                         # Use pre-computed mapping for O(1) lookup instead of O(n) index()
-                        class_indices = [model_class_to_index[c] for c in classes_to_save]
-                        filtered_outputs[array_name] = class_outputs[:, class_indices, ...]
+                        class_indices = [
+                            model_class_to_index[c] for c in classes_to_save
+                        ]
+                        filtered_outputs[array_name] = class_outputs[
+                            :, class_indices, ...
+                        ]
                 outputs = filtered_outputs
 
             # Save the outputs
@@ -272,7 +290,7 @@ def predict(
     crops: str, optional
         A comma-separated list of crop numbers to predict on, or "test" to predict on the entire test set. Default is "test".
         When crops="test", only the labels specified in the test_crop_manifest for each crop will be saved.
-        If a crop's test_crop_manifest specifies labels that the model wasn't trained on, those labels will be 
+        If a crop's test_crop_manifest specifies labels that the model wasn't trained on, those labels will be
         automatically filtered out (i.e., only the intersection of model classes and crop labels will be saved).
     output_path: str, optional
         The path to save the output predictions to, formatted as a string with a placeholders for the dataset, crop number, and label. Default is PREDICTIONS_PATH set in `cellmap-segmentation/config.py`.
@@ -286,12 +304,12 @@ def predict(
         The name of the raw dataset. Default is RAW_NAME set in `cellmap-segmentation/config.py`.
     crop_name: str, optional
         The name of the crop dataset with placeholders for crop and label. Default is CROP_NAME set in `cellmap-segmentation/config.py`.
-        
+
     Notes
     -----
-    When crops="test", the function will only save predictions for labels that are specified 
-    in the test_crop_manifest for each specific crop AND that the model was trained on (the 
-    intersection of both sets). This ensures that only the labels that will be scored are saved, 
+    When crops="test", the function will only save predictions for labels that are specified
+    in the test_crop_manifest for each specific crop AND that the model was trained on (the
+    intersection of both sets). This ensures that only the labels that will be scored are saved,
     reducing storage requirements and processing time.
     """
     config = load_safe_config(config_path)
@@ -382,7 +400,7 @@ def predict(
             crop_labels = get_test_crop_labels(crop.id)
             # Filter to only include labels that are in the model's classes
             filtered_classes = [c for c in classes if c in crop_labels]
-            
+
             # If there are no matching labels between the model and this crop, skip it
             if not filtered_classes:
                 tqdm.write(

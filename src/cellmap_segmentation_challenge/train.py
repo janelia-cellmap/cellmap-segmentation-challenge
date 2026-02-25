@@ -184,7 +184,7 @@ def train(config_path: str):
     target_value_transforms = getattr(
         config,
         "target_value_transforms",
-        T.Compose([T.ToDtype(torch.float), Binarize()]),
+        T.Compose([T.ToDtype(torch.float, scale=True), Binarize(0.5)]),
     )
     max_grad_norm = getattr(config, "max_grad_norm", None)
     force_all_classes = getattr(config, "force_all_classes", "validate")
