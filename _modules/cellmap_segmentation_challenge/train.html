@@ -284,6 +284,7 @@ document.write(`
                   
   <h1>Source code for cellmap_segmentation_challenge.train</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
@@ -362,6 +363,7 @@ document.write(`
 <span class="sd">        - filter_by_scale: Whether to filter the data by scale. If True, only data with a scale less than or equal to the `input_array_info` highest resolution will be included in the datasplit. If set to a scalar value, data will be filtered for that isotropic resolution - anisotropic can be specified with a sequence of scalars. Default is False (no filtering).</span>
 <span class="sd">        - gradient_accumulation_steps: Number of gradient accumulation steps to use. Default is 1. This can be used to simulate larger batch sizes without increasing memory usage.</span>
 <span class="sd">        - dataloader_kwargs: Additional keyword arguments to pass to the CellMapDataLoader. Default is {}.</span>
+<span class="sd">        - debug_memory: Whether to enable memory debugging using `objgraph`. When True, object-growth statistics are printed before the training loop (as a baseline) and then periodically during training. Requires `pip install objgraph`; if the package is not found, a warning is printed and the flag is silently ignored. Default is False. The logging interval is controlled by the ``MEMORY_LOG_STEPS`` environment variable (default 100 iterations).</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -667,6 +669,21 @@ document.write(`
     <span class="nb">print</span><span class="p">(</span>
         <span class="sa">f</span><span class="s2">&quot;Training </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2"> for </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">epochs</span><span class="p">)</span><span class="si">}</span><span class="s2"> epochs, starting at epoch </span><span class="si">{</span><span class="n">epochs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, iteration </span><span class="si">{</span><span class="n">n_iter</span><span class="si">}</span><span class="s2">...&quot;</span>
     <span class="p">)</span>
+
+    <span class="n">debug_memory</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;debug_memory&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">memory_log_steps</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;MEMORY_LOG_STEPS&quot;</span><span class="p">,</span> <span class="s2">&quot;100&quot;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">debug_memory</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">objgraph</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;objgraph is not installed. Install it with `pip install objgraph` to enable memory debugging features.&quot;</span>
+            <span class="p">)</span>
+            <span class="n">debug_memory</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Before training loop</span>
+            <span class="n">objgraph</span><span class="o">.</span><span class="n">show_growth</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">())</span>  <span class="c1"># establish baseline</span>
+
     <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="n">epochs</span><span class="p">:</span>
 
         <span class="c1"># Set the model to training mode to enable backpropagation</span>
@@ -744,7 +761,10 @@ document.write(`
             <span class="k">del</span> <span class="n">batch</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">loss</span>
 
             <span class="c1"># Periodically clear GPU cache to prevent memory accumulation</span>
-            <span class="k">if</span> <span class="n">epoch_iter</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">epoch_iter</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">epoch_iter</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">epoch_iter</span> <span class="o">%</span> <span class="n">memory_log_steps</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">debug_memory</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Memory usage at iteration </span><span class="si">{</span><span class="n">n_iter</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+                    <span class="n">objgraph</span><span class="o">.</span><span class="n">show_growth</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
                 <span class="n">_clear_memory</span><span class="p">()</span>
 
         <span class="c1"># Clean up iterator to free memory</span>

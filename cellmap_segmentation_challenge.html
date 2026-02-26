@@ -1826,7 +1826,8 @@ The process function should take an array as input and return an array as output
 - scheduler_kwargs: Dictionary of keyword arguments to pass to the scheduler constructor. Default is {}. If <cite>scheduler</cite> instantiation is provided, this will be ignored.
 - filter_by_scale: Whether to filter the data by scale. If True, only data with a scale less than or equal to the <cite>input_array_info</cite> highest resolution will be included in the datasplit. If set to a scalar value, data will be filtered for that isotropic resolution - anisotropic can be specified with a sequence of scalars. Default is False (no filtering).
 - gradient_accumulation_steps: Number of gradient accumulation steps to use. Default is 1. This can be used to simulate larger batch sizes without increasing memory usage.
-- dataloader_kwargs: Additional keyword arguments to pass to the CellMapDataLoader. Default is {}.</p>
+- dataloader_kwargs: Additional keyword arguments to pass to the CellMapDataLoader. Default is {}.
+- debug_memory: Whether to enable memory debugging using <cite>objgraph</cite>. When True, object-growth statistics are printed before the training loop (as a baseline) and then periodically during training. Requires <cite>pip install objgraph</cite>; if the package is not found, a warning is printed and the flag is silently ignored. Default is False. The logging interval is controlled by the <code class="docutils literal notranslate"><span class="pre">MEMORY_LOG_STEPS</span></code> environment variable (default 100 iterations).</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>None</p>
@@ -2088,7 +2089,8 @@ validates, scores, and aggregates results for all volumes.</p>
 - scheduler_kwargs: Dictionary of keyword arguments to pass to the scheduler constructor. Default is {}. If <cite>scheduler</cite> instantiation is provided, this will be ignored.
 - filter_by_scale: Whether to filter the data by scale. If True, only data with a scale less than or equal to the <cite>input_array_info</cite> highest resolution will be included in the datasplit. If set to a scalar value, data will be filtered for that isotropic resolution - anisotropic can be specified with a sequence of scalars. Default is False (no filtering).
 - gradient_accumulation_steps: Number of gradient accumulation steps to use. Default is 1. This can be used to simulate larger batch sizes without increasing memory usage.
-- dataloader_kwargs: Additional keyword arguments to pass to the CellMapDataLoader. Default is {}.</p>
+- dataloader_kwargs: Additional keyword arguments to pass to the CellMapDataLoader. Default is {}.
+- debug_memory: Whether to enable memory debugging using <cite>objgraph</cite>. When True, object-growth statistics are printed before the training loop (as a baseline) and then periodically during training. Requires <cite>pip install objgraph</cite>; if the package is not found, a warning is printed and the flag is silently ignored. Default is False. The logging interval is controlled by the <code class="docutils literal notranslate"><span class="pre">MEMORY_LOG_STEPS</span></code> environment variable (default 100 iterations).</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>None</p>

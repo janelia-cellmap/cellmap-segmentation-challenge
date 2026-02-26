@@ -375,7 +375,14 @@ document.write(`
 - validation_time_limit: Maximum time to spend on validation in seconds. If None, there is no time limit. Default is None.
 - validation_batch_limit: Maximum number of validation batches to process. If None, there is no limit. Default is None.
 - device: Device to use for training. If None, will use ‘cuda’ if available, ‘mps’ if available, or ‘cpu’ otherwise. Default is None.
-- use_s3: Whether to stream data from the S3 bucket during training. Default is False.</p>
+- use_s3: Whether to stream data from the S3 bucket during training. Default is False.
+- debug_memory: Whether to enable memory debugging using <a class="reference external" href="https://pypi.org/project/objgraph/">objgraph</a>. When <code class="docutils literal notranslate"><span class="pre">True</span></code>, object-growth statistics are printed before the training loop (baseline) and then at every <code class="docutils literal notranslate"><span class="pre">MEMORY_LOG_STEPS</span></code> iterations. Requires <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">objgraph</span></code>; if the package is missing a warning is printed and the flag has no effect. Default is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</div></blockquote>
+<p>The following <strong>environment variables</strong> also affect training behaviour:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">MEMORY_LOG_STEPS</span></code>: Number of training iterations between each periodic GPU-cache clear and (when <code class="docutils literal notranslate"><span class="pre">debug_memory=True</span></code>) memory-growth report. Default is <code class="docutils literal notranslate"><span class="pre">100</span></code>.</p></li>
+</ul>
 </div></blockquote>
 </section>
 <section id="model-loading">
