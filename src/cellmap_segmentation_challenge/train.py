@@ -1,4 +1,5 @@
 import gc
+import io
 import os
 import random
 import time
@@ -75,6 +76,7 @@ def train(config_path: str):
         - filter_by_scale: Whether to filter the data by scale. If True, only data with a scale less than or equal to the `input_array_info` highest resolution will be included in the datasplit. If set to a scalar value, data will be filtered for that isotropic resolution - anisotropic can be specified with a sequence of scalars. Default is False (no filtering).
         - gradient_accumulation_steps: Number of gradient accumulation steps to use. Default is 1. This can be used to simulate larger batch sizes without increasing memory usage.
         - dataloader_kwargs: Additional keyword arguments to pass to the CellMapDataLoader. Default is {}.
+        - debug_memory: Whether to enable memory debugging using `objgraph`. When True, object-growth statistics are printed before the training loop (as a baseline) and then periodically during training. Requires `pip install objgraph`; if the package is not found, a warning is printed and the flag is silently ignored. Default is False. The logging interval is controlled by the ``MEMORY_LOG_STEPS`` environment variable (default 100 iterations).
 
     Returns
     -------
@@ -380,6 +382,21 @@ def train(config_path: str):
     print(
         f"Training {model_name} for {len(epochs)} epochs, starting at epoch {epochs[0]}, iteration {n_iter}..."
     )
+
+    debug_memory = getattr(config, "debug_memory", False)
+    memory_log_steps = int(os.environ.get("MEMORY_LOG_STEPS", "100"))
+    if debug_memory:
+        try:
+            import objgraph
+        except ImportError:
+            print(
+                "objgraph is not installed. Install it with `pip install objgraph` to enable memory debugging features."
+            )
+            debug_memory = False
+        else:
+            # Before training loop
+            objgraph.show_growth(limit=5, file=io.StringIO())  # establish baseline
+
     for epoch in epochs:
 
         # Set the model to training mode to enable backpropagation
@@ -457,7 +474,10 @@ def train(config_path: str):
             del batch, inputs, targets, outputs, loss
 
             # Periodically clear GPU cache to prevent memory accumulation
-            if epoch_iter > 0 and epoch_iter % 100 == 0:
+            if epoch_iter > 0 and epoch_iter % memory_log_steps == 0:
+                if debug_memory:
+                    print(f"Memory usage at iteration {n_iter}:")
+                    objgraph.show_growth(limit=5)
                 _clear_memory()
 
         # Clean up iterator to free memory

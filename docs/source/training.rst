@@ -31,6 +31,11 @@ The `csc train <path/to/training_config.py>` functionality loads training config
         - validation_batch_limit: Maximum number of validation batches to process. If None, there is no limit. Default is None.
         - device: Device to use for training. If None, will use 'cuda' if available, 'mps' if available, or 'cpu' otherwise. Default is None.
         - use_s3: Whether to stream data from the S3 bucket during training. Default is False.
+        - debug_memory: Whether to enable memory debugging using `objgraph <https://pypi.org/project/objgraph/>`_. When ``True``, object-growth statistics are printed before the training loop (baseline) and then at every ``MEMORY_LOG_STEPS`` iterations. Requires ``pip install objgraph``; if the package is missing a warning is printed and the flag has no effect. Default is ``False``.
+
+The following **environment variables** also affect training behaviour:
+
+        - ``MEMORY_LOG_STEPS``: Number of training iterations between each periodic GPU-cache clear and (when ``debug_memory=True``) memory-growth report. Default is ``100``.
 
 
 Model Loading

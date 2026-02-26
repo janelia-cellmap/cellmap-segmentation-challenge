@@ -120,6 +120,7 @@ The training pipeline (`train.py`) accepts a configuration file that defines the
 - **criterion**: Uninstantiated PyTorch loss function to use for training. Default is `torch.nn.BCEWithLogitsLoss`.
 - **criterion_kwargs**: Dictionary of keyword arguments to pass to the loss function constructor. Default is `{}`.
 - **datasplit_path**: Path to the datasplit file that defines the train/val split the dataloader should use. Default is `'datasplit.csv'`.
+- **debug_memory**: Whether to enable memory debugging using [`objgraph`](https://pypi.org/project/objgraph/). When `True`, object-growth statistics are printed before the training loop (as a baseline) and then at every `MEMORY_LOG_STEPS` iterations. Requires `pip install objgraph`; if the package is missing a warning is printed and the flag has no effect. Default is `False`.
 - **device**: Device to use for training. If `None`, will use `'cuda'` if available, `'mps'` if available, or `'cpu'` otherwise. Default is `None`.
 - **epochs**: Number of epochs to train the model for. Default is `1000`.
 - **filter_by_scale**: Whether to filter the data by scale. If `True`, only data with a scale less than or equal to the `input_array_info` highest resolution will be included in the datasplit. If set to a scalar value, data will be filtered for that isotropic resolution - anisotropic can be specified with a sequence of scalars. Default is `False` (no filtering).
@@ -152,3 +153,7 @@ The training pipeline (`train.py`) accepts a configuration file that defines the
 - **validation_time_limit**: Maximum time to spend on validation in seconds. If `None`, there is no time limit. Default is `None`.
 - **weighted_sampler**: Whether to use a sampler weighted by class counts for the dataloader. Default is `True`.
 - **weight_loss**: Whether to weight the loss function by class counts found in the datasets. Default is `True`.
+
+The following **environment variables** also affect training behaviour:
+
+- **`MEMORY_LOG_STEPS`**: Number of training iterations between each periodic GPU-cache clear and (when `debug_memory=True`) memory-growth report. Default is `100`.
