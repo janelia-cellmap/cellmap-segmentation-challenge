@@ -467,6 +467,7 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.copy_gt"><code class="docutils literal notranslate"><span class="pre">copy_gt()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.download_file"><code class="docutils literal notranslate"><span class="pre">download_file()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.format_string"><code class="docutils literal notranslate"><span class="pre">format_string()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.extract_from_template"><code class="docutils literal notranslate"><span class="pre">extract_from_template()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.get_git_hash"><code class="docutils literal notranslate"><span class="pre">get_git_hash()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.get_singleton_dim"><code class="docutils literal notranslate"><span class="pre">get_singleton_dim()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.squeeze_singleton_dim"><code class="docutils literal notranslate"><span class="pre">squeeze_singleton_dim()</span></code></a></li>
@@ -517,6 +518,7 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.construct_truth_dataset"><code class="docutils literal notranslate"><span class="pre">construct_truth_dataset()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.download_file"><code class="docutils literal notranslate"><span class="pre">download_file()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_batch"><code class="docutils literal notranslate"><span class="pre">eval_batch()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.extract_from_template"><code class="docutils literal notranslate"><span class="pre">extract_from_template()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.fetch_crop_manifest"><code class="docutils literal notranslate"><span class="pre">fetch_crop_manifest()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.fetch_test_crop_manifest"><code class="docutils literal notranslate"><span class="pre">fetch_test_crop_manifest()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.format_string"><code class="docutils literal notranslate"><span class="pre">format_string()</span></code></a></li>
@@ -1939,7 +1941,7 @@ Add a pixels (FP) mostly from outer boundary band</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.utils.format_string">
 <span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.utils.</span></span><span class="sig-name descname"><span class="pre">format_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/utils.html#format_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.utils.format_string" title="Link to this definition">#</a></dt>
-<dd><p>Convenience function to format a string with only the keys present in both the stringand in the <cite>format_kwargs</cite>. When all keys in the <cite>format_kwargs</cite> are present in <cite>string</cite> (in brackets), the function will return <cite>string.format(**format_kwargs)</cite> exactly. When none of the keys in the <cite>format_kwargs</cite> are present in the string, the function will return the original string, without error.</p>
+<dd><p>Convenience function to format a string with only the keys present in both the string and in the <cite>format_kwargs</cite>. When all keys in the <cite>format_kwargs</cite> are present in <cite>string</cite> (in brackets), the function will return <cite>string.format(**format_kwargs)</cite> exactly. When none of the keys in the <cite>format_kwargs</cite> are present in the string, the function will return the original string, without error.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1957,6 +1959,22 @@ Add a pixels (FP) mostly from outer boundary band</p>
 <p class="rubric">Examples</p>
 <p>format_string(“this/{thing}”, {})  # returns “this/{thing}”
 format_string(“this/{thing}”, {“thing”:”that”, “but”:”not this”}) # returns “this/that”</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.utils.extract_from_template">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.utils.</span></span><span class="sig-name descname"><span class="pre">extract_from_template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">template</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formatted</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/utils.html#extract_from_template"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.utils.extract_from_template" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>template</strong> (<em>str</em>)</p></li>
+<li><p><strong>formatted</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -2335,6 +2353,22 @@ Returns a boolean indicating whether the script is safe and a list of detected i
 <dd></dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.extract_from_template">
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">extract_from_template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">template</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formatted</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/utils.html#extract_from_template"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.extract_from_template" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>template</strong> (<em>str</em>)</p></li>
+<li><p><strong>formatted</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.fetch_crop_manifest">
 <span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">fetch_crop_manifest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">URL</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/src/cellmap_segmentation_challenge/utils/manifest.csv'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cellmap_segmentation_challenge.utils.crops.CropRow" title="cellmap_segmentation_challenge.utils.crops.CropRow"><span class="pre">CropRow</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/crops.html#fetch_crop_manifest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.fetch_crop_manifest" title="Link to this definition">#</a></dt>
 <dd><p>Fetch a manifest file from a URL and return a tuple of CropRow objects.</p>
@@ -2371,7 +2405,7 @@ Returns a boolean indicating whether the script is safe and a list of detected i
 <dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.format_string">
 <span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.</span></span><span class="sig-name descname"><span class="pre">format_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/utils.html#format_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.format_string" title="Link to this definition">#</a></dt>
-<dd><p>Convenience function to format a string with only the keys present in both the stringand in the <cite>format_kwargs</cite>. When all keys in the <cite>format_kwargs</cite> are present in <cite>string</cite> (in brackets), the function will return <cite>string.format(**format_kwargs)</cite> exactly. When none of the keys in the <cite>format_kwargs</cite> are present in the string, the function will return the original string, without error.</p>
+<dd><p>Convenience function to format a string with only the keys present in both the string and in the <cite>format_kwargs</cite>. When all keys in the <cite>format_kwargs</cite> are present in <cite>string</cite> (in brackets), the function will return <cite>string.format(**format_kwargs)</cite> exactly. When none of the keys in the <cite>format_kwargs</cite> are present in the string, the function will return the original string, without error.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -2915,6 +2949,7 @@ channel dimension.  <code class="docutils literal notranslate"><span class="pre"
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.copy_gt"><code class="docutils literal notranslate"><span class="pre">copy_gt()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.download_file"><code class="docutils literal notranslate"><span class="pre">download_file()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.format_string"><code class="docutils literal notranslate"><span class="pre">format_string()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.extract_from_template"><code class="docutils literal notranslate"><span class="pre">extract_from_template()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.get_git_hash"><code class="docutils literal notranslate"><span class="pre">get_git_hash()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.get_singleton_dim"><code class="docutils literal notranslate"><span class="pre">get_singleton_dim()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.utils.squeeze_singleton_dim"><code class="docutils literal notranslate"><span class="pre">squeeze_singleton_dim()</span></code></a></li>
@@ -2965,6 +3000,7 @@ channel dimension.  <code class="docutils literal notranslate"><span class="pre"
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.construct_truth_dataset"><code class="docutils literal notranslate"><span class="pre">construct_truth_dataset()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.download_file"><code class="docutils literal notranslate"><span class="pre">download_file()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_batch"><code class="docutils literal notranslate"><span class="pre">eval_batch()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.extract_from_template"><code class="docutils literal notranslate"><span class="pre">extract_from_template()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.fetch_crop_manifest"><code class="docutils literal notranslate"><span class="pre">fetch_crop_manifest()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.fetch_test_crop_manifest"><code class="docutils literal notranslate"><span class="pre">fetch_test_crop_manifest()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.format_string"><code class="docutils literal notranslate"><span class="pre">format_string()</span></code></a></li>
