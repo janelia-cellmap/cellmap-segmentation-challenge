@@ -36,6 +36,7 @@ __getattr__, __dir__, __all__ = lazy.attach(
             "get_singleton_dim",
             "squeeze_singleton_dim",
             "unsqueeze_singleton_dim",
+            "extract_from_template",
         ],
         "submission": [
             "package_submission",

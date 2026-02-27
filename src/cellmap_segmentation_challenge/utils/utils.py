@@ -1,3 +1,4 @@
+import re
 import shutil
 import sys
 from time import time
@@ -504,7 +505,7 @@ def download_file(url, dest):
 
 def format_string(string: str, format_kwargs: dict) -> str:
     """
-    Convenience function to format a string with only the keys present in both the stringand in the `format_kwargs`. When all keys in the `format_kwargs` are present in `string` (in brackets), the function will return `string.format(**format_kwargs)` exactly. When none of the keys in the `format_kwargs` are present in the string, the function will return the original string, without error.
+    Convenience function to format a string with only the keys present in both the string and in the `format_kwargs`. When all keys in the `format_kwargs` are present in `string` (in brackets), the function will return `string.format(**format_kwargs)` exactly. When none of the keys in the `format_kwargs` are present in the string, the function will return the original string, without error.
 
     Parameters
     ----------
@@ -533,6 +534,32 @@ def format_string(string: str, format_kwargs: dict) -> str:
             new_kwargs[key] = "{" + key + "}"
     string = string.format(**new_kwargs)
     return string
+
+
+def extract_from_template(template: str, formatted: str) -> dict:
+    # Escape everything except the {placeholders}
+    pattern = re.escape(template)
+
+    # Replace escaped \{key\} with named regex groups (backreference for repeats)
+    seen: set[str] = set()
+
+    def replace_placeholder(m: re.Match) -> str:
+        key = m.group(1)
+        if key in seen:
+            return f"(?P={key})"
+        seen.add(key)
+        return f"(?P<{key}>.+?)"
+
+    pattern = re.sub(r"\\\{(\w+)\\\}", replace_placeholder, pattern)
+
+    # Ensure full string match
+    pattern = f"^{pattern}$"
+
+    match = re.match(pattern, formatted)
+    if not match:
+        raise ValueError("Formatted string does not match template")
+
+    return match.groupdict()
 
 
 def get_git_hash() -> str:
