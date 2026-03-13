@@ -488,7 +488,7 @@ def train(config_path: str):
         )
 
         # Compute the validation score by averaging the loss across the validation set
-        if len(val_loader.loader) > 0:
+        if val_loader is not None and len(val_loader.loader) > 0:
             val_score = 0
             if validation_time_limit is not None:
                 elapsed_time = 0
