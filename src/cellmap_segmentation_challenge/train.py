@@ -405,7 +405,7 @@ def train(config_path: str):
         # Training loop for the epoch
         post_fix_dict["Epoch"] = epoch
 
-        epoch_bar = tqdm(train_loader.loader, desc="Training", dynamic_ncols=True)
+        epoch_bar = tqdm(train_loader.loader, desc="Training", dynamic_ncols=True, total=iterations_per_epoch)
         optimizer.zero_grad()
         for epoch_iter, batch in enumerate(epoch_bar):
             # Increment the training iteration
