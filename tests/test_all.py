@@ -178,7 +178,7 @@ def test_predict(setup_temp_path):
 
 
 @skip_in_ci
-@pytest.mark.dependency(depends=["test_fetch_test_crops"])
+@pytest.mark.dependency(depends=["test_fetch_test_crops", "test_train"])
 def test_predict_test_crops(setup_temp_path):
     from cellmap_segmentation_challenge.cli import predict_cli
 
@@ -209,7 +209,7 @@ def test_predict_test_crops(setup_temp_path):
 
 
 @skip_in_ci
-@pytest.mark.dependency(depends=["test_predict"])
+@pytest.mark.dependency(depends=["test_predict_test_crops"])
 def test_process(setup_temp_path):
     from cellmap_segmentation_challenge.cli import process_cli
 
