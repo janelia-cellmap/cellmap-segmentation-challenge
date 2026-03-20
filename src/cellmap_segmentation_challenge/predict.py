@@ -431,61 +431,63 @@ def predict(
             )
     else:
         crop_list = crops.split(",")
-        crop_paths = []
+        crop_path_matches: dict[str, list[str]] = {}
         for i, crop in enumerate(crop_list):
             if (isinstance(crop, str) and crop.isnumeric()) or isinstance(crop, int):
                 crop = f"crop{crop}"
                 crop_list[i] = crop  # type: ignore
 
-            crop_paths.extend(
-                glob(
-                    search_path.format(
-                        dataset="*", name=crop_name.format(crop=crop, label="")
-                    ).rstrip(os.path.sep)
-                )
+            matches = glob(
+                search_path.format(
+                    dataset="*", name=crop_name.format(crop=crop, label="")
+                ).rstrip(os.path.sep)
             )
+            if not matches:
+                tqdm.write(f"Warning: no input paths found for crop '{crop}', skipping.")
+            crop_path_matches[crop] = matches
 
         dataset_writers = []
-        for crop, crop_path in zip(crop_list, crop_paths):  # type: ignore
-            # Get path to raw dataset
-            raw_path = get_raw_path(crop_path, label="")
+        for crop, crop_paths_for_crop in crop_path_matches.items():  # type: ignore
+            for crop_path in crop_paths_for_crop:
+                # Get path to raw dataset
+                raw_path = get_raw_path(crop_path, label="")
 
-            # Get the boundaries of the crop
-            gt_images = {
-                array_name: CellMapImage(
-                    str(UPath(crop_path) / classes[0]),
-                    target_class=classes[0],
-                    target_scale=array_info["scale"],
-                    target_voxel_shape=array_info["shape"],
-                    pad=True,
-                    pad_value=0,
-                )
-                for array_name, array_info in target_arrays.items()
-            }
-
-            target_bounds = {
-                array_name: image.bounding_box
-                for array_name, image in gt_images.items()
-            }
-
-            dataset = get_formatted_fields(raw_path, search_path, ["{dataset}"])[
-                "dataset"
-            ]
-
-            # Create the writer
-            dataset_writers.append(
-                {
-                    "raw_path": raw_path,
-                    "target_path": output_path.format(crop=crop, dataset=dataset),
-                    "classes": classes,
-                    "input_arrays": input_arrays,
-                    "target_arrays": target_arrays,
-                    "target_bounds": target_bounds,
-                    "overwrite": overwrite,
-                    "device": device,
-                    "raw_value_transforms": value_transforms,
+                # Get the boundaries of the crop
+                gt_images = {
+                    array_name: CellMapImage(
+                        str(UPath(crop_path) / classes[0]),
+                        target_class=classes[0],
+                        target_scale=array_info["scale"],
+                        target_voxel_shape=array_info["shape"],
+                        pad=True,
+                        pad_value=0,
+                    )
+                    for array_name, array_info in target_arrays.items()
                 }
-            )
+
+                target_bounds = {
+                    array_name: image.bounding_box
+                    for array_name, image in gt_images.items()
+                }
+
+                dataset = get_formatted_fields(raw_path, search_path, ["{dataset}"])[
+                    "dataset"
+                ]
+
+                # Create the writer
+                dataset_writers.append(
+                    {
+                        "raw_path": raw_path,
+                        "target_path": output_path.format(crop=crop, dataset=dataset),
+                        "classes": classes,
+                        "input_arrays": input_arrays,
+                        "target_arrays": target_arrays,
+                        "target_bounds": target_bounds,
+                        "overwrite": overwrite,
+                        "device": device,
+                        "raw_value_transforms": value_transforms,
+                    }
+                )
 
     for dataset_writer in dataset_writers:
         predict_func(model, dataset_writer, batch_size)
