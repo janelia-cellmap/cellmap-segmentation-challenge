@@ -405,20 +405,9 @@ def train(config_path: str):
         # Training loop for the epoch
         post_fix_dict["Epoch"] = epoch
 
-        # Refresh the train loader to shuffle the data yielded by the dataloader
-        train_loader.refresh()
-
-        # epoch_bar = tqdm(train_loader.loader, desc="Training", dynamic_ncols=True)
-        # for batch in epoch_bar:
-        loader = iter(train_loader.loader)
-        epoch_bar = tqdm(
-            range(iterations_per_epoch), desc="Training", dynamic_ncols=True
-        )
+        epoch_bar = tqdm(train_loader.loader, desc="Training", dynamic_ncols=True, total=iterations_per_epoch)
         optimizer.zero_grad()
-        for epoch_iter in epoch_bar:
-            # for some reason this seems to be faster...
-            batch = next(loader)
-
+        for epoch_iter, batch in enumerate(epoch_bar):
             # Increment the training iteration
             n_iter += 1
 
@@ -443,8 +432,8 @@ def train(config_path: str):
 
             # Update the weights
             if (
-                epoch_iter % gradient_accumulation_steps == 0
-                or epoch_iter == iterations_per_epoch - 1
+                (epoch_iter + 1) % gradient_accumulation_steps == 0
+                or epoch_iter >= iterations_per_epoch - 1
             ):
                 # Only update the weights every `gradient_accumulation_steps` iterations
                 # This allows for larger effective batch sizes without increasing memory usage
@@ -460,7 +449,7 @@ def train(config_path: str):
 
             # Save last batch for visualization if validation won't run
             # Only save when needed to minimize memory overhead
-            if epoch_iter == iterations_per_epoch - 1 and (
+            if epoch_iter >= iterations_per_epoch - 1 and (
                 val_loader is None or len(val_loader.loader) == 0
             ):
                 (
@@ -480,9 +469,9 @@ def train(config_path: str):
                     objgraph.show_growth(limit=5)
                 _clear_memory()
 
-        # Clean up iterator to free memory
-        # Note: 'loader' is the iterator created from 'iter(train_loader.loader)' on line 359
-        del loader
+            # Check if we've reached the specified number of iterations for this epoch
+            if epoch_iter >= iterations_per_epoch - 1:
+                break
 
         # Trigger garbage collection to reclaim memory
         _clear_memory(force_gc=True)
@@ -499,9 +488,8 @@ def train(config_path: str):
         )
 
         # Compute the validation score by averaging the loss across the validation set
-        if len(val_loader.loader) > 0:
+        if val_loader is not None and len(val_loader.loader) > 0:
             val_score = 0
-            val_loader.refresh()
             if validation_time_limit is not None:
                 elapsed_time = 0
                 last_time = time.time()

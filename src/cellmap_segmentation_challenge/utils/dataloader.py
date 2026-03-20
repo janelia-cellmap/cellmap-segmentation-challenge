@@ -186,7 +186,7 @@ def get_dataloader(
         }
         _kwargs.update(kwargs)
         validation_loader = CellMapDataLoader(
-            datasplit.validation_blocks.to(device),
+            datasplit.validation_blocks,
             **_kwargs,
         )
     else:

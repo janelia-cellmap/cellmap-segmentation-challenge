@@ -290,7 +290,7 @@ class MatchedCrop:
                     pad_value=self.pad_value,
                     interpolation="nearest" if self._is_instance() else "linear",
                 )
-                level = img.scale_level
+                level = img._level_info[img.scale_level][0]
                 level_path = UPath(self.path) / level
 
                 # Extract input voxel size and translation from multiscales metadata

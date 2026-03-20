@@ -126,12 +126,13 @@ def zip_submission(zarr_path: str | UPath = SUBMISSION_PATH):
         for root, dirs, files in os.walk(zarr_path, followlinks=True):
             for file in files:
                 file_path = os.path.join(root, file)
+                original_file_path = file_path
                 # Ensure symlink targets are added as files
                 if os.path.islink(file_path):
-                    file_path = os.readlink(file_path)
+                    file_path = os.path.realpath(file_path)
 
-                # Define the relative path in the zip archive
-                arcname = os.path.relpath(file_path, zarr_path)
+                # Define the relative path in the zip archive using the original path
+                arcname = os.path.relpath(original_file_path, zarr_path)
                 zipf.write(file_path, arcname)
 
     logging.info(f"Zipped {zarr_path} to {zip_path}")
@@ -212,7 +213,10 @@ def package_submission(
     if not output_path.exists():
         os.makedirs(output_path.parent, exist_ok=True)
     store = zarr.DirectoryStore(output_path)
-    zarr_group = zarr.group(store, overwrite=True)
+    if overwrite:
+        zarr_group = zarr.group(store, overwrite=True)
+    else:
+        zarr_group = zarr.open_group(store, mode="a")
 
     # Make groups for each test volume
     for crop in TEST_CROPS:

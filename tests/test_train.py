@@ -1,4 +1,5 @@
 """Unit tests for train() covering debug_memory, checkpoint saving, and visualization."""
+
 import contextlib
 import os
 import types
@@ -77,6 +78,7 @@ def _make_config(tmp_path, **overrides):
 # Mock dataloaders
 # ---------------------------------------------------------------------------
 
+
 class _MockInnerLoader:
     """Infinite source of tiny identical batches."""
 
@@ -112,22 +114,17 @@ class _MockTrainLoader:
         self.loader = _MockInnerLoader()
         self.dataset = _MockDataset()
 
-    def refresh(self):
-        pass
-
 
 class _MockValLoader:
     def __init__(self):
         self.loader = _MockEmptyLoader()
         self.dataset = _MockDataset()
 
-    def refresh(self):
-        pass
-
 
 # ---------------------------------------------------------------------------
 # Shared patch builders
 # ---------------------------------------------------------------------------
+
 
 def _core_patches(cfg):
     """Patches for infrastructure components unrelated to the feature under test."""
@@ -179,6 +176,7 @@ def _run_train(cfg):
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 class TestDebugMemoryFlag:
     def test_debug_memory_true_with_objgraph(self, tmp_path):

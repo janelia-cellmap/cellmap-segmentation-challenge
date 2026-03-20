@@ -1,8 +1,9 @@
-from functools import partial
+import logging
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from functools import partial
 from glob import glob
 from typing import Any, Callable, Optional
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from cellmap_data import CellMapDatasetWriter, CellMapImage
 import torch
@@ -118,34 +119,44 @@ def process(
     else:
         crop_list = crops.split(",")
 
-    crop_paths = []
+    crop_path_matches: dict[str, list[str]] = {}
     for i, crop in enumerate(crop_list):
         if (isinstance(crop, str) and crop.isnumeric()) or isinstance(crop, int):
             crop = f"crop{crop}"
             crop_list[i] = crop  # type: ignore
 
-        crop_paths.extend(
-            glob(input_path.format(dataset="*", crop=crop).rstrip(os.path.sep))
-        )
+        matches = glob(input_path.format(dataset="*", crop=crop).rstrip(os.path.sep))
+        if not matches:
+            logging.warning(f"No input paths found for crop '{crop}', skipping.")
+        crop_path_matches[crop] = matches
 
     crop_dict = {}
-    for crop, path in zip(crop_list, crop_paths):
-        dataset = get_formatted_fields(path, input_path, ["{dataset}"])["dataset"]
-        crop_dict[crop] = [
-            input_path.format(
-                crop=crop,
-                dataset=dataset,
-            ),
-            output_path.format(
-                crop=crop,
-                dataset=dataset,
-            ),
-        ]
+    for crop, paths in crop_path_matches.items():
+        for path in paths:
+            dataset = get_formatted_fields(path, input_path, ["{dataset}"])["dataset"]
+            crop_dict[crop] = [
+                input_path.format(
+                    crop=crop,
+                    dataset=dataset,
+                ),
+                output_path.format(
+                    crop=crop,
+                    dataset=dataset,
+                ),
+            ]
 
     dataset_writers = []
     for crop, (in_path, out_path) in crop_dict.items():
         for label in classes:
             class_in_path = str(UPath(in_path) / label)
+
+            # Skip labels that were not saved by predict.py for this crop
+            if not UPath(class_in_path).exists():
+                logging.warning(
+                    f"Skipping label '{label}' for crop '{crop}': "
+                    f"path does not exist: {class_in_path}"
+                )
+                continue
 
             # Get the boundaries of the crop
             input_images = {

@@ -100,7 +100,7 @@ class TestCropRow:
 
 
 def fetch_test_crop_manifest(
-    url: str | URL = TEST_CROP_MANIFEST_URL,
+    url: str | URL | None = None,
 ) -> tuple[TestCropRow, ...]:
     """
     Fetch a test manifest file from a URL and return a tuple of TestCropRow objects.
@@ -115,6 +115,8 @@ def fetch_test_crop_manifest(
     tuple[TestCropRow, ...]
         A tuple of TestCropRow objects.
     """
+    if url is None:
+        url = os.environ.get("CSC_TEST_CROP_MANIFEST_URL", TEST_CROP_MANIFEST_URL)
     return fetch_manifest(url, "test_crop_manifest.csv", TestCropRow)
 
 

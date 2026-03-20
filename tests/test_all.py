@@ -116,8 +116,10 @@ def test_train(setup_temp_path):
         SUBMISSION_PATH,
     ) = setup_temp_path
 
-    download_file(
-        "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/train_config.py",
+    import shutil
+
+    shutil.copy(
+        UPath(__file__).parent / "train_config.py",
         REPO_ROOT / "train_config.py",
     )
 
@@ -178,7 +180,7 @@ def test_predict(setup_temp_path):
 
 
 @skip_in_ci
-@pytest.mark.dependency(depends=["test_fetch_test_crops"])
+@pytest.mark.dependency(depends=["test_fetch_test_crops", "test_train"])
 def test_predict_test_crops(setup_temp_path):
     from cellmap_segmentation_challenge.cli import predict_cli
 
@@ -207,9 +209,14 @@ def test_predict_test_crops(setup_temp_path):
         crop_name=CROP_NAME,
     )
 
+    predictions_dir = UPath(BASE_DATA_PATH) / "predictions"
+    assert predictions_dir.exists() and any(
+        predictions_dir.rglob("*")
+    ), f"No predictions were created in {predictions_dir}"
+
 
 @skip_in_ci
-@pytest.mark.dependency(depends=["test_predict"])
+@pytest.mark.dependency(depends=["test_predict_test_crops"])
 def test_process(setup_temp_path):
     from cellmap_segmentation_challenge.cli import process_cli
 
@@ -222,8 +229,10 @@ def test_process(setup_temp_path):
         SUBMISSION_PATH,
     ) = setup_temp_path
 
-    download_file(
-        "https://raw.githubusercontent.com/janelia-cellmap/cellmap-segmentation-challenge/refs/heads/main/tests/process_config.py",
+    import shutil
+
+    shutil.copy(
+        UPath(__file__).parent / "process_config.py",
         REPO_ROOT / "process_config.py",
     )
 
@@ -236,6 +245,11 @@ def test_process(setup_temp_path):
         device="cpu",
         max_workers=os.cpu_count(),
     )
+
+    processed_dir = UPath(BASE_DATA_PATH) / "processed"
+    assert processed_dir.exists() and any(
+        processed_dir.rglob("*")
+    ), f"No processed outputs were created in {processed_dir}"
 
 
 @skip_in_ci
