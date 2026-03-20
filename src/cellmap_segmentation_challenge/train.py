@@ -432,7 +432,7 @@ def train(config_path: str):
 
             # Update the weights
             if (
-                epoch_iter % gradient_accumulation_steps == 0
+                (epoch_iter + 1) % gradient_accumulation_steps == 0
                 or epoch_iter >= iterations_per_epoch - 1
             ):
                 # Only update the weights every `gradient_accumulation_steps` iterations
