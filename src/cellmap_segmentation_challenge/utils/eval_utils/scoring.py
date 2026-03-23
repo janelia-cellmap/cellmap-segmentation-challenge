@@ -115,6 +115,28 @@ def score_semantic(pred_label, truth_label) -> dict:
         return {"tp": 0, "fp": 1, "fn": 1, "sum_iou": 0.0, "status": "scored"}
 
 
+def _pq_f1_from_accum(tp, fp, fn, sum_iou):
+    """Compute per-crop PQ, SQ, and F1 from raw accumulators.
+
+    F1 (= RQ, Recognition Quality) measures detection accuracy:
+        F1 = 2·TP / (2·TP + FP + FN)
+
+    SQ (Segmentation Quality) is the mean IoU of matched instances:
+        SQ = sum_IoU / TP  (0.0 when TP=0)
+
+    PQ (Panoptic Quality) = SQ × RQ, equivalently:
+        PQ = sum_IoU / (TP + 0.5·FP + 0.5·FN)
+
+    All are 0.0 when their denominator is zero.
+    """
+    f1_denom = 2 * tp + fp + fn
+    f1 = (2 * tp) / f1_denom if f1_denom > 0 else 0.0
+    sq = sum_iou / tp if tp > 0 else 0.0
+    pq_denom = tp + 0.5 * fp + 0.5 * fn
+    pq = sum_iou / pq_denom if pq_denom > 0 else 0.0
+    return float(pq), float(sq), float(f1)
+
+
 def score_label(
     pred_label_path,
     label_name,
@@ -185,6 +207,12 @@ def score_label(
     results["num_voxels"] = int(np.prod(truth_label.shape))
     results["voxel_size"] = crop.voxel_size
     results["is_missing"] = False
+    pq, sq, f1 = _pq_f1_from_accum(
+        results["tp"], results["fp"], results["fn"], results["sum_iou"]
+    )
+    results["pq"] = pq
+    results["sq"] = sq
+    results["f1"] = f1
     # drop big arrays before returning
     del truth_label, pred_label, truth_label_ds
     gc.collect()
@@ -220,11 +248,15 @@ def empty_label_score(
     else:
         fn = 1 if np.any(arr > 0) else 0  # one stuff segment, or nothing
 
+    pq, sq, f1 = _pq_f1_from_accum(0, 0, fn, 0.0)
     return {
         "tp": 0,
         "fp": 0,
         "fn": fn,
         "sum_iou": 0.0,
+        "pq": pq,
+        "sq": sq,
+        "f1": f1,
         "num_voxels": num_voxels,
         "voxel_size": voxel_size,
         "is_missing": True,
