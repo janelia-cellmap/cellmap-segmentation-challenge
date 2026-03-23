@@ -21,14 +21,22 @@ def combine_scores(
 ):
     """Combine PQ accumulators across all crops and compute per-category PQ/SQ/RQ.
 
-    TP, FP, FN and sum_IoU are summed *globally* per category (no voxel
-    weighting).  Per-category metrics are then:
+    PQ is computed per-crop-label and then **macro-averaged** (unweighted mean)
+    across crops for each category.  This ensures that missing volumes and
+    FP-heavy submissions are treated symmetrically: both contribute PQ=0 for
+    that crop regardless of the FP count, so omitting a volume cannot inflate
+    the score relative to submitting (wrong) predictions.
 
-    * PQ_c = sum_IoU / (TP + 0.5·FP + 0.5·FN)
-    * SQ_c = sum_IoU / TP           (Segmentation Quality; 0 when TP=0)
-    * RQ_c = TP / (TP + 0.5·FP + 0.5·FN)   (Recognition Quality)
+    SQ and RQ are still computed from globally-accumulated TP/FP/FN (micro-
+    averaged) for informational purposes only and are not used in ranking.
 
-    The final scores are **unweighted** means of PQ_c:
+    Per-category metrics:
+
+    * PQ_c = mean over crops of [sum_IoU / (TP + 0.5·FP + 0.5·FN)]
+    * SQ_c = global_sum_IoU / global_TP   (Segmentation Quality; 0 when TP=0)
+    * RQ_c = global_TP / (global_TP + 0.5·global_FP + 0.5·global_FN)
+
+    The final scores are **unweighted** means of PQ_c across categories:
 
     * ``overall_thing_pq``  — mean over thing (instance) categories
     * ``overall_stuff_pq``  — mean over stuff (semantic) categories
@@ -51,7 +59,8 @@ def combine_scores(
     logging.info("Combining label scores (PQ)...")
     scores = scores.copy()
 
-    # Accumulate raw counts globally per category
+    # Per-crop PQ lists for macro-averaging; global accum for SQ/RQ/informational
+    pq_lists: dict[str, list[float]] = {}
     accum: dict[str, dict] = {}
     for crop_name, crop_scores in scores.items():
         if not isinstance(crop_scores, dict):
@@ -61,20 +70,36 @@ def combine_scores(
                 continue
             if score.get("is_missing") and not include_missing:
                 continue
+            tp, fp, fn, sum_iou = (
+                score["tp"],
+                score["fp"],
+                score["fn"],
+                score["sum_iou"],
+            )
+            # Per-crop PQ (0 when denom=0, e.g. missing volume or empty GT)
+            denom = tp + 0.5 * fp + 0.5 * fn
+            pq_crop = sum_iou / denom if denom > 0 else 0.0
+            if label not in pq_lists:
+                pq_lists[label] = []
+            pq_lists[label].append(pq_crop)
+            # Global accumulation for SQ/RQ
             if label not in accum:
                 accum[label] = {"tp": 0, "fp": 0, "fn": 0, "sum_iou": 0.0}
-            accum[label]["tp"] += score["tp"]
-            accum[label]["fp"] += score["fp"]
-            accum[label]["fn"] += score["fn"]
-            accum[label]["sum_iou"] += score["sum_iou"]
+            accum[label]["tp"] += tp
+            accum[label]["fp"] += fp
+            accum[label]["fn"] += fn
+            accum[label]["sum_iou"] += sum_iou
 
-    # Compute PQ / SQ / RQ per category
+    # Compute PQ (macro) / SQ / RQ per category
     logging.info("Computing per-category PQ/SQ/RQ...")
     label_scores: dict[str, dict] = {}
-    for label, acc in accum.items():
+    for label in pq_lists:
+        # PQ: macro-averaged across crops
+        pq = float(np.mean(pq_lists[label])) if pq_lists[label] else 0.0
+        # SQ / RQ: micro-averaged (global) — informational only
+        acc = accum.get(label, {"tp": 0, "fp": 0, "fn": 0, "sum_iou": 0.0})
         tp, fp, fn, sum_iou = acc["tp"], acc["fp"], acc["fn"], acc["sum_iou"]
         denom = tp + 0.5 * fp + 0.5 * fn
-        pq = sum_iou / denom if denom > 0 else 0.0
         sq = sum_iou / tp if tp > 0 else 0.0
         rq = tp / denom if denom > 0 else 0.0
         label_scores[label] = {
