@@ -3,6 +3,23 @@
 from typing import Literal, TypedDict
 
 
+class PQCropDict(TypedDict, total=False):
+    """PQ accumulators returned per (crop, label) by score_instance / score_semantic.
+
+    These are summed globally across crops in ``combine_scores`` before
+    per-category PQ/SQ/RQ values are derived.
+    """
+
+    tp: int
+    fp: int
+    fn: int
+    sum_iou: float
+    num_voxels: int
+    voxel_size: tuple[float, ...]
+    is_missing: bool
+    status: Literal["scored", "skipped_too_many_instances", "missing"]
+
+
 class InstanceScoreDict(TypedDict, total=False):
     """Type definition for instance segmentation scores."""
 

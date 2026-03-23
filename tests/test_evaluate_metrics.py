@@ -402,29 +402,33 @@ def test_optimized_hausdorff_distances_per_instance():
 def test_score_instance_perfect_match():
     from cellmap_segmentation_challenge import evaluate as ev
 
+    # Two instances: label 1 and label 2
     label = np.array([[0, 1, 1], [0, 2, 2]], dtype=np.int32)
     scores = ev.score_instance(label, label, voxel_size=(1.0, 1.0))
 
-    assert np.isclose(scores["mean_accuracy"], 1.0)
-    assert np.isclose(scores["hausdorff_distance"], 0.0)
-    assert np.isclose(scores["normalized_hausdorff_distance"], 1.0)
-    assert np.isclose(scores["combined_score"], 1.0)
+    # Perfect match: each GT instance is matched (TP=2), no FP or FN
+    assert scores["tp"] == 2
+    assert scores["fp"] == 0
+    assert scores["fn"] == 0
+    assert scores["sum_iou"] > 0.0
+    assert scores["status"] == "scored"
 
 
 def test_score_instance_simple_shift():
     from cellmap_segmentation_challenge import evaluate as ev
 
-    # GT has one instance [0,0] and [0,1]
+    # GT: one instance occupying [0,0] and [0,1]
     truth = np.array([[1, 1, 0], [0, 0, 0]], dtype=np.int32)
-    # Prediction shifted one voxel to the right: [0,1],[0,2] (and needs renumbering)
+    # Prediction shifted one voxel to the right: [0,1] and [0,2]
+    # Intersection = {[0,1]}, union = {[0,0],[0,1],[0,2]} → IoU = 1/3 < 0.5 → no match
     pred = np.array([[0, 2, 2], [0, 0, 0]], dtype=np.int32)
     voxel_size = (1.0, 1.0)
     scores = ev.score_instance(pred, truth, voxel_size)
 
-    # Accuracy should not be 1 but positive
-    assert 0.0 < scores["mean_accuracy"] < 1.0
-    # Hausdorff distance is 1 (each point moves 1 voxel)
-    assert np.isclose(scores["hausdorff_distance"], 1.0)
+    # IoU = 1/3 < 0.5 threshold → no TP match
+    assert scores["tp"] == 0
+    assert scores["fp"] == 1
+    assert scores["fn"] == 1
 
 
 # ------------------------
@@ -438,23 +442,42 @@ def test_score_semantic_perfect_match():
     truth = np.array([[0, 1], [1, 1]], dtype=float)
     pred = truth.copy()
     scores = ev.score_semantic(pred, truth)
-    assert np.isclose(scores["iou"], 1.0)
-    assert np.isclose(scores["dice_score"], 1.0)
+    # Identical binary masks → IoU = 1.0 > 0.5 → TP match
+    assert scores["tp"] == 1
+    assert scores["fp"] == 0
+    assert scores["fn"] == 0
+    assert np.isclose(scores["sum_iou"], 1.0)
 
 
 def test_score_semantic_partial_overlap():
     from cellmap_segmentation_challenge import evaluate as ev
 
     truth = np.array([[0, 1], [1, 1]], dtype=float)
-    # prediction misses one positive voxel
+    # Prediction misses one positive voxel:
+    # binary intersection = 2, union = 3 → IoU = 2/3 > 0.5 → TP match
     pred = np.array([[0, 1], [0, 1]], dtype=float)
 
     scores = ev.score_semantic(pred, truth)
 
-    # manual IoU: TP = 2, FP = 0, FN = 1 -> IoU = 2 / (2+0+1) = 2/3
-    assert np.isclose(scores["iou"], 2 / 3)
-    # manual Dice: 2TP / (2TP + FP + FN) = 4 / (4 + 0 + 1) = 0.8
-    assert np.isclose(scores["dice_score"], 0.8)
+    assert scores["tp"] == 1
+    assert scores["fp"] == 0
+    assert scores["fn"] == 0
+    assert np.isclose(scores["sum_iou"], 2 / 3)
+
+
+def test_score_semantic_low_overlap():
+    from cellmap_segmentation_challenge import evaluate as ev
+
+    # GT occupies left half, pred occupies right half → IoU = 0/8 = 0 < 0.5 → no match
+    truth = np.array([[1, 1, 0, 0]], dtype=float)
+    pred = np.array([[0, 0, 1, 1]], dtype=float)
+
+    scores = ev.score_semantic(pred, truth)
+
+    assert scores["tp"] == 0
+    assert scores["fp"] == 1
+    assert scores["fn"] == 1
+    assert scores["sum_iou"] == 0.0
 
 
 def test_score_semantic_no_foreground():
@@ -463,8 +486,11 @@ def test_score_semantic_no_foreground():
     truth = np.zeros((3, 3), dtype=float)
     pred = np.zeros_like(truth)
     scores = ev.score_semantic(pred, truth)
-    assert np.isclose(scores["iou"], 1.0)
-    assert np.isclose(scores["dice_score"], 1.0)
+    # Both empty → no segment on either side
+    assert scores["tp"] == 0
+    assert scores["fp"] == 0
+    assert scores["fn"] == 0
+    assert scores["sum_iou"] == 0.0
 
 
 # ------------------------
@@ -606,7 +632,10 @@ def test_empty_label_score_instance(tmp_path):
     # num_voxels should match volume size
     assert scores["num_voxels"] == arr.size
     assert scores["is_missing"] is True
-    assert scores["mean_accuracy"] == 0
+    # All-zero GT → no instances → FN=0
+    assert scores["tp"] == 0
+    assert scores["fp"] == 0
+    assert scores["fn"] == 0
 
 
 def test_missing_volume_score_mixed_labels(tmp_path):
@@ -628,8 +657,9 @@ def test_missing_volume_score_mixed_labels(tmp_path):
     assert set(scores.keys()) == {"instance", "sem"}
     assert scores["instance"]["is_missing"] is True
     assert scores["sem"]["is_missing"] is True
-    assert scores["instance"]["mean_accuracy"] == 0.0
-    assert scores["sem"]["iou"] == 0.0
+    # All-zero arrays → no instances, no foreground → FN=0 for both
+    assert scores["instance"]["tp"] == 0
+    assert scores["sem"]["tp"] == 0
 
 
 # ------------------------
@@ -640,26 +670,31 @@ def test_missing_volume_score_mixed_labels(tmp_path):
 def test_combine_scores_instance_and_semantic():
     from cellmap_segmentation_challenge import evaluate as ev
 
-    # Two volumes, one instance, one semantic
+    # crop1: perfect instance match — 3 GT instances all matched (TP=3)
+    # crop2: one stuff segment matched at IoU=0.6 (TP=1, sum_iou=0.6)
     scores = {
         "crop1": {
             "instance": {
-                "mean_accuracy": 1.0,
-                "hausdorff_distance": 0.0,
-                "normalized_hausdorff_distance": 1.0,
-                "combined_score": 1.0,
+                "tp": 3,
+                "fp": 0,
+                "fn": 0,
+                "sum_iou": 3.0,
                 "num_voxels": 8,
                 "voxel_size": (1.0, 1.0, 1.0),
                 "is_missing": False,
+                "status": "scored",
             }
         },
         "crop2": {
             "sem": {
-                "iou": 0.5,
-                "dice_score": 2 / 3,
+                "tp": 1,
+                "fp": 0,
+                "fn": 0,
+                "sum_iou": 0.6,
                 "num_voxels": 8,
                 "voxel_size": (1.0, 1.0, 1.0),
                 "is_missing": False,
+                "status": "scored",
             }
         },
     }
@@ -669,14 +704,27 @@ def test_combine_scores_instance_and_semantic():
     )
 
     ls = combined["label_scores"]
-    assert np.isclose(ls["instance"]["combined_score"], 1.0)
-    assert np.isclose(ls["sem"]["iou"], 0.5)
+
+    # instance: TP=3, FP=0, FN=0, sum_iou=3.0 → PQ = 3.0/3 = 1.0, SQ=1.0, RQ=1.0
+    assert np.isclose(ls["instance"]["pq"], 1.0)
+    assert np.isclose(ls["instance"]["sq"], 1.0)
+    assert np.isclose(ls["instance"]["rq"], 1.0)
+
+    # sem: TP=1, FP=0, FN=0, sum_iou=0.6 → PQ = 0.6/1 = 0.6
+    assert np.isclose(ls["sem"]["pq"], 0.6)
+
+    # Overall keys present
     assert "overall_instance_score" in combined
     assert "overall_semantic_score" in combined
     assert "overall_score" in combined
-    # only one of each type -> overall scores are just these
+    assert "overall_thing_pq" in combined
+    assert "overall_stuff_pq" in combined
+
+    # Only one of each type → overall component scores equal the single label PQ
     assert np.isclose(combined["overall_instance_score"], 1.0)
-    assert np.isclose(combined["overall_semantic_score"], 0.5)
+    assert np.isclose(combined["overall_semantic_score"], 0.6)
+    # overall_score = unweighted mean of [1.0, 0.6]
+    assert np.isclose(combined["overall_score"], 0.8)
 
 
 # ------------------------
@@ -726,9 +774,11 @@ def test_score_label_instance_integration(monkeypatch, tmp_path):
 
     assert crop_out == crop_name_str
     assert label_out == label_name
-    assert np.isclose(results["mean_accuracy"], 1.0)
-    assert np.isclose(results["hausdorff_distance"], 0.0)
     assert results["is_missing"] is False
+    # Perfect match: all GT instances matched → TP>0, FP=0, FN=0
+    assert results["tp"] > 0
+    assert results["fp"] == 0
+    assert results["fn"] == 0
 
 
 @pytest.mark.usefixtures("monkeypatch")
@@ -782,12 +832,11 @@ def test_score_submission(monkeypatch, tmp_path):
         instance_classes=[label_name],
     )
 
-    # We expect perfect instance score
+    # We expect perfect instance score → PQ = 1.0
     assert np.isclose(scores["overall_instance_score"], 1.0)
-    # No semantic labels -> overall_semantic_score is nan, but that’s fine;
-    # just ensure label_scores present and correct.
+    # No semantic labels → overall_semantic_score is 0 (no stuff categories)
     assert "label_scores" in scores
-    assert np.isclose(scores["label_scores"][label_name]["mean_accuracy"], 1.0)
+    assert np.isclose(scores["label_scores"][label_name]["pq"], 1.0)
 
 
 @pytest.mark.usefixtures("monkeypatch")
@@ -844,3 +893,4 @@ def test_score_submission_json_output(monkeypatch, tmp_path):
         loaded = json.load(f)
     assert isinstance(loaded, dict)
     assert "label_scores" in loaded
+    assert "pq" in loaded["label_scores"][label_name]
