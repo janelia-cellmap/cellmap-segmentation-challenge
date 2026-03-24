@@ -727,6 +727,46 @@ def test_combine_scores_instance_and_semantic():
     assert np.isclose(combined["overall_score"], 0.8)
 
 
+def test_combine_scores_idempotent_on_combined_dict():
+    """combine_scores must not re-consume aggregation keys added by a prior call.
+
+    If an already-combined dict (containing label_scores / overall_* / etc.)
+    is passed to combine_scores a second time, the result should be identical to
+    the first call — not corrupted by treating aggregation entries as crop data.
+    """
+    from cellmap_segmentation_challenge import evaluate as ev
+
+    scores = {
+        "crop1": {
+            "instance": {
+                "tp": 2,
+                "fp": 1,
+                "fn": 0,
+                "sum_iou": 1.6,
+                "num_voxels": 8,
+                "voxel_size": (1.0, 1.0, 1.0),
+                "is_missing": False,
+                "status": "scored",
+            }
+        },
+    }
+
+    first = ev.combine_scores(scores, include_missing=True, instance_classes=["instance"])
+    # Call again with the already-combined dict
+    second = ev.combine_scores(first, include_missing=True, instance_classes=["instance"])
+
+    # Scores must be identical across both calls
+    assert np.isclose(first["overall_score"], second["overall_score"])
+    assert np.isclose(
+        first["label_scores"]["instance"]["pq"],
+        second["label_scores"]["instance"]["pq"],
+    )
+    assert np.isclose(
+        first["label_scores"]["instance"]["tp"],
+        second["label_scores"]["instance"]["tp"],
+    )
+
+
 # ------------------------
 # score_label & score_submission-style integration
 # ------------------------
