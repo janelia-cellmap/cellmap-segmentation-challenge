@@ -1,4 +1,6 @@
 # tests/test_matched_crop.py
+import logging
+
 import numpy as np
 import pytest
 import zarr
@@ -343,7 +345,7 @@ def test_load_aligned_fallback_center_pad_crop_when_no_voxel_size(
 def test_check_size_ratio_returns_ratio_and_memory(tmp_path, instance_classes):
     """Test that _check_size_ratio returns both ratio and estimated memory."""
     root, grp = _make_group(tmp_path)
-    
+
     m = mc.MatchedCrop(
         path=str(root),
         class_label=INSTANCE_CLASSES[0],
@@ -352,7 +354,7 @@ def test_check_size_ratio_returns_ratio_and_memory(tmp_path, instance_classes):
         target_translation=(0, 0, 0),
         instance_classes=instance_classes,
     )
-    
+
     # Test with a 20x20x20 array (8x larger in volume)
     ratio, mem_mb = m._check_size_ratio((20, 20, 20))
     assert ratio == 8.0
@@ -363,7 +365,7 @@ def test_check_size_ratio_returns_ratio_and_memory(tmp_path, instance_classes):
 def test_should_use_chunked_loading_raises_on_too_large(tmp_path, instance_classes):
     """Test that _should_use_chunked_loading raises error when ratio exceeds limit."""
     root, grp = _make_group(tmp_path)
-    
+
     m = mc.MatchedCrop(
         path=str(root),
         class_label=INSTANCE_CLASSES[0],
@@ -372,19 +374,21 @@ def test_should_use_chunked_loading_raises_on_too_large(tmp_path, instance_class
         target_translation=(0, 0, 0),
         instance_classes=instance_classes,
     )
-    
+
     # Create a ratio that exceeds MAX_VOLUME_SIZE_RATIO (16^3 = 4096)
     ratio = 5000.0
     mem_mb = 1000.0
-    
+
     with pytest.raises(ValueError, match="too large compared to target shape"):
         m._should_use_chunked_loading(ratio, mem_mb)
 
 
-def test_should_use_chunked_loading_returns_true_for_large_memory(tmp_path, instance_classes):
+def test_should_use_chunked_loading_returns_true_for_large_memory(
+    tmp_path, instance_classes
+):
     """Test that _should_use_chunked_loading returns True for arrays >500MB."""
     root, grp = _make_group(tmp_path)
-    
+
     m = mc.MatchedCrop(
         path=str(root),
         class_label=INSTANCE_CLASSES[0],
@@ -393,18 +397,20 @@ def test_should_use_chunked_loading_returns_true_for_large_memory(tmp_path, inst
         target_translation=(0, 0, 0),
         instance_classes=instance_classes,
     )
-    
+
     # Test with >500MB estimated memory
     ratio = 100.0
     mem_mb = 600.0
-    
+
     assert m._should_use_chunked_loading(ratio, mem_mb) is True
 
 
-def test_should_use_chunked_loading_returns_false_for_small_memory(tmp_path, instance_classes):
+def test_should_use_chunked_loading_returns_false_for_small_memory(
+    tmp_path, instance_classes
+):
     """Test that _should_use_chunked_loading returns False for arrays <500MB."""
     root, grp = _make_group(tmp_path)
-    
+
     m = mc.MatchedCrop(
         path=str(root),
         class_label=INSTANCE_CLASSES[0],
@@ -413,25 +419,25 @@ def test_should_use_chunked_loading_returns_false_for_small_memory(tmp_path, ins
         target_translation=(0, 0, 0),
         instance_classes=instance_classes,
     )
-    
+
     # Test with <500MB estimated memory
     ratio = 10.0
     mem_mb = 100.0
-    
+
     assert m._should_use_chunked_loading(ratio, mem_mb) is False
 
 
 def test_load_array_chunked_instance_downsampling(tmp_path, instance_classes):
     """Test chunked loading with instance (nearest neighbor) downsampling."""
     root, grp = _make_group(tmp_path)
-    
+
     # Create a simple 8x8x8 array with distinct values
     src = np.zeros((8, 8, 8), dtype=np.uint8)
     src[0:4, 0:4, 0:4] = 1
     src[4:8, 4:8, 4:8] = 2
-    
+
     arr = grp.create_dataset("data", data=src)
-    
+
     m = mc.MatchedCrop(
         path=str(root),
         class_label=INSTANCE_CLASSES[0],  # instance class
@@ -440,11 +446,11 @@ def test_load_array_chunked_instance_downsampling(tmp_path, instance_classes):
         target_translation=(0, 0, 0),
         instance_classes=instance_classes,
     )
-    
+
     # Downsample by 0.5 (8 -> 4)
     scale_factors = (0.5, 0.5, 0.5)
     out = m._load_array_chunked(arr, scale_factors)
-    
+
     assert out.shape == (4, 4, 4)
     assert out.dtype == np.uint8
     # Check that values are preserved (nearest neighbor)
@@ -455,14 +461,14 @@ def test_load_array_chunked_instance_downsampling(tmp_path, instance_classes):
 def test_load_array_chunked_semantic_downsampling(tmp_path, instance_classes):
     """Test chunked loading with semantic (linear interpolation) downsampling."""
     root, grp = _make_group(tmp_path)
-    
+
     # Create a simple 8x8x8 array with float values
     src = np.ones((8, 8, 8), dtype=np.float32)
-    
+
     arr = grp.create_dataset("data", data=src)
-    
+
     sem_classes = set(get_tested_classes()) - set(instance_classes)
-    
+
     m = mc.MatchedCrop(
         path=str(root),
         class_label=sem_classes.pop(),  # semantic class
@@ -472,11 +478,11 @@ def test_load_array_chunked_semantic_downsampling(tmp_path, instance_classes):
         instance_classes=instance_classes,
         semantic_threshold=0.5,
     )
-    
+
     # Downsample by 0.5
     scale_factors = (0.5, 0.5, 0.5)
     out = m._load_array_chunked(arr, scale_factors)
-    
+
     assert out.shape == (4, 4, 4)
     assert out.dtype == np.bool_
     # All ones should stay above threshold
@@ -486,16 +492,16 @@ def test_load_array_chunked_semantic_downsampling(tmp_path, instance_classes):
 def test_load_array_chunked_semantic_thresholding(tmp_path, instance_classes):
     """Test that semantic thresholding is applied correctly after chunked downsampling."""
     root, grp = _make_group(tmp_path)
-    
+
     # Create array with values that should be thresholded
     src = np.zeros((8, 8, 8), dtype=np.float32)
     src[0:4, :, :] = 0.8  # Above threshold
     src[4:8, :, :] = 0.2  # Below threshold
-    
+
     arr = grp.create_dataset("data", data=src)
-    
+
     sem_classes = set(get_tested_classes()) - set(instance_classes)
-    
+
     m = mc.MatchedCrop(
         path=str(root),
         class_label=sem_classes.pop(),
@@ -505,10 +511,10 @@ def test_load_array_chunked_semantic_thresholding(tmp_path, instance_classes):
         instance_classes=instance_classes,
         semantic_threshold=0.5,
     )
-    
+
     scale_factors = (0.5, 0.5, 0.5)
     out = m._load_array_chunked(arr, scale_factors)
-    
+
     assert out.shape == (4, 4, 4)
     assert out.dtype == np.bool_
     # First half should be True (above threshold)
@@ -522,20 +528,20 @@ def test_load_aligned_uses_chunked_for_large_array_with_downsampling(
 ):
     """Test that load_aligned uses chunked loading for large arrays that need downsampling."""
     root, grp = _make_group(tmp_path)
-    
+
     # Create a large-ish array that would trigger chunked loading
     # We'll use a smaller size for testing but monkeypatch the threshold
     src = np.ones((64, 64, 64), dtype=np.uint8)
-    
+
     arr = grp.create_dataset("s0", data=src)
     _set_attrs(arr, voxel_size=(2, 2, 2), translation=(0, 0, 0))
-    
+
     arr_path = str(root / "s0")
-    
+
     # Monkeypatch to lower the memory threshold so our test array triggers chunked loading
     original_threshold = 500
     test_threshold = 0.001  # Very low threshold to trigger chunked loading
-    
+
     m = mc.MatchedCrop(
         path=arr_path,
         class_label=INSTANCE_CLASSES[0],
@@ -545,17 +551,17 @@ def test_load_aligned_uses_chunked_for_large_array_with_downsampling(
         instance_classes=instance_classes,
         pad_value=0,
     )
-    
+
     # Temporarily lower the threshold
     def mock_should_use_chunked(ratio, mem_mb):
         if ratio > mc.MAX_VOLUME_SIZE_RATIO:
             raise ValueError("too large")
         return mem_mb > test_threshold  # Use very low threshold
-    
+
     monkeypatch.setattr(m, "_should_use_chunked_loading", mock_should_use_chunked)
-    
+
     out = m.load_aligned()
-    
+
     # Verify output shape and that it worked
     assert out.shape == (32, 32, 32)
     assert out.dtype == np.uint8
@@ -565,17 +571,17 @@ def test_load_aligned_uses_chunked_for_large_array_with_downsampling(
 def test_load_aligned_chunked_preserves_data_integrity(tmp_path, instance_classes):
     """Test that chunked loading produces same result as non-chunked for small arrays."""
     root, grp = _make_group(tmp_path)
-    
+
     # Create a pattern that's easy to verify
     src = np.zeros((16, 16, 16), dtype=np.uint8)
     src[0:8, :, :] = 1
     src[8:16, :, :] = 2
-    
+
     arr = grp.create_dataset("s0", data=src)
     _set_attrs(arr, voxel_size=(2, 2, 2), translation=(0, 0, 0))
-    
+
     arr_path = str(root / "s0")
-    
+
     m = mc.MatchedCrop(
         path=arr_path,
         class_label=INSTANCE_CLASSES[0],
@@ -584,17 +590,17 @@ def test_load_aligned_chunked_preserves_data_integrity(tmp_path, instance_classe
         target_translation=(0, 0, 0),
         instance_classes=instance_classes,
     )
-    
+
     # Force chunked loading by manually calling _load_array_chunked
     scale_factors = (0.5, 0.5, 0.5)  # 2->4 voxel size means 0.5x dimensions
     out_chunked = m._load_array_chunked(arr, scale_factors)
-    
+
     # Compare with expected output
     assert out_chunked.shape == (8, 8, 8)
     assert out_chunked[0, 0, 0] == 1
     assert out_chunked[7, 7, 7] == 2
     # Middle boundary should have one of the values
-    assert out_chunked[4, 8//2, 8//2] in [1, 2]
+    assert out_chunked[4, 8 // 2, 8 // 2] in [1, 2]
 
 
 # ---------------------------------------------------------------
@@ -679,7 +685,7 @@ def test_load_array_chunked_multi_chunk_half_integer(
     """
     root, grp = _make_group(tmp_path)
     src = np.zeros((65, 65, 65), dtype=np.uint8)
-    src[0:32, :, :] = 1   # first full chunk's input region
+    src[0:32, :, :] = 1  # first full chunk's input region
     src[32:65, :, :] = 2  # second full chunk + one-voxel remainder
     arr = grp.create_dataset("data", data=src)
 
@@ -707,3 +713,160 @@ def test_load_array_chunked_multi_chunk_half_integer(
     # Alignment: each chunk's data must land at the correct output coordinates
     assert np.all(out[0:16, :, :] == 1), "chunk 1 data placed at wrong output position"
     assert np.all(out[16:32, :, :] == 2), "chunk 2 data placed at wrong output position"
+
+
+# ---------------------------------------------------------------
+# NaN warning tests
+# ---------------------------------------------------------------
+
+_MC_LOGGER = "cellmap_segmentation_challenge.utils.matched_crop"
+
+
+def _assert_nan_warning(caplog, expected_count):
+    assert any(
+        "NaN" in r.message and f"{expected_count} NaN" in r.message
+        for r in caplog.records
+    ), f"Expected NaN warning with count={expected_count}, got: {[r.message for r in caplog.records]}"
+
+
+def _assert_no_nan_warning(caplog):
+    assert not any("NaN" in r.message for r in caplog.records)
+
+
+def test_load_aligned_warns_on_nan_normal_loading(tmp_path, instance_classes, caplog):
+    """Float semantic array with NaN triggers a warning in the normal (non-chunked) path."""
+    root, grp = _make_group(tmp_path)
+
+    src = np.ones((4, 4), dtype=np.float32)
+    src[1, 1] = np.nan  # one NaN voxel
+
+    arr = grp.create_dataset("s0", data=src)
+    _set_attrs(arr, voxel_size=(1, 1), translation=(0, 0))
+    arr_path = str(root / "s0")
+
+    sem_classes = set(get_tested_classes()) - set(instance_classes)
+    m = mc.MatchedCrop(
+        path=arr_path,
+        class_label=sem_classes.pop(),
+        target_voxel_size=(1, 1),
+        target_shape=(4, 4),
+        target_translation=(0, 0),
+        instance_classes=instance_classes,
+        semantic_threshold=0.5,
+        check_nans=True,
+    )
+
+    with caplog.at_level(logging.WARNING, logger=_MC_LOGGER):
+        m.load_aligned()
+
+    _assert_nan_warning(caplog, 1)
+
+
+def test_load_aligned_no_warning_without_nan(tmp_path, instance_classes, caplog):
+    """No NaN warning when the array is clean."""
+    root, grp = _make_group(tmp_path)
+
+    src = np.ones((4, 4), dtype=np.float32)
+    arr = grp.create_dataset("s0", data=src)
+    _set_attrs(arr, voxel_size=(1, 1), translation=(0, 0))
+    arr_path = str(root / "s0")
+
+    sem_classes = set(get_tested_classes()) - set(instance_classes)
+    m = mc.MatchedCrop(
+        path=arr_path,
+        class_label=sem_classes.pop(),
+        target_voxel_size=(1, 1),
+        target_shape=(4, 4),
+        target_translation=(0, 0),
+        instance_classes=instance_classes,
+        semantic_threshold=0.5,
+        check_nans=True,
+    )
+
+    with caplog.at_level(logging.WARNING, logger=_MC_LOGGER):
+        m.load_aligned()
+
+    _assert_no_nan_warning(caplog)
+
+
+def test_load_aligned_no_warning_when_check_nans_disabled(
+    tmp_path, instance_classes, caplog
+):
+    """NaN values do not produce a warning when check_nans=False (default)."""
+    root, grp = _make_group(tmp_path)
+
+    src = np.ones((4, 4), dtype=np.float32)
+    src[1, 1] = np.nan
+
+    arr = grp.create_dataset("s0", data=src)
+    _set_attrs(arr, voxel_size=(1, 1), translation=(0, 0))
+    arr_path = str(root / "s0")
+
+    sem_classes = set(get_tested_classes()) - set(instance_classes)
+    m = mc.MatchedCrop(
+        path=arr_path,
+        class_label=sem_classes.pop(),
+        target_voxel_size=(1, 1),
+        target_shape=(4, 4),
+        target_translation=(0, 0),
+        instance_classes=instance_classes,
+        # check_nans defaults to False
+    )
+
+    with caplog.at_level(logging.WARNING, logger=_MC_LOGGER):
+        m.load_aligned()
+
+    _assert_no_nan_warning(caplog)
+
+
+def test_load_array_chunked_warns_on_nan(tmp_path, instance_classes, caplog):
+    """Float array with NaN values triggers a warning (with correct count) in chunked path."""
+    root, grp = _make_group(tmp_path)
+
+    src = np.ones((8, 8, 8), dtype=np.float32)
+    src[0, 0, 0] = np.nan
+    src[4, 4, 4] = np.nan  # 2 NaN voxels total
+
+    arr = grp.create_dataset("data", data=src)
+
+    sem_classes = set(get_tested_classes()) - set(instance_classes)
+    m = mc.MatchedCrop(
+        path=str(root),
+        class_label=sem_classes.pop(),
+        target_voxel_size=(2, 2, 2),
+        target_shape=(4, 4, 4),
+        target_translation=(0, 0, 0),
+        instance_classes=instance_classes,
+        semantic_threshold=0.5,
+        check_nans=True,
+    )
+
+    with caplog.at_level(logging.WARNING, logger=_MC_LOGGER):
+        m._load_array_chunked(arr, (0.5, 0.5, 0.5))
+
+    _assert_nan_warning(caplog, 2)
+
+
+def test_load_array_chunked_no_warning_for_integer_array(
+    tmp_path, instance_classes, caplog
+):
+    """Integer arrays cannot contain NaN; no warning should be emitted even with check_nans=True."""
+    root, grp = _make_group(tmp_path)
+
+    src = np.ones((8, 8, 8), dtype=np.uint8)
+    arr = grp.create_dataset("data", data=src)
+
+    m = mc.MatchedCrop(
+        path=str(root),
+        class_label=INSTANCE_CLASSES[0],
+        target_voxel_size=(2, 2, 2),
+        target_shape=(4, 4, 4),
+        target_translation=(0, 0, 0),
+        instance_classes=instance_classes,
+        check_nans=True,
+    )
+
+    with caplog.at_level(logging.WARNING, logger=_MC_LOGGER):
+        m._load_array_chunked(arr, (0.5, 0.5, 0.5))
+
+    _assert_no_nan_warning(caplog)
