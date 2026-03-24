@@ -57,7 +57,6 @@ def score_instance(
         tp, fp, fn, sum_iou = match_instances_pq(
             truth_label,
             pred_label,
-            iou_threshold=0.5,
             max_edges=config.max_overlap_edges,
         )
     except (TooManyInstancesError, TooManyOverlapEdgesError) as e:
