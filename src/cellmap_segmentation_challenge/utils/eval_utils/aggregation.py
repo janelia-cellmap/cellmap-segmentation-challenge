@@ -13,6 +13,23 @@ from ..utils import get_git_hash
 from .config import CAST_TO_NONE
 
 
+# Keys that are added by combine_scores / update_scores and must never be
+# treated as crop-level result dicts during aggregation.
+_AGGREGATION_KEYS = frozenset(
+    {
+        "label_scores",
+        "overall_thing_pq",
+        "overall_stuff_pq",
+        "overall_score",
+        "overall_instance_score",
+        "overall_semantic_score",
+        "total_evals",
+        "num_evals_done",
+        "git_version",
+    }
+)
+
+
 def combine_scores(
     scores,
     include_missing=True,
@@ -63,6 +80,8 @@ def combine_scores(
     pq_lists: dict[str, list[float]] = {}
     accum: dict[str, dict] = {}
     for crop_name, crop_scores in scores.items():
+        if crop_name in _AGGREGATION_KEYS:
+            continue
         if not isinstance(crop_scores, dict):
             continue
         for label, score in crop_scores.items():
