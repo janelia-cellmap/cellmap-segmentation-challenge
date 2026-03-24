@@ -284,15 +284,16 @@ def match_instances_pq(
         return 0, nP, 0, 0.0
     if nP == 0:
         return 0, 0, nG, 0.0
+    _check_instance_ratio(nP, nG, EvaluationConfig.from_env())
 
     overlap_data = _compute_instance_overlaps(gt, pred, nG, nP, max_edges)
 
     keep = overlap_data.iou_vals > iou_threshold
-    rows = overlap_data.rows[keep]      # 0-based GT indices
-    cols = overlap_data.cols[keep]      # 0-based pred indices
+    rows = overlap_data.rows[keep]  # 0-based GT indices
+    cols = overlap_data.cols[keep]  # 0-based pred indices
     iou_vals = overlap_data.iou_vals[keep]
 
-    order = np.argsort(-iou_vals)       # descending IoU
+    order = np.argsort(-iou_vals)  # descending IoU
     matched_gt: set[int] = set()
     matched_pred: set[int] = set()
     tp = 0
