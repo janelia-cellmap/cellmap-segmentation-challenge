@@ -723,7 +723,7 @@ def test_combine_scores_instance_and_semantic():
     # Only one of each type → overall component scores equal the single label PQ
     assert np.isclose(combined["overall_instance_score"], 1.0)
     assert np.isclose(combined["overall_semantic_score"], 0.6)
-    # overall_score = unweighted mean of [1.0, 0.6]
+    # overall_score = unweighted mean over categories of micro-averaged PQ
     assert np.isclose(combined["overall_score"], 0.8)
 
 
@@ -934,3 +934,119 @@ def test_score_submission_json_output(monkeypatch, tmp_path):
     assert isinstance(loaded, dict)
     assert "label_scores" in loaded
     assert "pq" in loaded["label_scores"][label_name]
+
+
+# ------------------------
+# micro-averaging edge cases
+# ------------------------
+
+
+def test_combine_scores_empty_gt_crop_neutral():
+    """Crops where both GT and pred are empty contribute nothing to micro PQ.
+
+    Under macro-averaging, such crops added PQ=0 to the mean and deflated
+    the overall score for a perfect submission.  Under micro-averaging they
+    add (0, 0, 0, 0) to the global accumulators and have no effect.
+    """
+    from cellmap_segmentation_challenge import evaluate as ev
+
+    scores = {
+        # empty GT, empty pred → score_semantic returns tp=fp=fn=0
+        "crop1": {
+            "sem": {
+                "tp": 0,
+                "fp": 0,
+                "fn": 0,
+                "sum_iou": 0.0,
+                "is_missing": False,
+                "status": "scored",
+            }
+        },
+        # real GT, perfect pred
+        "crop2": {
+            "sem": {
+                "tp": 1,
+                "fp": 0,
+                "fn": 0,
+                "sum_iou": 0.8,
+                "is_missing": False,
+                "status": "scored",
+            }
+        },
+    }
+
+    combined = ev.combine_scores(scores, include_missing=True, instance_classes=[])
+    # Micro: global TP=1, FP=0, FN=0, sum_iou=0.8 → PQ = 0.8/1 = 0.8
+    # (macro would give mean([0.0, 0.8]) = 0.4 — incorrectly penalising a perfect submission)
+    assert np.isclose(combined["label_scores"]["sem"]["pq"], 0.8)
+
+
+def test_combine_scores_missing_volume_penalised_via_fn():
+    """Missing volumes increase global FN and lower micro PQ.
+
+    With include_missing=True the missing crop's FN counts are pooled with
+    the found crop's accumulators.  With include_missing=False only the found
+    crop is counted, yielding a higher (optimistic) score.
+    """
+    from cellmap_segmentation_challenge import evaluate as ev
+
+    scores = {
+        # missing volume: 3 GT instances, none predicted
+        "crop1": {
+            "instance": {
+                "tp": 0,
+                "fp": 0,
+                "fn": 3,
+                "sum_iou": 0.0,
+                "is_missing": True,
+                "status": "missing",
+            }
+        },
+        # found volume: perfect match of 3 instances
+        "crop2": {
+            "instance": {
+                "tp": 3,
+                "fp": 0,
+                "fn": 0,
+                "sum_iou": 3.0,
+                "is_missing": False,
+                "status": "scored",
+            }
+        },
+    }
+
+    combined = ev.combine_scores(
+        scores, include_missing=True, instance_classes=["instance"]
+    )
+    # Global: TP=3, FP=0, FN=3 → denom = 3 + 1.5 = 4.5 → PQ = 3.0/4.5
+    assert np.isclose(combined["label_scores"]["instance"]["pq"], 3.0 / 4.5)
+
+    found_only = ev.combine_scores(
+        scores, include_missing=False, instance_classes=["instance"]
+    )
+    # Only crop2 → TP=3, FP=0, FN=0 → PQ = 1.0
+    assert np.isclose(found_only["label_scores"]["instance"]["pq"], 1.0)
+
+
+def test_combine_scores_fp_when_gt_empty():
+    """Predicting something where GT is empty is penalised via FP."""
+    from cellmap_segmentation_challenge import evaluate as ev
+
+    scores = {
+        "crop1": {
+            "sem": {
+                "tp": 0,
+                "fp": 1,
+                "fn": 0,
+                "sum_iou": 0.0,
+                "is_missing": False,
+                "status": "scored",
+            }
+        },
+    }
+
+    combined = ev.combine_scores(scores, include_missing=True, instance_classes=[])
+    # denom = 0.5*FP = 0.5 > 0 → PQ = 0.0 / 0.5 = 0.0
+    assert np.isclose(combined["label_scores"]["sem"]["pq"], 0.0)
+    assert np.isclose(combined["label_scores"]["sem"]["sq"], 0.0)
+    assert np.isclose(combined["label_scores"]["sem"]["rq"], 0.0)

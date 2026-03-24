@@ -12,9 +12,6 @@ Example usage:
 
 # Re-export all public APIs for backward compatibility
 from .utils.eval_utils import (
-    # Types
-    InstanceScoreDict,
-    SemanticScoreDict,
     # Exceptions
     EvaluationError,
     TooManyInstancesError,
@@ -67,9 +64,6 @@ from .utils.eval_utils import (
 )
 
 __all__ = [
-    # Types
-    "InstanceScoreDict",
-    "SemanticScoreDict",
     # Exceptions
     "EvaluationError",
     "TooManyInstancesError",

@@ -8,7 +8,7 @@ This module provides all evaluation-related functionality including:
 """
 
 # Types
-from .types import InstanceScoreDict, SemanticScoreDict, PQCropDict
+from .types import PQCropDict
 
 # Exceptions
 from .exceptions import (
@@ -86,8 +86,6 @@ from .zip_utils import (
 
 __all__ = [
     # Types
-    "InstanceScoreDict",
-    "SemanticScoreDict",
     "PQCropDict",
     # Exceptions
     "EvaluationError",
