@@ -26,14 +26,19 @@ class EvaluationConfig:
     All parameters can be set via environment variables or passed directly.
     Environment variables take precedence over defaults but not over
     explicitly passed values.
+
+    With the PQ metric, both instance and semantic scoring are dominated by
+    zarr I/O rather than CPU, so a single unified worker pool replaces the
+    old separate instance / semantic pools.  ``MAX_WORKERS`` (env var) sets
+    the pool size; the legacy ``MAX_INSTANCE_THREADS`` and
+    ``MAX_SEMANTIC_THREADS`` variables are still honoured as a fallback so
+    that existing deployment configs keep working.
     """
 
-    # Threading configuration
-    max_instance_threads: int = 3
-    max_semantic_threads: int = 25
-    per_instance_threads: int = 25
+    # Unified worker pool (replaces separate instance + semantic pools)
+    max_workers: int = 32
 
-    # Distance calculation parameters
+    # Distance calculation parameters (kept for distance.py, not used in scoring)
     max_distance_cap_eps: float = 1e-4
 
     # Instance matching parameters
@@ -56,13 +61,21 @@ class EvaluationConfig:
     def from_env(cls) -> "EvaluationConfig":
         """Load configuration from environment variables with defaults.
 
+        ``MAX_WORKERS`` takes precedence.  If absent, falls back to
+        ``MAX_INSTANCE_THREADS + MAX_SEMANTIC_THREADS`` for backward
+        compatibility with existing deployment configs.
+
         Returns:
             EvaluationConfig with values from environment or defaults.
         """
+        # Resolve worker count: prefer MAX_WORKERS, fall back to legacy sum
+        legacy_sum = int(os.getenv("MAX_INSTANCE_THREADS", "3")) + int(
+            os.getenv("MAX_SEMANTIC_THREADS", "25")
+        )
+        max_workers = int(os.getenv("MAX_WORKERS", str(legacy_sum)))
+
         return cls(
-            max_instance_threads=int(os.getenv("MAX_INSTANCE_THREADS", "3")),
-            max_semantic_threads=int(os.getenv("MAX_SEMANTIC_THREADS", "25")),
-            per_instance_threads=int(os.getenv("PER_INSTANCE_THREADS", "25")),
+            max_workers=max_workers,
             max_distance_cap_eps=float(os.getenv("MAX_DISTANCE_CAP_EPS", "1e-4")),
             final_instance_ratio_cutoff=float(
                 os.getenv("FINAL_INSTANCE_RATIO_CUTOFF", "10")
@@ -81,18 +94,8 @@ class EvaluationConfig:
         Raises:
             ValueError: If any configuration value is invalid.
         """
-        if self.max_instance_threads < 1:
-            raise ValueError(
-                f"max_instance_threads must be >= 1, got {self.max_instance_threads}"
-            )
-        if self.max_semantic_threads < 1:
-            raise ValueError(
-                f"max_semantic_threads must be >= 1, got {self.max_semantic_threads}"
-            )
-        if self.per_instance_threads < 1:
-            raise ValueError(
-                f"per_instance_threads must be >= 1, got {self.per_instance_threads}"
-            )
+        if self.max_workers < 1:
+            raise ValueError(f"max_workers must be >= 1, got {self.max_workers}")
         if self.max_distance_cap_eps <= 0:
             raise ValueError(
                 f"max_distance_cap_eps must be > 0, got {self.max_distance_cap_eps}"
@@ -119,11 +122,10 @@ class EvaluationConfig:
             )
 
 
-# Legacy Constants (for backward compatibility during migration)
+# Legacy constants — kept for backward compatibility
 CAST_TO_NONE = [np.nan, np.inf, -np.inf, float("inf"), float("-inf")]
 MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 3))
 MAX_SEMANTIC_THREADS = int(os.getenv("MAX_SEMANTIC_THREADS", 25))
-PER_INSTANCE_THREADS = int(os.getenv("PER_INSTANCE_THREADS", 25))
 MAX_DISTANCE_CAP_EPS = float(os.getenv("MAX_DISTANCE_CAP_EPS", "1e-4"))
 FINAL_INSTANCE_RATIO_CUTOFF = float(os.getenv("FINAL_INSTANCE_RATIO_CUTOFF", 10))
 INITIAL_INSTANCE_RATIO_CUTOFF = float(os.getenv("INITIAL_INSTANCE_RATIO_CUTOFF", 50))

@@ -3,31 +3,23 @@
 from typing import Literal, TypedDict
 
 
-class InstanceScoreDict(TypedDict, total=False):
-    """Type definition for instance segmentation scores."""
+class PQCropDict(TypedDict, total=False):
+    """PQ accumulators returned per (crop, label) by score_label.
 
-    mean_accuracy: float
-    binary_accuracy: float
-    hausdorff_distance: float
-    normalized_hausdorff_distance: float
-    combined_score: float
-    iou: float
-    dice_score: float
+    Raw accumulators (tp/fp/fn/sum_iou) are summed globally across crops in
+    ``combine_scores`` (micro-averaging) before per-category PQ/SQ/RQ values
+    are derived.  The derived ``pq``, ``sq``, and ``f1`` fields are computed
+    per-crop for interpretability and are NOT used in the global aggregation.
+    """
+
+    tp: int
+    fp: int
+    fn: int
+    sum_iou: float
+    pq: float  # per-crop PQ = sum_iou / (tp + 0.5*fp + 0.5*fn)
+    sq: float  # per-crop SQ = sum_iou / tp (mean IoU of matched pairs; 0 if tp=0)
+    f1: float  # per-crop F1/RQ = 2*tp / (2*tp + fp + fn)
     num_voxels: int
     voxel_size: tuple[float, ...]
     is_missing: bool
     status: Literal["scored", "skipped_too_many_instances", "missing"]
-    voi_split: float
-    voi_merge: float
-
-
-class SemanticScoreDict(TypedDict, total=False):
-    """Type definition for semantic segmentation scores."""
-
-    iou: float
-    dice_score: float
-    binary_accuracy: float
-    num_voxels: int
-    voxel_size: tuple[float, ...]
-    is_missing: bool
-    status: Literal["scored", "missing"]

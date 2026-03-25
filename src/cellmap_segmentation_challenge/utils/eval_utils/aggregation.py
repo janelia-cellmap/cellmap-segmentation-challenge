@@ -13,107 +13,123 @@ from ..utils import get_git_hash
 from .config import CAST_TO_NONE
 
 
+# Keys that are added by combine_scores / update_scores and must never be
+# treated as crop-level result dicts during aggregation.
+_AGGREGATION_KEYS = frozenset(
+    {
+        "label_scores",
+        "overall_thing_pq",
+        "overall_stuff_pq",
+        "overall_score",
+        "overall_instance_score",
+        "overall_semantic_score",
+        "total_evals",
+        "num_evals_done",
+        "git_version",
+    }
+)
+
+
 def combine_scores(
     scores,
     include_missing=True,
     instance_classes=INSTANCE_CLASSES,
     cast_to_none=CAST_TO_NONE,
 ):
-    """
-    Combine scores across volumes, normalizing by the number of voxels.
+    """Combine PQ accumulators across all crops and compute per-category PQ/SQ/RQ.
+
+    PQ, SQ, and RQ are all computed by **micro-averaging**: TP/FP/FN/sum_IoU
+    are accumulated globally across all crops, then each metric is derived once:
+
+    * PQ_c = global_sum_IoU / (global_TP + 0.5·global_FP + 0.5·global_FN)
+    * SQ_c = global_sum_IoU / global_TP   (Segmentation Quality; 0 when TP=0)
+    * RQ_c = global_TP / (global_TP + 0.5·global_FP + 0.5·global_FN)
+
+    Crops where a label has no GT and no prediction (TP=FP=FN=0) contribute
+    nothing to any accumulator, so they do not deflate the metric.  Missing
+    volumes contribute FN proportional to GT content (worst-case penalty).
+
+    The final scores are **unweighted** means of PQ_c across categories:
+
+    * ``overall_thing_pq``  — mean over thing (instance) categories
+    * ``overall_stuff_pq``  — mean over stuff (semantic) categories
+    * ``overall_score``     — mean over all categories
+
+    ``overall_instance_score`` and ``overall_semantic_score`` are kept as
+    legacy aliases for downstream consumers.
 
     Args:
-        scores (dict): A dictionary of scores for each volume, as returned by `score_volume`.
-        include_missing (bool): Whether to include missing volumes in the combined scores.
-        instance_classes (list): A list of instance classes.
-        cast_to_none (list): A list of values to cast to None in the combined scores.
+        scores: Dict mapping crop names to per-label score dicts.
+        include_missing: Whether to include missing-submission crops.
+        instance_classes: List of thing-class label names.
+        cast_to_none: Unused; kept for call-site compatibility.
 
     Returns:
-        dict: A dictionary of combined scores across all volumes.
-
-    Example usage:
-        combined_scores = combine_scores(scores)
+        The input ``scores`` dict augmented with ``label_scores``,
+        ``overall_thing_pq``, ``overall_stuff_pq``, ``overall_score``,
+        and the legacy alias keys.
     """
-
-    # Combine label scores across volumes, normalizing by the number of voxels
-    logging.info(f"Combining label scores...")
+    logging.info("Combining label scores (PQ)...")
     scores = scores.copy()
-    label_scores = {}
-    total_voxels = {}
-    for ds, these_scores in scores.items():
-        for label, this_score in these_scores.items():
-            # logging.info(this_score)
-            if this_score["is_missing"] and not include_missing:
-                continue
-            if label in instance_classes:
-                if label not in label_scores:
-                    label_scores[label] = {
-                        "mean_accuracy": 0,
-                        "hausdorff_distance": 0,
-                        "normalized_hausdorff_distance": 0,
-                        "combined_score": 0,
-                    }
-                    total_voxels[label] = 0
-            else:
-                if label not in label_scores:
-                    label_scores[label] = {"iou": 0, "dice_score": 0}
-                    total_voxels[label] = 0
-            for key in label_scores[label].keys():
-                if this_score[key] is None:
-                    continue
-                label_scores[label][key] += this_score[key] * this_score["num_voxels"]
-                if this_score[key] in cast_to_none:
-                    scores[ds][label][key] = None
-            total_voxels[label] += this_score["num_voxels"]
 
-    # Normalize back to the total number of voxels
-    for label in label_scores:
-        if label in instance_classes:
-            label_scores[label]["mean_accuracy"] /= total_voxels[label]
-            label_scores[label]["hausdorff_distance"] /= total_voxels[label]
-            label_scores[label]["normalized_hausdorff_distance"] /= total_voxels[label]
-            label_scores[label]["combined_score"] /= total_voxels[label]
-        else:
-            label_scores[label]["iou"] /= total_voxels[label]
-            label_scores[label]["dice_score"] /= total_voxels[label]
-        # Cast to None if the value is in `cast_to_none`
-        for key in label_scores[label]:
-            if label_scores[label][key] in cast_to_none:
-                label_scores[label][key] = None
+    # Global accumulation (micro-averaged PQ/SQ/RQ)
+    accum: dict[str, dict] = {}
+    for crop_name, crop_scores in scores.items():
+        if crop_name in _AGGREGATION_KEYS or not isinstance(crop_scores, dict):
+            continue
+        for label, score in crop_scores.items():
+            if not isinstance(score, dict) or "tp" not in score:
+                continue
+            if score.get("is_missing") and not include_missing:
+                continue
+            tp, fp, fn, sum_iou = (
+                score["tp"],
+                score["fp"],
+                score["fn"],
+                score["sum_iou"],
+            )
+            if label not in accum:
+                accum[label] = {"tp": 0, "fp": 0, "fn": 0, "sum_iou": 0.0}
+            accum[label]["tp"] += tp
+            accum[label]["fp"] += fp
+            accum[label]["fn"] += fn
+            accum[label]["sum_iou"] += sum_iou
+
+    # Compute PQ/SQ/RQ per category (all micro-averaged)
+    logging.info("Computing per-category PQ/SQ/RQ...")
+    label_scores: dict[str, dict] = {}
+    for label, acc in accum.items():
+        tp, fp, fn, sum_iou = acc["tp"], acc["fp"], acc["fn"], acc["sum_iou"]
+        denom = tp + 0.5 * fp + 0.5 * fn
+        pq = sum_iou / denom if denom > 0 else 0.0
+        sq = sum_iou / tp if tp > 0 else 0.0
+        rq = tp / denom if denom > 0 else 0.0
+        label_scores[label] = {
+            "pq": float(pq),
+            "sq": float(sq),
+            "rq": float(rq),
+            "tp": tp,
+            "fp": fp,
+            "fn": fn,
+            "sum_iou": sum_iou,
+        }
     scores["label_scores"] = label_scores
 
-    # Compute the overall score
+    # Unweighted mean PQ broken down by thing / stuff
     logging.info("Computing overall scores...")
-    overall_instance_scores = []
-    overall_semantic_scores = []
-    instance_total_voxels = sum(
-        total_voxels[label] for label in label_scores if label in instance_classes
-    )
-    semantic_total_voxels = sum(
-        total_voxels[label] for label in label_scores if label not in instance_classes
-    )
-    for label in label_scores:
-        if label in instance_classes:
-            overall_instance_scores += [
-                label_scores[label]["combined_score"] * total_voxels[label]
-            ]
-        else:
-            overall_semantic_scores += [
-                label_scores[label]["iou"] * total_voxels[label]
-            ]
-    scores["overall_instance_score"] = (
-        np.nansum(overall_instance_scores) / instance_total_voxels
-        if overall_instance_scores
-        else 0
-    )
-    scores["overall_semantic_score"] = (
-        np.nansum(overall_semantic_scores) / semantic_total_voxels
-        if overall_semantic_scores
-        else 0
-    )
-    scores["overall_score"] = (
-        scores["overall_instance_score"] * scores["overall_semantic_score"]
-    ) ** 0.5  # geometric mean
+    thing_pqs = [label_scores[l]["pq"] for l in label_scores if l in instance_classes]
+    stuff_pqs = [
+        label_scores[l]["pq"] for l in label_scores if l not in instance_classes
+    ]
+    all_pqs = thing_pqs + stuff_pqs
+
+    scores["overall_thing_pq"] = float(np.mean(thing_pqs)) if thing_pqs else 0.0
+    scores["overall_stuff_pq"] = float(np.mean(stuff_pqs)) if stuff_pqs else 0.0
+    scores["overall_score"] = float(np.mean(all_pqs)) if all_pqs else 0.0
+
+    # Legacy aliases expected by update_scores and downstream consumers
+    scores["overall_instance_score"] = scores["overall_thing_pq"]
+    scores["overall_semantic_score"] = scores["overall_stuff_pq"]
 
     return scores
 

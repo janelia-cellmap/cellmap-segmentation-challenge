@@ -9,7 +9,11 @@ from fastremap import unique
 from scipy.ndimage import distance_transform_edt
 from tqdm import tqdm
 
-from .config import PER_INSTANCE_THREADS
+import os
+
+# Number of threads for internal Hausdorff parallelism.  Read from the legacy
+# PER_INSTANCE_THREADS env var; falls back to 25 if not set.
+_PER_INSTANCE_THREADS: int = int(os.getenv("PER_INSTANCE_THREADS", "25"))
 
 
 def compute_max_distance(voxel_size, shape) -> float:
@@ -91,7 +95,7 @@ def optimized_hausdorff_distances(
 
     dists = np.empty((true_num,), dtype=np.float32)
 
-    with ThreadPoolExecutor(max_workers=PER_INSTANCE_THREADS) as executor:
+    with ThreadPoolExecutor(max_workers=_PER_INSTANCE_THREADS) as executor:
         for idx, h in tqdm(
             executor.map(get_distance, range(true_num)),
             desc="Computing Hausdorff distances",
