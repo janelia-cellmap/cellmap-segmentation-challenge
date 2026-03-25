@@ -211,6 +211,8 @@ def score_label(
     )
     results["pq"] = pq
     results["sq"] = sq
+    # Expose recognition quality under both `rq` (preferred) and `f1` for compatibility.
+    results["rq"] = f1
     results["f1"] = f1
     # drop big arrays before returning
     del truth_label, pred_label, truth_label_ds
