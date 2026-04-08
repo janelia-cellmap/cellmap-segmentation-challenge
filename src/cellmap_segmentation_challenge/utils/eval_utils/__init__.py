@@ -8,7 +8,7 @@ This module provides all evaluation-related functionality including:
 """
 
 # Types
-from .types import InstanceScoreDict, SemanticScoreDict
+from .types import PQCropDict
 
 # Exceptions
 from .exceptions import (
@@ -25,7 +25,6 @@ from .config import (
     CAST_TO_NONE,
     MAX_INSTANCE_THREADS,
     MAX_SEMANTIC_THREADS,
-    PER_INSTANCE_THREADS,
     MAX_DISTANCE_CAP_EPS,
     FINAL_INSTANCE_RATIO_CUTOFF,
     INITIAL_INSTANCE_RATIO_CUTOFF,
@@ -87,8 +86,7 @@ from .zip_utils import (
 
 __all__ = [
     # Types
-    "InstanceScoreDict",
-    "SemanticScoreDict",
+    "PQCropDict",
     # Exceptions
     "EvaluationError",
     "TooManyInstancesError",
@@ -100,7 +98,6 @@ __all__ = [
     "CAST_TO_NONE",
     "MAX_INSTANCE_THREADS",
     "MAX_SEMANTIC_THREADS",
-    "PER_INSTANCE_THREADS",
     "MAX_DISTANCE_CAP_EPS",
     "FINAL_INSTANCE_RATIO_CUTOFF",
     "INITIAL_INSTANCE_RATIO_CUTOFF",

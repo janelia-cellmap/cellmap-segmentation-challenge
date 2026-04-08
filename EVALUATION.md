@@ -3,9 +3,11 @@
 ## Overview
 
 The evaluation pipeline scores segmentation submissions against ground truth data.
-Labels are classified as either **instance** (e.g. mito, nuc, ves) or **semantic**
-segmentation and scored with different metrics accordingly. Results are aggregated
-across all crops and labels into a single overall score.
+All labels — both **instance** ("thing") classes (e.g. `mito`, `nuc`, `ves`) and
+**semantic** ("stuff") classes — are evaluated using **Panoptic Quality (PQ)**
+accumulators (TP / FP / FN / sum\_IoU).  Per-category PQ / SQ / RQ are
+micro-averaged across crops; the final overall score is the unweighted mean PQ
+across all categories.
 
 ## Flowchart
 
@@ -34,13 +36,9 @@ flowchart TD
     ScoreMissing --> Aggregate
     ArgTuples --> Parallel
 
-    subgraph Parallel[Parallel Scoring]
+    subgraph Parallel["Parallel Scoring (single ProcessPoolExecutor)"]
         direction TB
-        Route{Label type?}
-        Route -- Instance class --> InstPool["ProcessPoolExecutor<br/>max_instance_threads workers"]
-        Route -- Semantic class --> SemPool["ProcessPoolExecutor<br/>max_semantic_threads workers"]
-        InstPool --> ScoreLabel
-        SemPool --> ScoreLabel
+        ScoreLabel
     end
 
     subgraph ScoreLabel[score_label]
@@ -64,63 +62,38 @@ flowchart TD
         BranchType -- Semantic --> SemanticScoring
     end
 
-    subgraph InstanceScoring[score_instance]
+    subgraph InstanceScoring[score_instance — PQ matching]
         direction TB
         CC["Relabel prediction via<br/>cc3d.connected_components"]
-        CC --> BinaryMetrics["Compute binary metrics<br/>(IoU, Dice, binary accuracy)"]
-        CC --> VoI["Compute rand_voi<br/>split & merge errors"]
-        BinaryMetrics --> Matching
-        VoI --> Matching
+        CC --> RatioCheck["Check pred/GT instance ratio<br/>vs dynamic cutoff"]
+        RatioCheck --> RatioOK{Ratio OK?}
+        RatioOK -- No --> SkipPQ["Return worst-case accumulators<br/>tp=0, fp=nP, fn=nG, sum_iou=0<br/>status: skipped_too_many_instances"]
+        RatioOK -- Yes --> ComputeOverlaps
 
-        subgraph Matching[match_instances]
-            direction TB
-            CountInstances["Count instances<br/>nG = max GT, nP = max pred"]
-            CountInstances --> SpecialCase{nG=0 or nP=0?}
-            SpecialCase -- Yes --> EmptyMatch[Return empty mapping]
-            SpecialCase -- No --> RatioCheck
+        ComputeOverlaps["Compute sparse IoU overlaps<br/>between all instance pairs"]
+        ComputeOverlaps --> EdgeCheck{"Edges within<br/>limit?"}
+        EdgeCheck -- No --> SkipPQ
+        EdgeCheck -- Yes --> GreedyMatch
 
-            RatioCheck["Check pred/GT ratio<br/>vs dynamic cutoff"]
-            RatioCheck --> RatioOK{Ratio OK?}
-            RatioOK -- No --> TooMany([TooManyInstancesError])
-            RatioOK -- Yes --> ComputeOverlaps
-
-            ComputeOverlaps["Compute IoU overlaps<br/>between all instance pairs"]
-            ComputeOverlaps --> EdgeCheck{"Edges within<br/>limit?"}
-            EdgeCheck -- No --> TooManyEdges([TooManyOverlapEdgesError])
-            EdgeCheck -- Yes --> MCF
-
-            MCF["Solve min-cost flow<br/>OR-Tools SimpleMinCostFlow<br/>1:1 optimal matching"]
-            MCF --> MCFStatus{Solve status?}
-            MCFStatus -- Optimal --> ExtractMap["Extract pred_id to gt_id<br/>mapping from flow arcs"]
-            MCFStatus -- Failed --> MatchFail([MatchingFailedError])
-        end
-
-        Matching --> MatchResult{"Matching<br/>succeeded?"}
-        MatchResult -- No --> Pathological["Return pathological scores<br/>accuracy=0, combined=0<br/>keep binary & VoI metrics"]
-        MatchResult -- Yes --> Remap["Remap prediction IDs<br/>to match ground truth IDs"]
-        Remap --> Hausdorff
-
-        subgraph Hausdorff[Hausdorff Distance Computation]
-            direction TB
-            GetIDs[Get unique GT instance IDs]
-            GetIDs --> PerInstance["For each instance (threaded):<br/>Extract ROI bounding box<br/>Compute distance transforms<br/>Calculate Hausdorff distance"]
-            PerInstance --> Unmatched["Add max_distance for<br/>unmatched predictions"]
-        end
-
-        Hausdorff --> FinalInstance["Compute final instance scores:<br/>accuracy = mean(truth == pred)<br/>hausdorff = mean(distances)<br/>norm_hausdorff = mean(normalized)<br/>combined = sqrt(accuracy * norm_hausdorff)"]
+        GreedyMatch["Greedy matching:<br/>keep pairs with IoU > 0.5<br/>match in descending-IoU order<br/>(provably optimal at threshold 0.5)"]
+        GreedyMatch --> PQAccum["Accumulate TP, FP, FN, sum_IoU"]
     end
 
-    subgraph SemanticScoring[score_semantic]
+    subgraph SemanticScoring[score_semantic — PQ binary]
         direction TB
-        Binarize["Binarize both arrays<br/>(threshold > 0)"]
-        Binarize --> EmptyCheck{Both empty?}
-        EmptyCheck -- Yes --> Perfect[All scores = 1.0]
-        EmptyCheck -- No --> SemMetrics["Compute metrics:<br/>IoU = jaccard_score<br/>Dice = 1 - dice distance<br/>binary_accuracy = mean match"]
+        BothEmpty{Both GT and<br/>pred empty?}
+        BothEmpty -- Yes --> ZeroAccum["tp=0, fp=0, fn=0, sum_iou=0"]
+        BothEmpty -- No --> ComputeIoU["Compute binary IoU of<br/>the single collapsed segment"]
+        ComputeIoU --> IoUCheck{"IoU > 0.5?"}
+        IoUCheck -- Yes --> SemanticTP["tp=1, fp=0, fn=0, sum_iou=IoU"]
+        IoUCheck -- No --> SemanticFPFN["tp=0, fp=1, fn=1, sum_iou=0"]
     end
 
-    InstanceScoring --> AddMeta
-    SemanticScoring --> AddMeta
+    InstanceScoring --> DerivePQ
+    SemanticScoring --> DerivePQ
     EmptyScore --> AddMeta
+    DerivePQ["Derive per-crop PQ/SQ/RQ<br/>from accumulators"]
+    DerivePQ --> AddMeta
     AddMeta["Add metadata:<br/>num_voxels, voxel_size,<br/>is_missing flag"]
 
     Parallel --> Aggregate
@@ -128,11 +101,11 @@ flowchart TD
     subgraph Aggregate[Aggregate & Save Results]
         direction TB
         Collect["Collect all<br/>crop/label results"]
-        Collect --> CombineLabels["Combine per-label scores<br/>across crops, weighted<br/>by voxel count"]
-        CombineLabels --> OverallInstance["Overall Instance Score =<br/>voxel-weighted mean of<br/>combined_score across<br/>instance labels"]
-        CombineLabels --> OverallSemantic["Overall Semantic Score =<br/>voxel-weighted mean of<br/>IoU across semantic labels"]
-        OverallInstance --> OverallScore["Overall Score =<br/>sqrt(instance * semantic)<br/>(geometric mean)"]
-        OverallSemantic --> OverallScore
+        Collect --> MicroAvg["Micro-average per category:<br/>sum TP/FP/FN/sum_IoU across crops<br/>compute PQ_c / SQ_c / RQ_c"]
+        MicroAvg --> OverallThing["overall_thing_pq =<br/>unweighted mean PQ<br/>over instance classes"]
+        MicroAvg --> OverallStuff["overall_stuff_pq =<br/>unweighted mean PQ<br/>over semantic classes"]
+        OverallThing --> OverallScore["overall_score =<br/>unweighted mean PQ<br/>over all classes"]
+        OverallStuff --> OverallScore
         OverallScore --> Sanitize["Sanitize scores:<br/>NaN/Inf -> None<br/>numpy types -> Python types"]
         Sanitize --> Save["Save results JSON:<br/>- all_scores (with missing)<br/>- submitted_only scores"]
     end
@@ -142,31 +115,44 @@ flowchart TD
 
 ## Metrics
 
-### Instance Segmentation
+All labels (both instance and semantic) are scored with the same
+**Panoptic Quality** framework.
+
+### Raw accumulators (per crop, per label)
+
+| Field | Description |
+|-------|-------------|
+| `tp` | True positives — matched instance pairs (IoU > 0.5) |
+| `fp` | False positives — predicted instances with no GT match |
+| `fn` | False negatives — GT instances with no predicted match |
+| `sum_iou` | Sum of IoU values for all TP matches |
+| `pq` | Per-crop Panoptic Quality = `sum_iou / (TP + 0.5·FP + 0.5·FN)` |
+| `sq` | Per-crop Segmentation Quality = `sum_iou / TP` (mean IoU of matched pairs) |
+| `rq` | Per-crop Recognition Quality (F1) = `2·TP / (2·TP + FP + FN)` |
+
+For **semantic** labels each crop contributes at most one GT segment and one
+predicted segment, so TP ∈ {0, 1}.
+
+### Per-category scores (`label_scores`)
+
+Accumulators are micro-averaged across all crops for each category:
+
+| Field | Description |
+|-------|-------------|
+| `pq` | `global_sum_IoU / (global_TP + 0.5·global_FP + 0.5·global_FN)` |
+| `sq` | `global_sum_IoU / global_TP` — 0 when `global_TP = 0` |
+| `rq` | `global_TP / (global_TP + 0.5·global_FP + 0.5·global_FN)` |
+| `tp`, `fp`, `fn`, `sum_iou` | Globally accumulated raw values |
+
+### Overall scores
+
+The per-category PQ scores are combined as an **arithmetic mean across categories**
+(not weighted by instance count or voxel volume), so each category contributes equally.
 
 | Metric | Description |
 |--------|-------------|
-| `accuracy` | Voxel-wise match rate after instance ID alignment |
-| `hausdorff_distance` | Mean Hausdorff distance across all matched instances |
-| `normalized_hausdorff_distance` | Hausdorff normalized to [0, 1] via exponential decay |
-| `combined_score` | `sqrt(accuracy * normalized_hausdorff_distance)` |
-| `iou` | Binary foreground IoU (Jaccard index) |
-| `dice_score` | Binary foreground Dice coefficient |
-| `voi_split` | Variation of Information split error |
-| `voi_merge` | Variation of Information merge error |
-
-### Semantic Segmentation
-
-| Metric | Description |
-|--------|-------------|
-| `iou` | Binary Jaccard index |
-| `dice_score` | Binary Dice coefficient |
-| `binary_accuracy` | Voxel-wise binary match rate |
-
-### Overall
-
-| Metric | Description |
-|--------|-------------|
-| `overall_instance_score` | Voxel-weighted mean of `combined_score` across instance labels |
-| `overall_semantic_score` | Voxel-weighted mean of `iou` across semantic labels |
-| `overall_score` | `sqrt(overall_instance_score * overall_semantic_score)` |
+| `overall_thing_pq` | Arithmetic mean of `pq` across instance ("thing") categories |
+| `overall_stuff_pq` | Arithmetic mean of `pq` across semantic ("stuff") categories |
+| `overall_score` | Arithmetic mean of `pq` across **all** categories |
+| `overall_instance_score` | Alias for `overall_thing_pq` |
+| `overall_semantic_score` | Alias for `overall_stuff_pq` |

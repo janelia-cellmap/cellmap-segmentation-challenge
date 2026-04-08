@@ -244,6 +244,69 @@ def _solve_matching_problem(
     return mapping
 
 
+def match_instances_pq(
+    gt: np.ndarray,
+    pred: np.ndarray,
+    max_edges: int = 5_000_000,
+) -> tuple[int, int, int, float]:
+    """Greedy IoU-threshold matching for Panoptic Quality computation.
+
+    Reuses ``_compute_instance_overlaps`` for the sparse IoU matrix, then
+    filters to pairs with IoU > 0.5 and matches greedily in descending-IoU
+    order.  Because IoU > 0.5 guarantees that each ground-truth and each
+    predicted segment can be matched to at most one counterpart, the greedy
+    result is provably optimal.
+
+    Args:
+        gt: Ground truth instance labels (0 = background).
+        pred: Predicted instance labels (0 = background).
+        max_edges: Maximum number of overlap edges forwarded to
+            ``_compute_instance_overlaps`` before raising
+            ``TooManyOverlapEdgesError``.
+
+    Returns:
+        Tuple ``(TP, FP, FN, sum_IoU)`` accumulated over this crop.
+
+    Raises:
+        TooManyOverlapEdgesError: If the overlap matrix would exceed
+            ``max_edges`` entries.
+    """
+    g = np.ravel(gt)
+    p = np.ravel(pred)
+    nG = int(g.max()) if g.size and g.max() > 0 else 0
+    nP = int(p.max()) if p.size and p.max() > 0 else 0
+
+    if nG == 0 and nP == 0:
+        return 0, 0, 0, 0.0
+    if nG == 0:
+        return 0, nP, 0, 0.0
+    if nP == 0:
+        return 0, 0, nG, 0.0
+    _check_instance_ratio(nP, nG, EvaluationConfig.from_env())
+
+    overlap_data = _compute_instance_overlaps(gt, pred, nG, nP, max_edges)
+
+    keep = overlap_data.iou_vals > 0.5
+    rows = overlap_data.rows[keep]  # 0-based GT indices
+    cols = overlap_data.cols[keep]  # 0-based pred indices
+    iou_vals = overlap_data.iou_vals[keep]
+
+    order = np.argsort(-iou_vals)  # descending IoU
+    matched_gt: set[int] = set()
+    matched_pred: set[int] = set()
+    tp = 0
+    sum_iou = 0.0
+    for idx in order:
+        gi, pj = int(rows[idx]), int(cols[idx])
+        if gi not in matched_gt and pj not in matched_pred:
+            matched_gt.add(gi)
+            matched_pred.add(pj)
+            tp += 1
+            sum_iou += float(iou_vals[idx])
+
+    return tp, nP - tp, nG - tp, sum_iou
+
+
 def match_instances(
     gt: np.ndarray,
     pred: np.ndarray,

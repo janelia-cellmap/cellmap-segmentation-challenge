@@ -252,7 +252,12 @@ def _execute_parallel_scoring(
     evaluation_args: list[tuple],
     config: EvaluationConfig,
 ) -> list[tuple]:
-    """Execute evaluations in parallel using process pools.
+    """Execute evaluations in parallel using a single process pool.
+
+    With PQ metrics, both instance and semantic scoring are dominated by
+    zarr I/O rather than CPU, so a single unified pool is used instead of
+    the previous separate instance / semantic pools.  The pool size is
+    controlled by ``config.max_workers`` (env var ``MAX_WORKERS``).
 
     Args:
         evaluation_args: List of arguments for score_label
@@ -261,25 +266,13 @@ def _execute_parallel_scoring(
     Returns:
         List of (crop_name, label_name, result) tuples
     """
-    instance_classes = config.instance_classes
-
     logging.info(
-        f"Scoring volumes in parallel, using {config.max_instance_threads} "
-        f"instance threads and {config.max_semantic_threads} semantic threads..."
+        f"Scoring {len(evaluation_args)} label(s) in parallel "
+        f"with {config.max_workers} workers..."
     )
 
-    # Use context managers for proper resource cleanup
-    with (
-        ProcessPoolExecutor(config.max_instance_threads) as instance_pool,
-        ProcessPoolExecutor(config.max_semantic_threads) as semantic_pool,
-    ):
-
-        futures = []
-        for args in evaluation_args:
-            if args[1] in instance_classes:
-                futures.append(instance_pool.submit(score_label, *args))
-            else:
-                futures.append(semantic_pool.submit(score_label, *args))
+    with ProcessPoolExecutor(config.max_workers) as pool:
+        futures = [pool.submit(score_label, *args) for args in evaluation_args]
 
         results = []
         for future in tqdm(
@@ -371,23 +364,25 @@ def score_submission(
 
     Results structure:
         {
-            "cropN": {  # Per-volume scores
+            "cropN": {  # Per-crop PQ accumulators
                 "label_name": {
-                    # Instance segmentation
-                    "mean_accuracy": float,
-                    "hausdorff_distance": float,
-                    "combined_score": float,
-                    # OR semantic segmentation
-                    "iou": float,
-                    "dice_score": float,
+                    "tp": int, "fp": int, "fn": int, "sum_iou": float,
+                    "num_voxels": int, "is_missing": bool, "status": str,
                 }
             },
-            "label_scores": {  # Aggregated per-label
-                "label_name": {...}
+            "label_scores": {  # Globally-accumulated PQ per label
+                "label_name": {
+                    "pq": float,  # Panoptic Quality
+                    "sq": float,  # Segmentation Quality
+                    "rq": float,  # Recognition Quality
+                    "tp": int, "fp": int, "fn": int, "sum_iou": float,
+                }
             },
-            "overall_instance_score": float,
-            "overall_semantic_score": float,
-            "overall_score": float,
+            "overall_thing_pq": float,   # unweighted mean PQ, thing classes
+            "overall_stuff_pq": float,   # unweighted mean PQ, stuff classes
+            "overall_score": float,      # unweighted mean PQ, all classes
+            "overall_instance_score": float,  # alias for overall_thing_pq
+            "overall_semantic_score": float,  # alias for overall_stuff_pq
         }
     """
     if config is None:

@@ -7,6 +7,23 @@ Resampling
 ----------
 Before scoring, the predicted volumes are resampled to ensure they are compared to the ground truth at the same resolution and region of interest (ROI). For more details on the resampling process, refer to `evaluation_resampling.rst`.
 
+Evaluation Approach
+-------------------
+
+All labels — both instance ("thing") and semantic ("stuff") classes — are evaluated
+using **Panoptic Quality (PQ)**, a unified metric that rewards both correct detection
+and accurate segmentation.
+
+For each crop and each label, the scorer produces four raw accumulators:
+
+- **TP** (True Positives): matched instance/segment pairs with IoU > 0.5
+- **FP** (False Positives): predicted instances/segments with no GT match
+- **FN** (False Negatives): GT instances/segments with no predicted match
+- **sum\_IoU**: sum of IoU values for all TP pairs
+
+These are micro-averaged across crops to produce per-category PQ, SQ, and RQ scores,
+and the final overall score is the unweighted mean PQ across all categories.
+
 Instance Segmentations
 ----------------------
 
@@ -24,31 +41,93 @@ Instance Segmentations
   - Vesicle (`ves`)
   - Vimentin (`vim`)
 
-- **Scoring Components**:
+- **Scoring Method**:
 
-  - **Hausdorff Distance**: The Hausdorff distance is calculated in nanometers between the predicted and ground truth instance segmentations. This metric measures the maximum distance between any point on the predicted instance and its nearest point on the ground truth instance, and vice versa.
+  Predicted labels are first relabeled via connected components. GT and predicted
+  instances are then matched greedily in descending-IoU order, keeping only pairs
+  with IoU > 0.5. Because IoU > 0.5 guarantees at most one valid counterpart for
+  each instance, this greedy matching is provably optimal. The result is a set of
+  TP/FP/FN/sum\_IoU accumulators for the crop.
 
-  - **Accuracy**: The accuracy is calculated as the proportion of correctly predicted instance labels to the total number of instance labels.
-
-- **Score Normalization and Combination**:
-
-  - The Hausdorff distance is normalized to a range of [0, 1] using the maximum distance represented by a voxel. Specifically, the normalized Hausdorff distance is :math:`1.01^{-\frac{\text{hausdorff distance}}{\|\text{voxel\_size}\|}}`.
-
-  - The combined score is calculated as the geometric mean of the accuracy and the normalized Hausdorff distance.
-
-  - The final instance score across volumes is produced by taking the average across the combined scores for each volume, normalized by the total spatial volume of each image.
+  If the predicted-to-GT instance ratio or the number of overlap edges exceeds
+  configured limits, the crop is skipped and worst-case accumulators are returned
+  (``tp=0``, ``fp=nP``, ``fn=nG``, ``sum_iou=0``).
 
 Semantic Segmentations
 ----------------------
 
 - **All non-instance classes are included as semantic labels**
 
-- **Scoring Components**:
+- **Scoring Method**:
 
-  - **Intersection over Union (IoU)**: The IoU is calculated as the intersection of the predicted and ground truth segmentations divided by their union. This metric measures the overlap between the predicted and ground truth segmentations.
+  Each semantic label is treated as a single binary segment per crop (one GT
+  segment, one predicted segment). Their binary IoU is computed; if IoU > 0.5
+  the crop counts as a TP match, otherwise as both an FP and an FN. This keeps
+  semantic labels consistent with the same PQ framework used for instance labels.
 
-  - **Dice Score**: The Dice score is calculated as twice the intersection of the predicted and ground truth segmentations divided by the sum of their volumes. This metric measures the similarity between the predicted and ground truth segmentations.
+Metrics
+-------
 
-- **Score Normalization and Combination**:
+Per-Crop Accumulators
+~~~~~~~~~~~~~~~~~~~~~
 
-  - The IoU scores are combined across all volumes to obtain the final scores, normalized by the total volume occupied by the volumes to which each IoU corresponds.
+.. list-table::
+   :header-rows: 1
+
+   * - Field
+     - Description
+   * - ``tp``
+     - True positives — matched pairs with IoU > 0.5
+   * - ``fp``
+     - False positives — unmatched predicted instances/segments
+   * - ``fn``
+     - False negatives — unmatched GT instances/segments
+   * - ``sum_iou``
+     - Sum of IoU values for all TP matches
+   * - ``pq``
+     - Per-crop Panoptic Quality = ``sum_iou / (TP + 0.5·FP + 0.5·FN)``
+   * - ``sq``
+     - Per-crop Segmentation Quality = ``sum_iou / TP`` (mean IoU of matched pairs; 0 when TP=0)
+   * - ``rq``
+     - Per-crop Recognition Quality (F1) = ``2·TP / (2·TP + FP + FN)``
+
+Per-Category Scores (``label_scores``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Accumulators are micro-averaged across all crops for each category:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Field
+     - Description
+   * - ``pq``
+     - :math:`\frac{\text{global\_sum\_IoU}}{\text{global\_TP} + 0.5 \cdot \text{global\_FP} + 0.5 \cdot \text{global\_FN}}`
+   * - ``sq``
+     - :math:`\frac{\text{global\_sum\_IoU}}{\text{global\_TP}}` — 0 when global TP = 0
+   * - ``rq``
+     - :math:`\frac{\text{global\_TP}}{\text{global\_TP} + 0.5 \cdot \text{global\_FP} + 0.5 \cdot \text{global\_FN}}`
+   * - ``tp``, ``fp``, ``fn``, ``sum_iou``
+     - Globally accumulated raw values
+
+Overall Scores
+~~~~~~~~~~~~~~
+
+The per-category PQ scores are combined as an **arithmetic mean across categories**
+(not weighted by instance count or voxel volume), so each category contributes equally.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Metric
+     - Description
+   * - ``overall_thing_pq``
+     - Arithmetic mean of ``pq`` across instance ("thing") categories
+   * - ``overall_stuff_pq``
+     - Arithmetic mean of ``pq`` across semantic ("stuff") categories
+   * - ``overall_score``
+     - Arithmetic mean of ``pq`` across **all** categories
+   * - ``overall_instance_score``
+     - Alias for ``overall_thing_pq``
+   * - ``overall_semantic_score``
+     - Alias for ``overall_stuff_pq``
