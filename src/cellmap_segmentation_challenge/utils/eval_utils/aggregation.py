@@ -40,20 +40,38 @@ def combine_scores(
     scores = scores.copy()
     label_scores = {}
     total_voxels = {}
+    # Track instance F1 counts separately (sum TP/FP/FN, then compute F1)
+    instance_counts = {}  # label -> {"tp": int, "fp": int, "fn": int}
     for ds, these_scores in scores.items():
+        # Skip aggregation-level keys that are not per-crop result dicts
+        if not isinstance(these_scores, dict):
+            continue
+        if ds in (
+            "label_scores",
+            "overall_instance_score",
+            "overall_semantic_score",
+            "overall_score",
+            "total_evals",
+            "num_evals_done",
+            "git_version",
+        ):
+            continue
         for label, this_score in these_scores.items():
-            # logging.info(this_score)
             if this_score["is_missing"] and not include_missing:
                 continue
             if label in instance_classes:
                 if label not in label_scores:
                     label_scores[label] = {
-                        "mean_accuracy": 0,
                         "hausdorff_distance": 0,
                         "normalized_hausdorff_distance": 0,
                         "combined_score": 0,
                     }
+                    instance_counts[label] = {"tp": 0, "fp": 0, "fn": 0}
                     total_voxels[label] = 0
+                # Accumulate TP/FP/FN counts directly (not voxel-weighted)
+                for count_key in ("tp", "fp", "fn"):
+                    if count_key in this_score:
+                        instance_counts[label][count_key] += this_score[count_key]
             else:
                 if label not in label_scores:
                     label_scores[label] = {"iou": 0, "dice_score": 0}
@@ -69,10 +87,17 @@ def combine_scores(
     # Normalize back to the total number of voxels
     for label in label_scores:
         if label in instance_classes:
-            label_scores[label]["mean_accuracy"] /= total_voxels[label]
             label_scores[label]["hausdorff_distance"] /= total_voxels[label]
             label_scores[label]["normalized_hausdorff_distance"] /= total_voxels[label]
             label_scores[label]["combined_score"] /= total_voxels[label]
+            # Compute F1 from aggregated counts
+            counts = instance_counts[label]
+            tp, fp, fn = counts["tp"], counts["fp"], counts["fn"]
+            denom = 2 * tp + fp + fn
+            label_scores[label]["f1"] = (2 * tp / denom) if denom > 0 else 0.0
+            label_scores[label]["tp"] = tp
+            label_scores[label]["fp"] = fp
+            label_scores[label]["fn"] = fn
         else:
             label_scores[label]["iou"] /= total_voxels[label]
             label_scores[label]["dice_score"] /= total_voxels[label]

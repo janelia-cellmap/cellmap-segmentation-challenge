@@ -6,7 +6,10 @@ from typing import Literal, TypedDict
 class InstanceScoreDict(TypedDict, total=False):
     """Type definition for instance segmentation scores."""
 
-    mean_accuracy: float
+    f1: float
+    tp: int
+    fp: int
+    fn: int
     binary_accuracy: float
     hausdorff_distance: float
     normalized_hausdorff_distance: float

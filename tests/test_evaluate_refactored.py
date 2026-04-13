@@ -63,8 +63,7 @@ class TestEvaluationConfig:
     def test_default_config(self):
         """Test default configuration values."""
         config = EvaluationConfig()
-        assert config.max_instance_threads == 3
-        assert config.max_semantic_threads == 25
+        assert config.max_workers == 32
         assert config.per_instance_threads == 25
         assert config.max_distance_cap_eps == 1e-4
         assert config.final_instance_ratio_cutoff == 10.0
@@ -75,13 +74,11 @@ class TestEvaluationConfig:
 
     def test_from_env(self, monkeypatch):
         """Test loading configuration from environment."""
-        monkeypatch.setenv("MAX_INSTANCE_THREADS", "5")
-        monkeypatch.setenv("MAX_SEMANTIC_THREADS", "30")
+        monkeypatch.setenv("MAX_WORKERS", "48")
         monkeypatch.setenv("FINAL_INSTANCE_RATIO_CUTOFF", "15.0")
 
         config = EvaluationConfig.from_env()
-        assert config.max_instance_threads == 5
-        assert config.max_semantic_threads == 30
+        assert config.max_workers == 48
         assert config.final_instance_ratio_cutoff == 15.0
 
     def test_validate_valid_config(self):
@@ -89,16 +86,10 @@ class TestEvaluationConfig:
         config = EvaluationConfig()
         config.validate()  # Should not raise
 
-    def test_validate_invalid_max_instance_threads(self):
-        """Test validation fails for invalid max_instance_threads."""
-        config = EvaluationConfig(max_instance_threads=0)
-        with pytest.raises(ValueError, match="max_instance_threads must be >= 1"):
-            config.validate()
-
-    def test_validate_invalid_max_semantic_threads(self):
-        """Test validation fails for invalid max_semantic_threads."""
-        config = EvaluationConfig(max_semantic_threads=-1)
-        with pytest.raises(ValueError, match="max_semantic_threads must be >= 1"):
+    def test_validate_invalid_max_workers(self):
+        """Test validation fails for invalid max_workers."""
+        config = EvaluationConfig(max_workers=0)
+        with pytest.raises(ValueError, match="max_workers must be >= 1"):
             config.validate()
 
     def test_validate_invalid_max_distance_cap_eps(self):
@@ -294,7 +285,7 @@ class TestScoreInstanceHelpers:
             status="test_failure",
         )
 
-        assert scores["mean_accuracy"] == 0
+        assert scores["f1"] == 0.0
         assert scores["combined_score"] == 0
         assert scores["hausdorff_distance"] == 100.0
         assert scores["iou"] == 0.5
@@ -466,7 +457,7 @@ class TestRefactoredIntegration:
         config = EvaluationConfig()
         scores = score_instance(pred, truth, voxel_size, config=config)
 
-        assert "mean_accuracy" in scores
+        assert "f1" in scores
         assert "combined_score" in scores
         assert scores["status"] == "scored"
 
@@ -481,7 +472,7 @@ class TestRefactoredIntegration:
         scores = score_instance(pred, truth, voxel_size, config=config)
 
         assert scores["status"] == "skipped_too_many_instances"
-        assert scores["mean_accuracy"] == 0
+        assert scores["f1"] == 0.0
         assert scores["combined_score"] == 0
 
 

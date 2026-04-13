@@ -261,25 +261,12 @@ def _execute_parallel_scoring(
     Returns:
         List of (crop_name, label_name, result) tuples
     """
-    instance_classes = config.instance_classes
-
     logging.info(
-        f"Scoring volumes in parallel, using {config.max_instance_threads} "
-        f"instance threads and {config.max_semantic_threads} semantic threads..."
+        f"Scoring volumes in parallel, using {config.max_workers} workers..."
     )
 
-    # Use context managers for proper resource cleanup
-    with (
-        ProcessPoolExecutor(config.max_instance_threads) as instance_pool,
-        ProcessPoolExecutor(config.max_semantic_threads) as semantic_pool,
-    ):
-
-        futures = []
-        for args in evaluation_args:
-            if args[1] in instance_classes:
-                futures.append(instance_pool.submit(score_label, *args))
-            else:
-                futures.append(semantic_pool.submit(score_label, *args))
+    with ProcessPoolExecutor(config.max_workers) as pool:
+        futures = [pool.submit(score_label, *args) for args in evaluation_args]
 
         results = []
         for future in tqdm(
@@ -374,7 +361,7 @@ def score_submission(
             "cropN": {  # Per-volume scores
                 "label_name": {
                     # Instance segmentation
-                    "mean_accuracy": float,
+                    "f1": float,
                     "hausdorff_distance": float,
                     "combined_score": float,
                     # OR semantic segmentation

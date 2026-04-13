@@ -405,7 +405,10 @@ def test_score_instance_perfect_match():
     label = np.array([[0, 1, 1], [0, 2, 2]], dtype=np.int32)
     scores = ev.score_instance(label, label, voxel_size=(1.0, 1.0))
 
-    assert np.isclose(scores["mean_accuracy"], 1.0)
+    assert np.isclose(scores["f1"], 1.0)
+    assert scores["tp"] == 2
+    assert scores["fp"] == 0
+    assert scores["fn"] == 0
     assert np.isclose(scores["hausdorff_distance"], 0.0)
     assert np.isclose(scores["normalized_hausdorff_distance"], 1.0)
     assert np.isclose(scores["combined_score"], 1.0)
@@ -421,10 +424,82 @@ def test_score_instance_simple_shift():
     voxel_size = (1.0, 1.0)
     scores = ev.score_instance(pred, truth, voxel_size)
 
-    # Accuracy should not be 1 but positive
-    assert 0.0 < scores["mean_accuracy"] < 1.0
+    # F1 should be 1.0 since the single instance is matched
+    assert np.isclose(scores["f1"], 1.0)
+    assert scores["tp"] == 1
+    assert scores["fp"] == 0
+    assert scores["fn"] == 0
     # Hausdorff distance is 1 (each point moves 1 voxel)
     assert np.isclose(scores["hausdorff_distance"], 1.0)
+
+
+def test_score_instance_f1_all_fp():
+    """Prediction has instances but GT has none -> f1 = 0."""
+    from cellmap_segmentation_challenge import evaluate as ev
+
+    truth = np.zeros((4, 4), dtype=np.int32)
+    pred = np.array(
+        [[1, 1, 0, 0], [1, 1, 0, 0], [0, 0, 2, 2], [0, 0, 2, 2]], dtype=np.int32
+    )
+    scores = ev.score_instance(pred, truth, voxel_size=(1.0, 1.0))
+
+    assert np.isclose(scores["f1"], 0.0)
+    assert scores["tp"] == 0
+    assert scores["fn"] == 0
+    assert scores["fp"] == 2
+
+
+def test_score_instance_f1_all_fn():
+    """GT has instances but prediction has none -> f1 = 0."""
+    from cellmap_segmentation_challenge import evaluate as ev
+
+    truth = np.array(
+        [[1, 1, 0, 0], [1, 1, 0, 0], [0, 0, 2, 2], [0, 0, 2, 2]], dtype=np.int32
+    )
+    pred = np.zeros((4, 4), dtype=np.int32)
+    scores = ev.score_instance(pred, truth, voxel_size=(1.0, 1.0))
+
+    assert np.isclose(scores["f1"], 0.0)
+    assert scores["tp"] == 0
+    assert scores["fp"] == 0
+    assert scores["fn"] == 2
+
+
+def test_score_instance_f1_partial_match():
+    """GT has 3 instances, prediction matches 2 of them + has 1 extra -> partial F1."""
+    from cellmap_segmentation_challenge import evaluate as ev
+
+    # GT: three instances in a 6x6 grid (no overlap between regions)
+    truth = np.zeros((6, 6), dtype=np.int32)
+    truth[0:2, 0:2] = 1  # instance 1 top-left
+    truth[0:2, 4:6] = 2  # instance 2 top-right
+    truth[4:6, 0:2] = 3  # instance 3 bottom-left
+
+    # Pred: matches instances 1 and 2, misses 3, adds a spurious one at bottom-right
+    pred = np.zeros((6, 6), dtype=np.int32)
+    pred[0:2, 0:2] = 5  # matches GT 1
+    pred[0:2, 4:6] = 6  # matches GT 2
+    pred[4:6, 4:6] = 7  # spurious (no GT overlap)
+
+    scores = ev.score_instance(pred, truth, voxel_size=(1.0, 1.0))
+
+    # tp=2 (GT 1 & 2 matched), fp=1 (pred 7 unmatched), fn=1 (GT 3 unmatched)
+    # f1 = 2*2 / (2*2 + 1 + 1) = 4/6 = 2/3
+    assert scores["tp"] == 2
+    assert scores["fp"] == 1
+    assert scores["fn"] == 1
+    assert np.isclose(scores["f1"], 2 / 3)
+
+
+def test_score_instance_combined_score_formula():
+    """Verify combined_score = sqrt(f1 * normalized_hausdorff)."""
+    from cellmap_segmentation_challenge import evaluate as ev
+
+    label = np.array([[0, 1, 1], [0, 2, 2]], dtype=np.int32)
+    scores = ev.score_instance(label, label, voxel_size=(1.0, 1.0))
+
+    expected = (scores["f1"] * scores["normalized_hausdorff_distance"]) ** 0.5
+    assert np.isclose(scores["combined_score"], expected)
 
 
 # ------------------------
@@ -606,7 +681,7 @@ def test_empty_label_score_instance(tmp_path):
     # num_voxels should match volume size
     assert scores["num_voxels"] == arr.size
     assert scores["is_missing"] is True
-    assert scores["mean_accuracy"] == 0
+    assert scores["f1"] == 0.0
 
 
 def test_missing_volume_score_mixed_labels(tmp_path):
@@ -628,7 +703,7 @@ def test_missing_volume_score_mixed_labels(tmp_path):
     assert set(scores.keys()) == {"instance", "sem"}
     assert scores["instance"]["is_missing"] is True
     assert scores["sem"]["is_missing"] is True
-    assert scores["instance"]["mean_accuracy"] == 0.0
+    assert scores["instance"]["f1"] == 0.0
     assert scores["sem"]["iou"] == 0.0
 
 
@@ -644,7 +719,7 @@ def test_combine_scores_instance_and_semantic():
     scores = {
         "crop1": {
             "instance": {
-                "mean_accuracy": 1.0,
+                "f1": 1.0,
                 "hausdorff_distance": 0.0,
                 "normalized_hausdorff_distance": 1.0,
                 "combined_score": 1.0,
@@ -726,7 +801,7 @@ def test_score_label_instance_integration(monkeypatch, tmp_path):
 
     assert crop_out == crop_name_str
     assert label_out == label_name
-    assert np.isclose(results["mean_accuracy"], 1.0)
+    assert np.isclose(results["f1"], 1.0)
     assert np.isclose(results["hausdorff_distance"], 0.0)
     assert results["is_missing"] is False
 
@@ -759,6 +834,7 @@ def test_score_submission(monkeypatch, tmp_path):
         voxel_size=(1.0, 1.0, 1.0), shape=arr.shape, translation=(0.0, 0.0, 0.0)
     )
     import cellmap_segmentation_challenge.utils.eval_utils.scoring as _scoring
+
     monkeypatch.setattr(
         _scoring,
         "TEST_CROPS_DICT",
@@ -768,7 +844,9 @@ def test_score_submission(monkeypatch, tmp_path):
     assert (
         1,
         label_name,
-    ) in _scoring.TEST_CROPS_DICT, f"Key (1, {label_name}) is missing in TEST_CROPS_DICT"
+    ) in _scoring.TEST_CROPS_DICT, (
+        f"Key (1, {label_name}) is missing in TEST_CROPS_DICT"
+    )
 
     # Zip the submission_root contents so that unzip_file will create
     # a directory with crop1 directly inside.
@@ -787,7 +865,7 @@ def test_score_submission(monkeypatch, tmp_path):
     # No semantic labels -> overall_semantic_score is nan, but that’s fine;
     # just ensure label_scores present and correct.
     assert "label_scores" in scores
-    assert np.isclose(scores["label_scores"][label_name]["mean_accuracy"], 1.0)
+    assert np.isclose(scores["label_scores"][label_name]["f1"], 1.0)
 
 
 @pytest.mark.usefixtures("monkeypatch")
@@ -815,6 +893,7 @@ def test_score_submission_json_output(monkeypatch, tmp_path):
         voxel_size=(1.0, 1.0, 1.0), shape=arr.shape, translation=(0.0, 0.0, 0.0)
     )
     import cellmap_segmentation_challenge.utils.eval_utils.scoring as _scoring
+
     monkeypatch.setattr(
         _scoring,
         "TEST_CROPS_DICT",
@@ -824,7 +903,9 @@ def test_score_submission_json_output(monkeypatch, tmp_path):
     assert (
         1,
         label_name,
-    ) in _scoring.TEST_CROPS_DICT, f"Key (1, {label_name}) is missing in TEST_CROPS_DICT"
+    ) in _scoring.TEST_CROPS_DICT, (
+        f"Key (1, {label_name}) is missing in TEST_CROPS_DICT"
+    )
 
     # Zip the submission_root contents
     zip_path = zip_submission(submission_root)

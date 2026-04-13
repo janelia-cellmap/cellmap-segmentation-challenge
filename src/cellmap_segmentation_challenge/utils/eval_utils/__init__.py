@@ -23,6 +23,7 @@ from .exceptions import (
 from .config import (
     EvaluationConfig,
     CAST_TO_NONE,
+    MAX_WORKERS,
     MAX_INSTANCE_THREADS,
     MAX_SEMANTIC_THREADS,
     PER_INSTANCE_THREADS,
@@ -98,6 +99,7 @@ __all__ = [
     # Configuration
     "EvaluationConfig",
     "CAST_TO_NONE",
+    "MAX_WORKERS",
     "MAX_INSTANCE_THREADS",
     "MAX_SEMANTIC_THREADS",
     "PER_INSTANCE_THREADS",

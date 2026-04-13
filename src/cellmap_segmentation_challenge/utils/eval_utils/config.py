@@ -2,6 +2,7 @@
 
 import logging
 import os
+import warnings
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -29,8 +30,7 @@ class EvaluationConfig:
     """
 
     # Threading configuration
-    max_instance_threads: int = 3
-    max_semantic_threads: int = 25
+    max_workers: int = 32
     per_instance_threads: int = 25
 
     # Distance calculation parameters
@@ -52,6 +52,44 @@ class EvaluationConfig:
         default_factory=lambda: [np.nan, np.inf, -np.inf, float("inf"), float("-inf")]
     )
 
+    @property
+    def max_instance_threads(self) -> int:
+        """Deprecated: use max_workers instead."""
+        warnings.warn(
+            "max_instance_threads is deprecated, use max_workers instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.max_workers
+
+    @max_instance_threads.setter
+    def max_instance_threads(self, value: int) -> None:
+        warnings.warn(
+            "max_instance_threads is deprecated, use max_workers instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.max_workers = value
+
+    @property
+    def max_semantic_threads(self) -> int:
+        """Deprecated: use max_workers instead."""
+        warnings.warn(
+            "max_semantic_threads is deprecated, use max_workers instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.max_workers
+
+    @max_semantic_threads.setter
+    def max_semantic_threads(self, value: int) -> None:
+        warnings.warn(
+            "max_semantic_threads is deprecated, use max_workers instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.max_workers = value
+
     @classmethod
     def from_env(cls) -> "EvaluationConfig":
         """Load configuration from environment variables with defaults.
@@ -60,8 +98,7 @@ class EvaluationConfig:
             EvaluationConfig with values from environment or defaults.
         """
         return cls(
-            max_instance_threads=int(os.getenv("MAX_INSTANCE_THREADS", "3")),
-            max_semantic_threads=int(os.getenv("MAX_SEMANTIC_THREADS", "25")),
+            max_workers=int(os.getenv("MAX_WORKERS", "32")),
             per_instance_threads=int(os.getenv("PER_INSTANCE_THREADS", "25")),
             max_distance_cap_eps=float(os.getenv("MAX_DISTANCE_CAP_EPS", "1e-4")),
             final_instance_ratio_cutoff=float(
@@ -81,13 +118,9 @@ class EvaluationConfig:
         Raises:
             ValueError: If any configuration value is invalid.
         """
-        if self.max_instance_threads < 1:
+        if self.max_workers < 1:
             raise ValueError(
-                f"max_instance_threads must be >= 1, got {self.max_instance_threads}"
-            )
-        if self.max_semantic_threads < 1:
-            raise ValueError(
-                f"max_semantic_threads must be >= 1, got {self.max_semantic_threads}"
+                f"max_workers must be >= 1, got {self.max_workers}"
             )
         if self.per_instance_threads < 1:
             raise ValueError(
@@ -121,8 +154,9 @@ class EvaluationConfig:
 
 # Legacy Constants (for backward compatibility during migration)
 CAST_TO_NONE = [np.nan, np.inf, -np.inf, float("inf"), float("-inf")]
-MAX_INSTANCE_THREADS = int(os.getenv("MAX_INSTANCE_THREADS", 3))
-MAX_SEMANTIC_THREADS = int(os.getenv("MAX_SEMANTIC_THREADS", 25))
+MAX_WORKERS = int(os.getenv("MAX_WORKERS", 32))
+MAX_INSTANCE_THREADS = MAX_WORKERS  # deprecated alias
+MAX_SEMANTIC_THREADS = MAX_WORKERS  # deprecated alias
 PER_INSTANCE_THREADS = int(os.getenv("PER_INSTANCE_THREADS", 25))
 MAX_DISTANCE_CAP_EPS = float(os.getenv("MAX_DISTANCE_CAP_EPS", "1e-4"))
 FINAL_INSTANCE_RATIO_CUTOFF = float(os.getenv("FINAL_INSTANCE_RATIO_CUTOFF", 10))

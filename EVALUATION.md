@@ -96,7 +96,7 @@ flowchart TD
         end
 
         Matching --> MatchResult{"Matching<br/>succeeded?"}
-        MatchResult -- No --> Pathological["Return pathological scores<br/>accuracy=0, combined=0<br/>keep binary & VoI metrics"]
+        MatchResult -- No --> Pathological["Return pathological scores<br/>f1=0, combined=0<br/>keep binary & VoI metrics"]
         MatchResult -- Yes --> Remap["Remap prediction IDs<br/>to match ground truth IDs"]
         Remap --> Hausdorff
 
@@ -107,7 +107,7 @@ flowchart TD
             PerInstance --> Unmatched["Add max_distance for<br/>unmatched predictions"]
         end
 
-        Hausdorff --> FinalInstance["Compute final instance scores:<br/>accuracy = mean(truth == pred)<br/>hausdorff = mean(distances)<br/>norm_hausdorff = mean(normalized)<br/>combined = sqrt(accuracy * norm_hausdorff)"]
+        Hausdorff --> FinalInstance["Compute final instance scores:<br/>f1 = 2·TP / (2·TP + FP + FN)<br/>hausdorff = mean(distances)<br/>norm_hausdorff = mean(normalized)<br/>combined = sqrt(f1 * norm_hausdorff)"]
     end
 
     subgraph SemanticScoring[score_semantic]
@@ -146,10 +146,13 @@ flowchart TD
 
 | Metric | Description |
 |--------|-------------|
-| `accuracy` | Voxel-wise match rate after instance ID alignment |
+| `f1` | Instance F1 score: `2·TP / (2·TP + FP + FN)` after optimal 1:1 matching |
+| `tp` | Number of matched (GT, pred) instance pairs |
+| `fp` | Number of predicted instances with no GT match |
+| `fn` | Number of GT instances with no predicted match |
 | `hausdorff_distance` | Mean Hausdorff distance across all matched instances |
 | `normalized_hausdorff_distance` | Hausdorff normalized to [0, 1] via exponential decay |
-| `combined_score` | `sqrt(accuracy * normalized_hausdorff_distance)` |
+| `combined_score` | `sqrt(f1 * normalized_hausdorff_distance)` |
 | `iou` | Binary foreground IoU (Jaccard index) |
 | `dice_score` | Binary foreground Dice coefficient |
 | `voi_split` | Variation of Information split error |
