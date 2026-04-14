@@ -36,11 +36,8 @@ flowchart TD
 
     subgraph Parallel[Parallel Scoring]
         direction TB
-        Route{Label type?}
-        Route -- Instance class --> InstPool["ProcessPoolExecutor<br/>max_instance_threads workers"]
-        Route -- Semantic class --> SemPool["ProcessPoolExecutor<br/>max_semantic_threads workers"]
-        InstPool --> ScoreLabel
-        SemPool --> ScoreLabel
+        Pool["ProcessPoolExecutor<br/>max_workers workers"]
+        Pool --> ScoreLabel
     end
 
     subgraph ScoreLabel[score_label]
@@ -94,7 +91,7 @@ flowchart TD
         end
 
         Matching --> MatchResult{"Matching<br/>succeeded?"}
-        MatchResult -- No --> Pathological["Return pathological scores<br/>f1=0, combined=0<br/>keep binary & VoI metrics"]
+        MatchResult -- No --> Pathological["Return pathological scores<br/>f1=0, combined=0<br/>keep binary metrics"]
         MatchResult -- Yes --> Remap["Remap prediction IDs<br/>to match ground truth IDs"]
         Remap --> Hausdorff
 
