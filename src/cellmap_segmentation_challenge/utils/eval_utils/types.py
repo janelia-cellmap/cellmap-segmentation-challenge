@@ -19,7 +19,9 @@ class InstanceScoreDict(TypedDict, total=False):
     num_voxels: int
     voxel_size: tuple[float, ...]
     is_missing: bool
-    status: Literal["scored", "skipped_too_many_instances", "missing"]
+    status: Literal[
+        "scored", "skipped_too_many_instances", "missing", "matching_failed"
+    ]
 
 
 class SemanticScoreDict(TypedDict, total=False):
