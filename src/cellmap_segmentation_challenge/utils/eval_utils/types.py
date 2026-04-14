@@ -6,7 +6,10 @@ from typing import Literal, TypedDict
 class InstanceScoreDict(TypedDict, total=False):
     """Type definition for instance segmentation scores."""
 
-    mean_accuracy: float
+    f1: float
+    tp: int
+    fp: int
+    fn: int
     binary_accuracy: float
     hausdorff_distance: float
     normalized_hausdorff_distance: float
@@ -16,9 +19,9 @@ class InstanceScoreDict(TypedDict, total=False):
     num_voxels: int
     voxel_size: tuple[float, ...]
     is_missing: bool
-    status: Literal["scored", "skipped_too_many_instances", "missing"]
-    voi_split: float
-    voi_merge: float
+    status: Literal[
+        "scored", "skipped_too_many_instances", "missing", "matching_failed"
+    ]
 
 
 class SemanticScoreDict(TypedDict, total=False):

@@ -344,12 +344,44 @@ class MatchedCrop:
                     ratio, estimated_memory_mb
                 )
 
-                if use_chunked:
-                    logger.warning(
-                        f"Large OME-NGFF array detected ({estimated_memory_mb:.1f} MB). "
-                        f"Loading entire array - CellMapImage should have already selected appropriate resolution level. "
-                        f"If memory issues occur, ensure predictions are saved at appropriate resolution."
+                if use_chunked and input_voxel_size is not None:
+                    in_vs = np.asarray(input_voxel_size, dtype=float)
+                    tgt_vs = np.asarray(self.target_voxel_size, dtype=float)
+                    if in_vs.size != tgt_vs.size:
+                        in_vs = in_vs[-tgt_vs.size :]
+
+                    if not np.allclose(in_vs, tgt_vs):
+                        scale_factors = tuple(in_vs / tgt_vs)
+                        logger.info(
+                            f"Using chunked loading for large OME-NGFF array "
+                            f"({estimated_memory_mb:.1f} MB, scale {scale_factors})"
+                        )
+                        image = self._load_array_chunked(arr, scale_factors)
+                        return (
+                            image,
+                            self.target_voxel_size,
+                            input_translation,
+                            True,
+                        )
+
+                if use_chunked and input_voxel_size is None:
+                    # No voxel size metadata — infer from shape ratio
+                    ratios = np.array(arr.shape[-len(self.target_shape) :]) / np.array(
+                        self.target_shape
                     )
+                    if np.all(ratios >= 1.0) and not np.allclose(ratios, 1.0):
+                        scale_factors = tuple(1.0 / ratios)
+                        logger.warning(
+                            f"No voxel_size metadata for OME-NGFF level at {level_path}. "
+                            f"Inferring downsampling from shape ratio {ratios}."
+                        )
+                        image = self._load_array_chunked(arr, scale_factors)
+                        return (
+                            image,
+                            self.target_voxel_size,
+                            input_translation,
+                            True,
+                        )
 
                 image = arr[:]
                 return (
@@ -357,7 +389,7 @@ class MatchedCrop:
                     input_voxel_size,
                     input_translation,
                     False,
-                )  # Not downsampled in chunks
+                )
             except Exception as e:
                 raise ValueError(
                     f"Failed to load OME-NGFF multiscale data from {self.path}. "
@@ -403,6 +435,22 @@ class MatchedCrop:
                         # No downsampling needed, load normally
                         image = arr[:]
                         return image, vs, tr, False
+                elif use_chunked and vs is None:
+                    # No voxel size metadata — infer from shape ratio
+                    ratios = np.array(arr.shape[-len(self.target_shape) :]) / np.array(
+                        self.target_shape
+                    )
+                    if np.all(ratios >= 1.0) and not np.allclose(ratios, 1.0):
+                        scale_factors = tuple(1.0 / ratios)
+                        logger.warning(
+                            f"No voxel_size metadata at {self.path}/{key}. "
+                            f"Inferring downsampling from shape ratio {ratios}."
+                        )
+                        image = self._load_array_chunked(arr, scale_factors)
+                        return image, self.target_voxel_size, tr, True
+                    else:
+                        image = arr[:]
+                        return image, vs, tr, False
                 else:
                     image = arr[:]
                     return image, vs, tr, False
@@ -445,8 +493,6 @@ class MatchedCrop:
 
                 if not np.allclose(in_vs, tgt_vs):
                     # Downsampling needed - use chunked approach
-                    # scale_factors = in_vs / tgt_vs
-                    # When in_vs < tgt_vs (fine→coarse), scale_factors < 1.0, causing rescale to downsample
                     scale_factors = in_vs / tgt_vs
                     image = self._load_array_chunked(ds, scale_factors)
                     return (
@@ -454,9 +500,25 @@ class MatchedCrop:
                         self.target_voxel_size,
                         tr,
                         True,
-                    )  # Already downsampled
+                    )
                 else:
                     # No downsampling needed, load normally
+                    image = ds[:]
+                    return image, vs, tr, False
+            elif use_chunked and vs is None:
+                # No voxel size metadata — infer from shape ratio
+                ratios = np.array(ds.shape[-len(self.target_shape) :]) / np.array(
+                    self.target_shape
+                )
+                if np.all(ratios >= 1.0) and not np.allclose(ratios, 1.0):
+                    scale_factors = tuple(1.0 / ratios)
+                    logger.warning(
+                        f"No voxel_size metadata at {self.path}. "
+                        f"Inferring downsampling from shape ratio {ratios}."
+                    )
+                    image = self._load_array_chunked(ds, scale_factors)
+                    return image, self.target_voxel_size, tr, True
+                else:
                     image = ds[:]
                     return image, vs, tr, False
             else:

@@ -15,7 +15,6 @@ from upath import UPath
 from ...config import TRUTH_PATH, INSTANCE_CLASSES
 from ..crops import TEST_CROPS_DICT
 from ..matched_crop import MatchedCrop
-from ..rand_voi import rand_voi
 from .config import EvaluationConfig
 from .distance import (
     compute_max_distance,
@@ -59,7 +58,6 @@ def _compute_binary_metrics(
 
 def _create_pathological_scores(
     binary_metrics: dict[str, float],
-    voi_metrics: dict[str, float],
     hausdorff_distance_max: float,
     voxel_size: tuple[float, ...],
     status: str,
@@ -68,7 +66,6 @@ def _create_pathological_scores(
 
     Args:
         binary_metrics: Pre-computed binary metrics
-        voi_metrics: Pre-computed VoI metrics
         hausdorff_distance_max: Maximum Hausdorff distance
         voxel_size: Voxel size
         status: Status string for the failure
@@ -77,7 +74,10 @@ def _create_pathological_scores(
         Dictionary with worst-case scores
     """
     return {
-        "mean_accuracy": 0,
+        "f1": 0.0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
         "binary_accuracy": binary_metrics["binary_accuracy"],
         "hausdorff_distance": hausdorff_distance_max,
         "normalized_hausdorff_distance": normalize_distance(
@@ -87,7 +87,6 @@ def _create_pathological_scores(
         "iou": binary_metrics["iou"],
         "dice_score": binary_metrics["dice_score"],
         "status": status,
-        **voi_metrics,
     }
 
 
@@ -152,7 +151,7 @@ def score_instance(
 ) -> InstanceScoreDict:
     """Score instance segmentation against ground truth.
 
-    Computes pixel-wise accuracy, Hausdorff distance, and combined metrics
+    Computes instance F1 score, Hausdorff distance, and combined metrics
     after optimal instance matching.
 
     Args:
@@ -188,8 +187,6 @@ def score_instance(
 
     # Compute metrics that don't require matching
     binary_metrics = _compute_binary_metrics(truth_label, pred_label)
-    voi = rand_voi(truth_label.astype(np.uint64), pred_label.astype(np.uint64))
-    del voi["voi_split_i"], voi["voi_merge_j"]
 
     # Match instances
     try:
@@ -198,7 +195,6 @@ def score_instance(
         logging.warning(f"Instance matching failed: {e}")
         return _create_pathological_scores(
             binary_metrics,
-            voi,
             hausdorff_distance_max,
             voxel_size,
             "skipped_too_many_instances",
@@ -206,7 +202,7 @@ def score_instance(
     except MatchingFailedError as e:
         logging.error(f"Matching optimization failed: {e}")
         return _create_pathological_scores(
-            binary_metrics, voi, hausdorff_distance_max, voxel_size, "matching_failed"
+            binary_metrics, hausdorff_distance_max, voxel_size, "matching_failed"
         )
 
     # Remap predictions to match GT IDs
@@ -224,27 +220,38 @@ def score_instance(
     if len(hausdorff_distances) == 0:
         hausdorff_distances = [hausdorff_distance_max]
 
+    # Compute F1 from instance matching counts
+    gt_ids = set(np.unique(truth_label)) - {0}
+    matched_gt_ids = set(mapping.values()) - {0}
+    matched_pred_ids = set(mapping.keys()) - {0}
+
+    tp = len(matched_gt_ids)
+    fp = n_pred - len(matched_pred_ids)
+    fn = len(gt_ids) - len(matched_gt_ids)
+    f1 = (2 * tp / (2 * tp + fp + fn)) if (2 * tp + fp + fn) > 0 else 0.0
+
     # Aggregate scores
     logging.info("Computing final scores...")
-    mean_accuracy = float((truth_label == pred_label).mean())
     hausdorff_dist = float(np.mean(hausdorff_distances))
     normalized_hausdorff_dist = float(
         np.mean([normalize_distance(hd, voxel_size) for hd in hausdorff_distances])
     )
-    combined_score = (mean_accuracy * normalized_hausdorff_dist) ** 0.5
-    logging.info(f"Mean Accuracy: {mean_accuracy:.4f}")
+    combined_score = (f1 * normalized_hausdorff_dist) ** 0.5
+    logging.info(f"F1: {f1:.4f} (TP={tp}, FP={fp}, FN={fn})")
     logging.info(f"Hausdorff Distance: {hausdorff_dist:.4f}")
     logging.info(f"Normalized Hausdorff Distance: {normalized_hausdorff_dist:.4f}")
     logging.info(f"Combined Score: {combined_score:.4f}")
 
     return {
-        "mean_accuracy": mean_accuracy,
+        "f1": f1,
+        "tp": tp,
+        "fp": fp,
+        "fn": fn,
         "hausdorff_distance": hausdorff_dist,
         "normalized_hausdorff_distance": normalized_hausdorff_dist,
         "combined_score": combined_score,
         "status": "scored",
         **binary_metrics,
-        **voi,
     }
 
 
@@ -376,7 +383,10 @@ def empty_label_score(
     if label in instance_classes:
         truth_path = UPath(truth_path)
         return {
-            "mean_accuracy": 0,
+            "f1": 0.0,
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
             "hausdorff_distance": compute_max_distance(voxel_size, ds.shape),
             "normalized_hausdorff_distance": 0,
             "combined_score": 0,
