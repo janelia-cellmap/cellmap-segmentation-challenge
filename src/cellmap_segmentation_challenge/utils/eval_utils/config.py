@@ -30,7 +30,7 @@ class EvaluationConfig:
     """
 
     # Threading configuration
-    max_workers: int = 32
+    max_workers: int = min(os.cpu_count() or 4, 8)
     per_instance_threads: int = 25
 
     # Distance calculation parameters
@@ -98,7 +98,7 @@ class EvaluationConfig:
             EvaluationConfig with values from environment or defaults.
         """
         return cls(
-            max_workers=int(os.getenv("MAX_WORKERS", "32")),
+            max_workers=int(os.getenv("MAX_WORKERS", str(min(os.cpu_count() or 4, 8)))),
             per_instance_threads=int(os.getenv("PER_INSTANCE_THREADS", "25")),
             max_distance_cap_eps=float(os.getenv("MAX_DISTANCE_CAP_EPS", "1e-4")),
             final_instance_ratio_cutoff=float(
@@ -119,9 +119,7 @@ class EvaluationConfig:
             ValueError: If any configuration value is invalid.
         """
         if self.max_workers < 1:
-            raise ValueError(
-                f"max_workers must be >= 1, got {self.max_workers}"
-            )
+            raise ValueError(f"max_workers must be >= 1, got {self.max_workers}")
         if self.per_instance_threads < 1:
             raise ValueError(
                 f"per_instance_threads must be >= 1, got {self.per_instance_threads}"
@@ -154,7 +152,7 @@ class EvaluationConfig:
 
 # Legacy Constants (for backward compatibility during migration)
 CAST_TO_NONE = [np.nan, np.inf, -np.inf, float("inf"), float("-inf")]
-MAX_WORKERS = int(os.getenv("MAX_WORKERS", 32))
+MAX_WORKERS = int(os.getenv("MAX_WORKERS", str(min(os.cpu_count() or 4, 8))))
 MAX_INSTANCE_THREADS = MAX_WORKERS  # deprecated alias
 MAX_SEMANTIC_THREADS = MAX_WORKERS  # deprecated alias
 PER_INSTANCE_THREADS = int(os.getenv("PER_INSTANCE_THREADS", 25))

@@ -5,6 +5,7 @@ import shutil
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from time import time
 
+import numpy as np
 import zarr
 from tqdm import tqdm
 from upath import UPath
@@ -248,11 +249,48 @@ def _discover_volumes(
     return found_volumes, missing_volumes
 
 
+def _estimate_max_task_memory_gb(
+    evaluation_args: list[tuple],
+    config: EvaluationConfig,
+) -> float:
+    """Estimate peak per-worker memory from GT target shapes (metadata only).
+
+    Reads zarr shape/dtype without loading data. Estimates based on target
+    resolution since chunked loading handles source-side memory.
+
+    Args:
+        evaluation_args: List of arguments for score_label
+        config: Evaluation configuration
+
+    Returns:
+        Estimated peak memory in GB for the most expensive task
+    """
+    max_bytes = 0
+    instance_classes = set(config.instance_classes)
+    for args in evaluation_args:
+        _, label_name, crop_name, truth_path, _ = args[:5]
+        try:
+            truth_arr = zarr.open(
+                str(UPath(truth_path) / crop_name / label_name), mode="r"
+            )
+            n_voxels = int(np.prod(truth_arr.shape, dtype=np.int64))
+            # Instance tasks: truth + pred + cc3d + binary masks + Hausdorff intermediates
+            # Semantic tasks: truth + pred + bool intermediates
+            bytes_per_voxel = 10 if label_name in instance_classes else 5
+            max_bytes = max(max_bytes, n_voxels * bytes_per_voxel)
+        except Exception:
+            continue
+    return max_bytes / (1024**3)
+
+
 def _execute_parallel_scoring(
     evaluation_args: list[tuple],
     config: EvaluationConfig,
 ) -> list[tuple]:
     """Execute evaluations in parallel using process pools.
+
+    Automatically scales worker count based on available system memory
+    to prevent OOM errors.
 
     Args:
         evaluation_args: List of arguments for score_label
@@ -261,11 +299,31 @@ def _execute_parallel_scoring(
     Returns:
         List of (crop_name, label_name, result) tuples
     """
+    effective_workers = config.max_workers
+
+    try:
+        import psutil
+
+        available_gb = psutil.virtual_memory().available / (1024**3)
+        max_task_gb = _estimate_max_task_memory_gb(evaluation_args, config)
+        if max_task_gb > 0:
+            safe_workers = max(1, int(available_gb / (2.0 * max_task_gb)))
+            if safe_workers < effective_workers:
+                logging.warning(
+                    f"Reducing workers from {effective_workers} to {safe_workers} "
+                    f"based on available memory ({available_gb:.0f} GB) and "
+                    f"estimated peak per worker ({max_task_gb:.1f} GB)"
+                )
+                effective_workers = safe_workers
+    except Exception as e:
+        logging.warning(f"Could not estimate memory, using configured workers: {e}")
+
     logging.info(
-        f"Scoring volumes in parallel, using {config.max_workers} workers..."
+        f"Scoring volumes in parallel, using {effective_workers} workers "
+        f"(config.max_workers={config.max_workers})..."
     )
 
-    with ProcessPoolExecutor(config.max_workers) as pool:
+    with ProcessPoolExecutor(effective_workers) as pool:
         futures = [pool.submit(score_label, *args) for args in evaluation_args]
 
         results = []

@@ -20,8 +20,6 @@ class InstanceScoreDict(TypedDict, total=False):
     voxel_size: tuple[float, ...]
     is_missing: bool
     status: Literal["scored", "skipped_too_many_instances", "missing"]
-    voi_split: float
-    voi_merge: float
 
 
 class SemanticScoreDict(TypedDict, total=False):

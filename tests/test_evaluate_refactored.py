@@ -63,7 +63,8 @@ class TestEvaluationConfig:
     def test_default_config(self):
         """Test default configuration values."""
         config = EvaluationConfig()
-        assert config.max_workers == 32
+        import os
+        assert config.max_workers == min(os.cpu_count() or 4, 8)
         assert config.per_instance_threads == 25
         assert config.max_distance_cap_eps == 1e-4
         assert config.final_instance_ratio_cutoff == 10.0
@@ -275,11 +276,9 @@ class TestScoreInstanceHelpers:
     def test_create_pathological_scores(self):
         """Test creation of pathological scores."""
         binary_metrics = {"iou": 0.5, "dice_score": 0.6, "binary_accuracy": 0.7}
-        voi_metrics = {"voi_split": 0.1, "voi_merge": 0.2}
 
         scores = _create_pathological_scores(
             binary_metrics,
-            voi_metrics,
             hausdorff_distance_max=100.0,
             voxel_size=(4.0, 4.0, 4.0),
             status="test_failure",
@@ -290,7 +289,6 @@ class TestScoreInstanceHelpers:
         assert scores["hausdorff_distance"] == 100.0
         assert scores["iou"] == 0.5
         assert scores["status"] == "test_failure"
-        assert scores["voi_split"] == 0.1
 
     def test_compute_hausdorff_scores_only_background(self):
         """Test Hausdorff score computation with only background."""
