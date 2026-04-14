@@ -62,11 +62,20 @@ The `validation_time_limit` and `validation_batch_limit` parameters can be set i
 For more detailed information, refer to the [training documentation](../docs/source/dataloader.rst).
 
 ## Predicting on test data
-The `predict_2D.py` and `predict_3D.py` scripts demonstrate how to use a trained model to make predictions on test data, and can be used by running `python predict_2D.py` and `python predict_3D.py`, respectively. The predictions are saved as Zarr-2 files in the specified output directory. The scripts use a configuration file to define model and other configurations required for making predictions, this file can be the same used for training the model. The scripts call the `predict` function with the path to this configuration file as an argument. For example, to predict on the test data using the 3D model from `train_3D.py`, you can do so directly by running the following command:
+The `predict_2D.py` and `predict_3D.py` scripts demonstrate how to use a trained model to make predictions on test data. These scripts write **raw logits/affinities** as Zarr-2 files — they do **not** produce final label volumes. After running a predict script, you must run the corresponding `process_ND.py` script to convert the raw predictions into label volumes suitable for submission.
+
+The scripts use a configuration file to define model and other configurations required for making predictions; this file can be the same used for training the model. For example, to predict and then post-process using the 3D model from `train_3D.py`:
 
 ```bash
 csc predict train_3D.py
+csc process process_3D.py
 ```
+
+By default, predictions use `crops="test"`, which saves the intersection of labels specified in the test crop manifest and the model's trained classes for each crop. This is the recommended setting as it minimizes storage requirements.
+
+When passing a numeric crop ID (e.g., `crops="19"`), the `filter_classes` parameter (default `True`) controls whether saved classes are filtered to the intersection of the test crop manifest labels and the model's trained classes. For crops not found in the test manifest, all model classes are saved regardless of `filter_classes`. Set `filter_classes=False` to save all model classes for any numeric crop.
+
+**Storage warning:** Saving all classes for large crops can require significant disk space. The prediction function will print a warning when estimated output exceeds 10 GB. Consider using `crops="test"` or filtering classes to reduce storage requirements.
 
 To see the other options available for the `predict` command, such as picking crops to predict on or setting an output path, you can run `csc predict --help`.
 

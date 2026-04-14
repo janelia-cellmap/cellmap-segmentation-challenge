@@ -119,9 +119,7 @@ class EvaluationConfig:
             ValueError: If any configuration value is invalid.
         """
         if self.max_workers < 1:
-            raise ValueError(
-                f"max_workers must be >= 1, got {self.max_workers}"
-            )
+            raise ValueError(f"max_workers must be >= 1, got {self.max_workers}")
         if self.per_instance_threads < 1:
             raise ValueError(
                 f"per_instance_threads must be >= 1, got {self.per_instance_threads}"

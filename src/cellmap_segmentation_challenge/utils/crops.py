@@ -7,7 +7,6 @@ from upath import UPath
 from typing_extensions import Self
 from yarl import URL
 
-
 # get constants from environment, falling back to defaults as needed
 TEST_CROP_MANIFEST_URL = os.environ.get(
     "CSC_TEST_CROP_MANIFEST_URL",

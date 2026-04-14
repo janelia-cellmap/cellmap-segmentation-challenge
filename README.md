@@ -158,11 +158,18 @@ Once you are satisfied with your model, you can use it to make predictions, as d
 
 # Predict on test data
 
-Example scripts for predicting on test data are also provided in the `examples` directory. The scripts are named `predict_2D.py` and `predict_3D.py`, respectively. You can use one such script by simply running the following on the command line:
+Example scripts for predicting on test data are provided in the `examples` directory (`predict_2D.py` and `predict_3D.py`). These scripts write **raw logits/affinities**, not final label volumes. After running a predict script, you must run the corresponding `process_ND.py` script to convert them into label volumes suitable for submission:
 
 ```bash
-python predict_2D.py
+csc predict train_3D.py
+csc process process_3D.py
 ```
+
+By default, `predict` uses `crops="test"`, which saves the intersection of labels specified in the [test crop manifest](https://github.com/janelia-cellmap/cellmap-segmentation-challenge/blob/main/src/cellmap_segmentation_challenge/utils/test_crop_manifest.csv) and the model's trained classes for each crop. This is the recommended setting as it minimizes storage requirements.
+
+When passing a numeric crop ID (e.g., `crops="19"`), the `filter_classes` parameter (default `True`) controls whether saved classes are filtered to the intersection of the test crop manifest labels and the model's trained classes. For crops not found in the test manifest, all model classes are saved regardless of `filter_classes`. Set `filter_classes=False` to save all model classes for any numeric crop.
+
+**Storage warning:** Saving all classes for large crops can require significant disk space (potentially tens of GB per crop). The prediction function will print a warning when estimated output exceeds 10 GB. Consider using `crops="test"` or filtering classes to reduce storage requirements.
 
 There is also a built in command to run predictions, given the path to a model (or training) configuration file. To learn more, you can run the following in the terminal:
 

@@ -336,7 +336,9 @@ class TestScoreSubmissionHelpers:
     """Test helper functions for score_submission."""
 
     @patch("cellmap_segmentation_challenge.utils.eval_utils.submission.unzip_file")
-    @patch("cellmap_segmentation_challenge.utils.eval_utils.submission.ensure_valid_submission")
+    @patch(
+        "cellmap_segmentation_challenge.utils.eval_utils.submission.ensure_valid_submission"
+    )
     def test_prepare_submission(self, mock_ensure_valid, mock_unzip):
         """Test submission preparation."""
         mock_unzip.return_value = UPath("/tmp/submission.zarr")

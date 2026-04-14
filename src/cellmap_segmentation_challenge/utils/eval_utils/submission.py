@@ -261,9 +261,7 @@ def _execute_parallel_scoring(
     Returns:
         List of (crop_name, label_name, result) tuples
     """
-    logging.info(
-        f"Scoring volumes in parallel, using {config.max_workers} workers..."
-    )
+    logging.info(f"Scoring volumes in parallel, using {config.max_workers} workers...")
 
     with ProcessPoolExecutor(config.max_workers) as pool:
         futures = [pool.submit(score_label, *args) for args in evaluation_args]

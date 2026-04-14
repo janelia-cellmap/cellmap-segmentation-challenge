@@ -270,6 +270,57 @@ def _predict(
             dataset_writer[batch["idx"]] = outputs
 
 
+def _estimate_output_bytes(
+    target_bounds: dict[str, dict[str, list]],
+    target_arrays: dict[str, dict],
+    num_classes: int,
+    bytes_per_voxel: int = 4,
+) -> int:
+    """Estimate total output size in bytes from target bounds, array scales, and class count."""
+    total = 0
+    axis_to_index = {"z": 0, "y": 1, "x": 2}
+    for array_name, bounds in target_bounds.items():
+        scale = target_arrays.get(array_name, {}).get("scale", (1, 1, 1))
+        num_voxels = 1
+        for axis, (lo, hi) in bounds.items():
+            extent_world = hi - lo
+            voxel_size = scale[axis_idx] if axis_idx < len(scale) else 1
+            if voxel_size <= 0:
+                voxel_size = 1
+                raise ValueError(
+                    f"Unexpected axis {axis!r} in target bounds for array "
+                    f"{array_name!r}. Expected only spatial axes 'z', 'y', or 'x'."
+                )
+            axis_idx = axis_to_index[axis]
+            voxel_size = scale[axis_idx] if axis_idx < len(scale) else 1
+            num_voxels *= max(1, int(extent_world / voxel_size))
+        total += num_voxels * num_classes * bytes_per_voxel
+    return total
+
+
+def _warn_output_size(dataset_writer_kwargs: dict[str, Any]) -> None:
+    """Print class list and warn if estimated output size exceeds 10 GB."""
+    crop_classes = dataset_writer_kwargs.get("classes", [])
+    target_path = dataset_writer_kwargs.get("target_path", "unknown")
+    tqdm.write(
+        f"  Crop {target_path}: saving {len(crop_classes)} classes: {crop_classes}"
+    )
+
+    target_bounds = dataset_writer_kwargs.get("target_bounds", {})
+    target_arrays = dataset_writer_kwargs.get("target_arrays", {})
+    if target_bounds and target_arrays:
+        est_bytes = _estimate_output_bytes(
+            target_bounds, target_arrays, len(crop_classes)
+        )
+        est_gb = est_bytes / (1024**3)
+        if est_gb > 10:
+            tqdm.write(
+                f"  Warning: {target_path} will save {len(crop_classes)} classes and "
+                f"may require approximately {est_gb:.1f} GB on disk. "
+                f'Consider using crops="test" or specifying a smaller set of classes.'
+            )
+
+
 def predict(
     config_path: str,
     crops: str = "test",
@@ -279,6 +330,7 @@ def predict(
     search_path: str = SEARCH_PATH,
     raw_name: str = RAW_NAME,
     crop_name: str = CROP_NAME,
+    filter_classes: bool = True,
 ):
     """
     Given a model configuration file and list of crop numbers, predicts the output of a model on a large dataset by splitting it into blocks and predicting each block separately.
@@ -304,6 +356,10 @@ def predict(
         The name of the raw dataset. Default is RAW_NAME set in `cellmap-segmentation/config.py`.
     crop_name: str, optional
         The name of the crop dataset with placeholders for crop and label. Default is CROP_NAME set in `cellmap-segmentation/config.py`.
+    filter_classes: bool, optional
+        When True and crops are specified by numeric ID, filter the saved classes to only those
+        listed in the test_crop_manifest for each crop (intersected with the model's classes).
+        When False, all model classes are saved for numeric crops. Default is True.
 
     Notes
     -----
@@ -443,11 +499,30 @@ def predict(
                 ).rstrip(os.path.sep)
             )
             if not matches:
-                tqdm.write(f"Warning: no input paths found for crop '{crop}', skipping.")
+                tqdm.write(
+                    f"Warning: no input paths found for crop '{crop}', skipping."
+                )
             crop_path_matches[crop] = matches
 
         dataset_writers = []
         for crop, crop_paths_for_crop in crop_path_matches.items():  # type: ignore
+            # Optionally filter classes using the test_crop_manifest.
+            # Only applies when the crop ID is numeric AND appears in the
+            # test manifest; non-test crops always save all model classes.
+            filtered_classes = classes
+            if filter_classes:
+                crop_id_str = crop.replace("crop", "")
+                if crop_id_str.isnumeric():
+                    crop_labels = get_test_crop_labels(int(crop_id_str))
+                    if crop_labels:
+                        filtered_classes = [c for c in classes if c in crop_labels]
+                        if not filtered_classes:
+                            tqdm.write(
+                                f"Skipping {crop} because there are no labels in common "
+                                f"between model classes {classes} and crop labels {crop_labels}."
+                            )
+                            continue
+
             for crop_path in crop_paths_for_crop:
                 # Get path to raw dataset
                 raw_path = get_raw_path(crop_path, label="")
@@ -475,19 +550,21 @@ def predict(
                 ]
 
                 # Create the writer
-                dataset_writers.append(
-                    {
-                        "raw_path": raw_path,
-                        "target_path": output_path.format(crop=crop, dataset=dataset),
-                        "classes": classes,
-                        "input_arrays": input_arrays,
-                        "target_arrays": target_arrays,
-                        "target_bounds": target_bounds,
-                        "overwrite": overwrite,
-                        "device": device,
-                        "raw_value_transforms": value_transforms,
-                    }
-                )
+                writer_kwargs = {
+                    "raw_path": raw_path,
+                    "target_path": output_path.format(crop=crop, dataset=dataset),
+                    "classes": filtered_classes,
+                    "input_arrays": input_arrays,
+                    "target_arrays": target_arrays,
+                    "target_bounds": target_bounds,
+                    "overwrite": overwrite,
+                    "device": device,
+                    "raw_value_transforms": value_transforms,
+                }
+                if filtered_classes != classes:
+                    writer_kwargs["model_classes"] = classes
+                dataset_writers.append(writer_kwargs)
 
-    for dataset_writer in dataset_writers:
-        predict_func(model, dataset_writer, batch_size)
+    for dataset_writer_kwargs in dataset_writers:
+        _warn_output_size(dataset_writer_kwargs)
+        predict_func(model, dataset_writer_kwargs, batch_size)
