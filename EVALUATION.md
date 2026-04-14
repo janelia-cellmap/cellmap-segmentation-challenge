@@ -68,9 +68,7 @@ flowchart TD
         direction TB
         CC["Relabel prediction via<br/>cc3d.connected_components"]
         CC --> BinaryMetrics["Compute binary metrics<br/>(IoU, Dice, binary accuracy)"]
-        CC --> VoI["Compute rand_voi<br/>split & merge errors"]
         BinaryMetrics --> Matching
-        VoI --> Matching
 
         subgraph Matching[match_instances]
             direction TB
@@ -155,8 +153,6 @@ flowchart TD
 | `combined_score` | `sqrt(f1 * normalized_hausdorff_distance)` |
 | `iou` | Binary foreground IoU (Jaccard index) |
 | `dice_score` | Binary foreground Dice coefficient |
-| `voi_split` | Variation of Information split error |
-| `voi_merge` | Variation of Information merge error |
 
 ### Semantic Segmentation
 
