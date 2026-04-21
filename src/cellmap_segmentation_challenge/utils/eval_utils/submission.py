@@ -1,6 +1,7 @@
 """Submission processing and main evaluation entry point."""
 
 import logging
+import os
 import shutil
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from time import time
@@ -252,20 +253,29 @@ def _discover_volumes(
 def _estimate_max_task_memory_gb(
     evaluation_args: list[tuple],
     config: EvaluationConfig,
-) -> float:
+    per_instance_threads: int | None = None,
+) -> tuple[float, int]:
     """Estimate peak per-worker memory from GT target shapes (metadata only).
 
-    Reads zarr shape/dtype without loading data. Estimates based on target
-    resolution since chunked loading handles source-side memory.
-
-    Args:
-        evaluation_args: List of arguments for score_label
-        config: Evaluation configuration
+    The estimate covers the two dominant contributors to worker RSS:
+    (1) the fully-materialized truth + prediction arrays plus cc3d/bool
+    intermediates that live for the duration of ``score_label``, and (2) the
+    transient float64 distance-transform scratch allocated by the nested
+    ``PER_INSTANCE_THREADS`` worker pool inside Hausdorff computation. The
+    scratch dominates on instance tasks because each concurrent thread holds
+    two ``float64`` arrays sized to the instance ROI (worst case: the full
+    volume). Reads zarr shape/dtype without loading data.
 
     Returns:
-        Estimated peak memory in GB for the most expensive task
+        ``(peak_gb, n_voxels)`` for the most expensive task. ``n_voxels`` is
+        the voxel count of the volume that pinned the peak, so callers can
+        recompute the estimate if they throttle ``per_instance_threads``.
     """
+    if per_instance_threads is None:
+        per_instance_threads = config.per_instance_threads
+
     max_bytes = 0
+    max_voxels = 0
     instance_classes = set(config.instance_classes)
     for args in evaluation_args:
         _, label_name, crop_name, truth_path, _ = args[:5]
@@ -274,13 +284,21 @@ def _estimate_max_task_memory_gb(
                 str(UPath(truth_path) / crop_name / label_name), mode="r"
             )
             n_voxels = int(np.prod(truth_arr.shape, dtype=np.int64))
-            # Instance tasks: truth + pred + cc3d + binary masks + Hausdorff intermediates
-            # Semantic tasks: truth + pred + bool intermediates
-            bytes_per_voxel = 10 if label_name in instance_classes else 5
-            max_bytes = max(max_bytes, n_voxels * bytes_per_voxel)
+            if label_name in instance_classes:
+                # Base: truth + pred + cc3d relabel + binary intermediates ≈ 10 B/voxel.
+                # Hausdorff scratch: up to per_instance_threads concurrent threads,
+                # each allocating 2× float64 distance transforms sized to the ROI
+                # (bounded by volume size).
+                bytes_per_voxel = 10 + per_instance_threads * 2 * 8
+            else:
+                bytes_per_voxel = 5
+            task_bytes = n_voxels * bytes_per_voxel
+            if task_bytes > max_bytes:
+                max_bytes = task_bytes
+                max_voxels = n_voxels
         except Exception:
             continue
-    return max_bytes / (1024**3)
+    return max_bytes / (1024**3), max_voxels
 
 
 def _execute_parallel_scoring(
@@ -300,27 +318,76 @@ def _execute_parallel_scoring(
         List of (crop_name, label_name, result) tuples
     """
     effective_workers = config.max_workers
+    effective_threads = config.per_instance_threads
+    min_per_instance_threads = 4
+    safety_factor = 1.5
+    peak_gb = 0.0
 
     try:
         import psutil
 
-        available_gb = psutil.virtual_memory().available / (1024**3)
-        max_task_gb = _estimate_max_task_memory_gb(evaluation_args, config)
-        if max_task_gb > 0:
-            safe_workers = max(1, int(available_gb / (2.0 * max_task_gb)))
+        vm = psutil.virtual_memory()
+        total_gb = vm.total / (1024**3)
+        reserve_gb = max(16.0, 0.05 * total_gb)
+        budget_gb = max(total_gb - reserve_gb, 1.0)
+
+        peak_gb, peak_voxels = _estimate_max_task_memory_gb(
+            evaluation_args, config, per_instance_threads=effective_threads
+        )
+        if peak_gb > 0:
+            safe_workers = max(
+                1, int(budget_gb / (safety_factor * peak_gb))
+            )
             if safe_workers < effective_workers:
                 logging.warning(
                     f"Reducing workers from {effective_workers} to {safe_workers} "
-                    f"based on available memory ({available_gb:.0f} GB) and "
-                    f"estimated peak per worker ({max_task_gb:.1f} GB)"
+                    f"based on total memory budget ({budget_gb:.0f}/{total_gb:.0f} GB) "
+                    f"and estimated peak per worker ({peak_gb:.1f} GB, "
+                    f"per_instance_threads={effective_threads})"
                 )
                 effective_workers = safe_workers
+
+            # If a single task still exceeds per-worker share, throttle nested
+            # Hausdorff threads so the whole fleet fits. Children read
+            # PER_INSTANCE_THREADS from env at import time.
+            per_worker_budget_gb = budget_gb / effective_workers
+            if peak_voxels > 0 and peak_gb > per_worker_budget_gb:
+                base_bytes_per_voxel = 10  # truth + pred + cc3d + bools
+                target_gb = per_worker_budget_gb / safety_factor
+                target_bytes_per_voxel = (target_gb * (1024**3)) / peak_voxels
+                remaining = target_bytes_per_voxel - base_bytes_per_voxel
+                if remaining > 0:
+                    new_threads = int(remaining // 16)  # 2× float64 per thread
+                else:
+                    new_threads = min_per_instance_threads
+                new_threads = max(
+                    min_per_instance_threads,
+                    min(effective_threads, new_threads),
+                )
+                if new_threads < effective_threads:
+                    logging.warning(
+                        f"Reducing per_instance_threads from {effective_threads} to "
+                        f"{new_threads} to fit Hausdorff scratch in per-worker budget "
+                        f"({per_worker_budget_gb:.1f} GB/worker)"
+                    )
+                    effective_threads = new_threads
+                    # Recompute peak for logging; children pick this up via env.
+                    peak_gb, _ = _estimate_max_task_memory_gb(
+                        evaluation_args,
+                        config,
+                        per_instance_threads=effective_threads,
+                    )
     except Exception as e:
         logging.warning(f"Could not estimate memory, using configured workers: {e}")
 
+    # Propagate the (possibly throttled) per-instance thread count to worker
+    # processes. distance.py reads PER_INSTANCE_THREADS at import time.
+    os.environ["PER_INSTANCE_THREADS"] = str(effective_threads)
+
     logging.info(
         f"Scoring volumes in parallel, using {effective_workers} workers "
-        f"(config.max_workers={config.max_workers})..."
+        f"(config.max_workers={config.max_workers}, "
+        f"per_instance_threads={effective_threads}, peak~{peak_gb:.1f} GB/worker)..."
     )
 
     with ProcessPoolExecutor(effective_workers) as pool:

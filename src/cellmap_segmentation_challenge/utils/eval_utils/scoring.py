@@ -212,6 +212,11 @@ def score_instance(
             pred_label, mapping, in_place=True, preserve_missing_labels=True
         )
 
+    # Free matching-stage scratch (overlap matrices, cc3d temporaries) before
+    # the Hausdorff phase spins up `per_instance_threads` float64 distance
+    # transforms per worker.
+    gc.collect()
+
     # Compute Hausdorff distances
     hausdorff_distances = _compute_hausdorff_scores(
         mapping, truth_label, pred_label, n_pred, voxel_size, hausdorff_distance_max
@@ -352,6 +357,7 @@ def score_label(
         pred_label = pred_label * mask
         truth_label = truth_label * mask
         del mask
+        gc.collect()
 
     # Compute the scores
     if label_name in instance_classes:
