@@ -279,7 +279,10 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">InstanceScoreDict</span><span class="p">(</span><span class="n">TypedDict</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Type definition for instance segmentation scores.&quot;&quot;&quot;</span>
 
-    <span class="n">mean_accuracy</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">f1</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">tp</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">fp</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">fn</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">binary_accuracy</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">hausdorff_distance</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">normalized_hausdorff_distance</span><span class="p">:</span> <span class="nb">float</span>
@@ -289,9 +292,9 @@
     <span class="n">num_voxels</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">voxel_size</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
     <span class="n">is_missing</span><span class="p">:</span> <span class="nb">bool</span>
-    <span class="n">status</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;scored&quot;</span><span class="p">,</span> <span class="s2">&quot;skipped_too_many_instances&quot;</span><span class="p">,</span> <span class="s2">&quot;missing&quot;</span><span class="p">]</span>
-    <span class="n">voi_split</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="n">voi_merge</span><span class="p">:</span> <span class="nb">float</span></div>
+    <span class="n">status</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span>
+        <span class="s2">&quot;scored&quot;</span><span class="p">,</span> <span class="s2">&quot;skipped_too_many_instances&quot;</span><span class="p">,</span> <span class="s2">&quot;missing&quot;</span><span class="p">,</span> <span class="s2">&quot;matching_failed&quot;</span>
+    <span class="p">]</span></div>
 
 
 

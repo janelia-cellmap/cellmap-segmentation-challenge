@@ -358,13 +358,13 @@
 <li><p><strong>Scoring Components</strong>:</p>
 <ul>
 <li><p><strong>Hausdorff Distance</strong>: The Hausdorff distance is calculated in nanometers between the predicted and ground truth instance segmentations. This metric measures the maximum distance between any point on the predicted instance and its nearest point on the ground truth instance, and vice versa.</p></li>
-<li><p><strong>Accuracy</strong>: The accuracy is calculated as the proportion of correctly predicted instance labels to the total number of instance labels.</p></li>
+<li><p><strong>F1 Score</strong>: The F1 score is calculated as <span class="math notranslate nohighlight">\(\frac{2 \cdot \text{TP}}{2 \cdot \text{TP} + \text{FP} + \text{FN}}\)</span>, where TP, FP, and FN count matched and unmatched instances after optimal 1:1 matching via min-cost flow.</p></li>
 </ul>
 </li>
 <li><p><strong>Score Normalization and Combination</strong>:</p>
 <ul>
 <li><p>The Hausdorff distance is normalized to a range of [0, 1] using the maximum distance represented by a voxel. Specifically, the normalized Hausdorff distance is <span class="math notranslate nohighlight">\(1.01^{-\frac{\text{hausdorff distance}}{\|\text{voxel\_size}\|}}\)</span>.</p></li>
-<li><p>The combined score is calculated as the geometric mean of the accuracy and the normalized Hausdorff distance.</p></li>
+<li><p>The combined score is calculated as the geometric mean of the F1 score and the normalized Hausdorff distance.</p></li>
 <li><p>The final instance score across volumes is produced by taking the average across the combined scores for each volume, normalized by the total spatial volume of each image.</p></li>
 </ul>
 </li>

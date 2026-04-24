@@ -327,8 +327,7 @@
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils.eval_utils.config">cellmap_segmentation_challenge.utils.eval_utils.config module</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.max_instance_threads"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.max_instance_threads</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.max_semantic_threads"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.max_semantic_threads</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.max_workers"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.max_workers</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.per_instance_threads"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.per_instance_threads</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.max_distance_cap_eps"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.max_distance_cap_eps</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.final_instance_ratio_cutoff"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.final_instance_ratio_cutoff</span></code></a></li>
@@ -339,6 +338,8 @@
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.truth_path"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.truth_path</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.instance_classes"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.instance_classes</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.cast_to_none"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.cast_to_none</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.max_instance_threads"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.max_instance_threads</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.max_semantic_threads"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.max_semantic_threads</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.from_env"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.from_env()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.validate"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.validate()</span></code></a></li>
 </ul>
@@ -393,7 +394,10 @@
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils.eval_utils.types">cellmap_segmentation_challenge.utils.eval_utils.types module</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.mean_accuracy"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.mean_accuracy</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.f1"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.f1</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.tp"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.tp</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.fp"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.fp</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.fn"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.fn</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.binary_accuracy"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.binary_accuracy</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.hausdorff_distance"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.hausdorff_distance</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.normalized_hausdorff_distance"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.normalized_hausdorff_distance</span></code></a></li>
@@ -404,8 +408,6 @@
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.voxel_size"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.voxel_size</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.is_missing"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.is_missing</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.status"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.status</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.voi_split"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.voi_split</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.voi_merge"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.voi_merge</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.SemanticScoreDict"><code class="docutils literal notranslate"><span class="pre">SemanticScoreDict</span></code></a><ul class="nav section-nav flex-column">
@@ -426,7 +428,10 @@
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils.eval_utils">Module contents</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.mean_accuracy"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.mean_accuracy</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.f1"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.f1</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.tp"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.tp</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.fp"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.fp</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.fn"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.fn</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.binary_accuracy"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.binary_accuracy</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.hausdorff_distance"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.hausdorff_distance</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.normalized_hausdorff_distance"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.normalized_hausdorff_distance</span></code></a></li>
@@ -437,8 +442,6 @@
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.voxel_size"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.voxel_size</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.is_missing"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.is_missing</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.status"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.status</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.voi_split"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.voi_split</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.voi_merge"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.voi_merge</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.SemanticScoreDict"><code class="docutils literal notranslate"><span class="pre">SemanticScoreDict</span></code></a><ul class="nav section-nav flex-column">
@@ -457,8 +460,7 @@
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.MatchingFailedError"><code class="docutils literal notranslate"><span class="pre">MatchingFailedError</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.ValidationError"><code class="docutils literal notranslate"><span class="pre">ValidationError</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.max_instance_threads"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.max_instance_threads</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.max_semantic_threads"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.max_semantic_threads</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.max_workers"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.max_workers</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.per_instance_threads"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.per_instance_threads</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.max_distance_cap_eps"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.max_distance_cap_eps</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.final_instance_ratio_cutoff"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.final_instance_ratio_cutoff</span></code></a></li>
@@ -469,6 +471,8 @@
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.truth_path"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.truth_path</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.instance_classes"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.instance_classes</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.cast_to_none"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.cast_to_none</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.max_instance_threads"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.max_instance_threads</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.max_semantic_threads"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.max_semantic_threads</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.from_env"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.from_env()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.validate"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.validate()</span></code></a></li>
 </ul>
@@ -610,38 +614,29 @@
 <p>Configuration for evaluation pipeline.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.eval_utils.config.</span></span><span class="sig-name descname"><span class="pre">EvaluationConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_instance_threads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_semantic_threads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">per_instance_threads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_distance_cap_eps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_instance_ratio_cutoff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_instance_ratio_cutoff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">50.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_ratio_factor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_overlap_edges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5000000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mcmf_cost_scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">truth_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">UPath</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cast_to_none</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/eval_utils/config.html#EvaluationConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.eval_utils.config.</span></span><span class="sig-name descname"><span class="pre">EvaluationConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_instance_threads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_semantic_threads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/eval_utils/config.html#EvaluationConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Configuration for evaluation pipeline.</p>
 <p>All parameters can be set via environment variables or passed directly.
 Environment variables take precedence over defaults but not over
 explicitly passed values.</p>
+<p>The legacy keyword arguments <code class="docutils literal notranslate"><span class="pre">max_instance_threads</span></code> and
+<code class="docutils literal notranslate"><span class="pre">max_semantic_threads</span></code> are accepted for backward constructor
+compatibility and map to <code class="docutils literal notranslate"><span class="pre">max_workers</span></code>.  When both <code class="docutils literal notranslate"><span class="pre">max_workers</span></code>
+and a legacy argument are provided, <code class="docutils literal notranslate"><span class="pre">max_workers</span></code> takes precedence.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>max_instance_threads</strong> (<em>int</em>)</p></li>
-<li><p><strong>max_semantic_threads</strong> (<em>int</em>)</p></li>
-<li><p><strong>per_instance_threads</strong> (<em>int</em>)</p></li>
-<li><p><strong>max_distance_cap_eps</strong> (<em>float</em>)</p></li>
-<li><p><strong>final_instance_ratio_cutoff</strong> (<em>float</em>)</p></li>
-<li><p><strong>initial_instance_ratio_cutoff</strong> (<em>float</em>)</p></li>
-<li><p><strong>instance_ratio_factor</strong> (<em>float</em>)</p></li>
-<li><p><strong>max_overlap_edges</strong> (<em>int</em>)</p></li>
-<li><p><strong>mcmf_cost_scale</strong> (<em>int</em>)</p></li>
-<li><p><strong>truth_path</strong> (<em>UPath</em>)</p></li>
-<li><p><strong>instance_classes</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>)</p></li>
-<li><p><strong>cast_to_none</strong> (<em>list</em><em>[</em><em>Any</em><em>]</em>)</p></li>
+<li><p><strong>args</strong> (<em>Any</em>)</p></li>
+<li><p><strong>max_instance_threads</strong> (<em>Any</em>)</p></li>
+<li><p><strong>max_semantic_threads</strong> (<em>Any</em>)</p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>)</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.max_instance_threads">
-<span class="sig-name descname"><span class="pre">max_instance_threads</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.max_instance_threads" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.max_semantic_threads">
-<span class="sig-name descname"><span class="pre">max_semantic_threads</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">25</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.max_semantic_threads" title="Link to this definition">#</a></dt>
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.max_workers">
+<span class="sig-name descname"><span class="pre">max_workers</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.max_workers" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -694,10 +689,36 @@ explicitly passed values.</p>
 <span class="sig-name descname"><span class="pre">cast_to_none</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.cast_to_none" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.max_instance_threads">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">max_instance_threads</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.max_instance_threads" title="Link to this definition">#</a></dt>
+<dd><p>use max_workers instead.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Deprecated</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.max_semantic_threads">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">max_semantic_threads</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.max_semantic_threads" title="Link to this definition">#</a></dt>
+<dd><p>use max_workers instead.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Deprecated</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.from_env">
 <span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_env</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig" title="cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig"><span class="pre">EvaluationConfig</span></a></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/eval_utils/config.html#EvaluationConfig.from_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.from_env" title="Link to this definition">#</a></dt>
 <dd><p>Load configuration from environment variables with defaults.</p>
+<p><code class="docutils literal notranslate"><span class="pre">MAX_WORKERS</span></code> takes precedence.  When it is unset the legacy vars
+<code class="docutils literal notranslate"><span class="pre">MAX_INSTANCE_THREADS</span></code> and <code class="docutils literal notranslate"><span class="pre">MAX_SEMANTIC_THREADS</span></code> are consulted in
+that order as a fallback (each triggers a <code class="xref py py-class docutils literal notranslate"><span class="pre">DeprecationWarning</span></code>).
+If none of the three is set the computed default is used.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>EvaluationConfig with values from environment or defaults.</p>
@@ -1020,7 +1041,7 @@ Returns {} if no matches found or one side has no instances.</p>
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.scoring.score_instance">
 <span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.eval_utils.scoring.</span></span><span class="sig-name descname"><span class="pre">score_instance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pred_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">truth_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hausdorff_distance_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig" title="cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig"><span class="pre">EvaluationConfig</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict" title="cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict"><span class="pre">InstanceScoreDict</span></a></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/eval_utils/scoring.html#score_instance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.scoring.score_instance" title="Link to this definition">#</a></dt>
 <dd><p>Score instance segmentation against ground truth.</p>
-<p>Computes pixel-wise accuracy, Hausdorff distance, and combined metrics
+<p>Computes instance F1 score, Hausdorff distance, and combined metrics
 after optimal instance matching.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1225,7 +1246,7 @@ validates, scores, and aggregates results for all volumes.</p>
 <dt>{</dt><dd><dl>
 <dt>“cropN”: {  # Per-volume scores</dt><dd><dl class="simple">
 <dt>“label_name”: {</dt><dd><p># Instance segmentation
-“mean_accuracy”: float,
+“f1”: float,
 “hausdorff_distance”: float,
 “combined_score”: float,
 # OR semantic segmentation
@@ -1262,8 +1283,23 @@ validates, scores, and aggregates results for all volumes.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TypedDict</span></code></p>
 <p>Type definition for instance segmentation scores.</p>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.mean_accuracy">
-<span class="sig-name descname"><span class="pre">mean_accuracy</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.mean_accuracy" title="Link to this definition">#</a></dt>
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.f1">
+<span class="sig-name descname"><span class="pre">f1</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.f1" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.tp">
+<span class="sig-name descname"><span class="pre">tp</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.tp" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.fp">
+<span class="sig-name descname"><span class="pre">fp</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.fp" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.fn">
+<span class="sig-name descname"><span class="pre">fn</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.fn" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -1313,17 +1349,7 @@ validates, scores, and aggregates results for all volumes.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.status">
-<span class="sig-name descname"><span class="pre">status</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'scored'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'skipped_too_many_instances'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'missing'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.status" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.voi_split">
-<span class="sig-name descname"><span class="pre">voi_split</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.voi_split" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.voi_merge">
-<span class="sig-name descname"><span class="pre">voi_merge</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.voi_merge" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">status</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'scored'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'skipped_too_many_instances'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'missing'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'matching_failed'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.status" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1412,8 +1438,23 @@ decompression bombs before extracting.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TypedDict</span></code></p>
 <p>Type definition for instance segmentation scores.</p>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.mean_accuracy">
-<span class="sig-name descname"><span class="pre">mean_accuracy</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.mean_accuracy" title="Link to this definition">#</a></dt>
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.f1">
+<span class="sig-name descname"><span class="pre">f1</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.f1" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.tp">
+<span class="sig-name descname"><span class="pre">tp</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.tp" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.fp">
+<span class="sig-name descname"><span class="pre">fp</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.fp" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.fn">
+<span class="sig-name descname"><span class="pre">fn</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.fn" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -1463,17 +1504,7 @@ decompression bombs before extracting.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.status">
-<span class="sig-name descname"><span class="pre">status</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'scored'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'skipped_too_many_instances'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'missing'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.status" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.voi_split">
-<span class="sig-name descname"><span class="pre">voi_split</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.voi_split" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.voi_merge">
-<span class="sig-name descname"><span class="pre">voi_merge</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.voi_merge" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">status</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'scored'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'skipped_too_many_instances'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'missing'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'matching_failed'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.status" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1583,38 +1614,29 @@ instances exceeds acceptable thresholds, likely indicating poor segmentation.</p
 
 <dl class="py class">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.eval_utils.</span></span><span class="sig-name descname"><span class="pre">EvaluationConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_instance_threads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_semantic_threads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">per_instance_threads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_distance_cap_eps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_instance_ratio_cutoff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_instance_ratio_cutoff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">50.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_ratio_factor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_overlap_edges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5000000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mcmf_cost_scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">truth_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">UPath</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cast_to_none</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/eval_utils/config.html#EvaluationConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.eval_utils.</span></span><span class="sig-name descname"><span class="pre">EvaluationConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_instance_threads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_semantic_threads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/eval_utils/config.html#EvaluationConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Configuration for evaluation pipeline.</p>
 <p>All parameters can be set via environment variables or passed directly.
 Environment variables take precedence over defaults but not over
 explicitly passed values.</p>
+<p>The legacy keyword arguments <code class="docutils literal notranslate"><span class="pre">max_instance_threads</span></code> and
+<code class="docutils literal notranslate"><span class="pre">max_semantic_threads</span></code> are accepted for backward constructor
+compatibility and map to <code class="docutils literal notranslate"><span class="pre">max_workers</span></code>.  When both <code class="docutils literal notranslate"><span class="pre">max_workers</span></code>
+and a legacy argument are provided, <code class="docutils literal notranslate"><span class="pre">max_workers</span></code> takes precedence.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>max_instance_threads</strong> (<em>int</em>)</p></li>
-<li><p><strong>max_semantic_threads</strong> (<em>int</em>)</p></li>
-<li><p><strong>per_instance_threads</strong> (<em>int</em>)</p></li>
-<li><p><strong>max_distance_cap_eps</strong> (<em>float</em>)</p></li>
-<li><p><strong>final_instance_ratio_cutoff</strong> (<em>float</em>)</p></li>
-<li><p><strong>initial_instance_ratio_cutoff</strong> (<em>float</em>)</p></li>
-<li><p><strong>instance_ratio_factor</strong> (<em>float</em>)</p></li>
-<li><p><strong>max_overlap_edges</strong> (<em>int</em>)</p></li>
-<li><p><strong>mcmf_cost_scale</strong> (<em>int</em>)</p></li>
-<li><p><strong>truth_path</strong> (<em>UPath</em>)</p></li>
-<li><p><strong>instance_classes</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>)</p></li>
-<li><p><strong>cast_to_none</strong> (<em>list</em><em>[</em><em>Any</em><em>]</em>)</p></li>
+<li><p><strong>args</strong> (<em>Any</em>)</p></li>
+<li><p><strong>max_instance_threads</strong> (<em>Any</em>)</p></li>
+<li><p><strong>max_semantic_threads</strong> (<em>Any</em>)</p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>)</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.max_instance_threads">
-<span class="sig-name descname"><span class="pre">max_instance_threads</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.max_instance_threads" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.max_semantic_threads">
-<span class="sig-name descname"><span class="pre">max_semantic_threads</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">25</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.max_semantic_threads" title="Link to this definition">#</a></dt>
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.max_workers">
+<span class="sig-name descname"><span class="pre">max_workers</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.max_workers" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -1667,10 +1689,36 @@ explicitly passed values.</p>
 <span class="sig-name descname"><span class="pre">cast_to_none</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.cast_to_none" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.max_instance_threads">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">max_instance_threads</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.max_instance_threads" title="Link to this definition">#</a></dt>
+<dd><p>use max_workers instead.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Deprecated</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.max_semantic_threads">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">max_semantic_threads</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.max_semantic_threads" title="Link to this definition">#</a></dt>
+<dd><p>use max_workers instead.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Deprecated</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.from_env">
 <span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_env</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig" title="cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig"><span class="pre">EvaluationConfig</span></a></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/eval_utils/config.html#EvaluationConfig.from_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.from_env" title="Link to this definition">#</a></dt>
 <dd><p>Load configuration from environment variables with defaults.</p>
+<p><code class="docutils literal notranslate"><span class="pre">MAX_WORKERS</span></code> takes precedence.  When it is unset the legacy vars
+<code class="docutils literal notranslate"><span class="pre">MAX_INSTANCE_THREADS</span></code> and <code class="docutils literal notranslate"><span class="pre">MAX_SEMANTIC_THREADS</span></code> are consulted in
+that order as a fallback (each triggers a <code class="xref py py-class docutils literal notranslate"><span class="pre">DeprecationWarning</span></code>).
+If none of the three is set the computed default is used.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>EvaluationConfig with values from environment or defaults.</p>
@@ -1916,7 +1964,7 @@ and builds masks only inside ROI.</p>
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.score_instance">
 <span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.eval_utils.</span></span><span class="sig-name descname"><span class="pre">score_instance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pred_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">truth_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hausdorff_distance_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig" title="cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig"><span class="pre">EvaluationConfig</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict" title="cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict"><span class="pre">InstanceScoreDict</span></a></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/eval_utils/scoring.html#score_instance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.score_instance" title="Link to this definition">#</a></dt>
 <dd><p>Score instance segmentation against ground truth.</p>
-<p>Computes pixel-wise accuracy, Hausdorff distance, and combined metrics
+<p>Computes instance F1 score, Hausdorff distance, and combined metrics
 after optimal instance matching.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -2170,7 +2218,7 @@ validates, scores, and aggregates results for all volumes.</p>
 <dt>{</dt><dd><dl>
 <dt>“cropN”: {  # Per-volume scores</dt><dd><dl class="simple">
 <dt>“label_name”: {</dt><dd><p># Instance segmentation
-“mean_accuracy”: float,
+“f1”: float,
 “hausdorff_distance”: float,
 “combined_score”: float,
 # OR semantic segmentation
@@ -2287,8 +2335,7 @@ decompression bombs before extracting.</p>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils.eval_utils.config">cellmap_segmentation_challenge.utils.eval_utils.config module</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.max_instance_threads"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.max_instance_threads</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.max_semantic_threads"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.max_semantic_threads</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.max_workers"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.max_workers</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.per_instance_threads"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.per_instance_threads</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.max_distance_cap_eps"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.max_distance_cap_eps</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.final_instance_ratio_cutoff"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.final_instance_ratio_cutoff</span></code></a></li>
@@ -2299,6 +2346,8 @@ decompression bombs before extracting.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.truth_path"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.truth_path</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.instance_classes"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.instance_classes</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.cast_to_none"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.cast_to_none</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.max_instance_threads"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.max_instance_threads</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.max_semantic_threads"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.max_semantic_threads</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.from_env"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.from_env()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.config.EvaluationConfig.validate"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.validate()</span></code></a></li>
 </ul>
@@ -2353,7 +2402,10 @@ decompression bombs before extracting.</p>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils.eval_utils.types">cellmap_segmentation_challenge.utils.eval_utils.types module</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.mean_accuracy"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.mean_accuracy</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.f1"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.f1</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.tp"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.tp</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.fp"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.fp</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.fn"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.fn</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.binary_accuracy"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.binary_accuracy</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.hausdorff_distance"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.hausdorff_distance</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.normalized_hausdorff_distance"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.normalized_hausdorff_distance</span></code></a></li>
@@ -2364,8 +2416,6 @@ decompression bombs before extracting.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.voxel_size"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.voxel_size</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.is_missing"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.is_missing</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.status"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.status</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.voi_split"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.voi_split</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict.voi_merge"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.voi_merge</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.types.SemanticScoreDict"><code class="docutils literal notranslate"><span class="pre">SemanticScoreDict</span></code></a><ul class="nav section-nav flex-column">
@@ -2386,7 +2436,10 @@ decompression bombs before extracting.</p>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cellmap_segmentation_challenge.utils.eval_utils">Module contents</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.mean_accuracy"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.mean_accuracy</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.f1"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.f1</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.tp"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.tp</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.fp"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.fp</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.fn"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.fn</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.binary_accuracy"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.binary_accuracy</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.hausdorff_distance"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.hausdorff_distance</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.normalized_hausdorff_distance"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.normalized_hausdorff_distance</span></code></a></li>
@@ -2397,8 +2450,6 @@ decompression bombs before extracting.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.voxel_size"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.voxel_size</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.is_missing"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.is_missing</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.status"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.status</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.voi_split"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.voi_split</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.InstanceScoreDict.voi_merge"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.voi_merge</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.SemanticScoreDict"><code class="docutils literal notranslate"><span class="pre">SemanticScoreDict</span></code></a><ul class="nav section-nav flex-column">
@@ -2417,8 +2468,7 @@ decompression bombs before extracting.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.MatchingFailedError"><code class="docutils literal notranslate"><span class="pre">MatchingFailedError</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.ValidationError"><code class="docutils literal notranslate"><span class="pre">ValidationError</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.max_instance_threads"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.max_instance_threads</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.max_semantic_threads"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.max_semantic_threads</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.max_workers"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.max_workers</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.per_instance_threads"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.per_instance_threads</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.max_distance_cap_eps"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.max_distance_cap_eps</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.final_instance_ratio_cutoff"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.final_instance_ratio_cutoff</span></code></a></li>
@@ -2429,6 +2479,8 @@ decompression bombs before extracting.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.truth_path"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.truth_path</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.instance_classes"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.instance_classes</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.cast_to_none"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.cast_to_none</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.max_instance_threads"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.max_instance_threads</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.max_semantic_threads"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.max_semantic_threads</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.from_env"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.from_env()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.utils.eval_utils.EvaluationConfig.validate"><code class="docutils literal notranslate"><span class="pre">EvaluationConfig.validate()</span></code></a></li>
 </ul>

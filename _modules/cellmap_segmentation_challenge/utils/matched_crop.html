@@ -617,12 +617,44 @@
                     <span class="n">ratio</span><span class="p">,</span> <span class="n">estimated_memory_mb</span>
                 <span class="p">)</span>
 
-                <span class="k">if</span> <span class="n">use_chunked</span><span class="p">:</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;Large OME-NGFF array detected (</span><span class="si">{</span><span class="n">estimated_memory_mb</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB). &quot;</span>
-                        <span class="sa">f</span><span class="s2">&quot;Loading entire array - CellMapImage should have already selected appropriate resolution level. &quot;</span>
-                        <span class="sa">f</span><span class="s2">&quot;If memory issues occur, ensure predictions are saved at appropriate resolution.&quot;</span>
+                <span class="k">if</span> <span class="n">use_chunked</span> <span class="ow">and</span> <span class="n">input_voxel_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">in_vs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">input_voxel_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                    <span class="n">tgt_vs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_voxel_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">in_vs</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">tgt_vs</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+                        <span class="n">in_vs</span> <span class="o">=</span> <span class="n">in_vs</span><span class="p">[</span><span class="o">-</span><span class="n">tgt_vs</span><span class="o">.</span><span class="n">size</span> <span class="p">:]</span>
+
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">in_vs</span><span class="p">,</span> <span class="n">tgt_vs</span><span class="p">):</span>
+                        <span class="n">scale_factors</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">in_vs</span> <span class="o">/</span> <span class="n">tgt_vs</span><span class="p">)</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;Using chunked loading for large OME-NGFF array &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">estimated_memory_mb</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB, scale </span><span class="si">{</span><span class="n">scale_factors</span><span class="si">}</span><span class="s2">)&quot;</span>
+                        <span class="p">)</span>
+                        <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_array_chunked</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">scale_factors</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="p">(</span>
+                            <span class="n">image</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">target_voxel_size</span><span class="p">,</span>
+                            <span class="n">input_translation</span><span class="p">,</span>
+                            <span class="kc">True</span><span class="p">,</span>
+                        <span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">use_chunked</span> <span class="ow">and</span> <span class="n">input_voxel_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="c1"># No voxel size metadata — infer from shape ratio</span>
+                    <span class="n">ratios</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_shape</span><span class="p">)</span> <span class="p">:])</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">target_shape</span>
                     <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">ratios</span> <span class="o">&gt;=</span> <span class="mf">1.0</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">ratios</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">):</span>
+                        <span class="n">scale_factors</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">ratios</span><span class="p">)</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;No voxel_size metadata for OME-NGFF level at </span><span class="si">{</span><span class="n">level_path</span><span class="si">}</span><span class="s2">. &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;Inferring downsampling from shape ratio </span><span class="si">{</span><span class="n">ratios</span><span class="si">}</span><span class="s2">.&quot;</span>
+                        <span class="p">)</span>
+                        <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_array_chunked</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">scale_factors</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="p">(</span>
+                            <span class="n">image</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">target_voxel_size</span><span class="p">,</span>
+                            <span class="n">input_translation</span><span class="p">,</span>
+                            <span class="kc">True</span><span class="p">,</span>
+                        <span class="p">)</span>
 
                 <span class="n">image</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[:]</span>
                 <span class="k">return</span> <span class="p">(</span>
@@ -630,7 +662,7 @@
                     <span class="n">input_voxel_size</span><span class="p">,</span>
                     <span class="n">input_translation</span><span class="p">,</span>
                     <span class="kc">False</span><span class="p">,</span>
-                <span class="p">)</span>  <span class="c1"># Not downsampled in chunks</span>
+                <span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;Failed to load OME-NGFF multiscale data from </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">. &quot;</span>
@@ -676,6 +708,22 @@
                         <span class="c1"># No downsampling needed, load normally</span>
                         <span class="n">image</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[:]</span>
                         <span class="k">return</span> <span class="n">image</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">tr</span><span class="p">,</span> <span class="kc">False</span>
+                <span class="k">elif</span> <span class="n">use_chunked</span> <span class="ow">and</span> <span class="n">vs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="c1"># No voxel size metadata — infer from shape ratio</span>
+                    <span class="n">ratios</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_shape</span><span class="p">)</span> <span class="p">:])</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">target_shape</span>
+                    <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">ratios</span> <span class="o">&gt;=</span> <span class="mf">1.0</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">ratios</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">):</span>
+                        <span class="n">scale_factors</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">ratios</span><span class="p">)</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;No voxel_size metadata at </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">. &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;Inferring downsampling from shape ratio </span><span class="si">{</span><span class="n">ratios</span><span class="si">}</span><span class="s2">.&quot;</span>
+                        <span class="p">)</span>
+                        <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_array_chunked</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">scale_factors</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="n">image</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_voxel_size</span><span class="p">,</span> <span class="n">tr</span><span class="p">,</span> <span class="kc">True</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">image</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[:]</span>
+                        <span class="k">return</span> <span class="n">image</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">tr</span><span class="p">,</span> <span class="kc">False</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">image</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[:]</span>
                     <span class="k">return</span> <span class="n">image</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">tr</span><span class="p">,</span> <span class="kc">False</span>
@@ -718,8 +766,6 @@
 
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">in_vs</span><span class="p">,</span> <span class="n">tgt_vs</span><span class="p">):</span>
                     <span class="c1"># Downsampling needed - use chunked approach</span>
-                    <span class="c1"># scale_factors = in_vs / tgt_vs</span>
-                    <span class="c1"># When in_vs &lt; tgt_vs (fine→coarse), scale_factors &lt; 1.0, causing rescale to downsample</span>
                     <span class="n">scale_factors</span> <span class="o">=</span> <span class="n">in_vs</span> <span class="o">/</span> <span class="n">tgt_vs</span>
                     <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_array_chunked</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">scale_factors</span><span class="p">)</span>
                     <span class="k">return</span> <span class="p">(</span>
@@ -727,9 +773,25 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">target_voxel_size</span><span class="p">,</span>
                         <span class="n">tr</span><span class="p">,</span>
                         <span class="kc">True</span><span class="p">,</span>
-                    <span class="p">)</span>  <span class="c1"># Already downsampled</span>
+                    <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c1"># No downsampling needed, load normally</span>
+                    <span class="n">image</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[:]</span>
+                    <span class="k">return</span> <span class="n">image</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">tr</span><span class="p">,</span> <span class="kc">False</span>
+            <span class="k">elif</span> <span class="n">use_chunked</span> <span class="ow">and</span> <span class="n">vs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># No voxel size metadata — infer from shape ratio</span>
+                <span class="n">ratios</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_shape</span><span class="p">)</span> <span class="p">:])</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">target_shape</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">ratios</span> <span class="o">&gt;=</span> <span class="mf">1.0</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">ratios</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">):</span>
+                    <span class="n">scale_factors</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">ratios</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;No voxel_size metadata at </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">. &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;Inferring downsampling from shape ratio </span><span class="si">{</span><span class="n">ratios</span><span class="si">}</span><span class="s2">.&quot;</span>
+                    <span class="p">)</span>
+                    <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_array_chunked</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">scale_factors</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">image</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_voxel_size</span><span class="p">,</span> <span class="n">tr</span><span class="p">,</span> <span class="kc">True</span>
+                <span class="k">else</span><span class="p">:</span>
                     <span class="n">image</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[:]</span>
                     <span class="k">return</span> <span class="n">image</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">tr</span><span class="p">,</span> <span class="kc">False</span>
             <span class="k">else</span><span class="p">:</span>

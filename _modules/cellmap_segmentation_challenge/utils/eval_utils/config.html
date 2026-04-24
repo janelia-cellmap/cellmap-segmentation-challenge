@@ -273,6 +273,7 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
@@ -289,9 +290,40 @@
     <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span>
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_wrap_legacy_init</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class decorator that wraps a dataclass ``__init__`` to accept the</span>
+<span class="sd">    deprecated ``max_instance_threads`` / ``max_semantic_threads`` keyword</span>
+<span class="sd">    arguments and map them to ``max_workers`` for backward compatibility.</span>
+
+<span class="sd">    Precedence: explicit ``max_workers`` &gt; ``max_instance_threads`` &gt;</span>
+<span class="sd">    ``max_semantic_threads`` &gt; default.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_original_init</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">max_instance_threads</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">max_semantic_threads</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa: N807</span>
+        <span class="k">if</span> <span class="n">max_instance_threads</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;max_instance_threads is deprecated; use max_workers instead&quot;</span><span class="p">,</span>
+                <span class="ne">DeprecationWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;max_workers&quot;</span><span class="p">,</span> <span class="n">max_instance_threads</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">max_semantic_threads</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;max_semantic_threads is deprecated; use max_workers instead&quot;</span><span class="p">,</span>
+                <span class="ne">DeprecationWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;max_workers&quot;</span><span class="p">,</span> <span class="n">max_semantic_threads</span><span class="p">)</span>
+        <span class="n">_original_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span> <span class="o">=</span> <span class="fm">__init__</span>  <span class="c1"># type: ignore[method-assign]</span>
+    <span class="k">return</span> <span class="bp">cls</span>
+
 
 <div class="viewcode-block" id="EvaluationConfig">
 <a class="viewcode-back" href="../../../../cellmap_segmentation_challenge.utils.eval_utils.html#cellmap_segmentation_challenge.evaluate.EvaluationConfig">[docs]</a>
+<span class="nd">@_wrap_legacy_init</span>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">EvaluationConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for evaluation pipeline.</span>
@@ -299,11 +331,15 @@
 <span class="sd">    All parameters can be set via environment variables or passed directly.</span>
 <span class="sd">    Environment variables take precedence over defaults but not over</span>
 <span class="sd">    explicitly passed values.</span>
+
+<span class="sd">    The legacy keyword arguments ``max_instance_threads`` and</span>
+<span class="sd">    ``max_semantic_threads`` are accepted for backward constructor</span>
+<span class="sd">    compatibility and map to ``max_workers``.  When both ``max_workers``</span>
+<span class="sd">    and a legacy argument are provided, ``max_workers`` takes precedence.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># Threading configuration</span>
-    <span class="n">max_instance_threads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
-    <span class="n">max_semantic_threads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">25</span>
+    <span class="n">max_workers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span> <span class="ow">or</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
     <span class="n">per_instance_threads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">25</span>
 
     <span class="c1"># Distance calculation parameters</span>
@@ -325,18 +361,80 @@
         <span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-inf&quot;</span><span class="p">)]</span>
     <span class="p">)</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">max_instance_threads</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecated: use max_workers instead.&quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;max_instance_threads is deprecated, use max_workers instead&quot;</span><span class="p">,</span>
+            <span class="ne">DeprecationWarning</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_workers</span>
+
+    <span class="nd">@max_instance_threads</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">max_instance_threads</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;max_instance_threads is deprecated, use max_workers instead&quot;</span><span class="p">,</span>
+            <span class="ne">DeprecationWarning</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_workers</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">max_semantic_threads</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecated: use max_workers instead.&quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;max_semantic_threads is deprecated, use max_workers instead&quot;</span><span class="p">,</span>
+            <span class="ne">DeprecationWarning</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_workers</span>
+
+    <span class="nd">@max_semantic_threads</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">max_semantic_threads</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;max_semantic_threads is deprecated, use max_workers instead&quot;</span><span class="p">,</span>
+            <span class="ne">DeprecationWarning</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_workers</span> <span class="o">=</span> <span class="n">value</span>
+
 <div class="viewcode-block" id="EvaluationConfig.from_env">
 <a class="viewcode-back" href="../../../../cellmap_segmentation_challenge.utils.eval_utils.html#cellmap_segmentation_challenge.evaluate.EvaluationConfig.from_env">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">from_env</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EvaluationConfig&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Load configuration from environment variables with defaults.</span>
 
+<span class="sd">        ``MAX_WORKERS`` takes precedence.  When it is unset the legacy vars</span>
+<span class="sd">        ``MAX_INSTANCE_THREADS`` and ``MAX_SEMANTIC_THREADS`` are consulted in</span>
+<span class="sd">        that order as a fallback (each triggers a :class:`DeprecationWarning`).</span>
+<span class="sd">        If none of the three is set the computed default is used.</span>
+
 <span class="sd">        Returns:</span>
 <span class="sd">            EvaluationConfig with values from environment or defaults.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">default_workers</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span> <span class="ow">or</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;MAX_WORKERS&quot;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+            <span class="n">max_workers</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;MAX_WORKERS&quot;</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="s2">&quot;MAX_INSTANCE_THREADS&quot;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;MAX_INSTANCE_THREADS env var is deprecated, use MAX_WORKERS instead&quot;</span><span class="p">,</span>
+                <span class="ne">DeprecationWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">max_workers</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;MAX_INSTANCE_THREADS&quot;</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="s2">&quot;MAX_SEMANTIC_THREADS&quot;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;MAX_SEMANTIC_THREADS env var is deprecated, use MAX_WORKERS instead&quot;</span><span class="p">,</span>
+                <span class="ne">DeprecationWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">max_workers</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;MAX_SEMANTIC_THREADS&quot;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">max_workers</span> <span class="o">=</span> <span class="n">default_workers</span>
+
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
-            <span class="n">max_instance_threads</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_INSTANCE_THREADS&quot;</span><span class="p">,</span> <span class="s2">&quot;3&quot;</span><span class="p">)),</span>
-            <span class="n">max_semantic_threads</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_SEMANTIC_THREADS&quot;</span><span class="p">,</span> <span class="s2">&quot;25&quot;</span><span class="p">)),</span>
+            <span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers</span><span class="p">,</span>
             <span class="n">per_instance_threads</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;PER_INSTANCE_THREADS&quot;</span><span class="p">,</span> <span class="s2">&quot;25&quot;</span><span class="p">)),</span>
             <span class="n">max_distance_cap_eps</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_DISTANCE_CAP_EPS&quot;</span><span class="p">,</span> <span class="s2">&quot;1e-4&quot;</span><span class="p">)),</span>
             <span class="n">final_instance_ratio_cutoff</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span>
@@ -359,14 +457,8 @@
 <span class="sd">        Raises:</span>
 <span class="sd">            ValueError: If any configuration value is invalid.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_instance_threads</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;max_instance_threads must be &gt;= 1, got </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_instance_threads</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_semantic_threads</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;max_semantic_threads must be &gt;= 1, got </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_semantic_threads</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_workers</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;max_workers must be &gt;= 1, got </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_workers</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">per_instance_threads</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;per_instance_threads must be &gt;= 1, got </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">per_instance_threads</span><span class="si">}</span><span class="s2">&quot;</span>
@@ -401,8 +493,9 @@
 
 <span class="c1"># Legacy Constants (for backward compatibility during migration)</span>
 <span class="n">CAST_TO_NONE</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-inf&quot;</span><span class="p">)]</span>
-<span class="n">MAX_INSTANCE_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_INSTANCE_THREADS&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-<span class="n">MAX_SEMANTIC_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_SEMANTIC_THREADS&quot;</span><span class="p">,</span> <span class="mi">25</span><span class="p">))</span>
+<span class="n">MAX_WORKERS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_WORKERS&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span> <span class="ow">or</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">))))</span>
+<span class="n">MAX_INSTANCE_THREADS</span> <span class="o">=</span> <span class="n">MAX_WORKERS</span>  <span class="c1"># deprecated alias</span>
+<span class="n">MAX_SEMANTIC_THREADS</span> <span class="o">=</span> <span class="n">MAX_WORKERS</span>  <span class="c1"># deprecated alias</span>
 <span class="n">PER_INSTANCE_THREADS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;PER_INSTANCE_THREADS&quot;</span><span class="p">,</span> <span class="mi">25</span><span class="p">))</span>
 <span class="n">MAX_DISTANCE_CAP_EPS</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_DISTANCE_CAP_EPS&quot;</span><span class="p">,</span> <span class="s2">&quot;1e-4&quot;</span><span class="p">))</span>
 <span class="n">FINAL_INSTANCE_RATIO_CUTOFF</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;FINAL_INSTANCE_RATIO_CUTOFF&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>

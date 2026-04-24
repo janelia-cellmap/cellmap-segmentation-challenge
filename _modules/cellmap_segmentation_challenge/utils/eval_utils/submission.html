@@ -272,10 +272,12 @@
 <span></span><span class="sd">&quot;&quot;&quot;Submission processing and main evaluation entry point.&quot;&quot;&quot;</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProcessPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">time</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">zarr</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">upath</span><span class="w"> </span><span class="kn">import</span> <span class="n">UPath</span>
@@ -531,11 +533,65 @@
     <span class="k">return</span> <span class="n">found_volumes</span><span class="p">,</span> <span class="n">missing_volumes</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_estimate_max_task_memory_gb</span><span class="p">(</span>
+    <span class="n">evaluation_args</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">],</span>
+    <span class="n">config</span><span class="p">:</span> <span class="n">EvaluationConfig</span><span class="p">,</span>
+    <span class="n">per_instance_threads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Estimate peak per-worker memory from GT target shapes (metadata only).</span>
+
+<span class="sd">    The estimate covers the two dominant contributors to worker RSS:</span>
+<span class="sd">    (1) the fully-materialized truth + prediction arrays plus cc3d/bool</span>
+<span class="sd">    intermediates that live for the duration of ``score_label``, and (2) the</span>
+<span class="sd">    transient float64 distance-transform scratch allocated by the nested</span>
+<span class="sd">    ``PER_INSTANCE_THREADS`` worker pool inside Hausdorff computation. The</span>
+<span class="sd">    scratch dominates on instance tasks because each concurrent thread holds</span>
+<span class="sd">    two ``float64`` arrays sized to the instance ROI (worst case: the full</span>
+<span class="sd">    volume). Reads zarr shape/dtype without loading data.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ``(peak_gb, n_voxels)`` for the most expensive task. ``n_voxels`` is</span>
+<span class="sd">        the voxel count of the volume that pinned the peak, so callers can</span>
+<span class="sd">        recompute the estimate if they throttle ``per_instance_threads``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">per_instance_threads</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">per_instance_threads</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">per_instance_threads</span>
+
+    <span class="n">max_bytes</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">max_voxels</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">instance_classes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">instance_classes</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">args</span> <span class="ow">in</span> <span class="n">evaluation_args</span><span class="p">:</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">label_name</span><span class="p">,</span> <span class="n">crop_name</span><span class="p">,</span> <span class="n">truth_path</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">args</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">truth_arr</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
+                <span class="nb">str</span><span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span> <span class="o">/</span> <span class="n">crop_name</span> <span class="o">/</span> <span class="n">label_name</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span>
+            <span class="p">)</span>
+            <span class="n">n_voxels</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">truth_arr</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">label_name</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
+                <span class="c1"># Base: truth + pred + cc3d relabel + binary intermediates ≈ 10 B/voxel.</span>
+                <span class="c1"># Hausdorff scratch: up to per_instance_threads concurrent threads,</span>
+                <span class="c1"># each allocating 2× float64 distance transforms sized to the ROI</span>
+                <span class="c1"># (bounded by volume size).</span>
+                <span class="n">bytes_per_voxel</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">+</span> <span class="n">per_instance_threads</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="mi">8</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">bytes_per_voxel</span> <span class="o">=</span> <span class="mi">5</span>
+            <span class="n">task_bytes</span> <span class="o">=</span> <span class="n">n_voxels</span> <span class="o">*</span> <span class="n">bytes_per_voxel</span>
+            <span class="k">if</span> <span class="n">task_bytes</span> <span class="o">&gt;</span> <span class="n">max_bytes</span><span class="p">:</span>
+                <span class="n">max_bytes</span> <span class="o">=</span> <span class="n">task_bytes</span>
+                <span class="n">max_voxels</span> <span class="o">=</span> <span class="n">n_voxels</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">continue</span>
+    <span class="k">return</span> <span class="n">max_bytes</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">),</span> <span class="n">max_voxels</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_execute_parallel_scoring</span><span class="p">(</span>
     <span class="n">evaluation_args</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">],</span>
     <span class="n">config</span><span class="p">:</span> <span class="n">EvaluationConfig</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Execute evaluations in parallel using process pools.</span>
+
+<span class="sd">    Automatically scales worker count based on available system memory</span>
+<span class="sd">    to prevent OOM errors.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        evaluation_args: List of arguments for score_label</span>
@@ -544,25 +600,80 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        List of (crop_name, label_name, result) tuples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">instance_classes</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">instance_classes</span>
+    <span class="c1"># PARALLEL SETTINGS</span>
+    <span class="n">effective_workers</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">max_workers</span>
+    <span class="n">effective_threads</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">per_instance_threads</span>
+    <span class="n">min_per_instance_threads</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">safety_factor</span> <span class="o">=</span> <span class="mf">1.5</span>
+    <span class="n">peak_gb</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">psutil</span>
+
+        <span class="n">vm</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">virtual_memory</span><span class="p">()</span>
+        <span class="n">total_gb</span> <span class="o">=</span> <span class="n">vm</span><span class="o">.</span><span class="n">total</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">reserve_gb</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">16.0</span><span class="p">,</span> <span class="mf">0.05</span> <span class="o">*</span> <span class="n">total_gb</span><span class="p">)</span>
+        <span class="n">budget_gb</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">total_gb</span> <span class="o">-</span> <span class="n">reserve_gb</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+
+        <span class="n">peak_gb</span><span class="p">,</span> <span class="n">peak_voxels</span> <span class="o">=</span> <span class="n">_estimate_max_task_memory_gb</span><span class="p">(</span>
+            <span class="n">evaluation_args</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">per_instance_threads</span><span class="o">=</span><span class="n">effective_threads</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">peak_gb</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">safe_workers</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">budget_gb</span> <span class="o">/</span> <span class="p">(</span><span class="n">safety_factor</span> <span class="o">*</span> <span class="n">peak_gb</span><span class="p">)))</span>
+            <span class="k">if</span> <span class="n">safe_workers</span> <span class="o">&lt;</span> <span class="n">effective_workers</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Reducing workers from </span><span class="si">{</span><span class="n">effective_workers</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">safe_workers</span><span class="si">}</span><span class="s2"> &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;based on total memory budget (</span><span class="si">{</span><span class="n">budget_gb</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">total_gb</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> GB) &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;and estimated peak per worker (</span><span class="si">{</span><span class="n">peak_gb</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> GB, &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;per_instance_threads=</span><span class="si">{</span><span class="n">effective_threads</span><span class="si">}</span><span class="s2">)&quot;</span>
+                <span class="p">)</span>
+                <span class="n">effective_workers</span> <span class="o">=</span> <span class="n">safe_workers</span>
+
+            <span class="c1"># If a single task still exceeds per-worker share, throttle nested</span>
+            <span class="c1"># Hausdorff threads so the whole fleet fits. Children read</span>
+            <span class="c1"># PER_INSTANCE_THREADS from env at import time.</span>
+            <span class="n">per_worker_budget_gb</span> <span class="o">=</span> <span class="n">budget_gb</span> <span class="o">/</span> <span class="n">effective_workers</span>
+            <span class="k">if</span> <span class="n">peak_voxels</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">peak_gb</span> <span class="o">&gt;</span> <span class="n">per_worker_budget_gb</span><span class="p">:</span>
+                <span class="n">base_bytes_per_voxel</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c1"># truth + pred + cc3d + bools</span>
+                <span class="n">target_gb</span> <span class="o">=</span> <span class="n">per_worker_budget_gb</span> <span class="o">/</span> <span class="n">safety_factor</span>
+                <span class="n">target_bytes_per_voxel</span> <span class="o">=</span> <span class="p">(</span><span class="n">target_gb</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">))</span> <span class="o">/</span> <span class="n">peak_voxels</span>
+                <span class="n">remaining</span> <span class="o">=</span> <span class="n">target_bytes_per_voxel</span> <span class="o">-</span> <span class="n">base_bytes_per_voxel</span>
+                <span class="k">if</span> <span class="n">remaining</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">new_threads</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">remaining</span> <span class="o">//</span> <span class="mi">16</span><span class="p">)</span>  <span class="c1"># 2× float64 per thread</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">new_threads</span> <span class="o">=</span> <span class="n">min_per_instance_threads</span>
+                <span class="n">new_threads</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+                    <span class="n">min_per_instance_threads</span><span class="p">,</span>
+                    <span class="nb">min</span><span class="p">(</span><span class="n">effective_threads</span><span class="p">,</span> <span class="n">new_threads</span><span class="p">),</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">new_threads</span> <span class="o">&lt;</span> <span class="n">effective_threads</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Reducing per_instance_threads from </span><span class="si">{</span><span class="n">effective_threads</span><span class="si">}</span><span class="s2"> to &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">new_threads</span><span class="si">}</span><span class="s2"> to fit Hausdorff scratch in per-worker budget &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">per_worker_budget_gb</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> GB/worker)&quot;</span>
+                    <span class="p">)</span>
+                    <span class="n">effective_threads</span> <span class="o">=</span> <span class="n">new_threads</span>
+                    <span class="c1"># Recompute peak for logging; children pick this up via env.</span>
+                    <span class="n">peak_gb</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_estimate_max_task_memory_gb</span><span class="p">(</span>
+                        <span class="n">evaluation_args</span><span class="p">,</span>
+                        <span class="n">config</span><span class="p">,</span>
+                        <span class="n">per_instance_threads</span><span class="o">=</span><span class="n">effective_threads</span><span class="p">,</span>
+                    <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not estimate memory, using configured workers: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Propagate the (possibly throttled) per-instance thread count to worker</span>
+    <span class="c1"># processes. distance.py reads PER_INSTANCE_THREADS at import time.</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PER_INSTANCE_THREADS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">effective_threads</span><span class="p">)</span>
 
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;Scoring volumes in parallel, using </span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">max_instance_threads</span><span class="si">}</span><span class="s2"> &quot;</span>
-        <span class="sa">f</span><span class="s2">&quot;instance threads and </span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">max_semantic_threads</span><span class="si">}</span><span class="s2"> semantic threads...&quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;Scoring volumes in parallel, using </span><span class="si">{</span><span class="n">effective_workers</span><span class="si">}</span><span class="s2"> workers &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;(config.max_workers=</span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">max_workers</span><span class="si">}</span><span class="s2">, &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;per_instance_threads=</span><span class="si">{</span><span class="n">effective_threads</span><span class="si">}</span><span class="s2">, peak~</span><span class="si">{</span><span class="n">peak_gb</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> GB/worker)...&quot;</span>
     <span class="p">)</span>
 
-    <span class="c1"># Use context managers for proper resource cleanup</span>
-    <span class="k">with</span> <span class="p">(</span>
-        <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">max_instance_threads</span><span class="p">)</span> <span class="k">as</span> <span class="n">instance_pool</span><span class="p">,</span>
-        <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">max_semantic_threads</span><span class="p">)</span> <span class="k">as</span> <span class="n">semantic_pool</span><span class="p">,</span>
-    <span class="p">):</span>
-
-        <span class="n">futures</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">args</span> <span class="ow">in</span> <span class="n">evaluation_args</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
-                <span class="n">futures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instance_pool</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">score_label</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">))</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">futures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">semantic_pool</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">score_label</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">))</span>
+    <span class="k">with</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">effective_workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+        <span class="n">futures</span> <span class="o">=</span> <span class="p">[</span><span class="n">pool</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">score_label</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="k">for</span> <span class="n">args</span> <span class="ow">in</span> <span class="n">evaluation_args</span><span class="p">]</span>
 
         <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
@@ -659,7 +770,7 @@
 <span class="sd">            &quot;cropN&quot;: {  # Per-volume scores</span>
 <span class="sd">                &quot;label_name&quot;: {</span>
 <span class="sd">                    # Instance segmentation</span>
-<span class="sd">                    &quot;mean_accuracy&quot;: float,</span>
+<span class="sd">                    &quot;f1&quot;: float,</span>
 <span class="sd">                    &quot;hausdorff_distance&quot;: float,</span>
 <span class="sd">                    &quot;combined_score&quot;: float,</span>
 <span class="sd">                    # OR semantic segmentation</span>
