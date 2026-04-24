@@ -94,11 +94,36 @@ class EvaluationConfig:
     def from_env(cls) -> "EvaluationConfig":
         """Load configuration from environment variables with defaults.
 
+        ``MAX_WORKERS`` takes precedence.  When it is unset the legacy vars
+        ``MAX_INSTANCE_THREADS`` and ``MAX_SEMANTIC_THREADS`` are consulted in
+        that order as a fallback (each triggers a :class:`DeprecationWarning`).
+        If none of the three is set the computed default is used.
+
         Returns:
             EvaluationConfig with values from environment or defaults.
         """
+        default_workers = min(os.cpu_count() or 4, 8)
+        if "MAX_WORKERS" in os.environ:
+            max_workers = int(os.environ["MAX_WORKERS"])
+        elif "MAX_INSTANCE_THREADS" in os.environ:
+            warnings.warn(
+                "MAX_INSTANCE_THREADS env var is deprecated, use MAX_WORKERS instead",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            max_workers = int(os.environ["MAX_INSTANCE_THREADS"])
+        elif "MAX_SEMANTIC_THREADS" in os.environ:
+            warnings.warn(
+                "MAX_SEMANTIC_THREADS env var is deprecated, use MAX_WORKERS instead",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            max_workers = int(os.environ["MAX_SEMANTIC_THREADS"])
+        else:
+            max_workers = default_workers
+
         return cls(
-            max_workers=int(os.getenv("MAX_WORKERS", str(min(os.cpu_count() or 4, 8)))),
+            max_workers=max_workers,
             per_instance_threads=int(os.getenv("PER_INSTANCE_THREADS", "25")),
             max_distance_cap_eps=float(os.getenv("MAX_DISTANCE_CAP_EPS", "1e-4")),
             final_instance_ratio_cutoff=float(
