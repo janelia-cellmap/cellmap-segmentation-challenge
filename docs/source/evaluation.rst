@@ -28,13 +28,13 @@ Instance Segmentations
 
   - **Hausdorff Distance**: The Hausdorff distance is calculated in nanometers between the predicted and ground truth instance segmentations. This metric measures the maximum distance between any point on the predicted instance and its nearest point on the ground truth instance, and vice versa.
 
-  - **Accuracy**: The accuracy is calculated as the proportion of correctly predicted instance labels to the total number of instance labels.
+  - **F1 Score**: The F1 score is calculated as :math:`\frac{2 \cdot \text{TP}}{2 \cdot \text{TP} + \text{FP} + \text{FN}}`, where TP, FP, and FN count matched and unmatched instances after optimal 1:1 matching via min-cost flow.
 
 - **Score Normalization and Combination**:
 
   - The Hausdorff distance is normalized to a range of [0, 1] using the maximum distance represented by a voxel. Specifically, the normalized Hausdorff distance is :math:`1.01^{-\frac{\text{hausdorff distance}}{\|\text{voxel\_size}\|}}`.
 
-  - The combined score is calculated as the geometric mean of the accuracy and the normalized Hausdorff distance.
+  - The combined score is calculated as the geometric mean of the F1 score and the normalized Hausdorff distance.
 
   - The final instance score across volumes is produced by taking the average across the combined scores for each volume, normalized by the total spatial volume of each image.
 

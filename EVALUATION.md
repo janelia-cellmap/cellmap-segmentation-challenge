@@ -36,11 +36,11 @@ flowchart TD
 
     subgraph Parallel[Parallel Scoring]
         direction TB
-        Route{Label type?}
-        Route -- Instance class --> InstPool["ProcessPoolExecutor<br/>max_instance_threads workers"]
-        Route -- Semantic class --> SemPool["ProcessPoolExecutor<br/>max_semantic_threads workers"]
-        InstPool --> ScoreLabel
-        SemPool --> ScoreLabel
+        EstimateMem["Estimate peak per-task memory<br/>_estimate_max_task_memory_gb<br/>(truth + pred + cc3d + Hausdorff scratch)"]
+        EstimateMem --> ScaleWorkers["Scale workers to memory budget:<br/>safe_workers = budget_gb /<br/>(safety_factor · peak_gb)<br/>budget = total - max(16 GB, 5%)"]
+        ScaleWorkers --> ThrottleThreads["If single task exceeds per-worker<br/>budget: reduce per_instance_threads<br/>(Hausdorff) to fit scratch"]
+        ThrottleThreads --> Pool["ProcessPoolExecutor<br/>effective_workers workers"]
+        Pool --> ScoreLabel
     end
 
     subgraph ScoreLabel[score_label]
@@ -68,9 +68,7 @@ flowchart TD
         direction TB
         CC["Relabel prediction via<br/>cc3d.connected_components"]
         CC --> BinaryMetrics["Compute binary metrics<br/>(IoU, Dice, binary accuracy)"]
-        CC --> VoI["Compute rand_voi<br/>split & merge errors"]
         BinaryMetrics --> Matching
-        VoI --> Matching
 
         subgraph Matching[match_instances]
             direction TB
@@ -96,7 +94,7 @@ flowchart TD
         end
 
         Matching --> MatchResult{"Matching<br/>succeeded?"}
-        MatchResult -- No --> Pathological["Return pathological scores<br/>accuracy=0, combined=0<br/>keep binary & VoI metrics"]
+        MatchResult -- No --> Pathological["Return pathological scores<br/>f1=0, combined=0<br/>keep binary metrics"]
         MatchResult -- Yes --> Remap["Remap prediction IDs<br/>to match ground truth IDs"]
         Remap --> Hausdorff
 
@@ -107,7 +105,7 @@ flowchart TD
             PerInstance --> Unmatched["Add max_distance for<br/>unmatched predictions"]
         end
 
-        Hausdorff --> FinalInstance["Compute final instance scores:<br/>accuracy = mean(truth == pred)<br/>hausdorff = mean(distances)<br/>norm_hausdorff = mean(normalized)<br/>combined = sqrt(accuracy * norm_hausdorff)"]
+        Hausdorff --> FinalInstance["Compute final instance scores:<br/>f1 = 2·TP / (2·TP + FP + FN)<br/>hausdorff = mean(distances)<br/>norm_hausdorff = mean(normalized)<br/>combined = sqrt(f1 * norm_hausdorff)"]
     end
 
     subgraph SemanticScoring[score_semantic]
@@ -128,7 +126,7 @@ flowchart TD
     subgraph Aggregate[Aggregate & Save Results]
         direction TB
         Collect["Collect all<br/>crop/label results"]
-        Collect --> CombineLabels["Combine per-label scores<br/>across crops, weighted<br/>by voxel count"]
+        Collect --> CombineLabels["Combine per-label scores across crops:<br/>• hausdorff / normalized / combined / iou / dice:<br/>&nbsp;&nbsp;voxel-weighted mean<br/>• tp/fp/fn: summed across crops<br/>• f1 = 2·ΣTP / (2·ΣTP + ΣFP + ΣFN)"]
         CombineLabels --> OverallInstance["Overall Instance Score =<br/>voxel-weighted mean of<br/>combined_score across<br/>instance labels"]
         CombineLabels --> OverallSemantic["Overall Semantic Score =<br/>voxel-weighted mean of<br/>IoU across semantic labels"]
         OverallInstance --> OverallScore["Overall Score =<br/>sqrt(instance * semantic)<br/>(geometric mean)"]
@@ -146,14 +144,15 @@ flowchart TD
 
 | Metric | Description |
 |--------|-------------|
-| `accuracy` | Voxel-wise match rate after instance ID alignment |
+| `f1` | Instance F1 score: `2·TP / (2·TP + FP + FN)` after optimal 1:1 matching |
+| `tp` | Number of matched (GT, pred) instance pairs |
+| `fp` | Number of predicted instances with no GT match |
+| `fn` | Number of GT instances with no predicted match |
 | `hausdorff_distance` | Mean Hausdorff distance across all matched instances |
 | `normalized_hausdorff_distance` | Hausdorff normalized to [0, 1] via exponential decay |
-| `combined_score` | `sqrt(accuracy * normalized_hausdorff_distance)` |
+| `combined_score` | `sqrt(f1 * normalized_hausdorff_distance)` |
 | `iou` | Binary foreground IoU (Jaccard index) |
 | `dice_score` | Binary foreground Dice coefficient |
-| `voi_split` | Variation of Information split error |
-| `voi_merge` | Variation of Information merge error |
 
 ### Semantic Segmentation
 
