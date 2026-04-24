@@ -19,7 +19,38 @@ logging.basicConfig(
     force=True,
 )
 
+def _wrap_legacy_init(cls: type) -> type:
+    """Class decorator that wraps a dataclass ``__init__`` to accept the
+    deprecated ``max_instance_threads`` / ``max_semantic_threads`` keyword
+    arguments and map them to ``max_workers`` for backward compatibility.
 
+    Precedence: explicit ``max_workers`` > ``max_instance_threads`` >
+    ``max_semantic_threads`` > default.
+    """
+    _original_init = cls.__init__
+
+    def __init__(self, *args: Any, max_instance_threads: Any = None, max_semantic_threads: Any = None, **kwargs: Any) -> None:  # noqa: N807
+        if max_instance_threads is not None:
+            warnings.warn(
+                "max_instance_threads is deprecated; use max_workers instead",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            kwargs.setdefault("max_workers", max_instance_threads)
+        if max_semantic_threads is not None:
+            warnings.warn(
+                "max_semantic_threads is deprecated; use max_workers instead",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            kwargs.setdefault("max_workers", max_semantic_threads)
+        _original_init(self, *args, **kwargs)
+
+    cls.__init__ = __init__  # type: ignore[method-assign]
+    return cls
+
+
+@_wrap_legacy_init
 @dataclass
 class EvaluationConfig:
     """Configuration for evaluation pipeline.
@@ -27,6 +58,11 @@ class EvaluationConfig:
     All parameters can be set via environment variables or passed directly.
     Environment variables take precedence over defaults but not over
     explicitly passed values.
+
+    The legacy keyword arguments ``max_instance_threads`` and
+    ``max_semantic_threads`` are accepted for backward constructor
+    compatibility and map to ``max_workers``.  When both ``max_workers``
+    and a legacy argument are provided, ``max_workers`` takes precedence.
     """
 
     # Threading configuration
