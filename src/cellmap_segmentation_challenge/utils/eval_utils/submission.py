@@ -317,6 +317,7 @@ def _execute_parallel_scoring(
     Returns:
         List of (crop_name, label_name, result) tuples
     """
+    # PARALLEL SETTINGS
     effective_workers = config.max_workers
     effective_threads = config.per_instance_threads
     min_per_instance_threads = 4
@@ -335,9 +336,7 @@ def _execute_parallel_scoring(
             evaluation_args, config, per_instance_threads=effective_threads
         )
         if peak_gb > 0:
-            safe_workers = max(
-                1, int(budget_gb / (safety_factor * peak_gb))
-            )
+            safe_workers = max(1, int(budget_gb / (safety_factor * peak_gb)))
             if safe_workers < effective_workers:
                 logging.warning(
                     f"Reducing workers from {effective_workers} to {safe_workers} "

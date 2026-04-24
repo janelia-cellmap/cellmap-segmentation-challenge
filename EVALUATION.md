@@ -36,7 +36,10 @@ flowchart TD
 
     subgraph Parallel[Parallel Scoring]
         direction TB
-        Pool["ProcessPoolExecutor<br/>max_workers workers"]
+        EstimateMem["Estimate peak per-task memory<br/>_estimate_max_task_memory_gb<br/>(truth + pred + cc3d + Hausdorff scratch)"]
+        EstimateMem --> ScaleWorkers["Scale workers to memory budget:<br/>safe_workers = budget_gb /<br/>(safety_factor · peak_gb)<br/>budget = total - max(16 GB, 5%)"]
+        ScaleWorkers --> ThrottleThreads["If single task exceeds per-worker<br/>budget: reduce per_instance_threads<br/>(Hausdorff) to fit scratch"]
+        ThrottleThreads --> Pool["ProcessPoolExecutor<br/>effective_workers workers"]
         Pool --> ScoreLabel
     end
 
@@ -123,7 +126,7 @@ flowchart TD
     subgraph Aggregate[Aggregate & Save Results]
         direction TB
         Collect["Collect all<br/>crop/label results"]
-        Collect --> CombineLabels["Combine per-label scores<br/>across crops, weighted<br/>by voxel count"]
+        Collect --> CombineLabels["Combine per-label scores across crops:<br/>• hausdorff / normalized / combined / iou / dice:<br/>&nbsp;&nbsp;voxel-weighted mean<br/>• tp/fp/fn: summed across crops<br/>• f1 = 2·ΣTP / (2·ΣTP + ΣFP + ΣFN)"]
         CombineLabels --> OverallInstance["Overall Instance Score =<br/>voxel-weighted mean of<br/>combined_score across<br/>instance labels"]
         CombineLabels --> OverallSemantic["Overall Semantic Score =<br/>voxel-weighted mean of<br/>IoU across semantic labels"]
         OverallInstance --> OverallScore["Overall Score =<br/>sqrt(instance * semantic)<br/>(geometric mean)"]
