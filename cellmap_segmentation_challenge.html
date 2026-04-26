@@ -1712,7 +1712,10 @@ decompression bombs before extracting.</p>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.ValidationError" title="cellmap_segmentation_challenge.evaluate.ValidationError"><strong>ValidationError</strong></a> – If any member fails security checks or total size exceeds limit.</p>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – If zip_path is a directory rather than a zip file.</p></li>
+<li><p><a class="reference internal" href="#cellmap_segmentation_challenge.evaluate.ValidationError" title="cellmap_segmentation_challenge.evaluate.ValidationError"><strong>ValidationError</strong></a> – If any member fails security checks or total size exceeds limit.</p></li>
+</ul>
 </dd>
 </dl>
 <dl class="simple">
