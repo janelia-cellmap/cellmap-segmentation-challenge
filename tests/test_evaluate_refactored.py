@@ -438,10 +438,10 @@ class TestScoreSubmissionHelpers:
         # Create a zarr-like directory structure without .zgroup
         (submission_dir / "crop1").mkdir()
         # zarr.open needs at least a valid store; write a minimal array
-        crop_arr = zarr.open(
+        label_array = zarr.open(
             str(submission_dir / "crop1" / "label"), mode="w", shape=(4, 4), dtype="u1"
         )
-        crop_arr[:] = 0
+        label_array[:] = 0
 
         result = _prepare_submission(str(submission_dir))
 
