@@ -349,28 +349,24 @@ class TestScoreSubmissionHelpers:
         assert isinstance(result, UPath)
 
     def test_prepare_submission_zip_file(self, tmp_path):
-        """Test _prepare_submission with a real zip file containing a zarr store."""
-        # Build a minimal zarr store inside a zip
-        zarr_dir = tmp_path / "submission.zarr"
-        zarr_dir.mkdir()
-        (zarr_dir / ".zgroup").write_text('{"zarr_format": 2}')
+        """Test _prepare_submission with a real zip file — exercises actual unzip and validate."""
+        # unzip_file extracts to zip_path.with_suffix(".zarr"), so use a distinct tmp dir
+        # to avoid the .zarr dir pre-existing and triggering the early-return in unzip_file.
+        work_dir = tmp_path / "work"
+        work_dir.mkdir()
 
-        zip_path = tmp_path / "submission.zip"
+        zip_path = work_dir / "submission.zip"
+        # Build a zip containing a minimal valid zarr v2 group (just .zgroup at root)
         with zipfile.ZipFile(str(zip_path), "w") as zf:
-            zf.write(str(zarr_dir / ".zgroup"), arcname=".zgroup")
+            zf.writestr(".zgroup", '{"zarr_format": 2}')
 
-        with patch(
-            "cellmap_segmentation_challenge.utils.eval_utils.submission.unzip_file"
-        ) as mock_unzip, patch(
-            "cellmap_segmentation_challenge.utils.eval_utils.submission.ensure_valid_submission"
-        ) as mock_ensure:
-            mock_unzip.return_value = zarr_dir
+        result = _prepare_submission(str(zip_path))
 
-            result = _prepare_submission(str(zip_path))
-
-            mock_unzip.assert_called_once_with(str(zip_path))
-            mock_ensure.assert_called_once_with(UPath(zarr_dir))
-            assert result == UPath(zarr_dir)
+        # unzip_file extracts to <same-dir>/submission.zarr
+        expected_zarr = work_dir / "submission.zarr"
+        assert expected_zarr.exists(), "Extracted zarr directory should exist"
+        assert (expected_zarr / ".zgroup").exists(), ".zgroup should be present after extraction"
+        assert result == UPath(expected_zarr)
 
     def test_prepare_submission_dir_with_single_zip(self, tmp_path):
         """Test _prepare_submission with a directory containing one zip file."""
