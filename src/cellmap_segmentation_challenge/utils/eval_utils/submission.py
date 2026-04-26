@@ -187,13 +187,39 @@ def ensure_valid_submission(submission_path: UPath):
 def _prepare_submission(submission_path: UPath | str) -> UPath:
     """Unzip and validate submission.
 
+    Handles three input types:
+    1. A file → assumed to be a zip; unzipped, then validated.
+    2. A directory containing exactly one ``.zip`` file at the top level →
+       that zip is unzipped, then validated.
+    3. A directory (e.g. the frx-challenges ``/input`` bind-mount) →
+       used directly without unzipping, then validated.
+
     Args:
-        submission_path: Path to zipped submission
+        submission_path: Path to zipped submission or submission directory.
 
     Returns:
-        Path to unzipped, validated submission
+        Path to unzipped, validated submission directory.
     """
-    unzipped_path = unzip_file(submission_path)
+    path = UPath(submission_path)
+
+    if path.is_dir():
+        # Check for a single top-level zip file inside the directory
+        zip_files = list(path.glob("*.zip"))
+        if len(zip_files) == 1:
+            logging.info(
+                f"Found a single zip file in directory {path}: {zip_files[0]}. Unzipping..."
+            )
+            unzipped_path = unzip_file(zip_files[0].path)
+        else:
+            # Treat the directory itself as the submission (frx-challenges bind-mount case)
+            logging.info(
+                f"Submission path {path} is a directory; skipping unzip step."
+            )
+            unzipped_path = path
+    else:
+        # Assume it's a zip file
+        unzipped_path = unzip_file(submission_path)
+
     ensure_valid_submission(UPath(unzipped_path))
     return UPath(unzipped_path)
 
