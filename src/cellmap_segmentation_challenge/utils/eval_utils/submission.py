@@ -209,7 +209,7 @@ def _prepare_submission(submission_path: UPath | str) -> UPath:
             logging.info(
                 f"Found a single zip file in directory {path}: {zip_files[0]}. Unzipping..."
             )
-            unzipped_path = unzip_file(zip_files[0])
+            unzipped_path = unzip_file(zip_files[0].path)
         else:
             # Treat the directory itself as the submission (frx-challenges bind-mount case)
             logging.info(
