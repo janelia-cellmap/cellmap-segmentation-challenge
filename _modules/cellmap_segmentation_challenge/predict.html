@@ -544,6 +544,60 @@
             <span class="n">dataset_writer</span><span class="p">[</span><span class="n">batch</span><span class="p">[</span><span class="s2">&quot;idx&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">outputs</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_estimate_output_bytes</span><span class="p">(</span>
+    <span class="n">target_bounds</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">]],</span>
+    <span class="n">target_arrays</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">],</span>
+    <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">bytes_per_voxel</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Estimate total output size in bytes from target bounds, array scales, and class count.&quot;&quot;&quot;</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">axis_to_index</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;z&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">array_name</span><span class="p">,</span> <span class="n">bounds</span> <span class="ow">in</span> <span class="n">target_bounds</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="n">target_arrays</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">array_name</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;scale&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">num_voxels</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">axis</span><span class="p">,</span> <span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">hi</span><span class="p">)</span> <span class="ow">in</span> <span class="n">bounds</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">extent_world</span> <span class="o">=</span> <span class="n">hi</span> <span class="o">-</span> <span class="n">lo</span>
+            <span class="k">if</span> <span class="n">axis</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">axis_to_index</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Unexpected axis </span><span class="si">{</span><span class="n">axis</span><span class="si">!r}</span><span class="s2"> in target bounds for array &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">array_name</span><span class="si">!r}</span><span class="s2">. Expected only spatial axes &#39;z&#39;, &#39;y&#39;, or &#39;x&#39;.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">axis_idx</span> <span class="o">=</span> <span class="n">axis_to_index</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span>
+            <span class="n">voxel_size</span> <span class="o">=</span> <span class="n">scale</span><span class="p">[</span><span class="n">axis_idx</span><span class="p">]</span> <span class="k">if</span> <span class="n">axis_idx</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span> <span class="k">else</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">voxel_size</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Non-positive voxel size </span><span class="si">{</span><span class="n">voxel_size</span><span class="si">!r}</span><span class="s2"> for axis </span><span class="si">{</span><span class="n">axis</span><span class="si">!r}</span><span class="s2"> &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;in target array </span><span class="si">{</span><span class="n">array_name</span><span class="si">!r}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">num_voxels</span> <span class="o">*=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">extent_world</span> <span class="o">/</span> <span class="n">voxel_size</span><span class="p">))</span>
+        <span class="n">total</span> <span class="o">+=</span> <span class="n">num_voxels</span> <span class="o">*</span> <span class="n">num_classes</span> <span class="o">*</span> <span class="n">bytes_per_voxel</span>
+    <span class="k">return</span> <span class="n">total</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_warn_output_size</span><span class="p">(</span><span class="n">dataset_writer_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Print class list and warn if estimated output size exceeds 10 GB.&quot;&quot;&quot;</span>
+    <span class="n">crop_classes</span> <span class="o">=</span> <span class="n">dataset_writer_kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;classes&quot;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="n">target_path</span> <span class="o">=</span> <span class="n">dataset_writer_kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;target_path&quot;</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">)</span>
+    <span class="n">tqdm</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;  Crop </span><span class="si">{</span><span class="n">target_path</span><span class="si">}</span><span class="s2">: saving </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">crop_classes</span><span class="p">)</span><span class="si">}</span><span class="s2"> classes: </span><span class="si">{</span><span class="n">crop_classes</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+
+    <span class="n">target_bounds</span> <span class="o">=</span> <span class="n">dataset_writer_kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;target_bounds&quot;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">target_arrays</span> <span class="o">=</span> <span class="n">dataset_writer_kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;target_arrays&quot;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="k">if</span> <span class="n">target_bounds</span> <span class="ow">and</span> <span class="n">target_arrays</span><span class="p">:</span>
+        <span class="n">est_bytes</span> <span class="o">=</span> <span class="n">_estimate_output_bytes</span><span class="p">(</span>
+            <span class="n">target_bounds</span><span class="p">,</span> <span class="n">target_arrays</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">crop_classes</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">est_gb</span> <span class="o">=</span> <span class="n">est_bytes</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">est_gb</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="n">tqdm</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;  Warning: </span><span class="si">{</span><span class="n">target_path</span><span class="si">}</span><span class="s2"> will save </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">crop_classes</span><span class="p">)</span><span class="si">}</span><span class="s2"> classes and &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;may require approximately </span><span class="si">{</span><span class="n">est_gb</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> GB on disk. &quot;</span>
+                <span class="sa">f</span><span class="s1">&#39;Consider using crops=&quot;test&quot; or specifying a smaller set of classes.&#39;</span>
+            <span class="p">)</span>
+
+
 <div class="viewcode-block" id="predict">
 <a class="viewcode-back" href="../../cellmap_segmentation_challenge.html#cellmap_segmentation_challenge.predict.predict">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span>
@@ -555,6 +609,7 @@
     <span class="n">search_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">SEARCH_PATH</span><span class="p">,</span>
     <span class="n">raw_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">RAW_NAME</span><span class="p">,</span>
     <span class="n">crop_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">CROP_NAME</span><span class="p">,</span>
+    <span class="n">filter_classes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a model configuration file and list of crop numbers, predicts the output of a model on a large dataset by splitting it into blocks and predicting each block separately.</span>
@@ -580,6 +635,10 @@
 <span class="sd">        The name of the raw dataset. Default is RAW_NAME set in `cellmap-segmentation/config.py`.</span>
 <span class="sd">    crop_name: str, optional</span>
 <span class="sd">        The name of the crop dataset with placeholders for crop and label. Default is CROP_NAME set in `cellmap-segmentation/config.py`.</span>
+<span class="sd">    filter_classes: bool, optional</span>
+<span class="sd">        When True and crops are specified by numeric ID, filter the saved classes to only those</span>
+<span class="sd">        listed in the test_crop_manifest for each crop (intersected with the model&#39;s classes).</span>
+<span class="sd">        When False, all model classes are saved for numeric crops. Default is True.</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
@@ -719,11 +778,30 @@
                 <span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">matches</span><span class="p">:</span>
-                <span class="n">tqdm</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: no input paths found for crop &#39;</span><span class="si">{</span><span class="n">crop</span><span class="si">}</span><span class="s2">&#39;, skipping.&quot;</span><span class="p">)</span>
+                <span class="n">tqdm</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Warning: no input paths found for crop &#39;</span><span class="si">{</span><span class="n">crop</span><span class="si">}</span><span class="s2">&#39;, skipping.&quot;</span>
+                <span class="p">)</span>
             <span class="n">crop_path_matches</span><span class="p">[</span><span class="n">crop</span><span class="p">]</span> <span class="o">=</span> <span class="n">matches</span>
 
         <span class="n">dataset_writers</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">crop</span><span class="p">,</span> <span class="n">crop_paths_for_crop</span> <span class="ow">in</span> <span class="n">crop_path_matches</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>  <span class="c1"># type: ignore</span>
+            <span class="c1"># Optionally filter classes using the test_crop_manifest.</span>
+            <span class="c1"># Only applies when the crop ID is numeric AND appears in the</span>
+            <span class="c1"># test manifest; non-test crops always save all model classes.</span>
+            <span class="n">filtered_classes</span> <span class="o">=</span> <span class="n">classes</span>
+            <span class="k">if</span> <span class="n">filter_classes</span><span class="p">:</span>
+                <span class="n">crop_id_str</span> <span class="o">=</span> <span class="n">crop</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;crop&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">crop_id_str</span><span class="o">.</span><span class="n">isnumeric</span><span class="p">():</span>
+                    <span class="n">crop_labels</span> <span class="o">=</span> <span class="n">get_test_crop_labels</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">crop_id_str</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">crop_labels</span><span class="p">:</span>
+                        <span class="n">filtered_classes</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">classes</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">crop_labels</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">filtered_classes</span><span class="p">:</span>
+                            <span class="n">tqdm</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                                <span class="sa">f</span><span class="s2">&quot;Skipping </span><span class="si">{</span><span class="n">crop</span><span class="si">}</span><span class="s2"> because there are no labels in common &quot;</span>
+                                <span class="sa">f</span><span class="s2">&quot;between model classes </span><span class="si">{</span><span class="n">classes</span><span class="si">}</span><span class="s2"> and crop labels </span><span class="si">{</span><span class="n">crop_labels</span><span class="si">}</span><span class="s2">.&quot;</span>
+                            <span class="p">)</span>
+                            <span class="k">continue</span>
+
             <span class="k">for</span> <span class="n">crop_path</span> <span class="ow">in</span> <span class="n">crop_paths_for_crop</span><span class="p">:</span>
                 <span class="c1"># Get path to raw dataset</span>
                 <span class="n">raw_path</span> <span class="o">=</span> <span class="n">get_raw_path</span><span class="p">(</span><span class="n">crop_path</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
@@ -751,22 +829,24 @@
                 <span class="p">]</span>
 
                 <span class="c1"># Create the writer</span>
-                <span class="n">dataset_writers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                    <span class="p">{</span>
-                        <span class="s2">&quot;raw_path&quot;</span><span class="p">:</span> <span class="n">raw_path</span><span class="p">,</span>
-                        <span class="s2">&quot;target_path&quot;</span><span class="p">:</span> <span class="n">output_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">crop</span><span class="o">=</span><span class="n">crop</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">),</span>
-                        <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="n">classes</span><span class="p">,</span>
-                        <span class="s2">&quot;input_arrays&quot;</span><span class="p">:</span> <span class="n">input_arrays</span><span class="p">,</span>
-                        <span class="s2">&quot;target_arrays&quot;</span><span class="p">:</span> <span class="n">target_arrays</span><span class="p">,</span>
-                        <span class="s2">&quot;target_bounds&quot;</span><span class="p">:</span> <span class="n">target_bounds</span><span class="p">,</span>
-                        <span class="s2">&quot;overwrite&quot;</span><span class="p">:</span> <span class="n">overwrite</span><span class="p">,</span>
-                        <span class="s2">&quot;device&quot;</span><span class="p">:</span> <span class="n">device</span><span class="p">,</span>
-                        <span class="s2">&quot;raw_value_transforms&quot;</span><span class="p">:</span> <span class="n">value_transforms</span><span class="p">,</span>
-                    <span class="p">}</span>
-                <span class="p">)</span>
+                <span class="n">writer_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;raw_path&quot;</span><span class="p">:</span> <span class="n">raw_path</span><span class="p">,</span>
+                    <span class="s2">&quot;target_path&quot;</span><span class="p">:</span> <span class="n">output_path</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">crop</span><span class="o">=</span><span class="n">crop</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">),</span>
+                    <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="n">filtered_classes</span><span class="p">,</span>
+                    <span class="s2">&quot;input_arrays&quot;</span><span class="p">:</span> <span class="n">input_arrays</span><span class="p">,</span>
+                    <span class="s2">&quot;target_arrays&quot;</span><span class="p">:</span> <span class="n">target_arrays</span><span class="p">,</span>
+                    <span class="s2">&quot;target_bounds&quot;</span><span class="p">:</span> <span class="n">target_bounds</span><span class="p">,</span>
+                    <span class="s2">&quot;overwrite&quot;</span><span class="p">:</span> <span class="n">overwrite</span><span class="p">,</span>
+                    <span class="s2">&quot;device&quot;</span><span class="p">:</span> <span class="n">device</span><span class="p">,</span>
+                    <span class="s2">&quot;raw_value_transforms&quot;</span><span class="p">:</span> <span class="n">value_transforms</span><span class="p">,</span>
+                <span class="p">}</span>
+                <span class="k">if</span> <span class="n">filtered_classes</span> <span class="o">!=</span> <span class="n">classes</span><span class="p">:</span>
+                    <span class="n">writer_kwargs</span><span class="p">[</span><span class="s2">&quot;model_classes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">classes</span>
+                <span class="n">dataset_writers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">writer_kwargs</span><span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">dataset_writer</span> <span class="ow">in</span> <span class="n">dataset_writers</span><span class="p">:</span>
-        <span class="n">predict_func</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">dataset_writer</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span></div>
+    <span class="k">for</span> <span class="n">dataset_writer_kwargs</span> <span class="ow">in</span> <span class="n">dataset_writers</span><span class="p">:</span>
+        <span class="n">_warn_output_size</span><span class="p">(</span><span class="n">dataset_writer_kwargs</span><span class="p">)</span>
+        <span class="n">predict_func</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">dataset_writer_kwargs</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span></div>
 
 </pre></div>
 
