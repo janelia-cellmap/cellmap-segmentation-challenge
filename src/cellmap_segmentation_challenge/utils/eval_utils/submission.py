@@ -31,6 +31,9 @@ def ensure_zgroup(path: UPath) -> zarr.Group:
             raise ValueError(f"Path {path} is not a directory.")
         # Add a .zgroup file to force Zarr-2 format
         (path / ".zgroup").write_text('{"zarr_format": 2}')
+        logging.warning(
+            f"Submission at {path} did not contain a .zgroup file. Added one to force Zarr-2 format."
+        )
         return zarr.open(path.path, mode="r")
 
 
@@ -86,9 +89,7 @@ def get_evaluation_args(
     return score_label_arglist
 
 
-def missing_volume_score(
-    truth_path, volume, instance_classes=INSTANCE_CLASSES
-) -> list[tuple]:
+def missing_volume_score(truth_path, volume, instance_classes=INSTANCE_CLASSES) -> dict:
     """
     Score a missing volume as 0's, congruent with the score_volume function.
 
@@ -133,12 +134,9 @@ def ensure_valid_submission(submission_path: UPath):
     # If so, move contents from .zarr folder to submission_path and warn user
     zarr_folders = list(submission_path.glob("**/*.zarr"))
     if len(zarr_folders) == 0:
-        # Try forcing Zarr-2 format by adding .zgroup if missing
+        # Assume the submission path is the Zarr, and try forcing Zarr-2 format by adding .zgroup if missing
         try:
             ensure_zgroup(submission_path)
-            logging.warning(
-                f"Submission at {submission_path} did not contain a .zgroup file. Added one to force Zarr-2 format."
-            )
         except Exception as e:
             raise ValueError(
                 f"Submission at {submission_path} is not a valid unzipped Zarr-2 file."
@@ -172,9 +170,6 @@ def ensure_valid_submission(submission_path: UPath):
         # Try opening again
         try:
             ensure_zgroup(submission_path)
-            logging.warning(
-                f"Submission at {submission_path} did not contain a .zgroup file. Added one to force Zarr-2 format."
-            )
         except Exception as e:
             raise ValueError(
                 f"Submission at {submission_path} is not a valid unzipped Zarr-2 file."
@@ -223,7 +218,7 @@ def _prepare_submission(submission_path: UPath | str) -> UPath:
             unzipped_path = path
         else:
             raise ValueError(
-                f"No zip files found in directory {path}. If submitting as a directory, please ensure it contains exactly one zip file or is itself the unzipped Zarr submission (should have a .zarr suffix)."
+                f"No zip files found in directory {path}. If submitting as a directory, please ensure it contains exactly one zip file or is itself the unzipped Zarr-2 submission (should have a .zarr suffix)."
             )
     elif zipfile.is_zipfile(path.path):
         unzipped_path = unzip_file(submission_path)
@@ -232,8 +227,9 @@ def _prepare_submission(submission_path: UPath | str) -> UPath:
             f"Submission path {submission_path} is neither a directory nor a valid zip file."
         )
 
-    ensure_valid_submission(UPath(unzipped_path))
-    return UPath(unzipped_path)
+    unzipped_path = UPath(unzipped_path)
+    ensure_valid_submission(unzipped_path)
+    return unzipped_path
 
 
 def _discover_volumes(
