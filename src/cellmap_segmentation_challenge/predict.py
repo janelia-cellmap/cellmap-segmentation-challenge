@@ -284,15 +284,18 @@ def _estimate_output_bytes(
         num_voxels = 1
         for axis, (lo, hi) in bounds.items():
             extent_world = hi - lo
-            voxel_size = scale[axis_idx] if axis_idx < len(scale) else 1
-            if voxel_size <= 0:
-                voxel_size = 1
+            if axis not in axis_to_index:
                 raise ValueError(
                     f"Unexpected axis {axis!r} in target bounds for array "
                     f"{array_name!r}. Expected only spatial axes 'z', 'y', or 'x'."
                 )
             axis_idx = axis_to_index[axis]
             voxel_size = scale[axis_idx] if axis_idx < len(scale) else 1
+            if voxel_size <= 0:
+                raise ValueError(
+                    f"Non-positive voxel size {voxel_size!r} for axis {axis!r} "
+                    f"in target array {array_name!r}."
+                )
             num_voxels *= max(1, int(extent_world / voxel_size))
         total += num_voxels * num_classes * bytes_per_voxel
     return total
