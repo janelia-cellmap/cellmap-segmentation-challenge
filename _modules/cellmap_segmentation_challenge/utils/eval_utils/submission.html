@@ -276,6 +276,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProcessPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">zipfile</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">zarr</span>
@@ -292,7 +293,7 @@
 
 <div class="viewcode-block" id="ensure_zgroup">
 <a class="viewcode-back" href="../../../../cellmap_segmentation_challenge.utils.eval_utils.html#cellmap_segmentation_challenge.evaluate.ensure_zgroup">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">ensure_zgroup</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">UPath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">zarr</span><span class="o">.</span><span class="n">Group</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">ensure_zgroup</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">UPath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">zarr</span><span class="o">.</span><span class="n">Group</span> <span class="o">|</span> <span class="n">zarr</span><span class="o">.</span><span class="n">Array</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Ensure that the given path can be opened as a zarr Group. If a .zgroup is not present, add it.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -303,6 +304,9 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Path </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> is not a directory.&quot;</span><span class="p">)</span>
         <span class="c1"># Add a .zgroup file to force Zarr-2 format</span>
         <span class="p">(</span><span class="n">path</span> <span class="o">/</span> <span class="s2">&quot;.zgroup&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="s1">&#39;{&quot;zarr_format&quot;: 2}&#39;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Zarr group at </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> did not contain a .zgroup file. Added one to force Zarr-2 format.&quot;</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span></div>
 
 
@@ -364,9 +368,7 @@
 
 <div class="viewcode-block" id="missing_volume_score">
 <a class="viewcode-back" href="../../../../cellmap_segmentation_challenge.utils.eval_utils.html#cellmap_segmentation_challenge.evaluate.missing_volume_score">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">missing_volume_score</span><span class="p">(</span>
-    <span class="n">truth_path</span><span class="p">,</span> <span class="n">volume</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">INSTANCE_CLASSES</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">missing_volume_score</span><span class="p">(</span><span class="n">truth_path</span><span class="p">,</span> <span class="n">volume</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">INSTANCE_CLASSES</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Score a missing volume as 0&#39;s, congruent with the score_volume function.</span>
 
@@ -414,12 +416,9 @@
     <span class="c1"># If so, move contents from .zarr folder to submission_path and warn user</span>
     <span class="n">zarr_folders</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">submission_path</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;**/*.zarr&quot;</span><span class="p">))</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">zarr_folders</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="c1"># Try forcing Zarr-2 format by adding .zgroup if missing</span>
+        <span class="c1"># Assume the submission path is the Zarr, and try forcing Zarr-2 format by adding .zgroup if missing</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">ensure_zgroup</span><span class="p">(</span><span class="n">submission_path</span><span class="p">)</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Submission at </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2"> did not contain a .zgroup file. Added one to force Zarr-2 format.&quot;</span>
-            <span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Submission at </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2"> is not a valid unzipped Zarr-2 file.&quot;</span>
@@ -453,9 +452,6 @@
         <span class="c1"># Try opening again</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">ensure_zgroup</span><span class="p">(</span><span class="n">submission_path</span><span class="p">)</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Submission at </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2"> did not contain a .zgroup file. Added one to force Zarr-2 format.&quot;</span>
-            <span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Submission at </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2"> is not a valid unzipped Zarr-2 file.&quot;</span>
@@ -471,11 +467,11 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Unzip and validate submission.</span>
 
 <span class="sd">    Handles three input types:</span>
-<span class="sd">    1. A file → assumed to be a zip; unzipped, then validated.</span>
-<span class="sd">    2. A directory containing exactly one ``.zip`` file at the top level →</span>
+<span class="sd">    1. A file → checked if it is a valid zip; unzipped, then expected Zarr contents validated.</span>
+<span class="sd">    2. A directory containing exactly one zipped file at the top level →</span>
 <span class="sd">       that zip is unzipped, then validated.</span>
-<span class="sd">    3. A directory (e.g. the frx-challenges ``/input`` bind-mount) →</span>
-<span class="sd">       used directly without unzipping, then validated.</span>
+<span class="sd">    3. A directory →</span>
+<span class="sd">       attempt to open as Zarr-2 without unzipping, then validated.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        submission_path: Path to zipped submission or submission directory.</span>
@@ -487,24 +483,31 @@
 
     <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
         <span class="c1"># Check for a single top-level zip file inside the directory</span>
-        <span class="n">zip_files</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*.zip&quot;</span><span class="p">))</span>
+        <span class="n">zip_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">path</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">is_zipfile</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">path</span><span class="p">)]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">zip_files</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Found a single zip file in directory </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">zip_files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">. Unzipping...&quot;</span>
             <span class="p">)</span>
             <span class="n">unzipped_path</span> <span class="o">=</span> <span class="n">unzip_file</span><span class="p">(</span><span class="n">zip_files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">zip_files</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Multiple zip files found in directory </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">. Please ensure only one zip file is present if submitting as a directory.&quot;</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># Treat the directory itself as the submission (frx-challenges bind-mount case)</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Submission path </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> is a directory; skipping unzip step.&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;No zip files found in directory </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">. Attempting to open as Zarr-2 format...&quot;</span>
             <span class="p">)</span>
             <span class="n">unzipped_path</span> <span class="o">=</span> <span class="n">path</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="c1"># Assume it&#39;s a zip file</span>
+    <span class="k">elif</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">is_zipfile</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">path</span><span class="p">):</span>
         <span class="n">unzipped_path</span> <span class="o">=</span> <span class="n">unzip_file</span><span class="p">(</span><span class="n">submission_path</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Submission path </span><span class="si">{</span><span class="n">submission_path</span><span class="si">}</span><span class="s2"> is neither a directory nor a valid zip file.&quot;</span>
+        <span class="p">)</span>
 
-    <span class="n">ensure_valid_submission</span><span class="p">(</span><span class="n">UPath</span><span class="p">(</span><span class="n">unzipped_path</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">UPath</span><span class="p">(</span><span class="n">unzipped_path</span><span class="p">)</span>
+    <span class="n">unzipped_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">unzipped_path</span><span class="p">)</span>
+    <span class="n">ensure_valid_submission</span><span class="p">(</span><span class="n">unzipped_path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">unzipped_path</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_discover_volumes</span><span class="p">(</span>
