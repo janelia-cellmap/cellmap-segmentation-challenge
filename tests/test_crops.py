@@ -104,16 +104,18 @@ class TestGetTestCropLabels:
         test_crops = fetch_test_crop_manifest()
         if not test_crops:
             pytest.skip("No test crops available")
-        
+
         # Get the first crop ID
         first_crop_id = test_crops[0].id
-        
+
         # Get expected labels by filtering the manifest
-        expected_labels = [crop.class_label for crop in test_crops if crop.id == first_crop_id]
-        
+        expected_labels = [
+            crop.class_label for crop in test_crops if crop.id == first_crop_id
+        ]
+
         # Get actual labels from the function
         actual_labels = get_test_crop_labels(first_crop_id)
-        
+
         # Check that they match
         assert sorted(expected_labels) == sorted(actual_labels)
 
@@ -122,47 +124,47 @@ class TestGetTestCropLabels:
         test_crops = fetch_test_crop_manifest()
         if len(test_crops) < 2:
             pytest.skip("Not enough test crops")
-        
+
         # Get two different crop IDs
         crop_ids = list(set(crop.id for crop in test_crops))
         if len(crop_ids) < 2:
             pytest.skip("Not enough distinct crop IDs")
-        
+
         crop_id_1 = crop_ids[0]
         crop_id_2 = crop_ids[1]
-        
+
         labels_1 = get_test_crop_labels(crop_id_1)
         labels_2 = get_test_crop_labels(crop_id_2)
-        
+
         # Just check they are both lists (they may or may not have same length)
         assert isinstance(labels_1, list)
         assert isinstance(labels_2, list)
-        
+
     def test_get_test_crop_labels_nonexistent_crop(self):
         """Test that get_test_crop_labels returns empty list for nonexistent crop"""
         # Use a very large crop ID that shouldn't exist
         labels = get_test_crop_labels(999999)
         assert labels == []
-    
+
     def test_filter_logic_with_simulated_classes(self):
         """Test the filtering logic using simulated model and crop classes"""
         test_crops = fetch_test_crop_manifest()
         if not test_crops:
             pytest.skip("No test crops available")
-        
+
         # Simulate a model with many classes
         all_model_classes = ["mito", "er", "nuc", "cell", "golgi", "ves", "mt"]
-        
+
         # Get the first crop
         first_crop_id = test_crops[0].id
         crop_labels = get_test_crop_labels(first_crop_id)
-        
+
         # Filter model classes to only those in crop_labels
         filtered_classes = [c for c in all_model_classes if c in crop_labels]
-        
+
         # Verify that filtered_classes is a subset of crop_labels
         assert all(c in crop_labels for c in filtered_classes)
-        
+
         # Verify that we're not including classes not in crop_labels
         excluded_classes = set(all_model_classes) - set(filtered_classes)
         for c in excluded_classes:

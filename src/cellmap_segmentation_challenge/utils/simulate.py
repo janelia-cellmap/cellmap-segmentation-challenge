@@ -172,7 +172,9 @@ def perturb_mask_iou_3d(
 
     return P
 
+
 # ----------------- normalization -----------------
+
 
 def normalize_distance(distance: float, voxel_size) -> float:
     if distance == np.inf:
@@ -192,6 +194,7 @@ def inv_normalize_distance(score: float, voxel_size) -> float:
 
 # ----------------- geometry helpers -----------------
 
+
 def _surface_3d(M: np.ndarray) -> np.ndarray:
     st = ndi.generate_binary_structure(3, 1)  # 6-connect
     return M & ~ndi.binary_erosion(M, structure=st, iterations=1, border_value=0)
@@ -199,8 +202,8 @@ def _surface_3d(M: np.ndarray) -> np.ndarray:
 
 def _ball_se(r: int) -> np.ndarray:
     r = int(r)
-    zz, yy, xx = np.ogrid[-r:r+1, -r:r+1, -r:r+1]
-    return (xx*xx + yy*yy + zz*zz) <= r*r
+    zz, yy, xx = np.ogrid[-r : r + 1, -r : r + 1, -r : r + 1]
+    return (xx * xx + yy * yy + zz * zz) <= r * r
 
 
 def _edge_margin_mm(shape, voxel_size) -> np.ndarray:
@@ -216,7 +219,9 @@ def _edge_margin_mm(shape, voxel_size) -> np.ndarray:
     return np.minimum(np.minimum(dz, dy), dx)
 
 
-def _pick_seed_on_surface_max_margin(S: np.ndarray, voxel_size, rng: np.random.Generator) -> int | None:
+def _pick_seed_on_surface_max_margin(
+    S: np.ndarray, voxel_size, rng: np.random.Generator
+) -> int | None:
     """Pick a surface voxel flat-index, preferring max boundary margin (stable for 'out' bumps)."""
     sidx = np.flatnonzero(S)
     if sidx.size == 0:
@@ -246,6 +251,7 @@ def _max_radius_in_mm(M: np.ndarray, voxel_size) -> float:
 
 # ----------------- hausdorff on voxels (your definition, no ROI needed for report) -----------------
 
+
 def hausdorff_voxels_mm(A: np.ndarray, B: np.ndarray, voxel_size) -> float:
     """
     Symmetric Hausdorff distance between full voxel sets A and B (physical units).
@@ -269,14 +275,15 @@ def hausdorff_voxels_mm(A: np.ndarray, B: np.ndarray, voxel_size) -> float:
 
 # ----------------- main perturbation -----------------
 
+
 def perturb_gt_instances_to_mean_norm_hd(
     gt_labels: np.ndarray,
     target_mean_norm: float,
     voxel_size=(1.0, 1.0, 1.0),
-    mode: str = "out",            # "out" bump (FP), "in" dent (FN), "random"
-    band_vox: int = 2,            # thickness of patch selection around seed (in voxels)
+    mode: str = "out",  # "out" bump (FP), "in" dent (FN), "random"
+    band_vox: int = 2,  # thickness of patch selection around seed (in voxels)
     avoid_instance_overlap: bool = True,  # when bumping out, only add into background
-    report: bool = True,          # compute achieved mean via hausdorff_voxels_mm (slower)
+    report: bool = True,  # compute achieved mean via hausdorff_voxels_mm (slower)
     rng: np.random.Generator | None = None,
 ):
     """
@@ -321,7 +328,7 @@ def perturb_gt_instances_to_mean_norm_hd(
     rmax = {}
     smin = {}
     for i in ids:
-        M = (gt_labels == i)
+        M = gt_labels == i
         if mode == "in":
             r = _max_radius_in_mm(M, voxel_size)
         elif mode == "out":
@@ -329,7 +336,9 @@ def perturb_gt_instances_to_mean_norm_hd(
         else:
             r = min(_max_radius_in_mm(M, voxel_size), _max_radius_out_mm(M, voxel_size))
         rmax[i] = float(r)
-        smin[i] = normalize_distance(rmax[i], voxel_size)  # smallest achievable score (worst)
+        smin[i] = normalize_distance(
+            rmax[i], voxel_size
+        )  # smallest achievable score (worst)
 
     best_possible_mean = float(np.mean([smin[i] for i in ids]))
     # If target is below what is feasible, best effort = drive all to smin
@@ -350,14 +359,14 @@ def perturb_gt_instances_to_mean_norm_hd(
 
     # ---- apply perturbations ----
     out = gt_labels.copy()
-    background = (out == 0)
+    background = out == 0
 
     se = _ball_se(max(1, int(band_vox)))
     st = ndi.generate_binary_structure(3, 1)
 
     per_instance_r = {}
     for i in ids:
-        M = (out == i)  # note: uses current out; overlap avoidance keeps this stable
+        M = out == i  # note: uses current out; overlap avoidance keeps this stable
         if not M.any():
             per_instance_r[i] = 0.0
             continue
@@ -402,15 +411,15 @@ def perturb_gt_instances_to_mean_norm_hd(
         dt_patch = ndi.distance_transform_edt(~patch, sampling=voxel_size)
 
         if dir_mode == "out":
-            add = (dt_patch <= r)
+            add = dt_patch <= r
             if avoid_instance_overlap:
                 add = add & background  # only grow into background
             out[add] = i
-            background = (out == 0)
+            background = out == 0
         else:
             rem = (dt_patch <= r) & (out == i)
             out[rem] = 0
-            background = (out == 0)
+            background = out == 0
 
     if not report:
         return out
@@ -420,8 +429,8 @@ def perturb_gt_instances_to_mean_norm_hd(
     requested_scores = []
     achieved_r = {}
     for i in ids:
-        A = (gt_labels == i)
-        B = (out == i)
+        A = gt_labels == i
+        B = out == i
         d = hausdorff_voxels_mm(A, B, voxel_size)
         s = normalize_distance(d, voxel_size)
         achieved_scores.append(s)
@@ -437,7 +446,9 @@ def perturb_gt_instances_to_mean_norm_hd(
         "per_instance_requested_norm": target_s,
         "per_instance_target_radius_mm": per_instance_r,
         "per_instance_achieved_hd_mm": achieved_r,
-        "per_instance_achieved_norm": {i: float(s) for i, s in zip(ids, achieved_scores)},
+        "per_instance_achieved_norm": {
+            i: float(s) for i, s in zip(ids, achieved_scores)
+        },
         "note": (
             "If target < best_possible_mean_norm, target is infeasible; output is best-effort. "
             "Nonzero divergence can also come from discretization and overlap-avoidance."
