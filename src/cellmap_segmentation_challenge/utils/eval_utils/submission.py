@@ -32,7 +32,7 @@ def ensure_zgroup(path: UPath) -> zarr.Group:
         # Add a .zgroup file to force Zarr-2 format
         (path / ".zgroup").write_text('{"zarr_format": 2}')
         logging.warning(
-            f"Submission at {path} did not contain a .zgroup file. Added one to force Zarr-2 format."
+            f"Zarr group at {path} did not contain a .zgroup file. Added one to force Zarr-2 format."
         )
         return zarr.open(path.path, mode="r")
 
