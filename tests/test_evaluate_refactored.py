@@ -401,6 +401,17 @@ class TestScoreSubmissionHelpers:
             mock_ensure.assert_called_once_with(UPath(zarr_out))
             assert result == UPath(zarr_out)
 
+    def test_prepare_submission_dir_with_multiple_zips_raises(self, tmp_path):
+        """Test _prepare_submission raises ValueError when a directory contains multiple zip files."""
+        submission_dir = tmp_path / "input"
+        submission_dir.mkdir()
+        for name in ("first.zip", "second.zip"):
+            with zipfile.ZipFile(str(submission_dir / name), "w") as zf:
+                zf.writestr("dummy", "content")
+
+        with pytest.raises(ValueError, match="Multiple zip files found in directory"):
+            _prepare_submission(str(submission_dir))
+
     def test_prepare_submission_plain_directory(self, tmp_path):
         """Test _prepare_submission with a plain directory (no zip inside)."""
         submission_dir = tmp_path / "input"
