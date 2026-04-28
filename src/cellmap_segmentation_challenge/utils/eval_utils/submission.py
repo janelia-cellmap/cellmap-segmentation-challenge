@@ -184,11 +184,11 @@ def _prepare_submission(submission_path: UPath | str) -> UPath:
     """Unzip and validate submission.
 
     Handles three input types:
-    1. A file → assumed to be a zip; unzipped, then validated.
-    2. A directory containing exactly one ``.zip`` file at the top level →
+    1. A file → checked if it is a valid zip; unzipped, then expected Zarr contents validated.
+    2. A directory containing exactly one zipped file at the top level →
        that zip is unzipped, then validated.
-    3. A directory (e.g. the frx-challenges ``/input`` bind-mount) →
-       used directly without unzipping, then validated.
+    3. A directory →
+       attempt to open as Zarr-2 without unzipping, then validated.
 
     Args:
         submission_path: Path to zipped submission or submission directory.
