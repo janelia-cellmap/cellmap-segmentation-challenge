@@ -20,7 +20,7 @@ from .scoring import score_label, empty_label_score
 from .zip_utils import unzip_file
 
 
-def ensure_zgroup(path: UPath) -> zarr.Group:
+def ensure_zgroup(path: UPath) -> zarr.Group | zarr.Array:
     """
     Ensure that the given path can be opened as a zarr Group. If a .zgroup is not present, add it.
     """
@@ -210,16 +210,11 @@ def _prepare_submission(submission_path: UPath | str) -> UPath:
             raise ValueError(
                 f"Multiple zip files found in directory {path}. Please ensure only one zip file is present if submitting as a directory."
             )
-        elif ".zarr" in path.suffixes:
-            # If the directory itself has a .zarr suffix, treat it as the submission
+        else:
             logging.info(
-                f"Submission path {path} has a .zarr suffix; treating it as the submission without unzipping."
+                f"No zip files found in directory {path}. Attempting to open as Zarr-2 format..."
             )
             unzipped_path = path
-        else:
-            raise ValueError(
-                f"No zip files found in directory {path}. If submitting as a directory, please ensure it contains exactly one zip file or is itself the unzipped Zarr-2 submission (should have a .zarr suffix)."
-            )
     elif zipfile.is_zipfile(path.path):
         unzipped_path = unzip_file(submission_path)
     else:
