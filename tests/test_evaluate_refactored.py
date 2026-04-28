@@ -336,16 +336,18 @@ class TestScoreInstanceHelpers:
 class TestScoreSubmissionHelpers:
     """Test helper functions for score_submission."""
 
+    @patch("cellmap_segmentation_challenge.utils.eval_utils.submission.zipfile.is_zipfile", return_value=True)
     @patch("cellmap_segmentation_challenge.utils.eval_utils.submission.unzip_file")
     @patch(
         "cellmap_segmentation_challenge.utils.eval_utils.submission.ensure_valid_submission"
     )
-    def test_prepare_submission(self, mock_ensure_valid, mock_unzip):
+    def test_prepare_submission(self, mock_ensure_valid, mock_unzip, mock_is_zipfile):
         """Test submission preparation with a zip file path (non-existent on disk)."""
         mock_unzip.return_value = UPath("/tmp/submission.zarr")
 
         result = _prepare_submission("/tmp/submission.zip")
 
+        mock_is_zipfile.assert_called_once()
         mock_unzip.assert_called_once_with("/tmp/submission.zip")
         mock_ensure_valid.assert_called_once()
         assert isinstance(result, UPath)
@@ -379,7 +381,9 @@ class TestScoreSubmissionHelpers:
         zarr_out = tmp_path / "submission.zarr"
         zarr_out.mkdir()
         (zarr_out / ".zgroup").write_text('{"zarr_format": 2}')
-        zip_path.write_bytes(b"fake zip content")  # content doesn't matter, we mock
+        # Write a real (minimal) zip so zipfile.is_zipfile() recognises it
+        with zipfile.ZipFile(str(zip_path), "w") as zf:
+            zf.writestr("dummy", "content")
 
         with patch(
             "cellmap_segmentation_challenge.utils.eval_utils.submission.unzip_file"
