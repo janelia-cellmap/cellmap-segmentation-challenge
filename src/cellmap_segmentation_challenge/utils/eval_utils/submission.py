@@ -5,6 +5,7 @@ import os
 import shutil
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from time import time
+import zipfile
 
 import numpy as np
 import zarr
@@ -204,21 +205,32 @@ def _prepare_submission(submission_path: UPath | str) -> UPath:
 
     if path.is_dir():
         # Check for a single top-level zip file inside the directory
-        zip_files = list(path.glob("*.zip"))
+        zip_files = [f for f in path.glob("*") if zipfile.is_zipfile(f.path)]
         if len(zip_files) == 1:
             logging.info(
                 f"Found a single zip file in directory {path}: {zip_files[0]}. Unzipping..."
             )
             unzipped_path = unzip_file(zip_files[0].path)
-        else:
-            # Treat the directory itself as the submission (frx-challenges bind-mount case)
+        elif len(zip_files) > 1:
+            raise ValueError(
+                f"Multiple zip files found in directory {path}. Please ensure only one zip file is present if submitting as a directory."
+            )
+        elif ".zarr" in path.suffixes:
+            # If the directory itself has a .zarr suffix, treat it as the submission
             logging.info(
-                f"Submission path {path} is a directory; skipping unzip step."
+                f"Submission path {path} has a .zarr suffix; treating it as the submission without unzipping."
             )
             unzipped_path = path
-    else:
-        # Assume it's a zip file
+        else:
+            raise ValueError(
+                f"No zip files found in directory {path}. If submitting as a directory, please ensure it contains exactly one zip file or is itself the unzipped Zarr submission (should have a .zarr suffix)."
+            )
+    elif zipfile.is_zipfile(path.path):
         unzipped_path = unzip_file(submission_path)
+    else:
+        raise ValueError(
+            f"Submission path {submission_path} is neither a directory nor a valid zip file."
+        )
 
     ensure_valid_submission(UPath(unzipped_path))
     return UPath(unzipped_path)
