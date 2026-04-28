@@ -15,16 +15,14 @@ class TestAnalyzeScript:
     def test_analyze_safe_script(self):
         """Test analysis of a safe script"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-            f.write(
-                """
+            f.write("""
 import numpy as np
 import torch
 
 def safe_function():
     x = np.array([1, 2, 3])
     return x * 2
-"""
-            )
+""")
             f.flush()
             f.close()
             try:
@@ -37,15 +35,13 @@ def safe_function():
     def test_analyze_script_with_disallowed_import(self):
         """Test detection of disallowed imports"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-            f.write(
-                """
+            f.write("""
 import os
 import sys
 
 def unsafe_function():
     os.system("echo test")
-"""
-            )
+""")
             f.flush()
             f.close()
             try:
@@ -59,13 +55,11 @@ def unsafe_function():
     def test_analyze_script_with_disallowed_function(self):
         """Test detection of disallowed function calls"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-            f.write(
-                """
+            f.write("""
 def unsafe_function():
     exec("print('hello')")
     compile("x = 1", "", "exec")
-"""
-            )
+""")
             f.flush()
             f.close()
             try:
@@ -79,14 +73,12 @@ def unsafe_function():
     def test_analyze_script_with_from_import(self):
         """Test detection of disallowed from imports"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-            f.write(
-                """
+            f.write("""
 from subprocess import run
 
 def unsafe_function():
     run(["echo", "test"])
-"""
-            )
+""")
             f.flush()
             f.close()
             try:

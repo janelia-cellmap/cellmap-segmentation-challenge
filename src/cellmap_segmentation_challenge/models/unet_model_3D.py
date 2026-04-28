@@ -2,7 +2,7 @@
 # https://github.com/milesial/Pytorch-UNet/blob/master/unet/unet_parts.py
 # By Emma Avetissian, @aemmav
 
-""" Parts of the U-Net model """
+"""Parts of the U-Net model"""
 
 import torch
 import torch.nn as nn
