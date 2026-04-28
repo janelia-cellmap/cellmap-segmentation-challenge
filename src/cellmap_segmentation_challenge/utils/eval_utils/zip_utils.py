@@ -51,11 +51,17 @@ def unzip_file(zip_path, max_uncompressed_size: int = MAX_UNCOMPRESSED_SIZE):
         max_uncompressed_size (int): Maximum total uncompressed size in bytes.
 
     Raises:
+        ValueError: If zip_path is a directory rather than a zip file.
         ValidationError: If any member fails security checks or total size exceeds limit.
 
     Example usage:
         unzip_file('submission.zip')
     """
+    if UPath(zip_path).is_dir():
+        raise ValueError(
+            f"Expected a zip file but got a directory: {zip_path!r}. "
+            "Use _prepare_submission() to handle directory inputs."
+        )
     logging.info(f"Unzipping {zip_path}...")
     saved_path = UPath(zip_path).with_suffix(".zarr").path
     if UPath(saved_path).exists():

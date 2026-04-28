@@ -15,7 +15,6 @@ from upath import UPath
 from ...config import TRUTH_PATH, INSTANCE_CLASSES
 from ..crops import TEST_CROPS_DICT
 from ..matched_crop import MatchedCrop
-from ..rand_voi import rand_voi
 from .config import EvaluationConfig
 from .distance import (
     compute_max_distance,
@@ -59,7 +58,6 @@ def _compute_binary_metrics(
 
 def _create_pathological_scores(
     binary_metrics: dict[str, float],
-    voi_metrics: dict[str, float],
     hausdorff_distance_max: float,
     voxel_size: tuple[float, ...],
     status: str,
@@ -68,7 +66,6 @@ def _create_pathological_scores(
 
     Args:
         binary_metrics: Pre-computed binary metrics
-        voi_metrics: Pre-computed VoI metrics
         hausdorff_distance_max: Maximum Hausdorff distance
         voxel_size: Voxel size
         status: Status string for the failure
@@ -90,7 +87,6 @@ def _create_pathological_scores(
         "iou": binary_metrics["iou"],
         "dice_score": binary_metrics["dice_score"],
         "status": status,
-        **voi_metrics,
     }
 
 
@@ -191,8 +187,6 @@ def score_instance(
 
     # Compute metrics that don't require matching
     binary_metrics = _compute_binary_metrics(truth_label, pred_label)
-    voi = rand_voi(truth_label.astype(np.uint64), pred_label.astype(np.uint64))
-    del voi["voi_split_i"], voi["voi_merge_j"]
 
     # Match instances
     try:
@@ -201,7 +195,6 @@ def score_instance(
         logging.warning(f"Instance matching failed: {e}")
         return _create_pathological_scores(
             binary_metrics,
-            voi,
             hausdorff_distance_max,
             voxel_size,
             "skipped_too_many_instances",
@@ -209,7 +202,7 @@ def score_instance(
     except MatchingFailedError as e:
         logging.error(f"Matching optimization failed: {e}")
         return _create_pathological_scores(
-            binary_metrics, voi, hausdorff_distance_max, voxel_size, "matching_failed"
+            binary_metrics, hausdorff_distance_max, voxel_size, "matching_failed"
         )
 
     # Remap predictions to match GT IDs
@@ -218,6 +211,11 @@ def score_instance(
         pred_label = remap(
             pred_label, mapping, in_place=True, preserve_missing_labels=True
         )
+
+    # Free matching-stage scratch (overlap matrices, cc3d temporaries) before
+    # the Hausdorff phase spins up `per_instance_threads` float64 distance
+    # transforms per worker.
+    gc.collect()
 
     # Compute Hausdorff distances
     hausdorff_distances = _compute_hausdorff_scores(
@@ -259,7 +257,6 @@ def score_instance(
         "combined_score": combined_score,
         "status": "scored",
         **binary_metrics,
-        **voi,
     }
 
 
@@ -360,6 +357,7 @@ def score_label(
         pred_label = pred_label * mask
         truth_label = truth_label * mask
         del mask
+        gc.collect()
 
     # Compute the scores
     if label_name in instance_classes:

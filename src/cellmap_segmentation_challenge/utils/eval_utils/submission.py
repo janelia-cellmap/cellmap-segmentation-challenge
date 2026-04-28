@@ -1,10 +1,12 @@
 """Submission processing and main evaluation entry point."""
 
 import logging
+import os
 import shutil
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from time import time
 
+import numpy as np
 import zarr
 from tqdm import tqdm
 from upath import UPath
@@ -185,13 +187,39 @@ def ensure_valid_submission(submission_path: UPath):
 def _prepare_submission(submission_path: UPath | str) -> UPath:
     """Unzip and validate submission.
 
+    Handles three input types:
+    1. A file → assumed to be a zip; unzipped, then validated.
+    2. A directory containing exactly one ``.zip`` file at the top level →
+       that zip is unzipped, then validated.
+    3. A directory (e.g. the frx-challenges ``/input`` bind-mount) →
+       used directly without unzipping, then validated.
+
     Args:
-        submission_path: Path to zipped submission
+        submission_path: Path to zipped submission or submission directory.
 
     Returns:
-        Path to unzipped, validated submission
+        Path to unzipped, validated submission directory.
     """
-    unzipped_path = unzip_file(submission_path)
+    path = UPath(submission_path)
+
+    if path.is_dir():
+        # Check for a single top-level zip file inside the directory
+        zip_files = list(path.glob("*.zip"))
+        if len(zip_files) == 1:
+            logging.info(
+                f"Found a single zip file in directory {path}: {zip_files[0]}. Unzipping..."
+            )
+            unzipped_path = unzip_file(zip_files[0].path)
+        else:
+            # Treat the directory itself as the submission (frx-challenges bind-mount case)
+            logging.info(
+                f"Submission path {path} is a directory; skipping unzip step."
+            )
+            unzipped_path = path
+    else:
+        # Assume it's a zip file
+        unzipped_path = unzip_file(submission_path)
+
     ensure_valid_submission(UPath(unzipped_path))
     return UPath(unzipped_path)
 
@@ -248,11 +276,65 @@ def _discover_volumes(
     return found_volumes, missing_volumes
 
 
+def _estimate_max_task_memory_gb(
+    evaluation_args: list[tuple],
+    config: EvaluationConfig,
+    per_instance_threads: int | None = None,
+) -> tuple[float, int]:
+    """Estimate peak per-worker memory from GT target shapes (metadata only).
+
+    The estimate covers the two dominant contributors to worker RSS:
+    (1) the fully-materialized truth + prediction arrays plus cc3d/bool
+    intermediates that live for the duration of ``score_label``, and (2) the
+    transient float64 distance-transform scratch allocated by the nested
+    ``PER_INSTANCE_THREADS`` worker pool inside Hausdorff computation. The
+    scratch dominates on instance tasks because each concurrent thread holds
+    two ``float64`` arrays sized to the instance ROI (worst case: the full
+    volume). Reads zarr shape/dtype without loading data.
+
+    Returns:
+        ``(peak_gb, n_voxels)`` for the most expensive task. ``n_voxels`` is
+        the voxel count of the volume that pinned the peak, so callers can
+        recompute the estimate if they throttle ``per_instance_threads``.
+    """
+    if per_instance_threads is None:
+        per_instance_threads = config.per_instance_threads
+
+    max_bytes = 0
+    max_voxels = 0
+    instance_classes = set(config.instance_classes)
+    for args in evaluation_args:
+        _, label_name, crop_name, truth_path, _ = args[:5]
+        try:
+            truth_arr = zarr.open(
+                str(UPath(truth_path) / crop_name / label_name), mode="r"
+            )
+            n_voxels = int(np.prod(truth_arr.shape, dtype=np.int64))
+            if label_name in instance_classes:
+                # Base: truth + pred + cc3d relabel + binary intermediates ≈ 10 B/voxel.
+                # Hausdorff scratch: up to per_instance_threads concurrent threads,
+                # each allocating 2× float64 distance transforms sized to the ROI
+                # (bounded by volume size).
+                bytes_per_voxel = 10 + per_instance_threads * 2 * 8
+            else:
+                bytes_per_voxel = 5
+            task_bytes = n_voxels * bytes_per_voxel
+            if task_bytes > max_bytes:
+                max_bytes = task_bytes
+                max_voxels = n_voxels
+        except Exception:
+            continue
+    return max_bytes / (1024**3), max_voxels
+
+
 def _execute_parallel_scoring(
     evaluation_args: list[tuple],
     config: EvaluationConfig,
 ) -> list[tuple]:
     """Execute evaluations in parallel using process pools.
+
+    Automatically scales worker count based on available system memory
+    to prevent OOM errors.
 
     Args:
         evaluation_args: List of arguments for score_label
@@ -261,9 +343,79 @@ def _execute_parallel_scoring(
     Returns:
         List of (crop_name, label_name, result) tuples
     """
-    logging.info(f"Scoring volumes in parallel, using {config.max_workers} workers...")
+    # PARALLEL SETTINGS
+    effective_workers = config.max_workers
+    effective_threads = config.per_instance_threads
+    min_per_instance_threads = 4
+    safety_factor = 1.5
+    peak_gb = 0.0
 
-    with ProcessPoolExecutor(config.max_workers) as pool:
+    try:
+        import psutil
+
+        vm = psutil.virtual_memory()
+        total_gb = vm.total / (1024**3)
+        reserve_gb = max(16.0, 0.05 * total_gb)
+        budget_gb = max(total_gb - reserve_gb, 1.0)
+
+        peak_gb, peak_voxels = _estimate_max_task_memory_gb(
+            evaluation_args, config, per_instance_threads=effective_threads
+        )
+        if peak_gb > 0:
+            safe_workers = max(1, int(budget_gb / (safety_factor * peak_gb)))
+            if safe_workers < effective_workers:
+                logging.warning(
+                    f"Reducing workers from {effective_workers} to {safe_workers} "
+                    f"based on total memory budget ({budget_gb:.0f}/{total_gb:.0f} GB) "
+                    f"and estimated peak per worker ({peak_gb:.1f} GB, "
+                    f"per_instance_threads={effective_threads})"
+                )
+                effective_workers = safe_workers
+
+            # If a single task still exceeds per-worker share, throttle nested
+            # Hausdorff threads so the whole fleet fits. Children read
+            # PER_INSTANCE_THREADS from env at import time.
+            per_worker_budget_gb = budget_gb / effective_workers
+            if peak_voxels > 0 and peak_gb > per_worker_budget_gb:
+                base_bytes_per_voxel = 10  # truth + pred + cc3d + bools
+                target_gb = per_worker_budget_gb / safety_factor
+                target_bytes_per_voxel = (target_gb * (1024**3)) / peak_voxels
+                remaining = target_bytes_per_voxel - base_bytes_per_voxel
+                if remaining > 0:
+                    new_threads = int(remaining // 16)  # 2× float64 per thread
+                else:
+                    new_threads = min_per_instance_threads
+                new_threads = max(
+                    min_per_instance_threads,
+                    min(effective_threads, new_threads),
+                )
+                if new_threads < effective_threads:
+                    logging.warning(
+                        f"Reducing per_instance_threads from {effective_threads} to "
+                        f"{new_threads} to fit Hausdorff scratch in per-worker budget "
+                        f"({per_worker_budget_gb:.1f} GB/worker)"
+                    )
+                    effective_threads = new_threads
+                    # Recompute peak for logging; children pick this up via env.
+                    peak_gb, _ = _estimate_max_task_memory_gb(
+                        evaluation_args,
+                        config,
+                        per_instance_threads=effective_threads,
+                    )
+    except Exception as e:
+        logging.warning(f"Could not estimate memory, using configured workers: {e}")
+
+    # Propagate the (possibly throttled) per-instance thread count to worker
+    # processes. distance.py reads PER_INSTANCE_THREADS at import time.
+    os.environ["PER_INSTANCE_THREADS"] = str(effective_threads)
+
+    logging.info(
+        f"Scoring volumes in parallel, using {effective_workers} workers "
+        f"(config.max_workers={config.max_workers}, "
+        f"per_instance_threads={effective_threads}, peak~{peak_gb:.1f} GB/worker)..."
+    )
+
+    with ProcessPoolExecutor(effective_workers) as pool:
         futures = [pool.submit(score_label, *args) for args in evaluation_args]
 
         results = []

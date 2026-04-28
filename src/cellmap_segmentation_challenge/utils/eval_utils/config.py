@@ -19,7 +19,38 @@ logging.basicConfig(
     force=True,
 )
 
+def _wrap_legacy_init(cls: type) -> type:
+    """Class decorator that wraps a dataclass ``__init__`` to accept the
+    deprecated ``max_instance_threads`` / ``max_semantic_threads`` keyword
+    arguments and map them to ``max_workers`` for backward compatibility.
 
+    Precedence: explicit ``max_workers`` > ``max_instance_threads`` >
+    ``max_semantic_threads`` > default.
+    """
+    _original_init = cls.__init__
+
+    def __init__(self, *args: Any, max_instance_threads: Any = None, max_semantic_threads: Any = None, **kwargs: Any) -> None:  # noqa: N807
+        if max_instance_threads is not None:
+            warnings.warn(
+                "max_instance_threads is deprecated; use max_workers instead",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            kwargs.setdefault("max_workers", max_instance_threads)
+        if max_semantic_threads is not None:
+            warnings.warn(
+                "max_semantic_threads is deprecated; use max_workers instead",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            kwargs.setdefault("max_workers", max_semantic_threads)
+        _original_init(self, *args, **kwargs)
+
+    cls.__init__ = __init__  # type: ignore[method-assign]
+    return cls
+
+
+@_wrap_legacy_init
 @dataclass
 class EvaluationConfig:
     """Configuration for evaluation pipeline.
@@ -27,10 +58,15 @@ class EvaluationConfig:
     All parameters can be set via environment variables or passed directly.
     Environment variables take precedence over defaults but not over
     explicitly passed values.
+
+    The legacy keyword arguments ``max_instance_threads`` and
+    ``max_semantic_threads`` are accepted for backward constructor
+    compatibility and map to ``max_workers``.  When both ``max_workers``
+    and a legacy argument are provided, ``max_workers`` takes precedence.
     """
 
     # Threading configuration
-    max_workers: int = 32
+    max_workers: int = min(os.cpu_count() or 4, 8)
     per_instance_threads: int = 25
 
     # Distance calculation parameters
@@ -94,11 +130,36 @@ class EvaluationConfig:
     def from_env(cls) -> "EvaluationConfig":
         """Load configuration from environment variables with defaults.
 
+        ``MAX_WORKERS`` takes precedence.  When it is unset the legacy vars
+        ``MAX_INSTANCE_THREADS`` and ``MAX_SEMANTIC_THREADS`` are consulted in
+        that order as a fallback (each triggers a :class:`DeprecationWarning`).
+        If none of the three is set the computed default is used.
+
         Returns:
             EvaluationConfig with values from environment or defaults.
         """
+        default_workers = min(os.cpu_count() or 4, 8)
+        if "MAX_WORKERS" in os.environ:
+            max_workers = int(os.environ["MAX_WORKERS"])
+        elif "MAX_INSTANCE_THREADS" in os.environ:
+            warnings.warn(
+                "MAX_INSTANCE_THREADS env var is deprecated, use MAX_WORKERS instead",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            max_workers = int(os.environ["MAX_INSTANCE_THREADS"])
+        elif "MAX_SEMANTIC_THREADS" in os.environ:
+            warnings.warn(
+                "MAX_SEMANTIC_THREADS env var is deprecated, use MAX_WORKERS instead",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            max_workers = int(os.environ["MAX_SEMANTIC_THREADS"])
+        else:
+            max_workers = default_workers
+
         return cls(
-            max_workers=int(os.getenv("MAX_WORKERS", "32")),
+            max_workers=max_workers,
             per_instance_threads=int(os.getenv("PER_INSTANCE_THREADS", "25")),
             max_distance_cap_eps=float(os.getenv("MAX_DISTANCE_CAP_EPS", "1e-4")),
             final_instance_ratio_cutoff=float(
@@ -152,7 +213,7 @@ class EvaluationConfig:
 
 # Legacy Constants (for backward compatibility during migration)
 CAST_TO_NONE = [np.nan, np.inf, -np.inf, float("inf"), float("-inf")]
-MAX_WORKERS = int(os.getenv("MAX_WORKERS", 32))
+MAX_WORKERS = int(os.getenv("MAX_WORKERS", str(min(os.cpu_count() or 4, 8))))
 MAX_INSTANCE_THREADS = MAX_WORKERS  # deprecated alias
 MAX_SEMANTIC_THREADS = MAX_WORKERS  # deprecated alias
 PER_INSTANCE_THREADS = int(os.getenv("PER_INSTANCE_THREADS", 25))

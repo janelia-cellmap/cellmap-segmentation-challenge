@@ -44,6 +44,8 @@ from cellmap_segmentation_challenge.utils.eval_utils.scoring import (
     _create_pathological_scores,
     _compute_hausdorff_scores,
 )
+import zipfile
+
 from cellmap_segmentation_challenge.utils.eval_utils.submission import (
     # Helper functions for score_submission
     _prepare_submission,
@@ -51,6 +53,7 @@ from cellmap_segmentation_challenge.utils.eval_utils.submission import (
     _execute_parallel_scoring,
     _aggregate_and_save_results,
 )
+from cellmap_segmentation_challenge.utils.eval_utils.zip_utils import unzip_file
 
 # ============================================================================
 # Configuration Tests
@@ -63,7 +66,8 @@ class TestEvaluationConfig:
     def test_default_config(self):
         """Test default configuration values."""
         config = EvaluationConfig()
-        assert config.max_workers == 32
+        import os
+        assert config.max_workers == min(os.cpu_count() or 4, 8)
         assert config.per_instance_threads == 25
         assert config.max_distance_cap_eps == 1e-4
         assert config.final_instance_ratio_cutoff == 10.0
@@ -275,11 +279,9 @@ class TestScoreInstanceHelpers:
     def test_create_pathological_scores(self):
         """Test creation of pathological scores."""
         binary_metrics = {"iou": 0.5, "dice_score": 0.6, "binary_accuracy": 0.7}
-        voi_metrics = {"voi_split": 0.1, "voi_merge": 0.2}
 
         scores = _create_pathological_scores(
             binary_metrics,
-            voi_metrics,
             hausdorff_distance_max=100.0,
             voxel_size=(4.0, 4.0, 4.0),
             status="test_failure",
@@ -290,7 +292,6 @@ class TestScoreInstanceHelpers:
         assert scores["hausdorff_distance"] == 100.0
         assert scores["iou"] == 0.5
         assert scores["status"] == "test_failure"
-        assert scores["voi_split"] == 0.1
 
     def test_compute_hausdorff_scores_only_background(self):
         """Test Hausdorff score computation with only background."""
@@ -340,7 +341,7 @@ class TestScoreSubmissionHelpers:
         "cellmap_segmentation_challenge.utils.eval_utils.submission.ensure_valid_submission"
     )
     def test_prepare_submission(self, mock_ensure_valid, mock_unzip):
-        """Test submission preparation."""
+        """Test submission preparation with a zip file path (non-existent on disk)."""
         mock_unzip.return_value = UPath("/tmp/submission.zarr")
 
         result = _prepare_submission("/tmp/submission.zip")
@@ -348,6 +349,113 @@ class TestScoreSubmissionHelpers:
         mock_unzip.assert_called_once_with("/tmp/submission.zip")
         mock_ensure_valid.assert_called_once()
         assert isinstance(result, UPath)
+
+    def test_prepare_submission_zip_file(self, tmp_path):
+        """Test _prepare_submission with a real zip file — exercises actual unzip and validate."""
+        # unzip_file extracts to zip_path.with_suffix(".zarr"), so use a distinct tmp dir
+        # to avoid the .zarr dir pre-existing and triggering the early-return in unzip_file.
+        work_dir = tmp_path / "work"
+        work_dir.mkdir()
+
+        zip_path = work_dir / "submission.zip"
+        # Build a zip containing a minimal valid zarr v2 group (just .zgroup at root)
+        with zipfile.ZipFile(str(zip_path), "w") as zf:
+            zf.writestr(".zgroup", '{"zarr_format": 2}')
+
+        result = _prepare_submission(str(zip_path))
+
+        # unzip_file extracts to <same-dir>/submission.zarr
+        expected_zarr = work_dir / "submission.zarr"
+        assert expected_zarr.exists(), "Extracted zarr directory should exist"
+        assert (expected_zarr / ".zgroup").exists(), ".zgroup should be present after extraction"
+        assert result == UPath(expected_zarr)
+
+    def test_prepare_submission_dir_with_single_zip(self, tmp_path):
+        """Test _prepare_submission with a directory containing one zip file."""
+        # Create a directory with a single zip file inside
+        submission_dir = tmp_path / "input"
+        submission_dir.mkdir()
+        zip_path = submission_dir / "submission.zip"
+        zarr_out = tmp_path / "submission.zarr"
+        zarr_out.mkdir()
+        (zarr_out / ".zgroup").write_text('{"zarr_format": 2}')
+        zip_path.write_bytes(b"fake zip content")  # content doesn't matter, we mock
+
+        with patch(
+            "cellmap_segmentation_challenge.utils.eval_utils.submission.unzip_file"
+        ) as mock_unzip, patch(
+            "cellmap_segmentation_challenge.utils.eval_utils.submission.ensure_valid_submission"
+        ) as mock_ensure:
+            mock_unzip.return_value = zarr_out
+
+            result = _prepare_submission(str(submission_dir))
+
+            mock_unzip.assert_called_once()
+            # The argument should be the zip file found inside the directory
+            called_arg = mock_unzip.call_args[0][0]
+            assert UPath(called_arg) == UPath(zip_path)
+            mock_ensure.assert_called_once_with(UPath(zarr_out))
+            assert result == UPath(zarr_out)
+
+    def test_prepare_submission_plain_directory(self, tmp_path):
+        """Test _prepare_submission with a plain directory (no zip inside)."""
+        submission_dir = tmp_path / "input"
+        submission_dir.mkdir()
+        # Create a valid zarr store structure at the directory root
+        (submission_dir / ".zgroup").write_text('{"zarr_format": 2}')
+
+        with patch(
+            "cellmap_segmentation_challenge.utils.eval_utils.submission.ensure_valid_submission"
+        ) as mock_ensure:
+            result = _prepare_submission(str(submission_dir))
+
+            # unzip_file should NOT have been called
+            mock_ensure.assert_called_once_with(UPath(submission_dir))
+            assert result == UPath(submission_dir)
+
+    def test_prepare_submission_buried_zarr(self, tmp_path):
+        """Test _prepare_submission triggers buried-Zarr flattening via ensure_valid_submission."""
+        submission_dir = tmp_path / "input"
+        submission_dir.mkdir()
+        # Create a buried zarr folder
+        buried = submission_dir / "nested" / "data.zarr"
+        buried.mkdir(parents=True)
+        (buried / ".zgroup").write_text('{"zarr_format": 2}')
+
+        # _prepare_submission should call ensure_valid_submission which moves things
+        result = _prepare_submission(str(submission_dir))
+
+        # After flattening, .zgroup should be at the root
+        assert (submission_dir / ".zgroup").exists()
+        assert result == UPath(submission_dir)
+
+    def test_prepare_submission_missing_zgroup(self, tmp_path):
+        """Test _prepare_submission triggers .zgroup repair via ensure_valid_submission."""
+        submission_dir = tmp_path / "input"
+        submission_dir.mkdir()
+        # Create a zarr-like directory structure without .zgroup
+        (submission_dir / "crop1").mkdir()
+        # zarr.open needs at least a valid store; write a minimal array
+        label_array = zarr.open(
+            str(submission_dir / "crop1" / "label"), mode="w", shape=(4, 4), dtype="u1"
+        )
+        label_array[:] = 0
+
+        result = _prepare_submission(str(submission_dir))
+
+        # .zgroup should have been added
+        assert (submission_dir / ".zgroup").exists()
+        assert result == UPath(submission_dir)
+
+    def test_prepare_submission_multiple_zarr_raises(self, tmp_path):
+        """Test _prepare_submission raises ValueError when multiple .zarr folders exist."""
+        submission_dir = tmp_path / "input"
+        submission_dir.mkdir()
+        for name in ("a.zarr", "b.zarr"):
+            (submission_dir / name).mkdir()
+
+        with pytest.raises(ValueError, match="multiple Zarr folders"):
+            _prepare_submission(str(submission_dir))
 
     def test_discover_volumes_matching(self, tmp_path):
         """Test volume discovery with matching volumes."""
@@ -418,6 +526,20 @@ class TestScoreSubmissionHelpers:
 
             assert scores["overall_score"] == 0.85
             mock_update.assert_called_once()
+
+
+# ============================================================================
+# unzip_file Tests
+# ============================================================================
+
+
+class TestUnzipFile:
+    """Tests for unzip_file utility."""
+
+    def test_unzip_file_raises_on_directory(self, tmp_path):
+        """Calling unzip_file on a directory should raise ValueError."""
+        with pytest.raises(ValueError, match="Expected a zip file but got a directory"):
+            unzip_file(str(tmp_path))
 
 
 # ============================================================================
