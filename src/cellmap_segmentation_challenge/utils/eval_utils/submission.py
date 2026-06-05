@@ -350,7 +350,7 @@ def _execute_parallel_scoring(
     effective_workers = config.max_workers
     effective_threads = config.per_instance_threads
     min_per_instance_threads = 4
-    safety_factor = 1.5
+    safety_factor = 1.0  # no extra safety margin; the peak estimate is already worst-case
     peak_gb = 0.0
 
     try:
