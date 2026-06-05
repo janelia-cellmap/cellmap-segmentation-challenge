@@ -357,7 +357,19 @@ def _execute_parallel_scoring(
         import psutil
 
         vm = psutil.virtual_memory()
-        total_gb = vm.total / (1024**3)
+        # Budget against the cgroup/container memory limit when one is set,
+        # not the host's RAM -- otherwise we over-commit and OOM. Use whichever
+        # is smaller; fall back to host RAM when there's no limit.
+        total_bytes = vm.total
+        for _p in ("/sys/fs/cgroup/memory.max",                     # cgroup v2
+                   "/sys/fs/cgroup/memory/memory.limit_in_bytes"):  # cgroup v1
+            try:
+                with open(_p) as _f:
+                    total_bytes = min(total_bytes, int(_f.read()))
+                break
+            except (OSError, ValueError):  # missing file, or "max" (unlimited)
+                continue
+        total_gb = total_bytes / (1024**3)
         reserve_gb = max(16.0, 0.05 * total_gb)
         budget_gb = max(total_gb - reserve_gb, 1.0)
 
