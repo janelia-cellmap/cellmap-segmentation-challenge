@@ -233,7 +233,11 @@ def score_instance(
     tp = len(matched_gt_ids)
     fp = n_pred - len(matched_pred_ids)
     fn = len(gt_ids) - len(matched_gt_ids)
-    f1 = (2 * tp / (2 * tp + fp + fn)) if (2 * tp + fp + fn) > 0 else 0.0
+    if len(gt_ids) == 0 and n_pred == 0:
+        # Correct true negative - 0/0, should be scored as 1.0
+        f1 = 1.0
+    else:
+        f1 = (2 * tp / (2 * tp + fp + fn)) if (2 * tp + fp + fn) > 0 else 0.0
 
     # Aggregate scores
     logging.info("Computing final scores...")
