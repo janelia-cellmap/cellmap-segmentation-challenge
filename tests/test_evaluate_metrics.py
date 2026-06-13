@@ -465,6 +465,23 @@ def test_score_instance_f1_all_fn():
     assert scores["fn"] == 2
 
 
+def test_score_instance_empty_vs_empty_true_negative():
+    """Neither GT nor prediction has instances -> correct true negative, score 1.0."""
+    from cellmap_segmentation_challenge import evaluate as ev
+
+    truth = np.zeros((4, 4), dtype=np.int32)
+    pred = np.zeros((4, 4), dtype=np.int32)
+    scores = ev.score_instance(pred, truth, voxel_size=(1.0, 1.0))
+
+    assert scores["tp"] == 0
+    assert scores["fp"] == 0
+    assert scores["fn"] == 0
+    # Correctly predicting absence is perfect, 0/0 -> 1.0
+    assert np.isclose(scores["f1"], 1.0)
+    assert np.isclose(scores["normalized_hausdorff_distance"], 1.0)
+    assert np.isclose(scores["combined_score"], 1.0)
+
+
 def test_score_instance_f1_partial_match():
     """GT has 3 instances, prediction matches 2 of them + has 1 extra -> partial F1."""
     from cellmap_segmentation_challenge import evaluate as ev
