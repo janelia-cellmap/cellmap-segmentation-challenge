@@ -237,7 +237,7 @@ def score_instance(
         # Correct true negative - 0/0, should be scored as 1.0
         f1 = 1.0
     else:
-        f1 = (2 * tp / (2 * tp + fp + fn)) if (2 * tp + fp + fn) > 0 else 0.0
+        f1 = 2 * tp / (2 * tp + fp + fn)
 
     # Aggregate scores
     logging.info("Computing final scores...")
