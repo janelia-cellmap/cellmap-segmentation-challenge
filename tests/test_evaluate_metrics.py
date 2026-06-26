@@ -753,8 +753,10 @@ def test_combine_scores_instance_and_semantic():
         },
         "crop2": {
             "sem": {
-                "iou": 0.5,
-                "dice_score": 2 / 3,
+                # pooled IoU = TP / (TP + FP + FN) = 4 / (4 + 2 + 2) = 0.5
+                "tp": 4,
+                "fp": 2,
+                "fn": 2,
                 "num_voxels": 8,
                 "voxel_size": (1.0, 1.0, 1.0),
                 "is_missing": False,
