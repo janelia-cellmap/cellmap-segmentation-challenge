@@ -24,9 +24,9 @@ class InstanceScoreDict(TypedDict, total=False):
 class SemanticScoreDict(TypedDict, total=False):
     """Type definition for semantic segmentation scores."""
 
-    iou: float
-    dice_score: float
-    binary_accuracy: float
+    tp: int
+    fp: int
+    fn: int
     num_voxels: int
     voxel_size: tuple[float, ...]
     is_missing: bool
