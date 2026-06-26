@@ -29,7 +29,6 @@ from .types import InstanceScoreDict
 
 
 def _create_pathological_scores(
-    binary_metrics: dict[str, float],
     hausdorff_distance_max: float,
     voxel_size: tuple[float, ...],
     status: str,
@@ -37,7 +36,6 @@ def _create_pathological_scores(
     """Create scores for pathological cases (matching failed).
 
     Args:
-        binary_metrics: Pre-computed binary metrics
         hausdorff_distance_max: Maximum Hausdorff distance
         voxel_size: Voxel size
         status: Status string for the failure
@@ -50,14 +48,11 @@ def _create_pathological_scores(
         "tp": 0,
         "fp": 0,
         "fn": 0,
-        "binary_accuracy": binary_metrics["binary_accuracy"],
         "hausdorff_distance": hausdorff_distance_max,
         "normalized_hausdorff_distance": normalize_distance(
             hausdorff_distance_max, voxel_size
         ),
         "combined_score": 0,
-        "iou": binary_metrics["iou"],
-        "dice_score": binary_metrics["dice_score"],
         "status": status,
     }
 
