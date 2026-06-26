@@ -154,16 +154,12 @@ def score_instance(
     # TODO: Switch to just renumbering to contiguous IDs, and leave user labels intact
     pred_label, n_pred = cc3d.connected_components(pred_label, return_N=True)
 
-    # Compute metrics that don't require matching
-    binary_metrics = _compute_binary_metrics(truth_label, pred_label)
-
     # Match instances
     try:
         mapping = match_instances(truth_label, pred_label, config)
     except (TooManyInstancesError, TooManyOverlapEdgesError) as e:
         logging.warning(f"Instance matching failed: {e}")
         return _create_pathological_scores(
-            binary_metrics,
             hausdorff_distance_max,
             voxel_size,
             "skipped_too_many_instances",
@@ -171,7 +167,7 @@ def score_instance(
     except MatchingFailedError as e:
         logging.error(f"Matching optimization failed: {e}")
         return _create_pathological_scores(
-            binary_metrics, hausdorff_distance_max, voxel_size, "matching_failed"
+            hausdorff_distance_max, voxel_size, "matching_failed"
         )
 
     # Remap predictions to match GT IDs
@@ -181,28 +177,30 @@ def score_instance(
             pred_label, mapping, in_place=True, preserve_missing_labels=True
         )
 
-    # Free matching-stage scratch (overlap matrices, cc3d temporaries) before
-    # the Hausdorff phase spins up `per_instance_threads` float64 distance
-    # transforms per worker.
+    # Non-zero ground-truth ids, computed once and shared with the Hausdorff step.
+    truth_ids = unique(truth_label)
+    truth_ids = truth_ids[truth_ids != 0]
+
+    # Free matching-stage scratch before the memory-heavy Hausdorff phase.
     gc.collect()
 
     # Compute Hausdorff distances
     hausdorff_distances = _compute_hausdorff_scores(
-        mapping, truth_label, pred_label, n_pred, voxel_size, hausdorff_distance_max
+        mapping, truth_label, pred_label, n_pred, voxel_size, hausdorff_distance_max, truth_ids
     )
 
     if len(hausdorff_distances) == 0:
         hausdorff_distances = [hausdorff_distance_max]
 
     # Compute F1 from instance matching counts
-    gt_ids = set(np.unique(truth_label)) - {0}
+    gt_count = int(truth_ids.size)
     matched_gt_ids = set(mapping.values()) - {0}
     matched_pred_ids = set(mapping.keys()) - {0}
 
     tp = len(matched_gt_ids)
     fp = n_pred - len(matched_pred_ids)
-    fn = len(gt_ids) - len(matched_gt_ids)
-    if len(gt_ids) == 0 and n_pred == 0:
+    fn = gt_count - len(matched_gt_ids)
+    if gt_count == 0 and n_pred == 0:
         # Correct true negative - 0/0, should be scored as 1.0
         f1 = 1.0
     else:
@@ -210,10 +208,11 @@ def score_instance(
 
     # Aggregate scores
     logging.info("Computing final scores...")
-    hausdorff_dist = float(np.mean(hausdorff_distances))
-    normalized_hausdorff_dist = float(
-        np.mean([normalize_distance(hd, voxel_size) for hd in hausdorff_distances])
-    )
+    hausdorff_distances = np.asarray(hausdorff_distances, dtype=np.float64)
+    hausdorff_dist = float(hausdorff_distances.mean())
+    # Normalize vectorized: norm(voxel_size) is constant; inf distance -> 0.
+    vs_norm = np.linalg.norm(voxel_size)
+    normalized_hausdorff_dist = float((1.01 ** (-hausdorff_distances / vs_norm)).mean())
     combined_score = (f1 * normalized_hausdorff_dist) ** 0.5
     logging.info(f"F1: {f1:.4f} (TP={tp}, FP={fp}, FN={fn})")
     logging.info(f"Hausdorff Distance: {hausdorff_dist:.4f}")
@@ -229,7 +228,6 @@ def score_instance(
         "normalized_hausdorff_distance": normalized_hausdorff_dist,
         "combined_score": combined_score,
         "status": "scored",
-        **binary_metrics,
     }
 
 
