@@ -545,10 +545,10 @@ def test_score_semantic_partial_overlap():
 
     scores = ev.score_semantic(pred, truth)
 
-    # manual IoU: TP = 2, FP = 0, FN = 1 -> IoU = 2 / (2+0+1) = 2/3
-    assert np.isclose(scores["iou"], 2 / 3)
-    # manual Dice: 2TP / (2TP + FP + FN) = 4 / (4 + 0 + 1) = 0.8
-    assert np.isclose(scores["dice_score"], 0.8)
+    # TP = 2, FP = 0, FN = 1 (pooled IoU = 2/3 is computed in aggregation)
+    assert scores["tp"] == 2
+    assert scores["fp"] == 0
+    assert scores["fn"] == 1
 
 
 def test_score_semantic_no_foreground():
