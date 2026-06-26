@@ -28,32 +28,6 @@ from .instance_matching import match_instances
 from .types import InstanceScoreDict
 
 
-def _compute_binary_metrics(
-    truth_label: np.ndarray, pred_label: np.ndarray
-) -> dict[str, float]:
-    """Compute binary segmentation metrics.
-
-    Args:
-        truth_label: Ground truth labels
-        pred_label: Predicted labels
-
-    Returns:
-        Dictionary with iou, dice_score, and binary_accuracy
-    """
-    truth_binary = (truth_label > 0).ravel()
-    pred_binary = (pred_label > 0).ravel()
-
-    iou = jaccard_score(truth_binary, pred_binary, zero_division=1)
-    dice_score = 1 - dice(truth_binary, pred_binary)
-    binary_accuracy = float((truth_binary == pred_binary).mean())
-
-    return {
-        "iou": iou,
-        "dice_score": dice_score,
-        "binary_accuracy": binary_accuracy,
-    }
-
-
 def _create_pathological_scores(
     binary_metrics: dict[str, float],
     hausdorff_distance_max: float,
