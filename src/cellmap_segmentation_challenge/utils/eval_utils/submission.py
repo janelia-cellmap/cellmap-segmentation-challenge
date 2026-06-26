@@ -527,11 +527,12 @@ def score_submission(
                 "label_name": {
                     # Instance segmentation
                     "f1": float,
+                    "tp": int, "fp": int, "fn": int,
                     "hausdorff_distance": float,
                     "combined_score": float,
-                    # OR semantic segmentation
-                    "iou": float,
-                    "dice_score": float,
+                    # OR semantic segmentation (raw voxel counts; IoU is
+                    # pooled from these per class in label_scores)
+                    "tp": int, "fp": int, "fn": int,
                 }
             },
             "label_scores": {  # Aggregated per-label
