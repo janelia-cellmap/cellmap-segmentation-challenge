@@ -351,12 +351,14 @@ def empty_label_score(
     ds = zarr.open((truth_path / crop_name / label).path, mode="r")
     voxel_size = ds.attrs["voxel_size"]
     if label in instance_classes:
-        truth_path = UPath(truth_path)
+        # Penalize non-submission: every ground-truth instance is a false negative.
+        truth_ids = unique(ds[:])
+        n_instances = int(truth_ids[truth_ids != 0].size)
         return {
             "f1": 0.0,
             "tp": 0,
             "fp": 0,
-            "fn": 0,
+            "fn": n_instances,
             "hausdorff_distance": compute_max_distance(voxel_size, ds.shape),
             "normalized_hausdorff_distance": 0,
             "combined_score": 0,
@@ -366,11 +368,13 @@ def empty_label_score(
             "status": "missing",
         }
     else:
+        # Not submitted: count every voxel as a false negative -> IoU 0.
+        n_voxels = int(np.prod(ds.shape))
         return {
-            "iou": 0,
-            "dice_score": 0,
-            "binary_accuracy": 0,
-            "num_voxels": int(np.prod(ds.shape)),
+            "tp": 0,
+            "fp": 0,
+            "fn": n_voxels,
+            "num_voxels": n_voxels,
             "voxel_size": voxel_size,
             "is_missing": True,
             "status": "missing",
