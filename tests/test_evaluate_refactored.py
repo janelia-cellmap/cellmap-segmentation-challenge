@@ -256,10 +256,7 @@ class TestScoreInstanceHelpers:
 
     def test_create_pathological_scores(self):
         """Test creation of pathological scores."""
-        binary_metrics = {"iou": 0.5, "dice_score": 0.6, "binary_accuracy": 0.7}
-
         scores = _create_pathological_scores(
-            binary_metrics,
             hausdorff_distance_max=100.0,
             voxel_size=(4.0, 4.0, 4.0),
             status="test_failure",
@@ -268,7 +265,6 @@ class TestScoreInstanceHelpers:
         assert scores["f1"] == 0.0
         assert scores["combined_score"] == 0
         assert scores["hausdorff_distance"] == 100.0
-        assert scores["iou"] == 0.5
         assert scores["status"] == "test_failure"
 
     def test_compute_hausdorff_scores_only_background(self):
