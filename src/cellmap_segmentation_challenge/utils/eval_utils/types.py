@@ -10,12 +10,9 @@ class InstanceScoreDict(TypedDict, total=False):
     tp: int
     fp: int
     fn: int
-    binary_accuracy: float
     hausdorff_distance: float
     normalized_hausdorff_distance: float
     combined_score: float
-    iou: float
-    dice_score: float
     num_voxels: int
     voxel_size: tuple[float, ...]
     is_missing: bool
