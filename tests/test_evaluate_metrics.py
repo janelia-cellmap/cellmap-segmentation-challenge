@@ -405,13 +405,12 @@ def test_score_instance_perfect_match():
     label = np.array([[0, 1, 1], [0, 2, 2]], dtype=np.int32)
     scores = ev.score_instance(label, label, voxel_size=(1.0, 1.0))
 
-    assert np.isclose(scores["f1"], 1.0)
     assert scores["tp"] == 2
     assert scores["fp"] == 0
     assert scores["fn"] == 0
-    assert np.isclose(scores["hausdorff_distance"], 0.0)
-    assert np.isclose(scores["normalized_hausdorff_distance"], 1.0)
-    assert np.isclose(scores["combined_score"], 1.0)
+    # both instances matched at zero distance -> normalized 1.0 each
+    assert scores["n_hausdorff"] == 2
+    assert np.isclose(scores["hausdorff_norm_sum"], 2.0)
 
 
 def test_score_instance_simple_shift():
