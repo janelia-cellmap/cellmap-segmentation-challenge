@@ -231,7 +231,7 @@ def score_instance(
     }
 
 
-def score_semantic(pred_label, truth_label) -> dict[str, float]:
+def score_semantic(pred_label, truth_label) -> dict[str, int | str]:
     """
     Score a single semantic label volume against the ground truth semantic label volume.
 
@@ -250,26 +250,19 @@ def score_semantic(pred_label, truth_label) -> dict[str, float]:
     pred_label = (pred_label > 0.0).ravel()
     truth_label = (truth_label > 0.0).ravel()
 
-    # Compute the scores
-    if np.sum(truth_label + pred_label) == 0:
-        # If there are no true or false positives, set the scores to 1
-        logging.debug("No true or false positives found. Setting scores to 1.")
-        dice_score = 1
-        iou_score = 1
-    else:
-        dice_score = 1 - dice(truth_label, pred_label)
-        iou_score = jaccard_score(truth_label, pred_label, zero_division=1)
-    scores = {
-        "iou": iou_score,
-        "dice_score": dice_score if not np.isnan(dice_score) else 1,
-        "binary_accuracy": float((truth_label == pred_label).mean()),
+    # Voxel confusion counts; pooled per class in aggregation to compute IoU.
+    tp = int(np.count_nonzero(truth_label & pred_label))
+    fp = int(pred_label.sum()) - tp
+    fn = int(truth_label.sum()) - tp
+
+    logging.info(f"Semantic counts: TP={tp}, FP={fp}, FN={fn}")
+
+    return {
+        "tp": tp,
+        "fp": fp,
+        "fn": fn,
         "status": "scored",
     }
-
-    logging.info(f"IoU: {scores['iou']:.4f}")
-    logging.info(f"Dice Score: {scores['dice_score']:.4f}")
-
-    return scores
 
 
 def score_label(
