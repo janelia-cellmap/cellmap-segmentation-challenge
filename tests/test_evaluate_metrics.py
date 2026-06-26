@@ -450,7 +450,7 @@ def test_score_instance_f1_all_fp():
 
 
 def test_score_instance_f1_all_fn():
-    """GT has instances but prediction has none -> f1 = 0."""
+    """GT has instances but prediction has none -> all false negatives."""
     from cellmap_segmentation_challenge import evaluate as ev
 
     truth = np.array(
@@ -459,10 +459,11 @@ def test_score_instance_f1_all_fn():
     pred = np.zeros((4, 4), dtype=np.int32)
     scores = ev.score_instance(pred, truth, voxel_size=(1.0, 1.0))
 
-    assert np.isclose(scores["f1"], 0.0)
     assert scores["tp"] == 0
     assert scores["fp"] == 0
     assert scores["fn"] == 2
+    # 2 missed truth instances, each a max-distance penalty
+    assert scores["n_hausdorff"] == 2
 
 
 def test_score_instance_empty_vs_empty_true_negative():
