@@ -724,7 +724,10 @@ def test_missing_volume_score_mixed_labels(tmp_path):
     assert scores["instance"]["is_missing"] is True
     assert scores["sem"]["is_missing"] is True
     assert scores["instance"]["f1"] == 0.0
-    assert scores["sem"]["iou"] == 0.0
+    # missing semantic is penalized: empty truth -> fp=0, fn=all voxels -> IoU 0
+    assert scores["sem"]["fp"] == 0
+    assert scores["sem"]["fn"] == arr_sem.size
+    assert "iou" not in scores["sem"]
 
 
 # ------------------------
