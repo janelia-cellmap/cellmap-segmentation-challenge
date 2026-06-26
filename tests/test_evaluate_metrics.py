@@ -433,7 +433,7 @@ def test_score_instance_simple_shift():
 
 
 def test_score_instance_f1_all_fp():
-    """Prediction has instances but GT has none -> f1 = 0."""
+    """Prediction has instances but GT has none -> all false positives."""
     from cellmap_segmentation_challenge import evaluate as ev
 
     truth = np.zeros((4, 4), dtype=np.int32)
@@ -442,10 +442,11 @@ def test_score_instance_f1_all_fp():
     )
     scores = ev.score_instance(pred, truth, voxel_size=(1.0, 1.0))
 
-    assert np.isclose(scores["f1"], 0.0)
     assert scores["tp"] == 0
     assert scores["fn"] == 0
     assert scores["fp"] == 2
+    # 2 hallucinated predictions, each a max-distance penalty
+    assert scores["n_hausdorff"] == 2
 
 
 def test_score_instance_f1_all_fn():
