@@ -81,18 +81,29 @@ def combine_scores(
                 label_scores[label][key] += this_score[key] * this_score["num_voxels"]
             total_voxels[label] += this_score["num_voxels"]
 
-    # Normalize per class; compute the pooled ratio (instance F1, semantic IoU).
+    # Normalize per class; accumulate the overall (instance voxel-weighted,
+    # semantic plain per-class mean).
+    instance_weighted_sum = 0.0
+    instance_total_voxels = 0
+    semantic_score_sum = 0.0
+    semantic_class_count = 0
     for label in label_scores:
         tp, fp, fn = counts[label]["tp"], counts[label]["fp"], counts[label]["fn"]
         if label in instance_classes:
+            combined_sum = label_scores[label]["combined_score"]  # pre-division sum
             label_scores[label]["hausdorff_distance"] /= total_voxels[label]
             label_scores[label]["normalized_hausdorff_distance"] /= total_voxels[label]
-            label_scores[label]["combined_score"] /= total_voxels[label]
+            label_scores[label]["combined_score"] = combined_sum / total_voxels[label]
             denom = 2 * tp + fp + fn
             label_scores[label]["f1"] = (2 * tp / denom) if denom > 0 else 0.0
+            instance_weighted_sum += combined_sum
+            instance_total_voxels += total_voxels[label]
         else:
             denom = tp + fp + fn
-            label_scores[label]["iou"] = (tp / denom) if denom > 0 else 1.0
+            iou = (tp / denom) if denom > 0 else 1.0  # denom 0 = nothing anywhere
+            label_scores[label]["iou"] = iou
+            semantic_score_sum += iou  # plain per-class mean
+            semantic_class_count += 1
         label_scores[label]["tp"] = tp
         label_scores[label]["fp"] = fp
         label_scores[label]["fn"] = fn
@@ -101,29 +112,12 @@ def combine_scores(
                 label_scores[label][key] = None
     scores["label_scores"] = label_scores
 
-    # Compute the overall score
     logging.info("Computing overall scores...")
-    overall_instance_scores = []
-    overall_semantic_scores = []
-    instance_total_voxels = sum(
-        total_voxels[label] for label in label_scores if label in instance_classes
-    )
-    for label in label_scores:
-        if label in instance_classes:
-            overall_instance_scores += [
-                label_scores[label]["combined_score"] * total_voxels[label]
-            ]
-        else:
-            overall_semantic_scores += [label_scores[label]["iou"]]  # plain mean
     scores["overall_instance_score"] = (
-        np.nansum(overall_instance_scores) / instance_total_voxels
-        if overall_instance_scores
-        else 0
+        instance_weighted_sum / instance_total_voxels if instance_total_voxels else 0
     )
     scores["overall_semantic_score"] = (
-        np.nansum(overall_semantic_scores) / len(overall_semantic_scores)
-        if overall_semantic_scores
-        else 0
+        semantic_score_sum / semantic_class_count if semantic_class_count else 0
     )
     scores["overall_score"] = (
         scores["overall_instance_score"] * scores["overall_semantic_score"]
