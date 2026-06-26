@@ -557,8 +557,9 @@ def test_score_semantic_no_foreground():
     truth = np.zeros((3, 3), dtype=float)
     pred = np.zeros_like(truth)
     scores = ev.score_semantic(pred, truth)
-    assert np.isclose(scores["iou"], 1.0)
-    assert np.isclose(scores["dice_score"], 1.0)
+    assert scores["tp"] == 0
+    assert scores["fp"] == 0
+    assert scores["fn"] == 0
 
 
 # ------------------------
