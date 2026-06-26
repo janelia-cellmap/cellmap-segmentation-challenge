@@ -7,9 +7,7 @@ from time import time
 import cc3d
 import numpy as np
 import zarr
-from fastremap import remap
-from scipy.spatial.distance import dice
-from sklearn.metrics import jaccard_score
+from fastremap import remap, unique
 from upath import UPath
 
 from ...config import TRUTH_PATH, INSTANCE_CLASSES
