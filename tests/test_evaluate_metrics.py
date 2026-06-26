@@ -423,13 +423,13 @@ def test_score_instance_simple_shift():
     voxel_size = (1.0, 1.0)
     scores = ev.score_instance(pred, truth, voxel_size)
 
-    # F1 should be 1.0 since the single instance is matched
-    assert np.isclose(scores["f1"], 1.0)
     assert scores["tp"] == 1
     assert scores["fp"] == 0
     assert scores["fn"] == 0
-    # Hausdorff distance is 1 (each point moves 1 voxel)
-    assert np.isclose(scores["hausdorff_distance"], 1.0)
+    # one matched instance, Hausdorff distance 1 -> normalized 1.01**(-1/||vs||)
+    assert scores["n_hausdorff"] == 1
+    expected = 1.01 ** (-1.0 / np.linalg.norm(voxel_size))
+    assert np.isclose(scores["hausdorff_norm_sum"], expected)
 
 
 def test_score_instance_f1_all_fp():
