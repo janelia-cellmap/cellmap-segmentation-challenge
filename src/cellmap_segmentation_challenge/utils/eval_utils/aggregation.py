@@ -108,25 +108,20 @@ def combine_scores(
     instance_total_voxels = sum(
         total_voxels[label] for label in label_scores if label in instance_classes
     )
-    semantic_total_voxels = sum(
-        total_voxels[label] for label in label_scores if label not in instance_classes
-    )
     for label in label_scores:
         if label in instance_classes:
             overall_instance_scores += [
                 label_scores[label]["combined_score"] * total_voxels[label]
             ]
         else:
-            overall_semantic_scores += [
-                label_scores[label]["iou"] * total_voxels[label]
-            ]
+            overall_semantic_scores += [label_scores[label]["iou"]]  # plain mean
     scores["overall_instance_score"] = (
         np.nansum(overall_instance_scores) / instance_total_voxels
         if overall_instance_scores
         else 0
     )
     scores["overall_semantic_score"] = (
-        np.nansum(overall_semantic_scores) / semantic_total_voxels
+        np.nansum(overall_semantic_scores) / len(overall_semantic_scores)
         if overall_semantic_scores
         else 0
     )
