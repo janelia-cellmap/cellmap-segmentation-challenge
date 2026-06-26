@@ -530,8 +530,10 @@ def test_score_semantic_perfect_match():
     truth = np.array([[0, 1], [1, 1]], dtype=float)
     pred = truth.copy()
     scores = ev.score_semantic(pred, truth)
-    assert np.isclose(scores["iou"], 1.0)
-    assert np.isclose(scores["dice_score"], 1.0)
+    # 3 foreground voxels, all matched
+    assert scores["tp"] == 3
+    assert scores["fp"] == 0
+    assert scores["fn"] == 0
 
 
 def test_score_semantic_partial_overlap():
