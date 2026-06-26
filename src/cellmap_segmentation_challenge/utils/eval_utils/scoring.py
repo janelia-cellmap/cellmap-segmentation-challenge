@@ -64,6 +64,7 @@ def _compute_hausdorff_scores(
     n_pred: int,
     voxel_size: tuple[float, ...],
     hausdorff_distance_max: float,
+    truth_ids: np.ndarray | None = None,
 ) -> list[float]:
     """Compute Hausdorff distances for matched instances.
 
@@ -74,6 +75,7 @@ def _compute_hausdorff_scores(
         n_pred: Number of predicted instances
         voxel_size: Voxel size
         hausdorff_distance_max: Maximum distance
+        truth_ids: Precomputed non-zero ground-truth ids
 
     Returns:
         List of Hausdorff distances
@@ -85,7 +87,7 @@ def _compute_hausdorff_scores(
     if len(mapping) > 0:
         # Compute Hausdorff for matched instances
         hausdorff_distances = optimized_hausdorff_distances(
-            truth_label, pred_label, voxel_size, hausdorff_distance_max
+            truth_label, pred_label, voxel_size, hausdorff_distance_max, truth_ids=truth_ids
         )
 
         # Add max distance for unmatched predictions
