@@ -38,6 +38,7 @@ def optimized_hausdorff_distances(
     hausdorff_distance_max,
     method="standard",
     percentile: float | None = None,
+    truth_ids=None,
 ):
     """
     Compute per-truth-instance Hausdorff-like distances against the (already remapped)
@@ -63,9 +64,10 @@ def optimized_hausdorff_distances(
     percentile : float | None
         Percentile (0-100) used when method=="percentile".
     """
-    # Unique GT ids (exclude background = 0)
-    truth_ids = unique(truth_label)
-    truth_ids = truth_ids[truth_ids != 0]
+    # Unique GT ids (exclude background = 0); reuse caller's if provided.
+    if truth_ids is None:
+        truth_ids = unique(truth_label)
+        truth_ids = truth_ids[truth_ids != 0]
     true_num = int(truth_ids.size)
     if true_num == 0:
         return np.empty((0,), dtype=np.float32)
