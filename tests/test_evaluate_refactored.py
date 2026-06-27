@@ -560,8 +560,8 @@ class TestRefactoredIntegration:
         config = EvaluationConfig()
         scores = score_instance(pred, truth, voxel_size, config=config)
 
-        assert "f1" in scores
-        assert "combined_score" in scores
+        assert "tp" in scores
+        assert "n_hausdorff" in scores
         assert scores["status"] == "scored"
 
     def test_score_instance_handles_too_many_instances(self):
