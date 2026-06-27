@@ -172,8 +172,8 @@ def roi_slices_for_pair(
         # tolerate vs longer (e.g. includes channel), take last ndim
         vs = vs[-ndim:]
 
-    # padding per axis in voxels
-    pad = np.ceil(max_distance / vs).astype(int) + 2
+    # pad per axis, clamped to volume extent
+    pad = np.minimum(np.ceil(max_distance / vs), shape).astype(int) + 2
 
     tb = bbox_for_label(truth_stats, ndim, tid)
     assert tb is not None, f"Truth ID {tid} not found in truth statistics."
