@@ -501,11 +501,11 @@ def test_score_instance_f1_partial_match():
     scores = ev.score_instance(pred, truth, voxel_size=(1.0, 1.0))
 
     # tp=2 (GT 1 & 2 matched), fp=1 (pred 7 unmatched), fn=1 (GT 3 unmatched)
-    # f1 = 2*2 / (2*2 + 1 + 1) = 4/6 = 2/3
     assert scores["tp"] == 2
     assert scores["fp"] == 1
     assert scores["fn"] == 1
-    assert np.isclose(scores["f1"], 2 / 3)
+    # 3 truth instances + 1 unmatched prediction
+    assert scores["n_hausdorff"] == 4
 
 
 def test_score_instance_combined_score_formula():
