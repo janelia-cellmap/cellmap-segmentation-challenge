@@ -28,31 +28,24 @@ from .instance_matching import match_instances
 from .types import InstanceScoreDict
 
 
-def _create_pathological_scores(
-    hausdorff_distance_max: float,
-    voxel_size: tuple[float, ...],
-    status: str,
-) -> InstanceScoreDict:
-    """Create scores for pathological cases (matching failed).
+def _create_pathological_scores(status: str) -> InstanceScoreDict:
+    """Create scores for a crop whose instance matching failed.
+
+    The crop contributes nothing to the per-class pools (zero counts and no
+    Hausdorff entries), so a failure neither helps nor penalizes the class.
 
     Args:
-        hausdorff_distance_max: Maximum Hausdorff distance
-        voxel_size: Voxel size
-        status: Status string for the failure
+        status: Status string describing the failure.
 
     Returns:
-        Dictionary with worst-case scores
+        Score dict with zeroed counts and Hausdorff fields.
     """
     return {
-        "f1": 0.0,
         "tp": 0,
         "fp": 0,
         "fn": 0,
-        "hausdorff_distance": hausdorff_distance_max,
-        "normalized_hausdorff_distance": normalize_distance(
-            hausdorff_distance_max, voxel_size
-        ),
-        "combined_score": 0,
+        "hausdorff_norm_sum": 0.0,
+        "n_hausdorff": 0,
         "status": status,
     }
 
