@@ -817,6 +817,39 @@ def test_combine_scores_combined_pools_across_crops():
     assert np.isclose(ls["combined_score"], (f1 * hausdorff) ** 0.5)
 
 
+def test_public_scores_strips_crops_counts_and_unsubmitted_classes():
+    from cellmap_segmentation_challenge.utils.eval_utils.aggregation import (
+        public_scores,
+    )
+
+    scores = {
+        "crop1": {"mito": {"tp": 3}},  # per-crop entry
+        "label_scores": {
+            "mito": {"f1": 0.8, "combined_score": 0.77, "tp": 3, "fp": 1, "fn": 0},
+            "er": {"iou": 0.5, "tp": 10, "fp": 2, "fn": 4},  # not submitted
+        },
+        "overall_instance_score": 0.77,
+        "overall_semantic_score": 0.5,
+        "overall_score": 0.62,
+        "total_evals": 413,
+        "num_evals_done": 2,
+        "git_version": "abc",
+    }
+
+    public = public_scores(scores, submitted_labels={"mito"})
+
+    # per-crop entries dropped
+    assert "crop1" not in public
+    # only the submitted class is shown
+    assert set(public["label_scores"]) == {"mito"}
+    # raw counts stripped, ratio scores kept
+    assert public["label_scores"]["mito"] == {"f1": 0.8, "combined_score": 0.77}
+    # overalls and metadata preserved
+    assert public["overall_score"] == 0.62
+    assert public["total_evals"] == 413
+    assert public["git_version"] == "abc"
+
+
 # ------------------------
 # score_label & score_submission-style integration
 # ------------------------
