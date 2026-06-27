@@ -776,6 +776,47 @@ def test_combine_scores_instance_and_semantic():
     assert np.isclose(combined["overall_semantic_score"], 0.5)
 
 
+def test_combine_scores_combined_pools_across_crops():
+    from cellmap_segmentation_challenge import evaluate as ev
+
+    # Same instance class in two crops -> counts and Hausdorff pooled per class.
+    scores = {
+        "crop1": {
+            "mito": {
+                "tp": 3,
+                "fp": 1,
+                "fn": 0,
+                "hausdorff_norm_sum": 2.4,
+                "n_hausdorff": 4,
+                "num_voxels": 8,
+                "voxel_size": (1.0, 1.0, 1.0),
+                "is_missing": False,
+            }
+        },
+        "crop2": {
+            "mito": {
+                "tp": 1,
+                "fp": 0,
+                "fn": 2,
+                "hausdorff_norm_sum": 1.0,
+                "n_hausdorff": 2,
+                "num_voxels": 8,
+                "voxel_size": (1.0, 1.0, 1.0),
+                "is_missing": False,
+            }
+        },
+    }
+
+    combined = ev.combine_scores(scores, include_missing=True, instance_classes=["mito"])
+    ls = combined["label_scores"]["mito"]
+
+    f1 = 8 / 11  # 2*tp / (2*tp + fp + fn), pooled tp=4 fp=1 fn=2
+    hausdorff = 3.4 / 6  # pooled sum / count
+    assert np.isclose(ls["f1"], f1)
+    assert np.isclose(ls["normalized_hausdorff_distance"], hausdorff)
+    assert np.isclose(ls["combined_score"], (f1 * hausdorff) ** 0.5)
+
+
 # ------------------------
 # score_label & score_submission-style integration
 # ------------------------
