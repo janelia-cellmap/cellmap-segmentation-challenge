@@ -308,21 +308,35 @@ def score_label(
 def empty_label_score(
     label, crop_name, instance_classes=INSTANCE_CLASSES, truth_path=TRUTH_PATH
 ):
+    """Score a not-submitted label as a penalized "missing" volume.
+
+    Non-submission is penalized harder than a (submitted) empty prediction:
+    instance classes count every ground-truth instance as a false negative at a
+    worst-case (zero) boundary score; semantic classes count every voxel as a
+    false negative. Used when a label is absent from the submission.
+
+    Args:
+        label: Label/class name.
+        crop_name: Crop identifier.
+        instance_classes: Names of instance-segmented classes.
+        truth_path: Path to the ground-truth zarr.
+
+    Returns:
+        A per-volume score dict flagged ``is_missing=True``.
+    """
     truth_path = UPath(truth_path)
     ds = zarr.open((truth_path / crop_name / label).path, mode="r")
     voxel_size = ds.attrs["voxel_size"]
     if label in instance_classes:
-        # Penalize non-submission: every ground-truth instance is a false negative.
+        # Not submitted: each instance an FN at worst-case (0) boundary -- harsher than empty submission.
         truth_ids = unique(ds[:])
         n_instances = int(truth_ids[truth_ids != 0].size)
         return {
-            "f1": 0.0,
             "tp": 0,
             "fp": 0,
             "fn": n_instances,
-            "hausdorff_distance": compute_max_distance(voxel_size, ds.shape),
-            "normalized_hausdorff_distance": 0,
-            "combined_score": 0,
+            "hausdorff_norm_sum": 0.0,
+            "n_hausdorff": n_instances,
             "num_voxels": int(np.prod(ds.shape)),
             "voxel_size": voxel_size,
             "is_missing": True,
