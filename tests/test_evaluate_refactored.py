@@ -264,22 +264,18 @@ class TestScoreInstanceHelpers:
         assert scores["n_hausdorff"] == 0
         assert scores["status"] == "test_failure"
 
-    def test_compute_hausdorff_scores_only_background(self):
-        """Test Hausdorff score computation with only background."""
-        mapping = {0: 0}
-        truth = np.zeros((10, 10))
-        pred = np.zeros((10, 10))
-
+    def test_compute_hausdorff_scores_empty(self):
+        """No truth and no predictions -> empty (contributes nothing)."""
         distances = _compute_hausdorff_scores(
-            mapping,
-            truth,
-            pred,
+            {0: 0},
+            np.zeros((10, 10)),
+            np.zeros((10, 10)),
             n_pred=0,
             voxel_size=(4.0, 4.0),
             hausdorff_distance_max=100.0,
         )
 
-        assert distances == [pytest.approx(0.0)]
+        assert len(distances) == 0
 
     def test_compute_hausdorff_scores_no_mapping(self):
         """Test Hausdorff score computation with no mapping."""
