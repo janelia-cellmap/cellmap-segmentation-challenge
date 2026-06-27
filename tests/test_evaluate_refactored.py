@@ -575,8 +575,8 @@ class TestRefactoredIntegration:
         scores = score_instance(pred, truth, voxel_size, config=config)
 
         assert scores["status"] == "skipped_too_many_instances"
-        assert scores["f1"] == 0.0
-        assert scores["combined_score"] == 0
+        assert scores["tp"] == 0
+        assert scores["n_hausdorff"] == 0
 
 
 if __name__ == "__main__":
