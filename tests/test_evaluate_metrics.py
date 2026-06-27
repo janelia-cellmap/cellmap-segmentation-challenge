@@ -690,7 +690,9 @@ def test_empty_label_score_instance(tmp_path):
     # num_voxels should match volume size
     assert scores["num_voxels"] == arr.size
     assert scores["is_missing"] is True
-    assert scores["f1"] == 0.0
+    # empty truth -> no instances to miss
+    assert scores["fn"] == 0
+    assert scores["n_hausdorff"] == 0
 
 
 def test_missing_volume_score_mixed_labels(tmp_path):
