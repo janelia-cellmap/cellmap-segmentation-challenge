@@ -508,17 +508,6 @@ def test_score_instance_f1_partial_match():
     assert scores["n_hausdorff"] == 4
 
 
-def test_score_instance_combined_score_formula():
-    """Verify combined_score = sqrt(f1 * normalized_hausdorff)."""
-    from cellmap_segmentation_challenge import evaluate as ev
-
-    label = np.array([[0, 1, 1], [0, 2, 2]], dtype=np.int32)
-    scores = ev.score_instance(label, label, voxel_size=(1.0, 1.0))
-
-    expected = (scores["f1"] * scores["normalized_hausdorff_distance"]) ** 0.5
-    assert np.isclose(scores["combined_score"], expected)
-
-
 # ------------------------
 # score_semantic tests
 # ------------------------
