@@ -180,7 +180,7 @@ def score_instance(
     norm = normalize_distance(hausdorff_distances, voxel_size)
     hausdorff_norm_sum = float(np.sum(norm))
     n_hausdorff = int(np.size(norm))
-    logging.info(f"TP={tp}, FP={fp}, FN={fn}, n_hausdorff={n_hausdorff}")
+    logging.debug(f"TP={tp}, FP={fp}, FN={fn}, n_hausdorff={n_hausdorff}")
 
     return {
         "tp": tp,
@@ -216,7 +216,7 @@ def score_semantic(pred_label, truth_label) -> dict[str, int | str]:
     fp = int(pred_label.sum()) - tp
     fn = int(truth_label.sum()) - tp
 
-    logging.info(f"Semantic counts: TP={tp}, FP={fp}, FN={fn}")
+    logging.debug(f"Semantic counts: TP={tp}, FP={fp}, FN={fn}")
 
     return {
         "tp": tp,
