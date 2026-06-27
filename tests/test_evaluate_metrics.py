@@ -737,10 +737,12 @@ def test_combine_scores_instance_and_semantic():
     scores = {
         "crop1": {
             "instance": {
-                "f1": 1.0,
-                "hausdorff_distance": 0.0,
-                "normalized_hausdorff_distance": 1.0,
-                "combined_score": 1.0,
+                # 2 matched instances at zero distance -> f1=1, hausdorff mean=1
+                "tp": 2,
+                "fp": 0,
+                "fn": 0,
+                "hausdorff_norm_sum": 2.0,
+                "n_hausdorff": 2,
                 "num_voxels": 8,
                 "voxel_size": (1.0, 1.0, 1.0),
                 "is_missing": False,
