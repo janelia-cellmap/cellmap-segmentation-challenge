@@ -117,11 +117,12 @@ def score_instance(
         config: Evaluation configuration (uses defaults if None)
 
     Returns:
-        Dictionary containing all instance segmentation metrics
+        Dict with tp/fp/fn and per-instance Hausdorff sum/count. F1 and
+        combined_score are computed per class in aggregation, not here.
 
     Example:
         >>> scores = score_instance(pred, truth, voxel_size=(4.0, 4.0, 4.0))
-        >>> print(f"Combined score: {scores['combined_score']:.3f}")
+        >>> print(scores["tp"], scores["n_hausdorff"])
     """
     if config is None:
         config = EvaluationConfig.from_env()
@@ -145,16 +146,10 @@ def score_instance(
         mapping = match_instances(truth_label, pred_label, config)
     except (TooManyInstancesError, TooManyOverlapEdgesError) as e:
         logging.warning(f"Instance matching failed: {e}")
-        return _create_pathological_scores(
-            hausdorff_distance_max,
-            voxel_size,
-            "skipped_too_many_instances",
-        )
+        return _create_pathological_scores("skipped_too_many_instances")
     except MatchingFailedError as e:
         logging.error(f"Matching optimization failed: {e}")
-        return _create_pathological_scores(
-            hausdorff_distance_max, voxel_size, "matching_failed"
-        )
+        return _create_pathological_scores("matching_failed")
 
     # Remap predictions to match GT IDs
     if len(mapping) > 0 and not (len(mapping) == 1 and 0 in mapping):
@@ -170,49 +165,29 @@ def score_instance(
     # Free matching-stage scratch before the memory-heavy Hausdorff phase.
     gc.collect()
 
-    # Compute Hausdorff distances
+    # Per-instance Hausdorff distances (pooled per class in aggregation).
     hausdorff_distances = _compute_hausdorff_scores(
         mapping, truth_label, pred_label, n_pred, voxel_size, hausdorff_distance_max, truth_ids
     )
 
-    if len(hausdorff_distances) == 0:
-        hausdorff_distances = [hausdorff_distance_max]
-
-    # Compute F1 from instance matching counts
+    # F1 counts from matching (pooled per class in aggregation).
     gt_count = int(truth_ids.size)
-    matched_gt_ids = set(mapping.values()) - {0}
-    matched_pred_ids = set(mapping.keys()) - {0}
+    tp = len(set(mapping.values()) - {0})
+    fp = n_pred - len(set(mapping.keys()) - {0})
+    fn = gt_count - tp
 
-    tp = len(matched_gt_ids)
-    fp = n_pred - len(matched_pred_ids)
-    fn = gt_count - len(matched_gt_ids)
-    if gt_count == 0 and n_pred == 0:
-        # Correct true negative - 0/0, should be scored as 1.0
-        f1 = 1.0
-    else:
-        f1 = 2 * tp / (2 * tp + fp + fn)
-
-    # Aggregate scores
-    logging.info("Computing final scores...")
-    hausdorff_distances = np.asarray(hausdorff_distances, dtype=np.float64)
-    hausdorff_dist = float(hausdorff_distances.mean())
-    # Normalize vectorized: norm(voxel_size) is constant; inf distance -> 0.
-    vs_norm = np.linalg.norm(voxel_size)
-    normalized_hausdorff_dist = float((1.01 ** (-hausdorff_distances / vs_norm)).mean())
-    combined_score = (f1 * normalized_hausdorff_dist) ** 0.5
-    logging.info(f"F1: {f1:.4f} (TP={tp}, FP={fp}, FN={fn})")
-    logging.info(f"Hausdorff Distance: {hausdorff_dist:.4f}")
-    logging.info(f"Normalized Hausdorff Distance: {normalized_hausdorff_dist:.4f}")
-    logging.info(f"Combined Score: {combined_score:.4f}")
+    # Normalize per-instance distances; emit sum/count for per-class pooling.
+    norm = normalize_distance(hausdorff_distances, voxel_size)
+    hausdorff_norm_sum = float(np.sum(norm))
+    n_hausdorff = int(np.size(norm))
+    logging.info(f"TP={tp}, FP={fp}, FN={fn}, n_hausdorff={n_hausdorff}")
 
     return {
-        "f1": f1,
         "tp": tp,
         "fp": fp,
         "fn": fn,
-        "hausdorff_distance": hausdorff_dist,
-        "normalized_hausdorff_distance": normalized_hausdorff_dist,
-        "combined_score": combined_score,
+        "hausdorff_norm_sum": hausdorff_norm_sum,
+        "n_hausdorff": n_hausdorff,
         "status": "scored",
     }
 
