@@ -10,7 +10,8 @@ class InstanceScoreDict(TypedDict, total=False):
     tp: int
     fp: int
     fn: int
-    hausdorff_distance: float
+    hausdorff_norm_sum: float
+    n_hausdorff: int
     normalized_hausdorff_distance: float
     combined_score: float
     num_voxels: int
