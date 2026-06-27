@@ -277,22 +277,19 @@ class TestScoreInstanceHelpers:
 
         assert len(distances) == 0
 
-    def test_compute_hausdorff_scores_no_mapping(self):
-        """Test Hausdorff score computation with no mapping."""
-        mapping = {}
-        truth = np.zeros((10, 10))
-        pred = np.zeros((10, 10))
-
+    def test_compute_hausdorff_scores_unmatched_predictions(self):
+        """Hallucinations (unmatched predictions) each get the max penalty."""
         distances = _compute_hausdorff_scores(
-            mapping,
-            truth,
-            pred,
+            {},
+            np.zeros((10, 10)),
+            np.zeros((10, 10)),
             n_pred=5,
             voxel_size=(4.0, 4.0),
             hausdorff_distance_max=100.0,
         )
 
-        assert distances == [100.0]
+        assert len(distances) == 5
+        assert np.allclose(distances, 100.0)
 
 
 # ============================================================================
