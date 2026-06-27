@@ -255,16 +255,13 @@ class TestScoreInstanceHelpers:
     """Test helper functions for score_instance."""
 
     def test_create_pathological_scores(self):
-        """Test creation of pathological scores."""
-        scores = _create_pathological_scores(
-            hausdorff_distance_max=100.0,
-            voxel_size=(4.0, 4.0, 4.0),
-            status="test_failure",
-        )
+        """Matching-failure scores contribute nothing to the pools."""
+        scores = _create_pathological_scores(status="test_failure")
 
-        assert scores["f1"] == 0.0
-        assert scores["combined_score"] == 0
-        assert scores["hausdorff_distance"] == 100.0
+        assert scores["tp"] == 0
+        assert scores["fp"] == 0
+        assert scores["fn"] == 0
+        assert scores["n_hausdorff"] == 0
         assert scores["status"] == "test_failure"
 
     def test_compute_hausdorff_scores_only_background(self):
