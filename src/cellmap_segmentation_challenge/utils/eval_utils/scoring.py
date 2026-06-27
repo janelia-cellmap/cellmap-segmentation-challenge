@@ -65,8 +65,14 @@ def _compute_hausdorff_scores(
     voxel_size: tuple[float, ...],
     hausdorff_distance_max: float,
     truth_ids: np.ndarray | None = None,
-) -> list[float]:
-    """Compute Hausdorff distances for matched instances.
+) -> np.ndarray:
+    """Compute per-instance Hausdorff distances for pooling per class.
+
+    Produces one distance per ground-truth instance (matched -> real distance,
+    unmatched/FN -> max distance) plus a max-distance penalty per unmatched
+    prediction (hallucination). Returns an empty array when the crop has no
+    truth instances and no predictions, so empty crops contribute nothing to
+    the per-class pool.
 
     Args:
         mapping: Instance ID mapping (pred -> truth)
@@ -78,37 +84,24 @@ def _compute_hausdorff_scores(
         truth_ids: Precomputed non-zero ground-truth ids
 
     Returns:
-        List of Hausdorff distances
+        1D array of per-instance Hausdorff distances (possibly empty)
     """
-    if len(mapping) == 1 and 0 in mapping:
-        # Only background
-        return [0.0]
+    # One distance per truth instance (matched -> real, unmatched/FN -> max).
+    hausdorff_distances = optimized_hausdorff_distances(
+        truth_label, pred_label, voxel_size, hausdorff_distance_max, truth_ids=truth_ids
+    )
 
-    if len(mapping) > 0:
-        # Compute Hausdorff for matched instances
-        hausdorff_distances = optimized_hausdorff_distances(
-            truth_label, pred_label, voxel_size, hausdorff_distance_max, truth_ids=truth_ids
+    # Max-distance penalty per unmatched prediction (hallucination).
+    n_unmatched_pred = n_pred - len(set(mapping.keys()) - {0})
+    if n_unmatched_pred > 0:
+        hausdorff_distances = np.concatenate(
+            [
+                hausdorff_distances,
+                np.full(n_unmatched_pred, hausdorff_distance_max, dtype=np.float32),
+            ]
         )
 
-        # Add max distance for unmatched predictions
-        matched_pred_ids = set(mapping.keys()) - {0}
-        pred_ids = set(np.arange(1, n_pred + 1)) - {0}
-        unmatched_pred = pred_ids - matched_pred_ids
-
-        if len(unmatched_pred) > 0:
-            hausdorff_distances = np.concatenate(
-                [
-                    hausdorff_distances,
-                    np.full(
-                        len(unmatched_pred), hausdorff_distance_max, dtype=np.float32
-                    ),
-                ]
-            )
-
-        return hausdorff_distances.tolist()
-    else:
-        # No matches
-        return [hausdorff_distance_max]
+    return hausdorff_distances
 
 
 def score_instance(
