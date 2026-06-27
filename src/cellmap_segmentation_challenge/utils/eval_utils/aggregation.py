@@ -12,6 +12,17 @@ from ..crops import TEST_CROPS_DICT
 from ..utils import get_git_hash
 from .config import CAST_TO_NONE
 
+# Aggregate-level keys in a combined-scores dict; everything else is a per-crop entry.
+AGGREGATE_KEYS = (
+    "label_scores",
+    "overall_instance_score",
+    "overall_semantic_score",
+    "overall_score",
+    "total_evals",
+    "num_evals_done",
+    "git_version",
+)
+
 
 def combine_scores(
     scores,
@@ -46,15 +57,7 @@ def combine_scores(
         # Skip aggregation-level keys that are not per-crop result dicts
         if not isinstance(these_scores, dict):
             continue
-        if ds in (
-            "label_scores",
-            "overall_instance_score",
-            "overall_semantic_score",
-            "overall_score",
-            "total_evals",
-            "num_evals_done",
-            "git_version",
-        ):
+        if ds in AGGREGATE_KEYS:
             continue
         for label, this_score in these_scores.items():
             if this_score["is_missing"] and not include_missing:
@@ -166,6 +169,29 @@ def sanitize_scores(scores):
     return scores
 
 
+def public_scores(scores, submitted_labels):
+    """Aggregate-only view for the participant-facing file.
+
+    Keeps the overall scores and the per-class ratio scores (f1/iou/combined)
+    for the submitted classes.
+
+    Args:
+        scores (dict): A combined-scores dict as returned by `combine_scores`.
+        submitted_labels (set): Class names to include in the per-class scores.
+
+    Returns:
+        dict: Overall scores and per-class ratio scores.
+    """
+    public = {k: scores[k] for k in AGGREGATE_KEYS if k in scores}
+    drop = ("tp", "fp", "fn")
+    public["label_scores"] = {
+        label: {k: v for k, v in s.items() if k not in drop}
+        for label, s in scores.get("label_scores", {}).items()
+        if label in submitted_labels
+    }
+    return public
+
+
 def update_scores(scores, results, result_file, instance_classes=INSTANCE_CLASSES):
     start_time = time()
     logging.info(f"Updating scores in {result_file}...")
@@ -196,17 +222,22 @@ def update_scores(scores, results, result_file, instance_classes=INSTANCE_CLASSE
     if result_file is not None:
         logging.info(f"Saving collected scores to {result_file}...")
 
-        with open(result_file, "w") as f:
-            json.dump(sanitize_scores(all_scores), f, indent=4)
+        sanitize_scores(all_scores)
+        # Classes with at least one real submission -> shown in the public file.
+        submitted_labels = set(found_scores.get("label_scores", {}))
 
-        found_result_file = str(result_file).replace(
-            UPath(result_file).suffix, "_submitted_only" + UPath(result_file).suffix
+        # Full (server-side): every per-crop count. Public: aggregate-only, submitted classes.
+        with open(result_file, "w") as f:
+            json.dump(all_scores, f, indent=4)
+
+        public_file = str(result_file).replace(
+            UPath(result_file).suffix, "_public" + UPath(result_file).suffix
         )
-        with open(found_result_file, "w") as f:
-            json.dump(sanitize_scores(found_scores), f, indent=4)
+        with open(public_file, "w") as f:
+            json.dump(public_scores(all_scores, submitted_labels), f, indent=4)
 
         logging.info(
-            f"Scores updated in {result_file} and {found_result_file} in {time() - start_time:.2f} seconds"
+            f"Scores updated in {result_file} and {public_file} in {time() - start_time:.2f} seconds"
         )
     else:
         logging.info("Final combined scores:")
