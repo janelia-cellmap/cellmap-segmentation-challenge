@@ -466,8 +466,8 @@ def test_score_instance_f1_all_fn():
     assert scores["n_hausdorff"] == 2
 
 
-def test_score_instance_empty_vs_empty_true_negative():
-    """Neither GT nor prediction has instances -> correct true negative, score 1.0."""
+def test_score_instance_empty_vs_empty_contributes_nothing():
+    """Neither GT nor prediction has instances -> no counts, nothing pooled."""
     from cellmap_segmentation_challenge import evaluate as ev
 
     truth = np.zeros((4, 4), dtype=np.int32)
@@ -477,10 +477,9 @@ def test_score_instance_empty_vs_empty_true_negative():
     assert scores["tp"] == 0
     assert scores["fp"] == 0
     assert scores["fn"] == 0
-    # Correctly predicting absence is perfect, 0/0 -> 1.0
-    assert np.isclose(scores["f1"], 1.0)
-    assert np.isclose(scores["normalized_hausdorff_distance"], 1.0)
-    assert np.isclose(scores["combined_score"], 1.0)
+    # empty crop contributes nothing to the per-class pools (no inflation)
+    assert scores["n_hausdorff"] == 0
+    assert scores["hausdorff_norm_sum"] == 0.0
 
 
 def test_score_instance_f1_partial_match():
