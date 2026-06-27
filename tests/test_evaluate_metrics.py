@@ -700,6 +700,8 @@ def test_missing_volume_score_mixed_labels(tmp_path):
 
     truth_root = tmp_path / "truth_volume.zarr"
     arr_inst = np.zeros((2, 2, 2), dtype=np.uint8)
+    arr_inst[0] = 1  # instance 1
+    arr_inst[1] = 2  # instance 2
     arr_sem = np.zeros((2, 2, 2), dtype=np.uint8)
 
     _create_simple_volume(truth_root, "crop1", "instance", arr_inst)
@@ -714,7 +716,9 @@ def test_missing_volume_score_mixed_labels(tmp_path):
     assert set(scores.keys()) == {"instance", "sem"}
     assert scores["instance"]["is_missing"] is True
     assert scores["sem"]["is_missing"] is True
-    assert scores["instance"]["f1"] == 0.0
+    # missing instance is penalized: each of the 2 truth instances is a FN
+    assert scores["instance"]["fn"] == 2
+    assert scores["instance"]["n_hausdorff"] == 2
     # missing semantic is penalized: empty truth -> fp=0, fn=all voxels -> IoU 0
     assert scores["sem"]["fp"] == 0
     assert scores["sem"]["fn"] == arr_sem.size
