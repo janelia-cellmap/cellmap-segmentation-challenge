@@ -823,8 +823,11 @@ def test_score_label_instance_integration(monkeypatch, tmp_path):
 
     assert crop_out == crop_name_str
     assert label_out == label_name
-    assert np.isclose(results["f1"], 1.0)
-    assert np.isclose(results["hausdorff_distance"], 0.0)
+    # single truth instance, matched -> tp=1, fn=0, one Hausdorff entry
+    assert results["status"] == "scored"
+    assert results["tp"] == 1
+    assert results["fn"] == 0
+    assert results["n_hausdorff"] == 1
     assert results["is_missing"] is False
 
 
