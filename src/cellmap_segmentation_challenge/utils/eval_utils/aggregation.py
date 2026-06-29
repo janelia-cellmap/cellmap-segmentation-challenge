@@ -226,18 +226,19 @@ def update_scores(scores, results, result_file, instance_classes=INSTANCE_CLASSE
         # Classes with at least one real submission -> shown in the public file.
         submitted_labels = set(found_scores.get("label_scores", {}))
 
-        # Full (server-side): every per-crop count. Public: aggregate-only, submitted classes.
+        # Public (participant-facing): aggregate-only, submitted classes.
         with open(result_file, "w") as f:
-            json.dump(all_scores, f, indent=4)
-
-        public_file = str(result_file).replace(
-            UPath(result_file).suffix, "_public" + UPath(result_file).suffix
-        )
-        with open(public_file, "w") as f:
             json.dump(public_scores(all_scores, submitted_labels), f, indent=4)
 
+        # Server-side (_extended): full scores with every per-crop count.
+        extended_file = str(result_file).replace(
+            UPath(result_file).suffix, "_extended" + UPath(result_file).suffix
+        )
+        with open(extended_file, "w") as f:
+            json.dump(all_scores, f, indent=4)
+
         logging.info(
-            f"Scores updated in {result_file} and {public_file} in {time() - start_time:.2f} seconds"
+            f"Scores updated in {result_file} and {extended_file} in {time() - start_time:.2f} seconds"
         )
     else:
         logging.info("Final combined scores:")
