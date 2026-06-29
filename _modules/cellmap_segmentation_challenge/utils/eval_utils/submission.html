@@ -812,11 +812,12 @@
 <span class="sd">                &quot;label_name&quot;: {</span>
 <span class="sd">                    # Instance segmentation</span>
 <span class="sd">                    &quot;f1&quot;: float,</span>
+<span class="sd">                    &quot;tp&quot;: int, &quot;fp&quot;: int, &quot;fn&quot;: int,</span>
 <span class="sd">                    &quot;hausdorff_distance&quot;: float,</span>
 <span class="sd">                    &quot;combined_score&quot;: float,</span>
-<span class="sd">                    # OR semantic segmentation</span>
-<span class="sd">                    &quot;iou&quot;: float,</span>
-<span class="sd">                    &quot;dice_score&quot;: float,</span>
+<span class="sd">                    # OR semantic segmentation (raw voxel counts; IoU is</span>
+<span class="sd">                    # pooled from these per class in label_scores)</span>
+<span class="sd">                    &quot;tp&quot;: int, &quot;fp&quot;: int, &quot;fn&quot;: int,</span>
 <span class="sd">                }</span>
 <span class="sd">            },</span>
 <span class="sd">            &quot;label_scores&quot;: {  # Aggregated per-label</span>

@@ -308,13 +308,14 @@
 <span class="sd">        combined_scores = combine_scores(scores)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="c1"># Combine label scores across volumes, normalizing by the number of voxels</span>
+    <span class="c1"># Combine label scores across volumes. Both regimes pool raw TP/FP/FN per</span>
+    <span class="c1"># class (instance F1 and semantic IoU); instance also voxel-weights its</span>
+    <span class="c1"># continuous metrics (hausdorff / combined_score).</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Combining label scores...&quot;</span><span class="p">)</span>
     <span class="n">scores</span> <span class="o">=</span> <span class="n">scores</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="n">label_scores</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">total_voxels</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="c1"># Track instance F1 counts separately (sum TP/FP/FN, then compute F1)</span>
-    <span class="n">instance_counts</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># label -&gt; {&quot;tp&quot;: int, &quot;fp&quot;: int, &quot;fn&quot;: int}</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># label -&gt; {&quot;tp&quot;: int, &quot;fp&quot;: int, &quot;fn&quot;: int}</span>
     <span class="k">for</span> <span class="n">ds</span><span class="p">,</span> <span class="n">these_scores</span> <span class="ow">in</span> <span class="n">scores</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="c1"># Skip aggregation-level keys that are not per-crop result dicts</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">these_scores</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
@@ -332,82 +333,64 @@
         <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">this_score</span> <span class="ow">in</span> <span class="n">these_scores</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;is_missing&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">include_missing</span><span class="p">:</span>
                 <span class="k">continue</span>
-            <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label_scores</span><span class="p">:</span>
-                    <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label_scores</span><span class="p">:</span>
+                <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="p">{</span>
                         <span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
                         <span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
                         <span class="s2">&quot;combined_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
                     <span class="p">}</span>
-                    <span class="n">instance_counts</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tp&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;fp&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;fn&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
-                    <span class="n">total_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-                <span class="c1"># Accumulate TP/FP/FN counts directly (not voxel-weighted)</span>
-                <span class="k">for</span> <span class="n">count_key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;tp&quot;</span><span class="p">,</span> <span class="s2">&quot;fp&quot;</span><span class="p">,</span> <span class="s2">&quot;fn&quot;</span><span class="p">):</span>
-                    <span class="k">if</span> <span class="n">count_key</span> <span class="ow">in</span> <span class="n">this_score</span><span class="p">:</span>
-                        <span class="n">instance_counts</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="n">count_key</span><span class="p">]</span> <span class="o">+=</span> <span class="n">this_score</span><span class="p">[</span><span class="n">count_key</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label_scores</span><span class="p">:</span>
-                    <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;dice_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
-                    <span class="n">total_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">instance_classes</span>
+                    <span class="k">else</span> <span class="p">{}</span>
+                <span class="p">)</span>
+                <span class="n">counts</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tp&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;fp&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;fn&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+                <span class="n">total_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">count_key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;tp&quot;</span><span class="p">,</span> <span class="s2">&quot;fp&quot;</span><span class="p">,</span> <span class="s2">&quot;fn&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">count_key</span> <span class="ow">in</span> <span class="n">this_score</span> <span class="ow">and</span> <span class="n">this_score</span><span class="p">[</span><span class="n">count_key</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">counts</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="n">count_key</span><span class="p">]</span> <span class="o">+=</span> <span class="n">this_score</span><span class="p">[</span><span class="n">count_key</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">this_score</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">continue</span>
                 <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">+=</span> <span class="n">this_score</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">*</span> <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span>
-                <span class="k">if</span> <span class="n">this_score</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="ow">in</span> <span class="n">cast_to_none</span><span class="p">:</span>
-                    <span class="n">scores</span><span class="p">[</span><span class="n">ds</span><span class="p">][</span><span class="n">label</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">total_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">+=</span> <span class="n">this_score</span><span class="p">[</span><span class="s2">&quot;num_voxels&quot;</span><span class="p">]</span>
 
-    <span class="c1"># Normalize back to the total number of voxels</span>
+    <span class="c1"># Normalize per class; accumulate the overall (instance voxel-weighted,</span>
+    <span class="c1"># semantic plain per-class mean).</span>
+    <span class="n">instance_weighted_sum</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">instance_total_voxels</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">semantic_score_sum</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">semantic_class_count</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">label_scores</span><span class="p">:</span>
+        <span class="n">tp</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fn</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;tp&quot;</span><span class="p">],</span> <span class="n">counts</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;fp&quot;</span><span class="p">],</span> <span class="n">counts</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;fn&quot;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
+            <span class="n">combined_sum</span> <span class="o">=</span> <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;combined_score&quot;</span><span class="p">]</span>  <span class="c1"># pre-division sum</span>
             <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">]</span> <span class="o">/=</span> <span class="n">total_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
             <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">]</span> <span class="o">/=</span> <span class="n">total_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
-            <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;combined_score&quot;</span><span class="p">]</span> <span class="o">/=</span> <span class="n">total_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
-            <span class="c1"># Compute F1 from aggregated counts</span>
-            <span class="n">counts</span> <span class="o">=</span> <span class="n">instance_counts</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
-            <span class="n">tp</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fn</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="s2">&quot;tp&quot;</span><span class="p">],</span> <span class="n">counts</span><span class="p">[</span><span class="s2">&quot;fp&quot;</span><span class="p">],</span> <span class="n">counts</span><span class="p">[</span><span class="s2">&quot;fn&quot;</span><span class="p">]</span>
+            <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;combined_score&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">combined_sum</span> <span class="o">/</span> <span class="n">total_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
             <span class="n">denom</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">tp</span> <span class="o">+</span> <span class="n">fp</span> <span class="o">+</span> <span class="n">fn</span>
             <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;f1&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">tp</span> <span class="o">/</span> <span class="n">denom</span><span class="p">)</span> <span class="k">if</span> <span class="n">denom</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span>
-            <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;tp&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tp</span>
-            <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;fp&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fp</span>
-            <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;fn&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fn</span>
+            <span class="n">instance_weighted_sum</span> <span class="o">+=</span> <span class="n">combined_sum</span>
+            <span class="n">instance_total_voxels</span> <span class="o">+=</span> <span class="n">total_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;iou&quot;</span><span class="p">]</span> <span class="o">/=</span> <span class="n">total_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
-            <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;dice_score&quot;</span><span class="p">]</span> <span class="o">/=</span> <span class="n">total_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
-        <span class="c1"># Cast to None if the value is in `cast_to_none`</span>
+            <span class="n">denom</span> <span class="o">=</span> <span class="n">tp</span> <span class="o">+</span> <span class="n">fp</span> <span class="o">+</span> <span class="n">fn</span>
+            <span class="n">iou</span> <span class="o">=</span> <span class="p">(</span><span class="n">tp</span> <span class="o">/</span> <span class="n">denom</span><span class="p">)</span> <span class="k">if</span> <span class="n">denom</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">1.0</span>  <span class="c1"># denom 0 = nothing anywhere</span>
+            <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;iou&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">iou</span>
+            <span class="n">semantic_score_sum</span> <span class="o">+=</span> <span class="n">iou</span>  <span class="c1"># plain per-class mean</span>
+            <span class="n">semantic_class_count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;tp&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tp</span>
+        <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;fp&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fp</span>
+        <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;fn&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fn</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">]:</span>
             <span class="k">if</span> <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="ow">in</span> <span class="n">cast_to_none</span><span class="p">:</span>
                 <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;label_scores&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">label_scores</span>
 
-    <span class="c1"># Compute the overall score</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Computing overall scores...&quot;</span><span class="p">)</span>
-    <span class="n">overall_instance_scores</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">overall_semantic_scores</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">instance_total_voxels</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
-        <span class="n">total_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">label_scores</span> <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">instance_classes</span>
-    <span class="p">)</span>
-    <span class="n">semantic_total_voxels</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
-        <span class="n">total_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">label_scores</span> <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">instance_classes</span>
-    <span class="p">)</span>
-    <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">label_scores</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
-            <span class="n">overall_instance_scores</span> <span class="o">+=</span> <span class="p">[</span>
-                <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;combined_score&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">total_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
-            <span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">overall_semantic_scores</span> <span class="o">+=</span> <span class="p">[</span>
-                <span class="n">label_scores</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;iou&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">total_voxels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
-            <span class="p">]</span>
     <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;overall_instance_score&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">overall_instance_scores</span><span class="p">)</span> <span class="o">/</span> <span class="n">instance_total_voxels</span>
-        <span class="k">if</span> <span class="n">overall_instance_scores</span>
-        <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">instance_weighted_sum</span> <span class="o">/</span> <span class="n">instance_total_voxels</span> <span class="k">if</span> <span class="n">instance_total_voxels</span> <span class="k">else</span> <span class="mi">0</span>
     <span class="p">)</span>
     <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;overall_semantic_score&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">overall_semantic_scores</span><span class="p">)</span> <span class="o">/</span> <span class="n">semantic_total_voxels</span>
-        <span class="k">if</span> <span class="n">overall_semantic_scores</span>
-        <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">semantic_score_sum</span> <span class="o">/</span> <span class="n">semantic_class_count</span> <span class="k">if</span> <span class="n">semantic_class_count</span> <span class="k">else</span> <span class="mi">0</span>
     <span class="p">)</span>
     <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;overall_score&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;overall_instance_score&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;overall_semantic_score&quot;</span><span class="p">]</span>

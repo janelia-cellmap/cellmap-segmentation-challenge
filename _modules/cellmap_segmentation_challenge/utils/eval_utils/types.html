@@ -283,12 +283,9 @@
     <span class="n">tp</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">fp</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">fn</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="n">binary_accuracy</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">hausdorff_distance</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">normalized_hausdorff_distance</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">combined_score</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="n">iou</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="n">dice_score</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">num_voxels</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">voxel_size</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
     <span class="n">is_missing</span><span class="p">:</span> <span class="nb">bool</span>
@@ -303,9 +300,9 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">SemanticScoreDict</span><span class="p">(</span><span class="n">TypedDict</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Type definition for semantic segmentation scores.&quot;&quot;&quot;</span>
 
-    <span class="n">iou</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="n">dice_score</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="n">binary_accuracy</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">tp</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">fp</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">fn</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">num_voxels</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">voxel_size</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
     <span class="n">is_missing</span><span class="p">:</span> <span class="nb">bool</span>
