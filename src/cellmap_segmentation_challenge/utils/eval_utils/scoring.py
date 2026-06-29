@@ -7,9 +7,7 @@ from time import time
 import cc3d
 import numpy as np
 import zarr
-from fastremap import remap
-from scipy.spatial.distance import dice
-from sklearn.metrics import jaccard_score
+from fastremap import remap, unique
 from upath import UPath
 
 from ...config import TRUTH_PATH, INSTANCE_CLASSES
@@ -30,34 +28,7 @@ from .instance_matching import match_instances
 from .types import InstanceScoreDict
 
 
-def _compute_binary_metrics(
-    truth_label: np.ndarray, pred_label: np.ndarray
-) -> dict[str, float]:
-    """Compute binary segmentation metrics.
-
-    Args:
-        truth_label: Ground truth labels
-        pred_label: Predicted labels
-
-    Returns:
-        Dictionary with iou, dice_score, and binary_accuracy
-    """
-    truth_binary = (truth_label > 0).ravel()
-    pred_binary = (pred_label > 0).ravel()
-
-    iou = jaccard_score(truth_binary, pred_binary, zero_division=1)
-    dice_score = 1 - dice(truth_binary, pred_binary)
-    binary_accuracy = float((truth_binary == pred_binary).mean())
-
-    return {
-        "iou": iou,
-        "dice_score": dice_score,
-        "binary_accuracy": binary_accuracy,
-    }
-
-
 def _create_pathological_scores(
-    binary_metrics: dict[str, float],
     hausdorff_distance_max: float,
     voxel_size: tuple[float, ...],
     status: str,
@@ -65,7 +36,6 @@ def _create_pathological_scores(
     """Create scores for pathological cases (matching failed).
 
     Args:
-        binary_metrics: Pre-computed binary metrics
         hausdorff_distance_max: Maximum Hausdorff distance
         voxel_size: Voxel size
         status: Status string for the failure
@@ -78,14 +48,11 @@ def _create_pathological_scores(
         "tp": 0,
         "fp": 0,
         "fn": 0,
-        "binary_accuracy": binary_metrics["binary_accuracy"],
         "hausdorff_distance": hausdorff_distance_max,
         "normalized_hausdorff_distance": normalize_distance(
             hausdorff_distance_max, voxel_size
         ),
         "combined_score": 0,
-        "iou": binary_metrics["iou"],
-        "dice_score": binary_metrics["dice_score"],
         "status": status,
     }
 
@@ -97,6 +64,7 @@ def _compute_hausdorff_scores(
     n_pred: int,
     voxel_size: tuple[float, ...],
     hausdorff_distance_max: float,
+    truth_ids: np.ndarray | None = None,
 ) -> list[float]:
     """Compute Hausdorff distances for matched instances.
 
@@ -107,6 +75,7 @@ def _compute_hausdorff_scores(
         n_pred: Number of predicted instances
         voxel_size: Voxel size
         hausdorff_distance_max: Maximum distance
+        truth_ids: Precomputed non-zero ground-truth ids
 
     Returns:
         List of Hausdorff distances
@@ -118,7 +87,7 @@ def _compute_hausdorff_scores(
     if len(mapping) > 0:
         # Compute Hausdorff for matched instances
         hausdorff_distances = optimized_hausdorff_distances(
-            truth_label, pred_label, voxel_size, hausdorff_distance_max
+            truth_label, pred_label, voxel_size, hausdorff_distance_max, truth_ids=truth_ids
         )
 
         # Add max distance for unmatched predictions
@@ -185,16 +154,12 @@ def score_instance(
     # TODO: Switch to just renumbering to contiguous IDs, and leave user labels intact
     pred_label, n_pred = cc3d.connected_components(pred_label, return_N=True)
 
-    # Compute metrics that don't require matching
-    binary_metrics = _compute_binary_metrics(truth_label, pred_label)
-
     # Match instances
     try:
         mapping = match_instances(truth_label, pred_label, config)
     except (TooManyInstancesError, TooManyOverlapEdgesError) as e:
         logging.warning(f"Instance matching failed: {e}")
         return _create_pathological_scores(
-            binary_metrics,
             hausdorff_distance_max,
             voxel_size,
             "skipped_too_many_instances",
@@ -202,7 +167,7 @@ def score_instance(
     except MatchingFailedError as e:
         logging.error(f"Matching optimization failed: {e}")
         return _create_pathological_scores(
-            binary_metrics, hausdorff_distance_max, voxel_size, "matching_failed"
+            hausdorff_distance_max, voxel_size, "matching_failed"
         )
 
     # Remap predictions to match GT IDs
@@ -212,39 +177,42 @@ def score_instance(
             pred_label, mapping, in_place=True, preserve_missing_labels=True
         )
 
-    # Free matching-stage scratch (overlap matrices, cc3d temporaries) before
-    # the Hausdorff phase spins up `per_instance_threads` float64 distance
-    # transforms per worker.
+    # Non-zero ground-truth ids, computed once and shared with the Hausdorff step.
+    truth_ids = unique(truth_label)
+    truth_ids = truth_ids[truth_ids != 0]
+
+    # Free matching-stage scratch before the memory-heavy Hausdorff phase.
     gc.collect()
 
     # Compute Hausdorff distances
     hausdorff_distances = _compute_hausdorff_scores(
-        mapping, truth_label, pred_label, n_pred, voxel_size, hausdorff_distance_max
+        mapping, truth_label, pred_label, n_pred, voxel_size, hausdorff_distance_max, truth_ids
     )
 
     if len(hausdorff_distances) == 0:
         hausdorff_distances = [hausdorff_distance_max]
 
     # Compute F1 from instance matching counts
-    gt_ids = set(np.unique(truth_label)) - {0}
+    gt_count = int(truth_ids.size)
     matched_gt_ids = set(mapping.values()) - {0}
     matched_pred_ids = set(mapping.keys()) - {0}
 
     tp = len(matched_gt_ids)
     fp = n_pred - len(matched_pred_ids)
-    fn = len(gt_ids) - len(matched_gt_ids)
-    if len(gt_ids) == 0 and n_pred == 0:
+    fn = gt_count - len(matched_gt_ids)
+    if gt_count == 0 and n_pred == 0:
         # Correct true negative - 0/0, should be scored as 1.0
         f1 = 1.0
     else:
-        f1 = (2 * tp / (2 * tp + fp + fn)) if (2 * tp + fp + fn) > 0 else 0.0
+        f1 = 2 * tp / (2 * tp + fp + fn)
 
     # Aggregate scores
     logging.info("Computing final scores...")
-    hausdorff_dist = float(np.mean(hausdorff_distances))
-    normalized_hausdorff_dist = float(
-        np.mean([normalize_distance(hd, voxel_size) for hd in hausdorff_distances])
-    )
+    hausdorff_distances = np.asarray(hausdorff_distances, dtype=np.float64)
+    hausdorff_dist = float(hausdorff_distances.mean())
+    # Normalize vectorized: norm(voxel_size) is constant; inf distance -> 0.
+    vs_norm = np.linalg.norm(voxel_size)
+    normalized_hausdorff_dist = float((1.01 ** (-hausdorff_distances / vs_norm)).mean())
     combined_score = (f1 * normalized_hausdorff_dist) ** 0.5
     logging.info(f"F1: {f1:.4f} (TP={tp}, FP={fp}, FN={fn})")
     logging.info(f"Hausdorff Distance: {hausdorff_dist:.4f}")
@@ -260,11 +228,10 @@ def score_instance(
         "normalized_hausdorff_distance": normalized_hausdorff_dist,
         "combined_score": combined_score,
         "status": "scored",
-        **binary_metrics,
     }
 
 
-def score_semantic(pred_label, truth_label) -> dict[str, float]:
+def score_semantic(pred_label, truth_label) -> dict[str, int | str]:
     """
     Score a single semantic label volume against the ground truth semantic label volume.
 
@@ -283,26 +250,19 @@ def score_semantic(pred_label, truth_label) -> dict[str, float]:
     pred_label = (pred_label > 0.0).ravel()
     truth_label = (truth_label > 0.0).ravel()
 
-    # Compute the scores
-    if np.sum(truth_label + pred_label) == 0:
-        # If there are no true or false positives, set the scores to 1
-        logging.debug("No true or false positives found. Setting scores to 1.")
-        dice_score = 1
-        iou_score = 1
-    else:
-        dice_score = 1 - dice(truth_label, pred_label)
-        iou_score = jaccard_score(truth_label, pred_label, zero_division=1)
-    scores = {
-        "iou": iou_score,
-        "dice_score": dice_score if not np.isnan(dice_score) else 1,
-        "binary_accuracy": float((truth_label == pred_label).mean()),
+    # Voxel confusion counts; pooled per class in aggregation to compute IoU.
+    tp = int(np.count_nonzero(truth_label & pred_label))
+    fp = int(pred_label.sum()) - tp
+    fn = int(truth_label.sum()) - tp
+
+    logging.info(f"Semantic counts: TP={tp}, FP={fp}, FN={fn}")
+
+    return {
+        "tp": tp,
+        "fp": fp,
+        "fn": fn,
         "status": "scored",
     }
-
-    logging.info(f"IoU: {scores['iou']:.4f}")
-    logging.info(f"Dice Score: {scores['dice_score']:.4f}")
-
-    return scores
 
 
 def score_label(
@@ -391,12 +351,14 @@ def empty_label_score(
     ds = zarr.open((truth_path / crop_name / label).path, mode="r")
     voxel_size = ds.attrs["voxel_size"]
     if label in instance_classes:
-        truth_path = UPath(truth_path)
+        # Penalize non-submission: every ground-truth instance is a false negative.
+        truth_ids = unique(ds[:])
+        n_instances = int(truth_ids[truth_ids != 0].size)
         return {
             "f1": 0.0,
             "tp": 0,
             "fp": 0,
-            "fn": 0,
+            "fn": n_instances,
             "hausdorff_distance": compute_max_distance(voxel_size, ds.shape),
             "normalized_hausdorff_distance": 0,
             "combined_score": 0,
@@ -406,11 +368,13 @@ def empty_label_score(
             "status": "missing",
         }
     else:
+        # Not submitted: count every voxel as a false negative -> IoU 0.
+        n_voxels = int(np.prod(ds.shape))
         return {
-            "iou": 0,
-            "dice_score": 0,
-            "binary_accuracy": 0,
-            "num_voxels": int(np.prod(ds.shape)),
+            "tp": 0,
+            "fp": 0,
+            "fn": n_voxels,
+            "num_voxels": n_voxels,
             "voxel_size": voxel_size,
             "is_missing": True,
             "status": "missing",

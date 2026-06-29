@@ -40,7 +40,6 @@ from cellmap_segmentation_challenge.utils.eval_utils.instance_matching import (
 )
 from cellmap_segmentation_challenge.utils.eval_utils.scoring import (
     # Helper functions for score_instance
-    _compute_binary_metrics,
     _create_pathological_scores,
     _compute_hausdorff_scores,
 )
@@ -255,33 +254,9 @@ class TestMatchInstancesHelpers:
 class TestScoreInstanceHelpers:
     """Test helper functions for score_instance."""
 
-    def test_compute_binary_metrics_perfect_match(self):
-        """Test binary metrics with perfect match."""
-        truth = np.array([[1, 1], [0, 0]])
-        pred = np.array([[1, 1], [0, 0]])
-
-        metrics = _compute_binary_metrics(truth, pred)
-
-        assert metrics["iou"] == pytest.approx(1.0)
-        assert metrics["dice_score"] == pytest.approx(1.0)
-        assert metrics["binary_accuracy"] == pytest.approx(1.0)
-
-    def test_compute_binary_metrics_no_overlap(self):
-        """Test binary metrics with no overlap."""
-        truth = np.array([[1, 1], [0, 0]])
-        pred = np.array([[0, 0], [1, 1]])
-
-        metrics = _compute_binary_metrics(truth, pred)
-
-        assert metrics["iou"] == 0.0
-        assert metrics["binary_accuracy"] == 0.0
-
     def test_create_pathological_scores(self):
         """Test creation of pathological scores."""
-        binary_metrics = {"iou": 0.5, "dice_score": 0.6, "binary_accuracy": 0.7}
-
         scores = _create_pathological_scores(
-            binary_metrics,
             hausdorff_distance_max=100.0,
             voxel_size=(4.0, 4.0, 4.0),
             status="test_failure",
@@ -290,7 +265,6 @@ class TestScoreInstanceHelpers:
         assert scores["f1"] == 0.0
         assert scores["combined_score"] == 0
         assert scores["hausdorff_distance"] == 100.0
-        assert scores["iou"] == 0.5
         assert scores["status"] == "test_failure"
 
     def test_compute_hausdorff_scores_only_background(self):

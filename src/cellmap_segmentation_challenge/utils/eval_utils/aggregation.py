@@ -35,13 +35,14 @@ def combine_scores(
         combined_scores = combine_scores(scores)
     """
 
-    # Combine label scores across volumes, normalizing by the number of voxels
+    # Combine label scores across volumes. Both regimes pool raw TP/FP/FN per
+    # class (instance F1 and semantic IoU); instance also voxel-weights its
+    # continuous metrics (hausdorff / combined_score).
     logging.info(f"Combining label scores...")
     scores = scores.copy()
     label_scores = {}
     total_voxels = {}
-    # Track instance F1 counts separately (sum TP/FP/FN, then compute F1)
-    instance_counts = {}  # label -> {"tp": int, "fp": int, "fn": int}
+    counts = {}  # label -> {"tp": int, "fp": int, "fn": int}
     for ds, these_scores in scores.items():
         # Skip aggregation-level keys that are not per-crop result dicts
         if not isinstance(these_scores, dict):
@@ -59,82 +60,64 @@ def combine_scores(
         for label, this_score in these_scores.items():
             if this_score["is_missing"] and not include_missing:
                 continue
-            if label in instance_classes:
-                if label not in label_scores:
-                    label_scores[label] = {
+            if label not in label_scores:
+                label_scores[label] = (
+                    {
                         "hausdorff_distance": 0,
                         "normalized_hausdorff_distance": 0,
                         "combined_score": 0,
                     }
-                    instance_counts[label] = {"tp": 0, "fp": 0, "fn": 0}
-                    total_voxels[label] = 0
-                # Accumulate TP/FP/FN counts directly (not voxel-weighted)
-                for count_key in ("tp", "fp", "fn"):
-                    if count_key in this_score:
-                        instance_counts[label][count_key] += this_score[count_key]
-            else:
-                if label not in label_scores:
-                    label_scores[label] = {"iou": 0, "dice_score": 0}
-                    total_voxels[label] = 0
+                    if label in instance_classes
+                    else {}
+                )
+                counts[label] = {"tp": 0, "fp": 0, "fn": 0}
+                total_voxels[label] = 0
+            for count_key in ("tp", "fp", "fn"):
+                if count_key in this_score and this_score[count_key] is not None:
+                    counts[label][count_key] += this_score[count_key]
             for key in label_scores[label].keys():
                 if this_score[key] is None:
                     continue
                 label_scores[label][key] += this_score[key] * this_score["num_voxels"]
-                if this_score[key] in cast_to_none:
-                    scores[ds][label][key] = None
             total_voxels[label] += this_score["num_voxels"]
 
-    # Normalize back to the total number of voxels
+    # Normalize per class; accumulate the overall (instance voxel-weighted,
+    # semantic plain per-class mean).
+    instance_weighted_sum = 0.0
+    instance_total_voxels = 0
+    semantic_score_sum = 0.0
+    semantic_class_count = 0
     for label in label_scores:
+        tp, fp, fn = counts[label]["tp"], counts[label]["fp"], counts[label]["fn"]
         if label in instance_classes:
+            combined_sum = label_scores[label]["combined_score"]  # pre-division sum
             label_scores[label]["hausdorff_distance"] /= total_voxels[label]
             label_scores[label]["normalized_hausdorff_distance"] /= total_voxels[label]
-            label_scores[label]["combined_score"] /= total_voxels[label]
-            # Compute F1 from aggregated counts
-            counts = instance_counts[label]
-            tp, fp, fn = counts["tp"], counts["fp"], counts["fn"]
+            label_scores[label]["combined_score"] = combined_sum / total_voxels[label]
             denom = 2 * tp + fp + fn
             label_scores[label]["f1"] = (2 * tp / denom) if denom > 0 else 0.0
-            label_scores[label]["tp"] = tp
-            label_scores[label]["fp"] = fp
-            label_scores[label]["fn"] = fn
+            instance_weighted_sum += combined_sum
+            instance_total_voxels += total_voxels[label]
         else:
-            label_scores[label]["iou"] /= total_voxels[label]
-            label_scores[label]["dice_score"] /= total_voxels[label]
-        # Cast to None if the value is in `cast_to_none`
+            denom = tp + fp + fn
+            iou = (tp / denom) if denom > 0 else 1.0  # denom 0 = nothing anywhere
+            label_scores[label]["iou"] = iou
+            semantic_score_sum += iou  # plain per-class mean
+            semantic_class_count += 1
+        label_scores[label]["tp"] = tp
+        label_scores[label]["fp"] = fp
+        label_scores[label]["fn"] = fn
         for key in label_scores[label]:
             if label_scores[label][key] in cast_to_none:
                 label_scores[label][key] = None
     scores["label_scores"] = label_scores
 
-    # Compute the overall score
     logging.info("Computing overall scores...")
-    overall_instance_scores = []
-    overall_semantic_scores = []
-    instance_total_voxels = sum(
-        total_voxels[label] for label in label_scores if label in instance_classes
-    )
-    semantic_total_voxels = sum(
-        total_voxels[label] for label in label_scores if label not in instance_classes
-    )
-    for label in label_scores:
-        if label in instance_classes:
-            overall_instance_scores += [
-                label_scores[label]["combined_score"] * total_voxels[label]
-            ]
-        else:
-            overall_semantic_scores += [
-                label_scores[label]["iou"] * total_voxels[label]
-            ]
     scores["overall_instance_score"] = (
-        np.nansum(overall_instance_scores) / instance_total_voxels
-        if overall_instance_scores
-        else 0
+        instance_weighted_sum / instance_total_voxels if instance_total_voxels else 0
     )
     scores["overall_semantic_score"] = (
-        np.nansum(overall_semantic_scores) / semantic_total_voxels
-        if overall_semantic_scores
-        else 0
+        semantic_score_sum / semantic_class_count if semantic_class_count else 0
     )
     scores["overall_score"] = (
         scores["overall_instance_score"] * scores["overall_semantic_score"]

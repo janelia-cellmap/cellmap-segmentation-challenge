@@ -530,8 +530,10 @@ def test_score_semantic_perfect_match():
     truth = np.array([[0, 1], [1, 1]], dtype=float)
     pred = truth.copy()
     scores = ev.score_semantic(pred, truth)
-    assert np.isclose(scores["iou"], 1.0)
-    assert np.isclose(scores["dice_score"], 1.0)
+    # 3 foreground voxels, all matched
+    assert scores["tp"] == 3
+    assert scores["fp"] == 0
+    assert scores["fn"] == 0
 
 
 def test_score_semantic_partial_overlap():
@@ -543,10 +545,10 @@ def test_score_semantic_partial_overlap():
 
     scores = ev.score_semantic(pred, truth)
 
-    # manual IoU: TP = 2, FP = 0, FN = 1 -> IoU = 2 / (2+0+1) = 2/3
-    assert np.isclose(scores["iou"], 2 / 3)
-    # manual Dice: 2TP / (2TP + FP + FN) = 4 / (4 + 0 + 1) = 0.8
-    assert np.isclose(scores["dice_score"], 0.8)
+    # TP = 2, FP = 0, FN = 1 (pooled IoU = 2/3 is computed in aggregation)
+    assert scores["tp"] == 2
+    assert scores["fp"] == 0
+    assert scores["fn"] == 1
 
 
 def test_score_semantic_no_foreground():
@@ -555,8 +557,9 @@ def test_score_semantic_no_foreground():
     truth = np.zeros((3, 3), dtype=float)
     pred = np.zeros_like(truth)
     scores = ev.score_semantic(pred, truth)
-    assert np.isclose(scores["iou"], 1.0)
-    assert np.isclose(scores["dice_score"], 1.0)
+    assert scores["tp"] == 0
+    assert scores["fp"] == 0
+    assert scores["fn"] == 0
 
 
 # ------------------------
@@ -721,7 +724,10 @@ def test_missing_volume_score_mixed_labels(tmp_path):
     assert scores["instance"]["is_missing"] is True
     assert scores["sem"]["is_missing"] is True
     assert scores["instance"]["f1"] == 0.0
-    assert scores["sem"]["iou"] == 0.0
+    # missing semantic is penalized: empty truth -> fp=0, fn=all voxels -> IoU 0
+    assert scores["sem"]["fp"] == 0
+    assert scores["sem"]["fn"] == arr_sem.size
+    assert "iou" not in scores["sem"]
 
 
 # ------------------------
@@ -747,8 +753,10 @@ def test_combine_scores_instance_and_semantic():
         },
         "crop2": {
             "sem": {
-                "iou": 0.5,
-                "dice_score": 2 / 3,
+                # pooled IoU = TP / (TP + FP + FN) = 4 / (4 + 2 + 2) = 0.5
+                "tp": 4,
+                "fp": 2,
+                "fn": 2,
                 "num_voxels": 8,
                 "voxel_size": (1.0, 1.0, 1.0),
                 "is_missing": False,
