@@ -405,13 +405,12 @@ def test_score_instance_perfect_match():
     label = np.array([[0, 1, 1], [0, 2, 2]], dtype=np.int32)
     scores = ev.score_instance(label, label, voxel_size=(1.0, 1.0))
 
-    assert np.isclose(scores["f1"], 1.0)
     assert scores["tp"] == 2
     assert scores["fp"] == 0
     assert scores["fn"] == 0
-    assert np.isclose(scores["hausdorff_distance"], 0.0)
-    assert np.isclose(scores["normalized_hausdorff_distance"], 1.0)
-    assert np.isclose(scores["combined_score"], 1.0)
+    # both instances matched at zero distance -> normalized 1.0 each
+    assert scores["n_hausdorff"] == 2
+    assert np.isclose(scores["hausdorff_norm_sum"], 2.0)
 
 
 def test_score_instance_simple_shift():
@@ -424,17 +423,17 @@ def test_score_instance_simple_shift():
     voxel_size = (1.0, 1.0)
     scores = ev.score_instance(pred, truth, voxel_size)
 
-    # F1 should be 1.0 since the single instance is matched
-    assert np.isclose(scores["f1"], 1.0)
     assert scores["tp"] == 1
     assert scores["fp"] == 0
     assert scores["fn"] == 0
-    # Hausdorff distance is 1 (each point moves 1 voxel)
-    assert np.isclose(scores["hausdorff_distance"], 1.0)
+    # one matched instance, Hausdorff distance 1 -> normalized 1.01**(-1/||vs||)
+    assert scores["n_hausdorff"] == 1
+    expected = 1.01 ** (-1.0 / np.linalg.norm(voxel_size))
+    assert np.isclose(scores["hausdorff_norm_sum"], expected)
 
 
 def test_score_instance_f1_all_fp():
-    """Prediction has instances but GT has none -> f1 = 0."""
+    """Prediction has instances but GT has none -> all false positives."""
     from cellmap_segmentation_challenge import evaluate as ev
 
     truth = np.zeros((4, 4), dtype=np.int32)
@@ -443,14 +442,15 @@ def test_score_instance_f1_all_fp():
     )
     scores = ev.score_instance(pred, truth, voxel_size=(1.0, 1.0))
 
-    assert np.isclose(scores["f1"], 0.0)
     assert scores["tp"] == 0
     assert scores["fn"] == 0
     assert scores["fp"] == 2
+    # 2 hallucinated predictions, each a max-distance penalty
+    assert scores["n_hausdorff"] == 2
 
 
 def test_score_instance_f1_all_fn():
-    """GT has instances but prediction has none -> f1 = 0."""
+    """GT has instances but prediction has none -> all false negatives."""
     from cellmap_segmentation_challenge import evaluate as ev
 
     truth = np.array(
@@ -459,14 +459,15 @@ def test_score_instance_f1_all_fn():
     pred = np.zeros((4, 4), dtype=np.int32)
     scores = ev.score_instance(pred, truth, voxel_size=(1.0, 1.0))
 
-    assert np.isclose(scores["f1"], 0.0)
     assert scores["tp"] == 0
     assert scores["fp"] == 0
     assert scores["fn"] == 2
+    # 2 missed truth instances, each a max-distance penalty
+    assert scores["n_hausdorff"] == 2
 
 
-def test_score_instance_empty_vs_empty_true_negative():
-    """Neither GT nor prediction has instances -> correct true negative, score 1.0."""
+def test_score_instance_empty_vs_empty_contributes_nothing():
+    """Neither GT nor prediction has instances -> no counts, nothing pooled."""
     from cellmap_segmentation_challenge import evaluate as ev
 
     truth = np.zeros((4, 4), dtype=np.int32)
@@ -476,10 +477,9 @@ def test_score_instance_empty_vs_empty_true_negative():
     assert scores["tp"] == 0
     assert scores["fp"] == 0
     assert scores["fn"] == 0
-    # Correctly predicting absence is perfect, 0/0 -> 1.0
-    assert np.isclose(scores["f1"], 1.0)
-    assert np.isclose(scores["normalized_hausdorff_distance"], 1.0)
-    assert np.isclose(scores["combined_score"], 1.0)
+    # empty crop contributes nothing to the per-class pools (no inflation)
+    assert scores["n_hausdorff"] == 0
+    assert scores["hausdorff_norm_sum"] == 0.0
 
 
 def test_score_instance_f1_partial_match():
@@ -501,22 +501,11 @@ def test_score_instance_f1_partial_match():
     scores = ev.score_instance(pred, truth, voxel_size=(1.0, 1.0))
 
     # tp=2 (GT 1 & 2 matched), fp=1 (pred 7 unmatched), fn=1 (GT 3 unmatched)
-    # f1 = 2*2 / (2*2 + 1 + 1) = 4/6 = 2/3
     assert scores["tp"] == 2
     assert scores["fp"] == 1
     assert scores["fn"] == 1
-    assert np.isclose(scores["f1"], 2 / 3)
-
-
-def test_score_instance_combined_score_formula():
-    """Verify combined_score = sqrt(f1 * normalized_hausdorff)."""
-    from cellmap_segmentation_challenge import evaluate as ev
-
-    label = np.array([[0, 1, 1], [0, 2, 2]], dtype=np.int32)
-    scores = ev.score_instance(label, label, voxel_size=(1.0, 1.0))
-
-    expected = (scores["f1"] * scores["normalized_hausdorff_distance"]) ** 0.5
-    assert np.isclose(scores["combined_score"], expected)
+    # 3 truth instances + 1 unmatched prediction
+    assert scores["n_hausdorff"] == 4
 
 
 # ------------------------
@@ -701,7 +690,9 @@ def test_empty_label_score_instance(tmp_path):
     # num_voxels should match volume size
     assert scores["num_voxels"] == arr.size
     assert scores["is_missing"] is True
-    assert scores["f1"] == 0.0
+    # empty truth -> no instances to miss
+    assert scores["fn"] == 0
+    assert scores["n_hausdorff"] == 0
 
 
 def test_missing_volume_score_mixed_labels(tmp_path):
@@ -709,6 +700,8 @@ def test_missing_volume_score_mixed_labels(tmp_path):
 
     truth_root = tmp_path / "truth_volume.zarr"
     arr_inst = np.zeros((2, 2, 2), dtype=np.uint8)
+    arr_inst[0] = 1  # instance 1
+    arr_inst[1] = 2  # instance 2
     arr_sem = np.zeros((2, 2, 2), dtype=np.uint8)
 
     _create_simple_volume(truth_root, "crop1", "instance", arr_inst)
@@ -723,7 +716,9 @@ def test_missing_volume_score_mixed_labels(tmp_path):
     assert set(scores.keys()) == {"instance", "sem"}
     assert scores["instance"]["is_missing"] is True
     assert scores["sem"]["is_missing"] is True
-    assert scores["instance"]["f1"] == 0.0
+    # missing instance is penalized: each of the 2 truth instances is a FN
+    assert scores["instance"]["fn"] == 2
+    assert scores["instance"]["n_hausdorff"] == 2
     # missing semantic is penalized: empty truth -> fp=0, fn=all voxels -> IoU 0
     assert scores["sem"]["fp"] == 0
     assert scores["sem"]["fn"] == arr_sem.size
@@ -742,10 +737,12 @@ def test_combine_scores_instance_and_semantic():
     scores = {
         "crop1": {
             "instance": {
-                "f1": 1.0,
-                "hausdorff_distance": 0.0,
-                "normalized_hausdorff_distance": 1.0,
-                "combined_score": 1.0,
+                # 2 matched instances at zero distance -> f1=1, hausdorff mean=1
+                "tp": 2,
+                "fp": 0,
+                "fn": 0,
+                "hausdorff_norm_sum": 2.0,
+                "n_hausdorff": 2,
                 "num_voxels": 8,
                 "voxel_size": (1.0, 1.0, 1.0),
                 "is_missing": False,
@@ -777,6 +774,80 @@ def test_combine_scores_instance_and_semantic():
     # only one of each type -> overall scores are just these
     assert np.isclose(combined["overall_instance_score"], 1.0)
     assert np.isclose(combined["overall_semantic_score"], 0.5)
+
+
+def test_combine_scores_combined_pools_across_crops():
+    from cellmap_segmentation_challenge import evaluate as ev
+
+    # Same instance class in two crops -> counts and Hausdorff pooled per class.
+    scores = {
+        "crop1": {
+            "mito": {
+                "tp": 3,
+                "fp": 1,
+                "fn": 0,
+                "hausdorff_norm_sum": 2.4,
+                "n_hausdorff": 4,
+                "num_voxels": 8,
+                "voxel_size": (1.0, 1.0, 1.0),
+                "is_missing": False,
+            }
+        },
+        "crop2": {
+            "mito": {
+                "tp": 1,
+                "fp": 0,
+                "fn": 2,
+                "hausdorff_norm_sum": 1.0,
+                "n_hausdorff": 2,
+                "num_voxels": 8,
+                "voxel_size": (1.0, 1.0, 1.0),
+                "is_missing": False,
+            }
+        },
+    }
+
+    combined = ev.combine_scores(scores, include_missing=True, instance_classes=["mito"])
+    ls = combined["label_scores"]["mito"]
+
+    f1 = 8 / 11  # 2*tp / (2*tp + fp + fn), pooled tp=4 fp=1 fn=2
+    hausdorff = 3.4 / 6  # pooled sum / count
+    assert np.isclose(ls["f1"], f1)
+    assert np.isclose(ls["normalized_hausdorff_distance"], hausdorff)
+    assert np.isclose(ls["combined_score"], (f1 * hausdorff) ** 0.5)
+
+
+def test_public_scores_strips_crops_counts_and_unsubmitted_classes():
+    from cellmap_segmentation_challenge.utils.eval_utils.aggregation import (
+        public_scores,
+    )
+
+    scores = {
+        "crop1": {"mito": {"tp": 3}},  # per-crop entry
+        "label_scores": {
+            "mito": {"f1": 0.8, "combined_score": 0.77, "tp": 3, "fp": 1, "fn": 0},
+            "er": {"iou": 0.5, "tp": 10, "fp": 2, "fn": 4},  # not submitted
+        },
+        "overall_instance_score": 0.77,
+        "overall_semantic_score": 0.5,
+        "overall_score": 0.62,
+        "total_evals": 413,
+        "num_evals_done": 2,
+        "git_version": "abc",
+    }
+
+    public = public_scores(scores, submitted_labels={"mito"})
+
+    # per-crop entries dropped
+    assert "crop1" not in public
+    # only the submitted class is shown
+    assert set(public["label_scores"]) == {"mito"}
+    # raw counts stripped, ratio scores kept
+    assert public["label_scores"]["mito"] == {"f1": 0.8, "combined_score": 0.77}
+    # overalls and metadata preserved
+    assert public["overall_score"] == 0.62
+    assert public["total_evals"] == 413
+    assert public["git_version"] == "abc"
 
 
 # ------------------------
@@ -826,8 +897,11 @@ def test_score_label_instance_integration(monkeypatch, tmp_path):
 
     assert crop_out == crop_name_str
     assert label_out == label_name
-    assert np.isclose(results["f1"], 1.0)
-    assert np.isclose(results["hausdorff_distance"], 0.0)
+    # single truth instance, matched -> tp=1, fn=0, one Hausdorff entry
+    assert results["status"] == "scored"
+    assert results["tp"] == 1
+    assert results["fn"] == 0
+    assert results["n_hausdorff"] == 1
     assert results["is_missing"] is False
 
 

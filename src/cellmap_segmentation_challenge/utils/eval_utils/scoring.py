@@ -28,31 +28,24 @@ from .instance_matching import match_instances
 from .types import InstanceScoreDict
 
 
-def _create_pathological_scores(
-    hausdorff_distance_max: float,
-    voxel_size: tuple[float, ...],
-    status: str,
-) -> InstanceScoreDict:
-    """Create scores for pathological cases (matching failed).
+def _create_pathological_scores(status: str) -> InstanceScoreDict:
+    """Create scores for a crop whose instance matching failed.
+
+    The crop contributes nothing to the per-class pools (zero counts and no
+    Hausdorff entries), so a failure neither helps nor penalizes the class.
 
     Args:
-        hausdorff_distance_max: Maximum Hausdorff distance
-        voxel_size: Voxel size
-        status: Status string for the failure
+        status: Status string describing the failure.
 
     Returns:
-        Dictionary with worst-case scores
+        Score dict with zeroed counts and Hausdorff fields.
     """
     return {
-        "f1": 0.0,
         "tp": 0,
         "fp": 0,
         "fn": 0,
-        "hausdorff_distance": hausdorff_distance_max,
-        "normalized_hausdorff_distance": normalize_distance(
-            hausdorff_distance_max, voxel_size
-        ),
-        "combined_score": 0,
+        "hausdorff_norm_sum": 0.0,
+        "n_hausdorff": 0,
         "status": status,
     }
 
@@ -65,8 +58,14 @@ def _compute_hausdorff_scores(
     voxel_size: tuple[float, ...],
     hausdorff_distance_max: float,
     truth_ids: np.ndarray | None = None,
-) -> list[float]:
-    """Compute Hausdorff distances for matched instances.
+) -> np.ndarray:
+    """Compute per-instance Hausdorff distances for pooling per class.
+
+    Produces one distance per ground-truth instance (matched -> real distance,
+    unmatched/FN -> max distance) plus a max-distance penalty per unmatched
+    prediction (hallucination). Returns an empty array when the crop has no
+    truth instances and no predictions, so empty crops contribute nothing to
+    the per-class pool.
 
     Args:
         mapping: Instance ID mapping (pred -> truth)
@@ -78,37 +77,24 @@ def _compute_hausdorff_scores(
         truth_ids: Precomputed non-zero ground-truth ids
 
     Returns:
-        List of Hausdorff distances
+        1D array of per-instance Hausdorff distances (possibly empty)
     """
-    if len(mapping) == 1 and 0 in mapping:
-        # Only background
-        return [0.0]
+    # One distance per truth instance (matched -> real, unmatched/FN -> max).
+    hausdorff_distances = optimized_hausdorff_distances(
+        truth_label, pred_label, voxel_size, hausdorff_distance_max, truth_ids=truth_ids
+    )
 
-    if len(mapping) > 0:
-        # Compute Hausdorff for matched instances
-        hausdorff_distances = optimized_hausdorff_distances(
-            truth_label, pred_label, voxel_size, hausdorff_distance_max, truth_ids=truth_ids
+    # Max-distance penalty per unmatched prediction (hallucination).
+    n_unmatched_pred = n_pred - len(set(mapping.keys()) - {0})
+    if n_unmatched_pred > 0:
+        hausdorff_distances = np.concatenate(
+            [
+                hausdorff_distances,
+                np.full(n_unmatched_pred, hausdorff_distance_max, dtype=np.float32),
+            ]
         )
 
-        # Add max distance for unmatched predictions
-        matched_pred_ids = set(mapping.keys()) - {0}
-        pred_ids = set(np.arange(1, n_pred + 1)) - {0}
-        unmatched_pred = pred_ids - matched_pred_ids
-
-        if len(unmatched_pred) > 0:
-            hausdorff_distances = np.concatenate(
-                [
-                    hausdorff_distances,
-                    np.full(
-                        len(unmatched_pred), hausdorff_distance_max, dtype=np.float32
-                    ),
-                ]
-            )
-
-        return hausdorff_distances.tolist()
-    else:
-        # No matches
-        return [hausdorff_distance_max]
+    return hausdorff_distances
 
 
 def score_instance(
@@ -131,11 +117,12 @@ def score_instance(
         config: Evaluation configuration (uses defaults if None)
 
     Returns:
-        Dictionary containing all instance segmentation metrics
+        Dict with tp/fp/fn and per-instance Hausdorff sum/count. F1 and
+        combined_score are computed per class in aggregation, not here.
 
     Example:
         >>> scores = score_instance(pred, truth, voxel_size=(4.0, 4.0, 4.0))
-        >>> print(f"Combined score: {scores['combined_score']:.3f}")
+        >>> print(scores["tp"], scores["n_hausdorff"])
     """
     if config is None:
         config = EvaluationConfig.from_env()
@@ -159,16 +146,10 @@ def score_instance(
         mapping = match_instances(truth_label, pred_label, config)
     except (TooManyInstancesError, TooManyOverlapEdgesError) as e:
         logging.warning(f"Instance matching failed: {e}")
-        return _create_pathological_scores(
-            hausdorff_distance_max,
-            voxel_size,
-            "skipped_too_many_instances",
-        )
+        return _create_pathological_scores("skipped_too_many_instances")
     except MatchingFailedError as e:
         logging.error(f"Matching optimization failed: {e}")
-        return _create_pathological_scores(
-            hausdorff_distance_max, voxel_size, "matching_failed"
-        )
+        return _create_pathological_scores("matching_failed")
 
     # Remap predictions to match GT IDs
     if len(mapping) > 0 and not (len(mapping) == 1 and 0 in mapping):
@@ -184,49 +165,29 @@ def score_instance(
     # Free matching-stage scratch before the memory-heavy Hausdorff phase.
     gc.collect()
 
-    # Compute Hausdorff distances
+    # Per-instance Hausdorff distances (pooled per class in aggregation).
     hausdorff_distances = _compute_hausdorff_scores(
         mapping, truth_label, pred_label, n_pred, voxel_size, hausdorff_distance_max, truth_ids
     )
 
-    if len(hausdorff_distances) == 0:
-        hausdorff_distances = [hausdorff_distance_max]
-
-    # Compute F1 from instance matching counts
+    # F1 counts from matching (pooled per class in aggregation).
     gt_count = int(truth_ids.size)
-    matched_gt_ids = set(mapping.values()) - {0}
-    matched_pred_ids = set(mapping.keys()) - {0}
+    tp = len(set(mapping.values()) - {0})
+    fp = n_pred - len(set(mapping.keys()) - {0})
+    fn = gt_count - tp
 
-    tp = len(matched_gt_ids)
-    fp = n_pred - len(matched_pred_ids)
-    fn = gt_count - len(matched_gt_ids)
-    if gt_count == 0 and n_pred == 0:
-        # Correct true negative - 0/0, should be scored as 1.0
-        f1 = 1.0
-    else:
-        f1 = 2 * tp / (2 * tp + fp + fn)
-
-    # Aggregate scores
-    logging.info("Computing final scores...")
-    hausdorff_distances = np.asarray(hausdorff_distances, dtype=np.float64)
-    hausdorff_dist = float(hausdorff_distances.mean())
-    # Normalize vectorized: norm(voxel_size) is constant; inf distance -> 0.
-    vs_norm = np.linalg.norm(voxel_size)
-    normalized_hausdorff_dist = float((1.01 ** (-hausdorff_distances / vs_norm)).mean())
-    combined_score = (f1 * normalized_hausdorff_dist) ** 0.5
-    logging.info(f"F1: {f1:.4f} (TP={tp}, FP={fp}, FN={fn})")
-    logging.info(f"Hausdorff Distance: {hausdorff_dist:.4f}")
-    logging.info(f"Normalized Hausdorff Distance: {normalized_hausdorff_dist:.4f}")
-    logging.info(f"Combined Score: {combined_score:.4f}")
+    # Normalize per-instance distances; emit sum/count for per-class pooling.
+    norm = normalize_distance(hausdorff_distances, voxel_size)
+    hausdorff_norm_sum = float(np.sum(norm))
+    n_hausdorff = int(np.size(norm))
+    logging.debug(f"TP={tp}, FP={fp}, FN={fn}, n_hausdorff={n_hausdorff}")
 
     return {
-        "f1": f1,
         "tp": tp,
         "fp": fp,
         "fn": fn,
-        "hausdorff_distance": hausdorff_dist,
-        "normalized_hausdorff_distance": normalized_hausdorff_dist,
-        "combined_score": combined_score,
+        "hausdorff_norm_sum": hausdorff_norm_sum,
+        "n_hausdorff": n_hausdorff,
         "status": "scored",
     }
 
@@ -255,7 +216,7 @@ def score_semantic(pred_label, truth_label) -> dict[str, int | str]:
     fp = int(pred_label.sum()) - tp
     fn = int(truth_label.sum()) - tp
 
-    logging.info(f"Semantic counts: TP={tp}, FP={fp}, FN={fn}")
+    logging.debug(f"Semantic counts: TP={tp}, FP={fp}, FN={fn}")
 
     return {
         "tp": tp,
@@ -347,21 +308,35 @@ def score_label(
 def empty_label_score(
     label, crop_name, instance_classes=INSTANCE_CLASSES, truth_path=TRUTH_PATH
 ):
+    """Score a not-submitted label as a penalized "missing" volume.
+
+    Non-submission is penalized harder than a (submitted) empty prediction:
+    instance classes count every ground-truth instance as a false negative at a
+    worst-case (zero) boundary score; semantic classes count every voxel as a
+    false negative. Used when a label is absent from the submission.
+
+    Args:
+        label: Label/class name.
+        crop_name: Crop identifier.
+        instance_classes: Names of instance-segmented classes.
+        truth_path: Path to the ground-truth zarr.
+
+    Returns:
+        A per-volume score dict flagged ``is_missing=True``.
+    """
     truth_path = UPath(truth_path)
     ds = zarr.open((truth_path / crop_name / label).path, mode="r")
     voxel_size = ds.attrs["voxel_size"]
     if label in instance_classes:
-        # Penalize non-submission: every ground-truth instance is a false negative.
+        # Not submitted: each instance an FN at worst-case (0) boundary -- harsher than empty submission.
         truth_ids = unique(ds[:])
         n_instances = int(truth_ids[truth_ids != 0].size)
         return {
-            "f1": 0.0,
             "tp": 0,
             "fp": 0,
             "fn": n_instances,
-            "hausdorff_distance": compute_max_distance(voxel_size, ds.shape),
-            "normalized_hausdorff_distance": 0,
-            "combined_score": 0,
+            "hausdorff_norm_sum": 0.0,
+            "n_hausdorff": n_instances,
             "num_voxels": int(np.prod(ds.shape)),
             "voxel_size": voxel_size,
             "is_missing": True,

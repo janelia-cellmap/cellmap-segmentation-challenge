@@ -255,51 +255,41 @@ class TestScoreInstanceHelpers:
     """Test helper functions for score_instance."""
 
     def test_create_pathological_scores(self):
-        """Test creation of pathological scores."""
-        scores = _create_pathological_scores(
-            hausdorff_distance_max=100.0,
-            voxel_size=(4.0, 4.0, 4.0),
-            status="test_failure",
-        )
+        """Matching-failure scores contribute nothing to the pools."""
+        scores = _create_pathological_scores(status="test_failure")
 
-        assert scores["f1"] == 0.0
-        assert scores["combined_score"] == 0
-        assert scores["hausdorff_distance"] == 100.0
+        assert scores["tp"] == 0
+        assert scores["fp"] == 0
+        assert scores["fn"] == 0
+        assert scores["n_hausdorff"] == 0
         assert scores["status"] == "test_failure"
 
-    def test_compute_hausdorff_scores_only_background(self):
-        """Test Hausdorff score computation with only background."""
-        mapping = {0: 0}
-        truth = np.zeros((10, 10))
-        pred = np.zeros((10, 10))
-
+    def test_compute_hausdorff_scores_empty(self):
+        """No truth and no predictions -> empty (contributes nothing)."""
         distances = _compute_hausdorff_scores(
-            mapping,
-            truth,
-            pred,
+            {0: 0},
+            np.zeros((10, 10)),
+            np.zeros((10, 10)),
             n_pred=0,
             voxel_size=(4.0, 4.0),
             hausdorff_distance_max=100.0,
         )
 
-        assert distances == [pytest.approx(0.0)]
+        assert len(distances) == 0
 
-    def test_compute_hausdorff_scores_no_mapping(self):
-        """Test Hausdorff score computation with no mapping."""
-        mapping = {}
-        truth = np.zeros((10, 10))
-        pred = np.zeros((10, 10))
-
+    def test_compute_hausdorff_scores_unmatched_predictions(self):
+        """Hallucinations (unmatched predictions) each get the max penalty."""
         distances = _compute_hausdorff_scores(
-            mapping,
-            truth,
-            pred,
+            {},
+            np.zeros((10, 10)),
+            np.zeros((10, 10)),
             n_pred=5,
             voxel_size=(4.0, 4.0),
             hausdorff_distance_max=100.0,
         )
 
-        assert distances == [100.0]
+        assert len(distances) == 5
+        assert np.allclose(distances, 100.0)
 
 
 # ============================================================================
@@ -570,8 +560,8 @@ class TestRefactoredIntegration:
         config = EvaluationConfig()
         scores = score_instance(pred, truth, voxel_size, config=config)
 
-        assert "f1" in scores
-        assert "combined_score" in scores
+        assert "tp" in scores
+        assert "n_hausdorff" in scores
         assert scores["status"] == "scored"
 
     def test_score_instance_handles_too_many_instances(self):
@@ -585,8 +575,8 @@ class TestRefactoredIntegration:
         scores = score_instance(pred, truth, voxel_size, config=config)
 
         assert scores["status"] == "skipped_too_many_instances"
-        assert scores["f1"] == 0.0
-        assert scores["combined_score"] == 0
+        assert scores["tp"] == 0
+        assert scores["n_hausdorff"] == 0
 
 
 if __name__ == "__main__":

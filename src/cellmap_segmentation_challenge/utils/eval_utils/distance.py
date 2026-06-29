@@ -21,14 +21,23 @@ def compute_max_distance(voxel_size, shape) -> float:
     return float(min([(v * s) / 2 for v, s in zip(voxel_size, shape)]))
 
 
-def normalize_distance(distance: float, voxel_size) -> float:
+def normalize_distance(distance, voxel_size):
+    """Normalize a distance to ``(0, 1]`` via ``1.01 ** (-distance / ||voxel_size||)``.
+
+    A distance of 0 maps to 1 (perfect) and inf maps to 0. Accepts a scalar or
+    an array, returning a float for scalar input and an array otherwise.
+
+    Args:
+        distance: Distance value(s), scalar or array.
+        voxel_size: Physical voxel size.
+
+    Returns:
+        Normalized score(s) in ``(0, 1]``.
     """
-    Normalize a distance value to [0, 1] using the maximum distance represented by a voxel
-    """
-    if distance == np.inf:
-        return 0.0
     # TODO: Normalize by max possible distance in the volume
-    return float((1.01 ** (-distance / np.linalg.norm(voxel_size))))
+    d = np.asarray(distance, dtype=np.float64)
+    out = np.where(np.isinf(d), 0.0, 1.01 ** (-d / np.linalg.norm(voxel_size)))
+    return float(out) if out.ndim == 0 else out
 
 
 def optimized_hausdorff_distances(
@@ -163,8 +172,8 @@ def roi_slices_for_pair(
         # tolerate vs longer (e.g. includes channel), take last ndim
         vs = vs[-ndim:]
 
-    # padding per axis in voxels
-    pad = np.ceil(max_distance / vs).astype(int) + 2
+    # pad per axis, clamped to volume extent
+    pad = np.minimum(np.ceil(max_distance / vs), shape).astype(int) + 2
 
     tb = bbox_for_label(truth_stats, ndim, tid)
     assert tb is not None, f"Truth ID {tid} not found in truth statistics."
