@@ -299,31 +299,24 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">InstanceScoreDict</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_create_pathological_scores</span><span class="p">(</span>
-    <span class="n">hausdorff_distance_max</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-    <span class="n">voxel_size</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
-    <span class="n">status</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">InstanceScoreDict</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create scores for pathological cases (matching failed).</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_create_pathological_scores</span><span class="p">(</span><span class="n">status</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">InstanceScoreDict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create scores for a crop whose instance matching failed.</span>
+
+<span class="sd">    The crop contributes nothing to the per-class pools (zero counts and no</span>
+<span class="sd">    Hausdorff entries), so a failure neither helps nor penalizes the class.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        hausdorff_distance_max: Maximum Hausdorff distance</span>
-<span class="sd">        voxel_size: Voxel size</span>
-<span class="sd">        status: Status string for the failure</span>
+<span class="sd">        status: Status string describing the failure.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        Dictionary with worst-case scores</span>
+<span class="sd">        Score dict with zeroed counts and Hausdorff fields.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s2">&quot;f1&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
         <span class="s2">&quot;tp&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
         <span class="s2">&quot;fp&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
         <span class="s2">&quot;fn&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">:</span> <span class="n">hausdorff_distance_max</span><span class="p">,</span>
-        <span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">:</span> <span class="n">normalize_distance</span><span class="p">(</span>
-            <span class="n">hausdorff_distance_max</span><span class="p">,</span> <span class="n">voxel_size</span>
-        <span class="p">),</span>
-        <span class="s2">&quot;combined_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;hausdorff_norm_sum&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="s2">&quot;n_hausdorff&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
         <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="n">status</span><span class="p">,</span>
     <span class="p">}</span>
 
@@ -336,8 +329,14 @@
     <span class="n">voxel_size</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
     <span class="n">hausdorff_distance_max</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">truth_ids</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute Hausdorff distances for matched instances.</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute per-instance Hausdorff distances for pooling per class.</span>
+
+<span class="sd">    Produces one distance per ground-truth instance (matched -&gt; real distance,</span>
+<span class="sd">    unmatched/FN -&gt; max distance) plus a max-distance penalty per unmatched</span>
+<span class="sd">    prediction (hallucination). Returns an empty array when the crop has no</span>
+<span class="sd">    truth instances and no predictions, so empty crops contribute nothing to</span>
+<span class="sd">    the per-class pool.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        mapping: Instance ID mapping (pred -&gt; truth)</span>
@@ -349,37 +348,24 @@
 <span class="sd">        truth_ids: Precomputed non-zero ground-truth ids</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        List of Hausdorff distances</span>
+<span class="sd">        1D array of per-instance Hausdorff distances (possibly empty)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mapping</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="mi">0</span> <span class="ow">in</span> <span class="n">mapping</span><span class="p">:</span>
-        <span class="c1"># Only background</span>
-        <span class="k">return</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span>
+    <span class="c1"># One distance per truth instance (matched -&gt; real, unmatched/FN -&gt; max).</span>
+    <span class="n">hausdorff_distances</span> <span class="o">=</span> <span class="n">optimized_hausdorff_distances</span><span class="p">(</span>
+        <span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span> <span class="n">hausdorff_distance_max</span><span class="p">,</span> <span class="n">truth_ids</span><span class="o">=</span><span class="n">truth_ids</span>
+    <span class="p">)</span>
 
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mapping</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="c1"># Compute Hausdorff for matched instances</span>
-        <span class="n">hausdorff_distances</span> <span class="o">=</span> <span class="n">optimized_hausdorff_distances</span><span class="p">(</span>
-            <span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span> <span class="n">hausdorff_distance_max</span><span class="p">,</span> <span class="n">truth_ids</span><span class="o">=</span><span class="n">truth_ids</span>
+    <span class="c1"># Max-distance penalty per unmatched prediction (hallucination).</span>
+    <span class="n">n_unmatched_pred</span> <span class="o">=</span> <span class="n">n_pred</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">mapping</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">-</span> <span class="p">{</span><span class="mi">0</span><span class="p">})</span>
+    <span class="k">if</span> <span class="n">n_unmatched_pred</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">hausdorff_distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">hausdorff_distances</span><span class="p">,</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">n_unmatched_pred</span><span class="p">,</span> <span class="n">hausdorff_distance_max</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+            <span class="p">]</span>
         <span class="p">)</span>
 
-        <span class="c1"># Add max distance for unmatched predictions</span>
-        <span class="n">matched_pred_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">mapping</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">-</span> <span class="p">{</span><span class="mi">0</span><span class="p">}</span>
-        <span class="n">pred_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_pred</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="o">-</span> <span class="p">{</span><span class="mi">0</span><span class="p">}</span>
-        <span class="n">unmatched_pred</span> <span class="o">=</span> <span class="n">pred_ids</span> <span class="o">-</span> <span class="n">matched_pred_ids</span>
-
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unmatched_pred</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">hausdorff_distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
-                <span class="p">[</span>
-                    <span class="n">hausdorff_distances</span><span class="p">,</span>
-                    <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span>
-                        <span class="nb">len</span><span class="p">(</span><span class="n">unmatched_pred</span><span class="p">),</span> <span class="n">hausdorff_distance_max</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span>
-                    <span class="p">),</span>
-                <span class="p">]</span>
-            <span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">hausdorff_distances</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="c1"># No matches</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">hausdorff_distance_max</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">hausdorff_distances</span>
 
 
 <div class="viewcode-block" id="score_instance">
@@ -404,11 +390,12 @@
 <span class="sd">        config: Evaluation configuration (uses defaults if None)</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        Dictionary containing all instance segmentation metrics</span>
+<span class="sd">        Dict with tp/fp/fn and per-instance Hausdorff sum/count. F1 and</span>
+<span class="sd">        combined_score are computed per class in aggregation, not here.</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; scores = score_instance(pred, truth, voxel_size=(4.0, 4.0, 4.0))</span>
-<span class="sd">        &gt;&gt;&gt; print(f&quot;Combined score: {scores[&#39;combined_score&#39;]:.3f}&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; print(scores[&quot;tp&quot;], scores[&quot;n_hausdorff&quot;])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">EvaluationConfig</span><span class="o">.</span><span class="n">from_env</span><span class="p">()</span>
@@ -432,16 +419,10 @@
         <span class="n">mapping</span> <span class="o">=</span> <span class="n">match_instances</span><span class="p">(</span><span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
     <span class="k">except</span> <span class="p">(</span><span class="n">TooManyInstancesError</span><span class="p">,</span> <span class="n">TooManyOverlapEdgesError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Instance matching failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">_create_pathological_scores</span><span class="p">(</span>
-            <span class="n">hausdorff_distance_max</span><span class="p">,</span>
-            <span class="n">voxel_size</span><span class="p">,</span>
-            <span class="s2">&quot;skipped_too_many_instances&quot;</span><span class="p">,</span>
-        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">_create_pathological_scores</span><span class="p">(</span><span class="s2">&quot;skipped_too_many_instances&quot;</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">MatchingFailedError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Matching optimization failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">_create_pathological_scores</span><span class="p">(</span>
-            <span class="n">hausdorff_distance_max</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span> <span class="s2">&quot;matching_failed&quot;</span>
-        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">_create_pathological_scores</span><span class="p">(</span><span class="s2">&quot;matching_failed&quot;</span><span class="p">)</span>
 
     <span class="c1"># Remap predictions to match GT IDs</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mapping</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mapping</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="mi">0</span> <span class="ow">in</span> <span class="n">mapping</span><span class="p">):</span>
@@ -457,49 +438,29 @@
     <span class="c1"># Free matching-stage scratch before the memory-heavy Hausdorff phase.</span>
     <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
 
-    <span class="c1"># Compute Hausdorff distances</span>
+    <span class="c1"># Per-instance Hausdorff distances (pooled per class in aggregation).</span>
     <span class="n">hausdorff_distances</span> <span class="o">=</span> <span class="n">_compute_hausdorff_scores</span><span class="p">(</span>
         <span class="n">mapping</span><span class="p">,</span> <span class="n">truth_label</span><span class="p">,</span> <span class="n">pred_label</span><span class="p">,</span> <span class="n">n_pred</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span> <span class="n">hausdorff_distance_max</span><span class="p">,</span> <span class="n">truth_ids</span>
     <span class="p">)</span>
 
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hausdorff_distances</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">hausdorff_distances</span> <span class="o">=</span> <span class="p">[</span><span class="n">hausdorff_distance_max</span><span class="p">]</span>
-
-    <span class="c1"># Compute F1 from instance matching counts</span>
+    <span class="c1"># F1 counts from matching (pooled per class in aggregation).</span>
     <span class="n">gt_count</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">truth_ids</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
-    <span class="n">matched_gt_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">mapping</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="o">-</span> <span class="p">{</span><span class="mi">0</span><span class="p">}</span>
-    <span class="n">matched_pred_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">mapping</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">-</span> <span class="p">{</span><span class="mi">0</span><span class="p">}</span>
+    <span class="n">tp</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">mapping</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="o">-</span> <span class="p">{</span><span class="mi">0</span><span class="p">})</span>
+    <span class="n">fp</span> <span class="o">=</span> <span class="n">n_pred</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">mapping</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">-</span> <span class="p">{</span><span class="mi">0</span><span class="p">})</span>
+    <span class="n">fn</span> <span class="o">=</span> <span class="n">gt_count</span> <span class="o">-</span> <span class="n">tp</span>
 
-    <span class="n">tp</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">matched_gt_ids</span><span class="p">)</span>
-    <span class="n">fp</span> <span class="o">=</span> <span class="n">n_pred</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">matched_pred_ids</span><span class="p">)</span>
-    <span class="n">fn</span> <span class="o">=</span> <span class="n">gt_count</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">matched_gt_ids</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">gt_count</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">n_pred</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="c1"># Correct true negative - 0/0, should be scored as 1.0</span>
-        <span class="n">f1</span> <span class="o">=</span> <span class="mf">1.0</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">f1</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">tp</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">tp</span> <span class="o">+</span> <span class="n">fp</span> <span class="o">+</span> <span class="n">fn</span><span class="p">)</span>
-
-    <span class="c1"># Aggregate scores</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Computing final scores...&quot;</span><span class="p">)</span>
-    <span class="n">hausdorff_distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">hausdorff_distances</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-    <span class="n">hausdorff_dist</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">hausdorff_distances</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
-    <span class="c1"># Normalize vectorized: norm(voxel_size) is constant; inf distance -&gt; 0.</span>
-    <span class="n">vs_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">)</span>
-    <span class="n">normalized_hausdorff_dist</span> <span class="o">=</span> <span class="nb">float</span><span class="p">((</span><span class="mf">1.01</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="n">hausdorff_distances</span> <span class="o">/</span> <span class="n">vs_norm</span><span class="p">))</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
-    <span class="n">combined_score</span> <span class="o">=</span> <span class="p">(</span><span class="n">f1</span> <span class="o">*</span> <span class="n">normalized_hausdorff_dist</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;F1: </span><span class="si">{</span><span class="n">f1</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> (TP=</span><span class="si">{</span><span class="n">tp</span><span class="si">}</span><span class="s2">, FP=</span><span class="si">{</span><span class="n">fp</span><span class="si">}</span><span class="s2">, FN=</span><span class="si">{</span><span class="n">fn</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hausdorff Distance: </span><span class="si">{</span><span class="n">hausdorff_dist</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Normalized Hausdorff Distance: </span><span class="si">{</span><span class="n">normalized_hausdorff_dist</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Combined Score: </span><span class="si">{</span><span class="n">combined_score</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="c1"># Normalize per-instance distances; emit sum/count for per-class pooling.</span>
+    <span class="n">norm</span> <span class="o">=</span> <span class="n">normalize_distance</span><span class="p">(</span><span class="n">hausdorff_distances</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">)</span>
+    <span class="n">hausdorff_norm_sum</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">norm</span><span class="p">))</span>
+    <span class="n">n_hausdorff</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">norm</span><span class="p">))</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;TP=</span><span class="si">{</span><span class="n">tp</span><span class="si">}</span><span class="s2">, FP=</span><span class="si">{</span><span class="n">fp</span><span class="si">}</span><span class="s2">, FN=</span><span class="si">{</span><span class="n">fn</span><span class="si">}</span><span class="s2">, n_hausdorff=</span><span class="si">{</span><span class="n">n_hausdorff</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s2">&quot;f1&quot;</span><span class="p">:</span> <span class="n">f1</span><span class="p">,</span>
         <span class="s2">&quot;tp&quot;</span><span class="p">:</span> <span class="n">tp</span><span class="p">,</span>
         <span class="s2">&quot;fp&quot;</span><span class="p">:</span> <span class="n">fp</span><span class="p">,</span>
         <span class="s2">&quot;fn&quot;</span><span class="p">:</span> <span class="n">fn</span><span class="p">,</span>
-        <span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">:</span> <span class="n">hausdorff_dist</span><span class="p">,</span>
-        <span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">:</span> <span class="n">normalized_hausdorff_dist</span><span class="p">,</span>
-        <span class="s2">&quot;combined_score&quot;</span><span class="p">:</span> <span class="n">combined_score</span><span class="p">,</span>
+        <span class="s2">&quot;hausdorff_norm_sum&quot;</span><span class="p">:</span> <span class="n">hausdorff_norm_sum</span><span class="p">,</span>
+        <span class="s2">&quot;n_hausdorff&quot;</span><span class="p">:</span> <span class="n">n_hausdorff</span><span class="p">,</span>
         <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;scored&quot;</span><span class="p">,</span>
     <span class="p">}</span></div>
 
@@ -531,7 +492,7 @@
     <span class="n">fp</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">pred_label</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span> <span class="o">-</span> <span class="n">tp</span>
     <span class="n">fn</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">truth_label</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span> <span class="o">-</span> <span class="n">tp</span>
 
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Semantic counts: TP=</span><span class="si">{</span><span class="n">tp</span><span class="si">}</span><span class="s2">, FP=</span><span class="si">{</span><span class="n">fp</span><span class="si">}</span><span class="s2">, FN=</span><span class="si">{</span><span class="n">fn</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Semantic counts: TP=</span><span class="si">{</span><span class="n">tp</span><span class="si">}</span><span class="s2">, FP=</span><span class="si">{</span><span class="n">fp</span><span class="si">}</span><span class="s2">, FN=</span><span class="si">{</span><span class="n">fn</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="p">{</span>
         <span class="s2">&quot;tp&quot;</span><span class="p">:</span> <span class="n">tp</span><span class="p">,</span>
@@ -629,21 +590,35 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">empty_label_score</span><span class="p">(</span>
     <span class="n">label</span><span class="p">,</span> <span class="n">crop_name</span><span class="p">,</span> <span class="n">instance_classes</span><span class="o">=</span><span class="n">INSTANCE_CLASSES</span><span class="p">,</span> <span class="n">truth_path</span><span class="o">=</span><span class="n">TRUTH_PATH</span>
 <span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Score a not-submitted label as a penalized &quot;missing&quot; volume.</span>
+
+<span class="sd">    Non-submission is penalized harder than a (submitted) empty prediction:</span>
+<span class="sd">    instance classes count every ground-truth instance as a false negative at a</span>
+<span class="sd">    worst-case (zero) boundary score; semantic classes count every voxel as a</span>
+<span class="sd">    false negative. Used when a label is absent from the submission.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        label: Label/class name.</span>
+<span class="sd">        crop_name: Crop identifier.</span>
+<span class="sd">        instance_classes: Names of instance-segmented classes.</span>
+<span class="sd">        truth_path: Path to the ground-truth zarr.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A per-volume score dict flagged ``is_missing=True``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">truth_path</span> <span class="o">=</span> <span class="n">UPath</span><span class="p">(</span><span class="n">truth_path</span><span class="p">)</span>
     <span class="n">ds</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">open</span><span class="p">((</span><span class="n">truth_path</span> <span class="o">/</span> <span class="n">crop_name</span> <span class="o">/</span> <span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
     <span class="n">voxel_size</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;voxel_size&quot;</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">instance_classes</span><span class="p">:</span>
-        <span class="c1"># Penalize non-submission: every ground-truth instance is a false negative.</span>
+        <span class="c1"># Not submitted: each instance an FN at worst-case (0) boundary -- harsher than empty submission.</span>
         <span class="n">truth_ids</span> <span class="o">=</span> <span class="n">unique</span><span class="p">(</span><span class="n">ds</span><span class="p">[:])</span>
         <span class="n">n_instances</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">truth_ids</span><span class="p">[</span><span class="n">truth_ids</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;f1&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
             <span class="s2">&quot;tp&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
             <span class="s2">&quot;fp&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
             <span class="s2">&quot;fn&quot;</span><span class="p">:</span> <span class="n">n_instances</span><span class="p">,</span>
-            <span class="s2">&quot;hausdorff_distance&quot;</span><span class="p">:</span> <span class="n">compute_max_distance</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span>
-            <span class="s2">&quot;normalized_hausdorff_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-            <span class="s2">&quot;combined_score&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;hausdorff_norm_sum&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="s2">&quot;n_hausdorff&quot;</span><span class="p">:</span> <span class="n">n_instances</span><span class="p">,</span>
             <span class="s2">&quot;num_voxels&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">shape</span><span class="p">)),</span>
             <span class="s2">&quot;voxel_size&quot;</span><span class="p">:</span> <span class="n">voxel_size</span><span class="p">,</span>
             <span class="s2">&quot;is_missing&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>

@@ -322,7 +322,8 @@
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.InstanceScoreDict.tp"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.tp</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.InstanceScoreDict.fp"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.fp</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.InstanceScoreDict.fn"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.fn</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.InstanceScoreDict.hausdorff_distance"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.hausdorff_distance</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.InstanceScoreDict.hausdorff_norm_sum"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.hausdorff_norm_sum</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.InstanceScoreDict.n_hausdorff"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.n_hausdorff</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.InstanceScoreDict.normalized_hausdorff_distance"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.normalized_hausdorff_distance</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.InstanceScoreDict.combined_score"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.combined_score</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.InstanceScoreDict.num_voxels"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.num_voxels</span></code></a></li>
@@ -887,8 +888,13 @@ utils/eval_utils/ for better maintainability.</p>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.InstanceScoreDict.hausdorff_distance">
-<span class="sig-name descname"><span class="pre">hausdorff_distance</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.InstanceScoreDict.hausdorff_distance" title="Link to this definition">#</a></dt>
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.InstanceScoreDict.hausdorff_norm_sum">
+<span class="sig-name descname"><span class="pre">hausdorff_norm_sum</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.InstanceScoreDict.hausdorff_norm_sum" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.InstanceScoreDict.n_hausdorff">
+<span class="sig-name descname"><span class="pre">n_hausdorff</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.InstanceScoreDict.n_hausdorff" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -1278,14 +1284,19 @@ Returns {} if no matches found or one side has no instances.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.normalize_distance">
-<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">normalize_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/eval_utils/distance.html#normalize_distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.normalize_distance" title="Link to this definition">#</a></dt>
-<dd><p>Normalize a distance value to [0, 1] using the maximum distance represented by a voxel</p>
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">normalize_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/eval_utils/distance.html#normalize_distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.normalize_distance" title="Link to this definition">#</a></dt>
+<dd><p>Normalize a distance to <code class="docutils literal notranslate"><span class="pre">(0,</span> <span class="pre">1]</span></code> via <code class="docutils literal notranslate"><span class="pre">1.01</span> <span class="pre">**</span> <span class="pre">(-distance</span> <span class="pre">/</span> <span class="pre">||voxel_size||)</span></code>.</p>
+<p>A distance of 0 maps to 1 (perfect) and inf maps to 0. Accepts a scalar or
+an array, returning a float for scalar input and an array otherwise.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>distance</strong> (<em>float</em>)</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>distance</strong> – Distance value(s), scalar or array.</p></li>
+<li><p><strong>voxel_size</strong> – Physical voxel size.</p></li>
+</ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>float</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Normalized score(s) in <code class="docutils literal notranslate"><span class="pre">(0,</span> <span class="pre">1]</span></code>.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1391,7 +1402,8 @@ after optimal instance matching.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dictionary containing all instance segmentation metrics</p>
+<dd class="field-even"><p>Dict with tp/fp/fn and per-instance Hausdorff sum/count. F1 and
+combined_score are computed per class in aggregation, not here.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="cellmap_segmentation_challenge.utils.eval_utils.html#cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict" title="cellmap_segmentation_challenge.utils.eval_utils.types.InstanceScoreDict"><em>InstanceScoreDict</em></a></p>
@@ -1399,7 +1411,7 @@ after optimal instance matching.</p>
 </dl>
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">scores</span> <span class="o">=</span> <span class="n">score_instance</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">truth</span><span class="p">,</span> <span class="n">voxel_size</span><span class="o">=</span><span class="p">(</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Combined score: </span><span class="si">{</span><span class="n">scores</span><span class="p">[</span><span class="s1">&#39;combined_score&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">scores</span><span class="p">[</span><span class="s2">&quot;tp&quot;</span><span class="p">],</span> <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;n_hausdorff&quot;</span><span class="p">])</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1456,7 +1468,25 @@ after optimal instance matching.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.empty_label_score">
 <span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.evaluate.</span></span><span class="sig-name descname"><span class="pre">empty_label_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crop_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['nuc',</span> <span class="pre">'vim',</span> <span class="pre">'ves',</span> <span class="pre">'endo',</span> <span class="pre">'lyso',</span> <span class="pre">'ld',</span> <span class="pre">'perox',</span> <span class="pre">'mito',</span> <span class="pre">'np',</span> <span class="pre">'mt',</span> <span class="pre">'cell',</span> <span class="pre">'instance']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">truth_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/data/ground_truth.zarr'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/eval_utils/scoring.html#empty_label_score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.evaluate.empty_label_score" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><p>Score a not-submitted label as a penalized “missing” volume.</p>
+<p>Non-submission is penalized harder than a (submitted) empty prediction:
+instance classes count every ground-truth instance as a false negative at a
+worst-case (zero) boundary score; semantic classes count every voxel as a
+false negative. Used when a label is absent from the submission.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>label</strong> – Label/class name.</p></li>
+<li><p><strong>crop_name</strong> – Crop identifier.</p></li>
+<li><p><strong>instance_classes</strong> – Names of instance-segmented classes.</p></li>
+<li><p><strong>truth_path</strong> – Path to the ground-truth zarr.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A per-volume score dict flagged <code class="docutils literal notranslate"><span class="pre">is_missing=True</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.evaluate.match_crop_space">
@@ -2146,7 +2176,8 @@ validates, scores, and aggregates results for all volumes.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.InstanceScoreDict.tp"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.tp</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.InstanceScoreDict.fp"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.fp</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.InstanceScoreDict.fn"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.fn</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.InstanceScoreDict.hausdorff_distance"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.hausdorff_distance</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.InstanceScoreDict.hausdorff_norm_sum"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.hausdorff_norm_sum</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.InstanceScoreDict.n_hausdorff"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.n_hausdorff</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.InstanceScoreDict.normalized_hausdorff_distance"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.normalized_hausdorff_distance</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.InstanceScoreDict.combined_score"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.combined_score</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellmap_segmentation_challenge.evaluate.InstanceScoreDict.num_voxels"><code class="docutils literal notranslate"><span class="pre">InstanceScoreDict.num_voxels</span></code></a></li>
