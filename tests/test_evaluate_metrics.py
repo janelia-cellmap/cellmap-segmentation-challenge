@@ -414,6 +414,15 @@ def test_normalize_distance_worst_real_case_hits_floor():
         )
 
 
+def test_normalize_distance_floor_is_consistent_across_crops():
+    from cellmap_segmentation_challenge import evaluate as ev
+
+    small_crop = ev.normalize_distance(1120.0, (16.0, 16.0, 16.0), max_distance=1120.0)
+    big_crop = ev.normalize_distance(16000.0, (32.0, 32.0, 32.0), max_distance=16000.0)
+    assert np.isclose(small_crop, big_crop)
+    assert np.isclose(small_crop, 0.1)
+
+
 # ------------------------
 # score_instance tests
 # ------------------------
