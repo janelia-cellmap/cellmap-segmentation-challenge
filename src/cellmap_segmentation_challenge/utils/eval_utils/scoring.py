@@ -177,7 +177,7 @@ def score_instance(
     fn = gt_count - tp
 
     # Normalize per-instance distances; emit sum/count for per-class pooling.
-    norm = normalize_distance(hausdorff_distances, voxel_size)
+    norm = normalize_distance(hausdorff_distances, voxel_size, hausdorff_distance_max)
     hausdorff_norm_sum = float(np.sum(norm))
     n_hausdorff = int(np.size(norm))
     logging.debug(f"TP={tp}, FP={fp}, FN={fn}, n_hausdorff={n_hausdorff}")
