@@ -474,8 +474,9 @@ def test_score_instance_f1_all_fn():
     assert scores["tp"] == 0
     assert scores["fp"] == 0
     assert scores["fn"] == 2
-    # 2 missed truth instances, each a max-distance penalty
+    # 2 missed truth instances, no counterpart to measure -> 0 contribution
     assert scores["n_hausdorff"] == 2
+    assert scores["hausdorff_norm_sum"] == 0.0
 
 
 def test_score_instance_empty_vs_empty_contributes_nothing():
