@@ -21,22 +21,27 @@ def compute_max_distance(voxel_size, shape) -> float:
     return float(min([(v * s) / 2 for v, s in zip(voxel_size, shape)]))
 
 
-def normalize_distance(distance, voxel_size):
-    """Normalize a distance to ``(0, 1]`` via ``1.01 ** (-distance / ||voxel_size||)``.
-
-    A distance of 0 maps to 1 (perfect) and inf maps to 0. Accepts a scalar or
-    an array, returning a float for scalar input and an array otherwise.
+def normalize_distance(distance, voxel_size, max_distance, floor=0.1):
+    """Normalize a distance to ``(0, 1]``, rescaled so the worst real (capped)
+    distance maps to ``floor`` and 0 maps to 1. Infinite distance always maps
+    to 0. Accepts a scalar or an array, returning a float for scalar input and
+    an array otherwise.
 
     Args:
         distance: Distance value(s), scalar or array.
         voxel_size: Physical voxel size.
+        max_distance: Crop-specific cap used to bound a real matched distance.
+        floor: Score assigned to a real distance at the max_distance cap.
 
     Returns:
-        Normalized score(s) in ``(0, 1]``.
+        Normalized score(s) in ``(0, 1]``, or 0 for infinite distance.
     """
-    # TODO: Normalize by max possible distance in the volume
     d = np.asarray(distance, dtype=np.float64)
-    out = np.where(np.isinf(d), 0.0, 1.01 ** (-d / np.linalg.norm(voxel_size)))
+    norm = np.linalg.norm(voxel_size)
+    raw = 1.01 ** (-d / norm)
+    worst_real = 1.01 ** (-max_distance / norm)
+    rescaled = floor + (raw - worst_real) / (1.0 - worst_real) * (1.0 - floor)
+    out = np.where(np.isinf(d), 0.0, rescaled)
     return float(out) if out.ndim == 0 else out
 
 
