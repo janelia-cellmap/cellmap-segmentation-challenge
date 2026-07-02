@@ -278,7 +278,7 @@ class TestScoreInstanceHelpers:
         assert len(distances) == 0
 
     def test_compute_hausdorff_scores_unmatched_predictions(self):
-        """Hallucinations (unmatched predictions) each get the max penalty."""
+        """Hallucinations (unmatched predictions) each get an infinite penalty."""
         distances = _compute_hausdorff_scores(
             {},
             np.zeros((10, 10)),
