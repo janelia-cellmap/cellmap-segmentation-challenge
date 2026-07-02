@@ -289,7 +289,7 @@ class TestScoreInstanceHelpers:
         )
 
         assert len(distances) == 5
-        assert np.allclose(distances, 100.0)
+        assert np.all(np.isinf(distances))
 
 
 # ============================================================================
