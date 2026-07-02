@@ -423,6 +423,14 @@ def test_normalize_distance_floor_is_consistent_across_crops():
     assert np.isclose(small_crop, 0.1)
 
 
+def test_normalize_distance_custom_floor():
+    from cellmap_segmentation_challenge import evaluate as ev
+
+    assert np.isclose(
+        ev.normalize_distance(50.0, (1.0, 1.0), max_distance=50.0, floor=0.2), 0.2
+    )
+
+
 # ------------------------
 # score_instance tests
 # ------------------------
