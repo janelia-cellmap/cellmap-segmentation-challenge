@@ -74,7 +74,7 @@ def _hausdorff_full_reference_labels(
     if a_n == 0 and b_n == 0:
         return 0.0
     if a_n == 0 or b_n == 0:
-        return float(max_distance)
+        return float("inf")
 
     ndim = truth_label.ndim
     vs = np.asarray(voxel_size, dtype=np.float64)
