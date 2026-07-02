@@ -453,19 +453,22 @@ def test_score_instance_perfect_match():
 def test_score_instance_simple_shift():
     from cellmap_segmentation_challenge import evaluate as ev
 
-    # GT has one instance [0,0] and [0,1]
-    truth = np.array([[1, 1, 0], [0, 0, 0]], dtype=np.int32)
-    # Prediction shifted one voxel to the right: [0,1],[0,2] (and needs renumbering)
-    pred = np.array([[0, 2, 2], [0, 0, 0]], dtype=np.int32)
+    # GT has a 2-voxel instance, prediction shifted one voxel to the right
+    # (so they still overlap by one voxel and can match). Crop is large
+    # relative to the shift so the max_distance cap doesn't bind.
+    truth = np.zeros((10, 10), dtype=np.int32)
+    truth[5, 4:6] = 1
+    pred = np.zeros((10, 10), dtype=np.int32)
+    pred[5, 5:7] = 1
     voxel_size = (1.0, 1.0)
     scores = ev.score_instance(pred, truth, voxel_size)
 
     assert scores["tp"] == 1
     assert scores["fp"] == 0
     assert scores["fn"] == 0
-    # one matched instance, Hausdorff distance 1 -> normalized 1.01**(-1/||vs||)
     assert scores["n_hausdorff"] == 1
-    expected = 1.01 ** (-1.0 / np.linalg.norm(voxel_size))
+    max_distance = ev.compute_max_distance(voxel_size, truth.shape)
+    expected = ev.normalize_distance(1.0, voxel_size, max_distance)
     assert np.isclose(scores["hausdorff_norm_sum"], expected)
 
 
