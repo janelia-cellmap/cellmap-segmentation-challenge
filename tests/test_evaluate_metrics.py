@@ -397,10 +397,10 @@ def test_optimized_hausdorff_distances_per_instance():
 def test_normalize_distance_inf_is_zero_regardless_of_voxel_size():
     from cellmap_segmentation_challenge import evaluate as ev
 
-    assert ev.normalize_distance(np.inf, (1.0, 1.0)) == 0.0
-    assert ev.normalize_distance(np.inf, (32.0, 32.0, 32.0)) == 0.0
+    assert ev.normalize_distance(np.inf, (1.0, 1.0), max_distance=10.0) == 0.0
+    assert ev.normalize_distance(np.inf, (32.0, 32.0, 32.0), max_distance=1000.0) == 0.0
 
-    out = ev.normalize_distance(np.array([0.0, np.inf]), (2.0, 2.0))
+    out = ev.normalize_distance(np.array([0.0, np.inf]), (2.0, 2.0), max_distance=10.0)
     assert np.isclose(out[0], 1.0)
     assert out[1] == 0.0
 
