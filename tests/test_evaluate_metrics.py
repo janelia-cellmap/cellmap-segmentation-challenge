@@ -74,7 +74,7 @@ def _hausdorff_full_reference_labels(
     if a_n == 0 and b_n == 0:
         return 0.0
     if a_n == 0 or b_n == 0:
-        return float(max_distance)
+        return float("inf")
 
     ndim = truth_label.ndim
     vs = np.asarray(voxel_size, dtype=np.float64)
@@ -259,7 +259,7 @@ def test_roi_hausdorff_empty_sets_and_missing_instance():
         voxel_size=voxel_size,
         max_distance=max_distance,
     )
-    assert np.isclose(d1, max_distance)
+    assert np.isinf(d1)
 
 
 def test_roi_hausdorff_clips_to_max_distance_matches_reference():
@@ -373,7 +373,7 @@ def test_roi_none_returns_inf(monkeypatch):
         voxel_size=(1.0, 1.0),
         max_distance=max_distance,
     )
-    assert np.isclose(d, max_distance)
+    assert np.isinf(d)
 
 
 def test_optimized_hausdorff_distances_per_instance():
@@ -392,6 +392,43 @@ def test_optimized_hausdorff_distances_per_instance():
     ids = ids[ids != 0]
     assert dists.shape == (ids.size,)
     assert np.allclose(dists, 0.0)
+
+
+def test_normalize_distance_inf_is_zero_regardless_of_voxel_size():
+    from cellmap_segmentation_challenge import evaluate as ev
+
+    assert ev.normalize_distance(np.inf, (1.0, 1.0), max_distance=10.0) == 0.0
+    assert ev.normalize_distance(np.inf, (32.0, 32.0, 32.0), max_distance=1000.0) == 0.0
+
+    out = ev.normalize_distance(np.array([0.0, np.inf]), (2.0, 2.0), max_distance=10.0)
+    assert np.isclose(out[0], 1.0)
+    assert out[1] == 0.0
+
+
+def test_normalize_distance_worst_real_case_hits_floor():
+    from cellmap_segmentation_challenge import evaluate as ev
+
+    for voxel_size, max_distance in [((1.0, 1.0), 10.0), ((32.0, 32.0, 32.0), 1500.0)]:
+        assert np.isclose(
+            ev.normalize_distance(max_distance, voxel_size, max_distance), 0.1
+        )
+
+
+def test_normalize_distance_floor_is_consistent_across_crops():
+    from cellmap_segmentation_challenge import evaluate as ev
+
+    small_crop = ev.normalize_distance(1120.0, (16.0, 16.0, 16.0), max_distance=1120.0)
+    big_crop = ev.normalize_distance(16000.0, (32.0, 32.0, 32.0), max_distance=16000.0)
+    assert np.isclose(small_crop, big_crop)
+    assert np.isclose(small_crop, 0.1)
+
+
+def test_normalize_distance_custom_floor():
+    from cellmap_segmentation_challenge import evaluate as ev
+
+    assert np.isclose(
+        ev.normalize_distance(50.0, (1.0, 1.0), max_distance=50.0, floor=0.2), 0.2
+    )
 
 
 # ------------------------
@@ -416,19 +453,22 @@ def test_score_instance_perfect_match():
 def test_score_instance_simple_shift():
     from cellmap_segmentation_challenge import evaluate as ev
 
-    # GT has one instance [0,0] and [0,1]
-    truth = np.array([[1, 1, 0], [0, 0, 0]], dtype=np.int32)
-    # Prediction shifted one voxel to the right: [0,1],[0,2] (and needs renumbering)
-    pred = np.array([[0, 2, 2], [0, 0, 0]], dtype=np.int32)
+    # GT has a 2-voxel instance, prediction shifted one voxel to the right
+    # (so they still overlap by one voxel and can match). Crop is large
+    # relative to the shift so the max_distance cap doesn't bind.
+    truth = np.zeros((10, 10), dtype=np.int32)
+    truth[5, 4:6] = 1
+    pred = np.zeros((10, 10), dtype=np.int32)
+    pred[5, 5:7] = 1
     voxel_size = (1.0, 1.0)
     scores = ev.score_instance(pred, truth, voxel_size)
 
     assert scores["tp"] == 1
     assert scores["fp"] == 0
     assert scores["fn"] == 0
-    # one matched instance, Hausdorff distance 1 -> normalized 1.01**(-1/||vs||)
     assert scores["n_hausdorff"] == 1
-    expected = 1.01 ** (-1.0 / np.linalg.norm(voxel_size))
+    max_distance = ev.compute_max_distance(voxel_size, truth.shape)
+    expected = ev.normalize_distance(1.0, voxel_size, max_distance)
     assert np.isclose(scores["hausdorff_norm_sum"], expected)
 
 
@@ -445,8 +485,9 @@ def test_score_instance_f1_all_fp():
     assert scores["tp"] == 0
     assert scores["fn"] == 0
     assert scores["fp"] == 2
-    # 2 hallucinated predictions, each a max-distance penalty
+    # 2 hallucinated predictions, no counterpart to measure -> 0 contribution
     assert scores["n_hausdorff"] == 2
+    assert scores["hausdorff_norm_sum"] == 0.0
 
 
 def test_score_instance_f1_all_fn():
@@ -462,8 +503,9 @@ def test_score_instance_f1_all_fn():
     assert scores["tp"] == 0
     assert scores["fp"] == 0
     assert scores["fn"] == 2
-    # 2 missed truth instances, each a max-distance penalty
+    # 2 missed truth instances, no counterpart to measure -> 0 contribution
     assert scores["n_hausdorff"] == 2
+    assert scores["hausdorff_norm_sum"] == 0.0
 
 
 def test_score_instance_empty_vs_empty_contributes_nothing():

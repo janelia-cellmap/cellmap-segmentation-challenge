@@ -84,13 +84,13 @@ def _compute_hausdorff_scores(
         truth_label, pred_label, voxel_size, hausdorff_distance_max, truth_ids=truth_ids
     )
 
-    # Max-distance penalty per unmatched prediction (hallucination).
+    # Infinite-distance penalty per unmatched prediction (hallucination).
     n_unmatched_pred = n_pred - len(set(mapping.keys()) - {0})
     if n_unmatched_pred > 0:
         hausdorff_distances = np.concatenate(
             [
                 hausdorff_distances,
-                np.full(n_unmatched_pred, hausdorff_distance_max, dtype=np.float32),
+                np.full(n_unmatched_pred, np.inf, dtype=np.float32),
             ]
         )
 
@@ -177,7 +177,7 @@ def score_instance(
     fn = gt_count - tp
 
     # Normalize per-instance distances; emit sum/count for per-class pooling.
-    norm = normalize_distance(hausdorff_distances, voxel_size)
+    norm = normalize_distance(hausdorff_distances, voxel_size, hausdorff_distance_max)
     hausdorff_norm_sum = float(np.sum(norm))
     n_hausdorff = int(np.size(norm))
     logging.debug(f"TP={tp}, FP={fp}, FN={fn}, n_hausdorff={n_hausdorff}")
