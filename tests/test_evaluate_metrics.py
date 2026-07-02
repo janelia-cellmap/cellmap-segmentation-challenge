@@ -259,7 +259,7 @@ def test_roi_hausdorff_empty_sets_and_missing_instance():
         voxel_size=voxel_size,
         max_distance=max_distance,
     )
-    assert np.isclose(d1, max_distance)
+    assert np.isinf(d1)
 
 
 def test_roi_hausdorff_clips_to_max_distance_matches_reference():
