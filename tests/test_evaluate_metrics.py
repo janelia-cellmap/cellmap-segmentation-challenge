@@ -405,6 +405,15 @@ def test_normalize_distance_inf_is_zero_regardless_of_voxel_size():
     assert out[1] == 0.0
 
 
+def test_normalize_distance_worst_real_case_hits_floor():
+    from cellmap_segmentation_challenge import evaluate as ev
+
+    for voxel_size, max_distance in [((1.0, 1.0), 10.0), ((32.0, 32.0, 32.0), 1500.0)]:
+        assert np.isclose(
+            ev.normalize_distance(max_distance, voxel_size, max_distance), 0.1
+        )
+
+
 # ------------------------
 # score_instance tests
 # ------------------------
