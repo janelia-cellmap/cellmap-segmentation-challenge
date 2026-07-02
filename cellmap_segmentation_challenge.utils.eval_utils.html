@@ -805,19 +805,22 @@ instances increases, allowing for more tolerance with fewer instances.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.distance.normalize_distance">
-<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.eval_utils.distance.</span></span><span class="sig-name descname"><span class="pre">normalize_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/eval_utils/distance.html#normalize_distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.distance.normalize_distance" title="Link to this definition">#</a></dt>
-<dd><p>Normalize a distance to <code class="docutils literal notranslate"><span class="pre">(0,</span> <span class="pre">1]</span></code> via <code class="docutils literal notranslate"><span class="pre">1.01</span> <span class="pre">**</span> <span class="pre">(-distance</span> <span class="pre">/</span> <span class="pre">||voxel_size||)</span></code>.</p>
-<p>A distance of 0 maps to 1 (perfect) and inf maps to 0. Accepts a scalar or
-an array, returning a float for scalar input and an array otherwise.</p>
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.eval_utils.distance.</span></span><span class="sig-name descname"><span class="pre">normalize_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">floor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/eval_utils/distance.html#normalize_distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.distance.normalize_distance" title="Link to this definition">#</a></dt>
+<dd><p>Normalize a distance to <code class="docutils literal notranslate"><span class="pre">(0,</span> <span class="pre">1]</span></code>, rescaled so the worst real (capped)
+distance maps to <code class="docutils literal notranslate"><span class="pre">floor</span></code> and 0 maps to 1. Infinite distance always maps
+to 0. Accepts a scalar or an array, returning a float for scalar input and
+an array otherwise.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>distance</strong> – Distance value(s), scalar or array.</p></li>
 <li><p><strong>voxel_size</strong> – Physical voxel size.</p></li>
+<li><p><strong>max_distance</strong> – Crop-specific cap used to bound a real matched distance.</p></li>
+<li><p><strong>floor</strong> – Score assigned to a real distance at the max_distance cap.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Normalized score(s) in <code class="docutils literal notranslate"><span class="pre">(0,</span> <span class="pre">1]</span></code>.</p>
+<dd class="field-even"><p>Normalized score(s) in <code class="docutils literal notranslate"><span class="pre">(0,</span> <span class="pre">1]</span></code>, or 0 for infinite distance.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1891,19 +1894,22 @@ Returns {} if no matches found or one side has no instances.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="cellmap_segmentation_challenge.utils.eval_utils.normalize_distance">
-<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.eval_utils.</span></span><span class="sig-name descname"><span class="pre">normalize_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/eval_utils/distance.html#normalize_distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.normalize_distance" title="Link to this definition">#</a></dt>
-<dd><p>Normalize a distance to <code class="docutils literal notranslate"><span class="pre">(0,</span> <span class="pre">1]</span></code> via <code class="docutils literal notranslate"><span class="pre">1.01</span> <span class="pre">**</span> <span class="pre">(-distance</span> <span class="pre">/</span> <span class="pre">||voxel_size||)</span></code>.</p>
-<p>A distance of 0 maps to 1 (perfect) and inf maps to 0. Accepts a scalar or
-an array, returning a float for scalar input and an array otherwise.</p>
+<span class="sig-prename descclassname"><span class="pre">cellmap_segmentation_challenge.utils.eval_utils.</span></span><span class="sig-name descname"><span class="pre">normalize_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">floor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cellmap_segmentation_challenge/utils/eval_utils/distance.html#normalize_distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cellmap_segmentation_challenge.utils.eval_utils.normalize_distance" title="Link to this definition">#</a></dt>
+<dd><p>Normalize a distance to <code class="docutils literal notranslate"><span class="pre">(0,</span> <span class="pre">1]</span></code>, rescaled so the worst real (capped)
+distance maps to <code class="docutils literal notranslate"><span class="pre">floor</span></code> and 0 maps to 1. Infinite distance always maps
+to 0. Accepts a scalar or an array, returning a float for scalar input and
+an array otherwise.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>distance</strong> – Distance value(s), scalar or array.</p></li>
 <li><p><strong>voxel_size</strong> – Physical voxel size.</p></li>
+<li><p><strong>max_distance</strong> – Crop-specific cap used to bound a real matched distance.</p></li>
+<li><p><strong>floor</strong> – Score assigned to a real distance at the max_distance cap.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Normalized score(s) in <code class="docutils literal notranslate"><span class="pre">(0,</span> <span class="pre">1]</span></code>.</p>
+<dd class="field-even"><p>Normalized score(s) in <code class="docutils literal notranslate"><span class="pre">(0,</span> <span class="pre">1]</span></code>, or 0 for infinite distance.</p>
 </dd>
 </dl>
 </dd></dl>
