@@ -235,7 +235,7 @@ def compute_hausdorff_distance_roi(
     if a_n == 0 and b_n == 0:
         return 0.0
     elif a_n == 0 or b_n == 0:
-        return max_distance
+        return float("inf")
 
     vs = np.asarray(voxel_size, dtype=np.float64)
     if vs.size != ndim:
