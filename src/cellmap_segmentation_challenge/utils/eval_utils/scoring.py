@@ -84,13 +84,13 @@ def _compute_hausdorff_scores(
         truth_label, pred_label, voxel_size, hausdorff_distance_max, truth_ids=truth_ids
     )
 
-    # Max-distance penalty per unmatched prediction (hallucination).
+    # Infinite-distance penalty per unmatched prediction (hallucination).
     n_unmatched_pred = n_pred - len(set(mapping.keys()) - {0})
     if n_unmatched_pred > 0:
         hausdorff_distances = np.concatenate(
             [
                 hausdorff_distances,
-                np.full(n_unmatched_pred, hausdorff_distance_max, dtype=np.float32),
+                np.full(n_unmatched_pred, np.inf, dtype=np.float32),
             ]
         )
 
