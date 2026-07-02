@@ -456,8 +456,9 @@ def test_score_instance_f1_all_fp():
     assert scores["tp"] == 0
     assert scores["fn"] == 0
     assert scores["fp"] == 2
-    # 2 hallucinated predictions, each a max-distance penalty
+    # 2 hallucinated predictions, no counterpart to measure -> 0 contribution
     assert scores["n_hausdorff"] == 2
+    assert scores["hausdorff_norm_sum"] == 0.0
 
 
 def test_score_instance_f1_all_fn():
