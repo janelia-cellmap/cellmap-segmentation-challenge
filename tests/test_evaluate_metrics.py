@@ -373,7 +373,7 @@ def test_roi_none_returns_inf(monkeypatch):
         voxel_size=(1.0, 1.0),
         max_distance=max_distance,
     )
-    assert np.isclose(d, max_distance)
+    assert np.isinf(d)
 
 
 def test_optimized_hausdorff_distances_per_instance():
