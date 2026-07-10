@@ -368,6 +368,31 @@
     <span class="k">return</span> <span class="n">hausdorff_distances</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_relabel_predictions_to_truth_ids</span><span class="p">(</span>
+    <span class="n">pred_label</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">mapping</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">n_pred</span><span class="p">:</span> <span class="nb">int</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Relabel matched predictions to their truth IDs and zero unmatched ones.</span>
+
+<span class="sd">    Unmatched predictions are set to background (0) so their connected-component</span>
+<span class="sd">    IDs can&#39;t collide with a real truth ID during Hausdorff scoring.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        pred_label: Predicted instance labels (connected-component IDs 1..n_pred).</span>
+<span class="sd">        mapping: Matched prediction ID -&gt; truth ID.</span>
+<span class="sd">        n_pred: Number of predicted instances.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Prediction volume with matched blobs carrying their truth ID and</span>
+<span class="sd">        unmatched blobs zeroed. Returned unchanged when nothing matched.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mapping</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mapping</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="mi">0</span> <span class="ow">in</span> <span class="n">mapping</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">pred_label</span>
+    <span class="n">remap_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">pid</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">pid</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_pred</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)}</span>
+    <span class="n">remap_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">mapping</span><span class="p">)</span>  <span class="c1"># matched pred -&gt; truth id</span>
+    <span class="n">remap_dict</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="n">remap</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">remap_dict</span><span class="p">,</span> <span class="n">in_place</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">preserve_missing_labels</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+
 <div class="viewcode-block" id="score_instance">
 <a class="viewcode-back" href="../../../../cellmap_segmentation_challenge.utils.eval_utils.html#cellmap_segmentation_challenge.evaluate.score_instance">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">score_instance</span><span class="p">(</span>
@@ -424,12 +449,8 @@
         <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Matching optimization failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">_create_pathological_scores</span><span class="p">(</span><span class="s2">&quot;matching_failed&quot;</span><span class="p">)</span>
 
-    <span class="c1"># Remap predictions to match GT IDs</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mapping</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mapping</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="mi">0</span> <span class="ow">in</span> <span class="n">mapping</span><span class="p">):</span>
-        <span class="n">mapping</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># background maps to background</span>
-        <span class="n">pred_label</span> <span class="o">=</span> <span class="n">remap</span><span class="p">(</span>
-            <span class="n">pred_label</span><span class="p">,</span> <span class="n">mapping</span><span class="p">,</span> <span class="n">in_place</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">preserve_missing_labels</span><span class="o">=</span><span class="kc">True</span>
-        <span class="p">)</span>
+    <span class="c1"># Relabel matched predictions to truth IDs; zero unmatched ones.</span>
+    <span class="n">pred_label</span> <span class="o">=</span> <span class="n">_relabel_predictions_to_truth_ids</span><span class="p">(</span><span class="n">pred_label</span><span class="p">,</span> <span class="n">mapping</span><span class="p">,</span> <span class="n">n_pred</span><span class="p">)</span>
 
     <span class="c1"># Non-zero ground-truth ids, computed once and shared with the Hausdorff step.</span>
     <span class="n">truth_ids</span> <span class="o">=</span> <span class="n">unique</span><span class="p">(</span><span class="n">truth_label</span><span class="p">)</span>
