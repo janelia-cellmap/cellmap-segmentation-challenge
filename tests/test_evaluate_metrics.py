@@ -550,6 +550,22 @@ def test_score_instance_f1_partial_match():
     assert scores["n_hausdorff"] == 4
 
 
+def test_relabel_predictions_zeroes_unmatched():
+    """Matched predictions take their truth ID; unmatched ones become 0 (so their
+    IDs can't collide with a real truth ID during Hausdorff scoring)."""
+    from cellmap_segmentation_challenge.utils.eval_utils.scoring import (
+        _relabel_predictions_to_truth_ids,
+    )
+
+    # cc3d-style prediction: blob 1 matched to truth 7, blob 2 unmatched
+    pred = np.array([[1, 1, 0, 0], [0, 0, 0, 0], [0, 0, 2, 2]], dtype=np.int64)
+    out = _relabel_predictions_to_truth_ids(pred.copy(), mapping={1: 7}, n_pred=2)
+
+    assert set(np.unique(out).tolist()) == {0, 7}
+    assert (out[0, 0:2] == 7).all()  # matched blob -> truth id
+    assert (out[2, 2:4] == 0).all()  # unmatched blob -> background
+
+
 # ------------------------
 # score_semantic tests
 # ------------------------

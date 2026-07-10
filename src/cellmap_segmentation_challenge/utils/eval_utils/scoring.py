@@ -97,6 +97,31 @@ def _compute_hausdorff_scores(
     return hausdorff_distances
 
 
+def _relabel_predictions_to_truth_ids(
+    pred_label: np.ndarray, mapping: dict[int, int], n_pred: int
+) -> np.ndarray:
+    """Relabel matched predictions to their truth IDs and zero unmatched ones.
+
+    Unmatched predictions are set to background (0) so their connected-component
+    IDs can't collide with a real truth ID during Hausdorff scoring.
+
+    Args:
+        pred_label: Predicted instance labels (connected-component IDs 1..n_pred).
+        mapping: Matched prediction ID -> truth ID.
+        n_pred: Number of predicted instances.
+
+    Returns:
+        Prediction volume with matched blobs carrying their truth ID and
+        unmatched blobs zeroed. Returned unchanged when nothing matched.
+    """
+    if len(mapping) == 0 or (len(mapping) == 1 and 0 in mapping):
+        return pred_label
+    remap_dict = {pid: 0 for pid in range(1, n_pred + 1)}
+    remap_dict.update(mapping)  # matched pred -> truth id
+    remap_dict[0] = 0
+    return remap(pred_label, remap_dict, in_place=True, preserve_missing_labels=False)
+
+
 def score_instance(
     pred_label,
     truth_label,
@@ -151,12 +176,8 @@ def score_instance(
         logging.error(f"Matching optimization failed: {e}")
         return _create_pathological_scores("matching_failed")
 
-    # Remap predictions to match GT IDs
-    if len(mapping) > 0 and not (len(mapping) == 1 and 0 in mapping):
-        mapping[0] = 0  # background maps to background
-        pred_label = remap(
-            pred_label, mapping, in_place=True, preserve_missing_labels=True
-        )
+    # Relabel matched predictions to truth IDs; zero unmatched ones.
+    pred_label = _relabel_predictions_to_truth_ids(pred_label, mapping, n_pred)
 
     # Non-zero ground-truth ids, computed once and shared with the Hausdorff step.
     truth_ids = unique(truth_label)
